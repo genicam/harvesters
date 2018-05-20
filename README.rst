@@ -1,8 +1,17 @@
-.. image:: harvester.png
-    :alt: Harvester
-
 #########
 Harvester
 #########
 
-Harvester is a Python front-end API that consumes the GenTL Standard based image acquisition libraries, so-called GenTL Producers.
+Harvester is a Python library that consumes the GenTL Standard based image acquisition libraries, so-called GenTL Producers. If you have a GenTL Producer and GenICam compliant machine vision cameras, Harvester offers you high-performance image acquisition from the cameras and visualization of the acquired images. In addition, it offers you interface for numpy to make image processing easier and productive.
+
+Harvester is a friendly companion for people who those want to lean computer vision.
+
+Currently, Harvester is GPL-3.0 licensed.
+
+.. figure:: harvester.png
+    :align: center
+    :alt: Harvester
+    :scale: 55 %
+
+(Detail) Pieter Bruegel the Elder, The Harvesters, 1565, oil on wood (Metropolitan Museum of Art)
+

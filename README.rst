@@ -8,7 +8,7 @@ The Harvester project develops an open source Python library that consumes the G
 
 Currently, Harvester is GPL-3.0 licensed and it has been developed and maintained by the volunteer contributors all over the world.
 
-.. figure:: harvester.png
+.. figure:: image/readme/harvester.png
     :align: center
     :alt: Harvester
     :scale: 55 %

@@ -15,6 +15,17 @@ Currently, Harvester is GPL-3.0 licensed and it has been developed and maintaine
 
 (Detail) Pieter Bruegel the Elder, The Harvesters, 1565, oil on wood (Metropolitan Museum of Art)
 
+********
+Features
+********
+
+* Image acquisition over GenTL Producers
+* Multiple loading of GenTL Producers in a single Python script
+* Data visualization of the acquired images
+* GenICam node manipulation of the target device
+
+Note that the second item implies you can involve multiple types of transport layers in your Python script. It means you don't have to care anything about how the images are transmitted. Each transport layer has own advantages and disadvantages and you should choose appropriate transport layers following your application's requirement. You just need to acquire images for some purposes and the GenTL Producers deliver the images somehow. It truly is the great benefit of encapsulation by the GenTL Standard!
+
 ###########
 Screenshots
 ###########

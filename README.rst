@@ -26,6 +26,16 @@ Features
 
 Note that the second item implies you can involve multiple types of transport layers in your Python script. It means you don't have to care anything about how the images are transmitted. Each transport layer has own advantages and disadvantages and you should choose appropriate transport layers following your application's requirement. You just need to acquire images for some purposes and the GenTL Producers deliver the images somehow. It truly is the great benefit of encapsulation by the GenTL Standard!
 
+################################
+What would harvester do for you?
+################################
+
+*****************
+Image acquisition
+*****************
+
+Harvester is an image acquisition engine that is written in Python. You should be able to manipulate the acquired images for image processing purpose just involving Harvester into your program. A set of Harvester, a certified GenTL Producer, and a GenICam compliant machine vision camera is the minimal setup. Having that configuration, it allows you to work on a command shell or to run your image processing script.
+
 ###########
 Screenshots
 ###########

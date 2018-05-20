@@ -15,3 +15,11 @@ Currently, Harvester is GPL-3.0 licensed.
 
 (Detail) Pieter Bruegel the Elder, The Harvesters, 1565, oil on wood (Metropolitan Museum of Art)
 
+######################################
+Why did we name the library Harvester?
+######################################
+
+Harvester's name was derived from the great Flemish painter, Pieter Bruegel the Elder's painting so-called "The Harvesters". Harvesters harvest a crop every season that has been fully grown and the harvested crop is passed to the consumers. On the other hand, image acquisition libraries acquire images as their crop and the images are passed to the following processes. We found the similarity between them and decided to name our library Harvester.
+
+Apart from anything else, we love its peaceful and friendly name. We hope you also like it ;-)
+

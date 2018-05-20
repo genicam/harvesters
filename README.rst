@@ -70,7 +70,7 @@ The attribute controller widget (below) offers you to manipulate GenICam feature
 .. figure:: image/readme/attribute_controller.png
     :align: center
     :alt: Attribute Controller
-    :scale: 55 %
+    :scale: 45 %
 
 ######################################
 Why did we name the library Harvester?

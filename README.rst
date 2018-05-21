@@ -68,9 +68,10 @@ The image visualizer widget (below) offers you visualization of the acquired ima
 The attribute controller widget (below) offers you to manipulate GenICam feature nodes of the target device. Changing exposure time, triggering the target device for image acquisition, storing a set of camera configuration so-called User Set, etc, you can manually control the target device anytime when you want to.
 
 .. image:: image/readme/attribute_controller.png
+    :width: 667
+    :height: 519
     :align: center
     :alt: Attribute Controller
-    :scale: 35 %
 
 ######################################
 Why did we name the library Harvester?

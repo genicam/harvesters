@@ -8,12 +8,12 @@ The Harvester project develops an open source Python library that consumes the G
 
 Currently, Harvester is GPL-3.0 licensed and it has been developed and maintained by the volunteer contributors all over the world.
 
-.. figure:: image/readme/harvester.png
+.. figure:: image/readme/harvesters.jpg
     :align: center
-    :alt: Harvester
+    :alt: The Harvesters
     :scale: 55 %
 
-(Detail) Pieter Bruegel the Elder, The Harvesters, 1565, oil on wood (Metropolitan Museum of Art)
+Pieter Bruegel the Elder, The Harvesters, 1565, oil on wood (Metropolitan Museum of Art)
 
 ********
 Features

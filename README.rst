@@ -60,14 +60,14 @@ In this section, we see some useful GUI which Harvester offers you.
 
 The image visualizer widget (below) offers you visualization of the acquired images. In this screenshot, Harvester is acquiring a 4000 x 3000 pixel of RGB8 Packed image at 30 fps; it means it's acquiring images at 8.6 Gbps.
 
-.. figure:: image/readme/image_visualizer.png
+.. image:: image/readme/image_visualizer.png
     :align: center
     :alt: Image Visualizer
     :scale: 40 %
 
 The attribute controller widget (below) offers you to manipulate GenICam feature nodes of the target device. Changing exposure time, triggering the target device for image acquisition, storing a set of camera configuration so-called User Set, etc, you can manually control the target device anytime when you want to.
 
-.. figure:: image/readme/attribute_controller.png
+.. image:: image/readme/attribute_controller.png
     :align: center
     :alt: Attribute Controller
     :scale: 35 %

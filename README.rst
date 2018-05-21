@@ -13,7 +13,9 @@ Currently, Harvester is GPL-3.0 licensed and it has been developed and maintaine
     :alt: The Harvesters
     :scale: 55 %
 
-Pieter Bruegel the Elder, The Harvesters, 1565, oil on wood (Metropolitan Museum of Art)
+    Pieter Bruegel the Elder, The Harvesters, 1565, oil on wood
+
+    © 2000–2018 The Metropolitan Museum of Art
 
 ********
 Features

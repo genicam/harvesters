@@ -15,16 +15,46 @@ Currently, Harvester is GPL-3.0 licensed and it has been developed and maintaine
 
     Pieter Bruegel the Elder, The Harvesters, 1565, oil on wood, © 2000–2018 The Metropolitan Museum of Art
 
-********
-Features
-********
+################################
+What would harvester do for you?
+################################
+
+Harvester mainly consists of two Python modules, one is an image acquisition engine Harvester Core and the other is GUI, Harvester GUI. In this section, we learn what Harvester offer us.
+
+**************
+Harvester Core
+**************
+
+Harvester Core is an image acquisition engine. No GUI. It acquires images from GenTL Producers through the GenTL-Python Binding. You'll be able to download the GenTL-Python Binding runtime library from the EMVA website but it's not available as of May 25th, 2018, because it's not officially released.
+
+Harvester Core also works with the GenApi-Python Binding and it will allow us to control GenICam feature nodes. If you don't need runtime image data visualization, just involve this Python module in your program. In this case, Matplotlib would be ideal for you to draw the acquired images.
+
+The main features of Harvester Core are listed as follows:
 
 * Image acquisition over GenTL Producers
 * Multiple loading of GenTL Producers in a single Python script
-* Data visualization of the acquired images
 * GenICam node manipulation of the target device
 
 Note that the second item implies you can involve multiple types of transport layers in your Python script. It means you don't have to care anything about how the images are transmitted. Each transport layer has own advantages and disadvantages and you should choose appropriate transport layers following your application's requirement. You just need to acquire images for some purposes and the GenTL Producers deliver the images somehow. It truly is the great benefit of encapsulation by the GenTL Standard!
+
+On the other hand, Harvester Core could be called a simplified version of the GenTL-Python Binding. It just offers you a relationship between you and a device. Nothing more. If you need to manipulate more relevant GenTL modules or go on a hardcore stuff, you should directly involve the GenTL-Python Binding.
+
+*************
+Harvester GUI
+*************
+
+Harvester GUI works on the top of Harvester Core and offers you high-performance data visualization on the fly. It involves VisPy for controlling OpenGL functionality and PyQt for providing GUI.
+
+The main features of Harvester GUI are listed as follows:
+
+* Data visualization of the acquired images
+* Zooming-in/-out using mouse wheel or trackpad
+* Image dragging using mouse or trackpad
+* An arbitrary selection of image displaying point in the data path (Not implemented yet)
+
+Unlike Harvester Core, Harvester GUI limits the number of GenTL Producers to load is just one. This is just a limitation to not make the GUI complicated. In general, the user should know which GenTL Producer should be loaded to control his target device. It's not necessary to load multiple GenTL Producers for this use case. However, this is just an idea in an early stage. We might support multiple loading on even Harvester GUI in the future.
+
+Note that VisPy is BSD licensed but PyQt is GPL/Commercial licensed.
 
 *******************
 System requirements
@@ -41,16 +71,6 @@ Supported operating systems
 * macOS
 * Ubuntu
 * Windows 7
-
-################################
-What would harvester do for you?
-################################
-
-*****************
-Image acquisition
-*****************
-
-Harvester is an image acquisition engine that is written in Python. You should be able to manipulate the acquired images for image processing purpose just involving Harvester into your program. A set of Harvester, a certified GenTL Producer, and a GenICam compliant machine vision camera is the minimal setup. Having that configuration, it allows you to work on a command shell or to run your image processing script.
 
 ###########
 Screenshots
@@ -72,9 +92,17 @@ The attribute controller widget (below) offers you to manipulate GenICam feature
     :alt: Attribute Controller
     :scale: 40 %
 
-######################################
-Why did we name the library Harvester?
-######################################
+
+The following screenshot shows Harvester Core is running on IPython. Harvester Core returns the latest image data at the moment as a Numpy array every time its user call the ``latest_image`` property. Once you get an image you should be able to immediately start image processing! If you're running on Jupyter notebook, you should be able to visualize the data using Matplotlib.
+
+.. image:: image/readme/harvester_on_ipython.png
+    :align: center
+    :alt: Attribute Controller
+    :scale: 40 %
+
+####################################
+Why is the library called Harvester?
+####################################
 
 Harvester's name was derived from the great Flemish painter, Pieter Bruegel the Elder's painting so-called "The Harvesters". Harvesters harvest a crop every season that has been fully grown and the harvested crop is passed to the consumers. On the other hand, image acquisition libraries acquire images as their crop and the images are passed to the following processes. We found the similarity between them and decided to name our library Harvester.
 
@@ -84,7 +112,7 @@ Apart from anything else, we love its peaceful and friendly name. We hope you al
 Contributors
 ############
 
-The initial idea about Harvester was suddenly come up to Kazunari Kudo's head in the early April 2018 and he decided to bring the first prototype to the following International Vision Standards Meeting. During the Frankfurt International Vision Standards Meeting which was held in May 2018, people confirmed Harvester really worked using machine vision cameras provided by well-known machine vision camera manufacturers in the world. Having that fact, the attendees warmly welcomed Harvester.
+The initial idea about Harvester suddenly came up to Kazunari Kudo's head in the early April 2018 and he decided to bring the first prototype to the following International Vision Standards Meeting. During the Frankfurt International Vision Standards Meeting which was held in May 2018, people confirmed Harvester really worked using machine vision cameras provided by well-known machine vision camera manufacturers in the world. Having that fact, the attendees warmly welcomed Harvester.
 
 The following individuals have directly or indirectly contributed to the development activity of Harvester or encouraged the developers by their thoughtful warm words:
 

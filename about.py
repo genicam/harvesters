@@ -21,9 +21,11 @@
 import sys
 
 # Related third party imports
+from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter, QPixmap
 from PyQt5.QtWidgets import QDialog, QApplication, QPlainTextEdit, \
-    QVBoxLayout, QHBoxLayout, QLineEdit, QFrame
+    QVBoxLayout, QHBoxLayout, QLineEdit, QFrame, QPushButton, \
+    QTextEdit
 
 # Local application/library specific imports
 from system import get_system_font
@@ -54,7 +56,7 @@ class TransparentLineEdit(QLineEdit):
         self.setFrame(False)
 
 
-class TransparentTextEdit(QPlainTextEdit):
+class TransparentTextEdit(QTextEdit):
     def __init__(self, text):
         #
         super().__init__(text)
@@ -64,48 +66,36 @@ class TransparentTextEdit(QPlainTextEdit):
         self.setStyleSheet('background: rgb(0, 0, 0, 0%)')
         self.setLineWrapMode(True)
         self.setFrameStyle(QFrame.NoFrame)
+        self.setAlignment(Qt.AlignCenter)
 
 
 class About(QDialog):
-    indent = '    '
-
     def __init__(self, parent_widget=None):
         #
         super().__init__(parent_widget)
 
         #
+        self.setWindowTitle('About Harvester')
+
+        #
         self._parent_widget = parent_widget
 
         #
-        self._license = ''
-        self._initialize_license()
-
-        #
         layout_main = QVBoxLayout()
-        layout_text_boxes = QVBoxLayout()
+        layout_textual_info = QVBoxLayout()
         layout_image = QHBoxLayout()
 
         #
-        content = 'Pieter Bruegel the Elder, The Harvesters\n'
-        content += '(c) 2000–2018 The Metropolitan Museum of Arts\n'
-        content += '\n'
+        self._button_acknowledgements = QPushButton()
+        self._button_acknowledgements.setText('Acknowledgements')
+        self._button_acknowledgements.clicked.connect(self._handle_open_dialog)
 
         #
-        content += 'Harvester ' + __version__ + '\n'
-        content += '\n'
+        text_version = TransparentLineEdit('Version' + __version__)
+        text_copyright = TransparentLineEdit('Copyright (c) 2018 EMVA')
 
-        #
-        content += self._license
-        content += '\n'
-
-        #
-        content += 'The Harvester GUI uses the following libraries/resources:\n'
-        content += 'VisPy (http://vispy.org/)\n'
-        content += 'PyQt5 (https://www.riverbankcomputing.com/software/pyqt/intro/)\n'
-        content += 'Icons8 (https://icons8.com/)'
-
-        text_about_harvester = TransparentTextEdit(content)
-        layout_text_boxes.addWidget(text_about_harvester)
+        layout_textual_info.addWidget(text_version)
+        layout_textual_info.addWidget(text_copyright)
 
         #
         image = DecoratedDialog()
@@ -117,26 +107,61 @@ class About(QDialog):
 
         #
         layout_main.addLayout(layout_image)
-        layout_main.addLayout(layout_text_boxes)
-        self.setLayout(layout_main)
-        self.setFixedHeight(750)
+        layout_main.addLayout(layout_textual_info)
+        layout_main.addWidget(self._button_acknowledgements)
 
         #
-        self.setWindowTitle('About Harvester')
+        self.setLayout(layout_main)
+
+        #
+        self._acknowledgements = Acknowledgements(self)
+        self._acknowledgements.setModal(True)
 
     def _get_version_info(self):
         return 'Version ' + self._parent_widget.version
 
-    def _initialize_license(self):
-        try:
-            with open('LICENSE') as f:
-                for line in f:
-                    self._license += line
-                self._license += '\n'
-        except FileNotFoundError as e:
-            self._license += 'WARNING: This is ILLEGAL becuase '
-            self._license += 'the LICENSE file can\'t be found. '
-            self._license += 'The file must be placed in an appropriate place.\n'
+    def _handle_open_dialog(self):
+        self._acknowledgements.show()
+
+
+class Acknowledgements(QDialog):
+    def __init__(self, parent=None):
+        #
+        super().__init__()
+
+        #
+        self.setWindowTitle('Acknowledgements')
+
+        #
+        layout = QVBoxLayout(self)
+
+        #
+        content = 'Cover Drawing:\n'
+        content += '\n'
+        content += 'Pieter Bruegel the Elder, The Harvesters\n'
+        content += 'Copyright (c) 2000–2018 The Metropolitan Museum of Arts\n'
+        content += '\n'
+        content += 'Open Source Libraries/Resources:\n'
+        content += '\n'
+        content += 'VisPy (BSD)\n'
+        content += 'Copyright (c) 2013-2018 VisPy developers\n'
+        content += 'http://vispy.org/\n'
+        content += '\n'
+        content += 'PyQt5 (GPL)\n'
+        content += 'Copyright (c) 2018 Riverbank Computing Limited\n'
+        content += 'https://www.riverbankcomputing.com\n'
+        content += '\n'
+        content += 'Icons8\n'
+        content += 'https://icons8.com/'
+
+        self._text = QPlainTextEdit(content)
+        self._text.setReadOnly(True)
+        self._text.setFont(get_system_font())
+        self._text.setLineWrapMode(True)
+        self._text.setFixedWidth(480)
+
+        layout.addWidget(self._text)
+        self.setLayout(layout)
 
 
 if __name__ == '__main__':

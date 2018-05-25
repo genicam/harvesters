@@ -132,7 +132,7 @@ After that, you'll have to build the Python bindings by yourself; once they're o
 
 The source code can be downloaded from the following URL using Subversion:
 
-    ``https://genicam.mvtec.com/svn/genicam/branches/_dev_teli_kazunari_1881_20180121/``
+    https://genicam.mvtec.com/svn/genicam/branches/_dev_teli_kazunari_1881_20180121/
 
 To build the library, please read the README file which is located at the following directory in the source package:
 

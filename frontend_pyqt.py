@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------------
 #
-# Copyright 2018, EMVA
+# Copyright 2018 EMVA
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -372,7 +372,7 @@ class ActionConnect(Action):
             self.parent_widget._widget_attribute_controller = \
                 AttributeController(
                     self.parent_widget.harvester_core.node_map,
-                parent=self.parent_widget
+                    parent=self.parent_widget
                 )
 
     def update(self):
@@ -469,9 +469,6 @@ class ActionShowDevAttribute(Action):
     def __init__(self, parent_widget, icon, title):
         #
         super().__init__(parent_widget, icon, title)
-
-        #
-        self._is_modal = False
 
     def _execute(self):
         self.parent_widget.attribute_controller.show()

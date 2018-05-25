@@ -44,7 +44,7 @@ from port import ConcretePort
 from processor import Processor
 
 
-__version__= '1.0.0, ' + 'Y2018.M06.D25'
+__version__= '1.0.0, ' + 'Y2018.M05.D25'
 
 
 class ImageAcquisitionThread(QThread):

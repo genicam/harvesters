@@ -70,7 +70,7 @@ Supported operating systems
 
 * macOS
 * Ubuntu
-* Windows 7
+* Windows
 
 ###########
 Screenshots
@@ -179,7 +179,7 @@ Now it is the time to select a GenTL Producer to load. In the toolbar, clicking 
 Toolbar
 *******
 
-Most of Harvester GUI's features can be used through its toolbox. In this section, we describe each button's functionality and how to use it.
+Most of Harvester GUI's features can be used through its toolbox. In this section, we describe each button's functionality and how to use it. Regarding shortcut keys, replace ``Ctrl`` with ``Command`` on macOS.
 
 ====================
 Selecting a CTI file
@@ -190,7 +190,7 @@ Selecting a CTI file
     :alt: Open file
     :scale: 40 %
 
-This button is used to select a GenTL Producer file to load. The shortcut key is ``Ctrl/Command+o``.
+This button is used to select a GenTL Producer file to load. The shortcut key is ``Ctrl+o``.
 
 ==========================
 Updating GenTL information
@@ -201,7 +201,7 @@ Updating GenTL information
     :alt: Update
     :scale: 40 %
 
-This button is used to update GenTL information of the GenTL Producer that you are loading on Harvester. The shortcut key is ``Ctrl/Command+u``. It might be useful when you newly connect a device to your system.
+This button is used to update GenTL information of the GenTL Producer that you are loading on Harvester. The shortcut key is ``Ctrl+u``. It might be useful when you newly connect a device to your system.
 
 ====================================
 Selecting a GenICam compliant device
@@ -218,7 +218,7 @@ Connecting a selected device to Harvester
     :alt: Connect
     :scale: 40 %
 
-This button is used to connect a device which is being selected by the former combo box. The shortcut key is ``Ctrl/Command+c``. Once you connect the device, the device is exclusively controlled.
+This button is used to connect a device which is being selected by the former combo box. The shortcut key is ``Ctrl+c``. Once you connect the device, the device is exclusively controlled.
 
 ==================================================
 Disconnecting the connecting device from Harvester
@@ -229,7 +229,7 @@ Disconnecting the connecting device from Harvester
     :alt: Disconnect
     :scale: 40 %
 
-This button is used to disconnect the connecting device from Harvester. The shortcut key is ``Ctrl/Command+d``.
+This button is used to disconnect the connecting device from Harvester. The shortcut key is ``Ctrl+d``.
 
 ==========================
 Starting image acquisition
@@ -240,7 +240,7 @@ Starting image acquisition
     :alt: Start image acquisition
     :scale: 40 %
 
-This button is used to start image acquisition. The shortcut key is ``Ctrl/Command+j``. The acquired images will be drawing in the following canvas pane.
+This button is used to start image acquisition. The shortcut key is ``Ctrl+j``. The acquired images will be drawing in the following canvas pane.
 
 =====================
 Pausing image drawing
@@ -251,7 +251,7 @@ Pausing image drawing
     :alt: Pause
     :scale: 40 %
 
-This button is used to temporarily stop drawing images on the canvas pane while it's keep acquiring images in the background. The shortcut key is ``Ctrl/Command+k``. If you want to restart drawing images, just click the button again.
+This button is used to temporarily stop drawing images on the canvas pane while it's keep acquiring images in the background. The shortcut key is ``Ctrl+k``. If you want to restart drawing images, just click the button again.
 
 ==========================
 Stopping image acquisition
@@ -262,7 +262,7 @@ Stopping image acquisition
     :alt: Stop image acquisition
     :scale: 40 %
 
-This button is used to stop image acquisition. The shortcut key is ``Ctrl/Command+l``.
+This button is used to stop image acquisition. The shortcut key is ``Ctrl+l``.
 
 ===================================
 Showing the device attribute dialog
@@ -273,7 +273,7 @@ Showing the device attribute dialog
     :alt: Device attribute
     :scale: 40 %
 
-This button is used to show the device attribute dialog. The shortcut key is ``Ctrl/Command+a``. The device attribute dialog offers you to a way to intuitively control device attribute over a GUI.
+This button is used to show the device attribute dialog. The shortcut key is ``Ctrl+a``. The device attribute dialog offers you to a way to intuitively control device attribute over a GUI.
 
 ========================
 Showing the about dialog

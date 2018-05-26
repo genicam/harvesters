@@ -25,13 +25,15 @@ Table of contents
 What would Harvester do for you?
 ################################
 
-Harvester mainly consists of two Python modules, one is an image acquisition engine Harvester Core and the other is GUI, Harvester GUI. In this section, we learn what Harvester offer us.
+Harvester mainly consists of two Python modules, one is an image acquisition engine Harvester Core and the other is GUI, Harvester GUI. In this section, we will learn what Harvester offers us.
 
 **************
 Harvester Core
 **************
 
-Harvester Core is an image acquisition engine. No GUI. It acquires images from GenTL Producers through the GenTL-Python Binding. You'll be able to download the GenTL-Python Binding runtime library from the EMVA website but it's not available as of May 25th, 2018, because it's not officially released.
+Harvester Core is an image acquisition engine. No GUI. You can use it as an image acquisition library which acquires images from GenTL Producers through the GenTL-Python Binding.
+
+You'll be able to download the GenTL-Python Binding runtime library from the EMVA website, however, it's not available as of May 25th, 2018, because it's not officially released yet.
 
 Harvester Core also works with the GenApi-Python Binding and it will allow us to control GenICam feature nodes. If you don't need runtime image data visualization, just involve this Python module in your program. In this case, Matplotlib would be ideal for you to draw the acquired images.
 
@@ -43,7 +45,7 @@ The main features of Harvester Core are listed as follows:
 
 Note that the second item implies you can involve multiple types of transport layers in your Python script. It means you don't have to care anything about how the images are transmitted. Each transport layer has own advantages and disadvantages and you should choose appropriate transport layers following your application's requirement. You just need to acquire images for some purposes and the GenTL Producers deliver the images somehow. It truly is the great benefit of encapsulation by the GenTL Standard!
 
-On the other hand, Harvester Core could be called a simplified version of the GenTL-Python Binding. It just offers you a relationship between you and a device. Nothing more. If you need to manipulate more relevant GenTL modules or go on a hardcore stuff, you should directly involve the GenTL-Python Binding.
+On the other hand, Harvester Core could be considered as a simplified version of the GenTL-Python Binding. It just offers you a relationship between you and a device. Nothing more. If you need to manipulate more relevant GenTL modules or have to go in a hardcore way, then you should directly involve the GenTL-Python Binding.
 
 *************
 Harvester GUI
@@ -84,22 +86,21 @@ Screenshots
 
 In this section, we see some useful GUI which Harvester offers you.
 
-The image visualizer widget (below) offers you visualization of the acquired images. In this screenshot, Harvester is acquiring a 4000 x 3000 pixel of RGB8 Packed image at 30 fps; it means it's acquiring images at 8.6 Gbps.
+The image visualizer widget (below) offers you a visualization of the acquired images. In this screenshot, Harvester is acquiring a 4000 x 3000 pixel of RGB8 Packed image at 30 fps; it means it's acquiring images at 8.6 Gbps. It's quite fast isn't it?
 
 .. image:: image/readme/image_visualizer.png
     :align: center
     :alt: Image Visualizer
     :scale: 40 %
 
-The attribute controller widget (below) offers you to manipulate GenICam feature nodes of the target device. Changing exposure time, triggering the target device for image acquisition, storing a set of camera configuration so-called User Set, etc, you can manually control the target device anytime when you want to.
+The attribute controller widget (below) offers you to manipulate GenICam feature nodes of the target device. Changing exposure time, triggering the target device for image acquisition, storing a set of camera configuration so-called User Set, etc, you can manually control the target device anytime when you want to. It supports visibility filter feature and regular expression feature. These features are useful in a case where you need to display only the features you are interested.
 
 .. image:: image/readme/attribute_controller.png
     :align: center
     :alt: Attribute Controller
     :scale: 40 %
 
-
-The following screenshot shows Harvester Core is running on IPython. Harvester Core returns the latest image data at the moment as a Numpy array every time its user call the ``latest_image`` property. Once you get an image you should be able to immediately start image processing! If you're running on Jupyter notebook, you should be able to visualize the data using Matplotlib.
+The following screenshot shows Harvester Core is running on IPython. Harvester Core returns the latest image data at the moment as a Numpy array every time its user call the ``latest_image`` property. Once you get an image you should be able to immediately start image processing! If you're running on Jupyter notebook, you should be able to visualize the data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
 .. image:: image/readme/harvester_on_ipython.png
     :align: center

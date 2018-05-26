@@ -87,8 +87,7 @@ Currently Harvester GUI supports the following pixel formats that are defined by
 
 * Mono8
 * RGB8 and RGB8Packed
-* BayerRG8, BayerGR8, BayerBG8, and BayerGB8
-    | It displays them in the raw format. No demosaicing supported.
+* BayerRG8, BayerGR8, BayerBG8, and BayerGB8 (No demosaicing supported)
 
 *******************
 System requirements

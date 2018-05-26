@@ -48,7 +48,7 @@ Harvester GUI works on the top of Harvester Core and offers you high-performance
 The main features of Harvester GUI are listed as follows:
 
 * Data visualization of the acquired images
-* Zooming-in/-out using mouse wheel or trackpad
+* Image magnification using mouse wheel or trackpad
 * Image dragging using mouse or trackpad
 * An arbitrary selection of image displaying point in the data path (Not implemented yet)
 

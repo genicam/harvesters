@@ -46,7 +46,7 @@ class Canvas(app.Canvas):
         )
 
         #
-        self._zooming_ratio = 1.
+        self._magnification = 1.
         self._has_filled_texture = False
 
         #
@@ -128,7 +128,7 @@ class Canvas(app.Canvas):
         self._height = height
 
         #
-        self.apply_zoom()
+        self.apply_magnification()
 
     def on_draw(self, event):
         #
@@ -159,15 +159,15 @@ class Canvas(app.Canvas):
             self.swap_buffers()
 
     def on_resize(self, event):
-        self.apply_zoom()
+        self.apply_magnification()
 
-    def apply_zoom(self, swap_buffers=True):
+    def apply_magnification(self, swap_buffers=True):
         #
         canvas_w, canvas_h = self.physical_size
         gloo.set_viewport(0, 0, canvas_w, canvas_h)
 
         #
-        ratio = self._zooming_ratio
+        ratio = self._magnification
         w, h = self._width, self._height
 
         self._program['u_projection'] = ortho(
@@ -203,9 +203,9 @@ class Canvas(app.Canvas):
         translate = min(power * stride, translate)
         translate = max(-power * stride, translate)
         self._translate = translate
-        self._zooming_ratio = 2 ** (self._translate / stride)
+        self._magnification = 2 ** (self._translate / stride)
         if self._latest_translate != self._translate:
-            self.apply_zoom(False)
+            self.apply_magnification(False)
             self._latest_translate = self._translate
 
     def on_mouse_press(self, event):
@@ -217,12 +217,12 @@ class Canvas(app.Canvas):
 
     def on_mouse_move(self, event):
         if self._is_dragging:
-            ratio = self._zooming_ratio
+            ratio = self._magnification
             delta = event.pos - self._origin
             self._origin = event.pos
             self._coordinate[0] -= (delta[0] * ratio)
             self._coordinate[1] += (delta[1] * ratio)
-            self.apply_zoom(False)
+            self.apply_magnification(False)
 
     def stop_drawing(self):
         self._timer.stop()

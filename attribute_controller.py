@@ -140,12 +140,20 @@ class AttributeController(QMainWindow):
 
         #
         button_expand_all = ActionExpandAll(self, Icon('expand_all.png'), 'Expand All')
-        button_expand_all.setToolTip('Expand the node tree')
+        shortcut_key = 'Ctrl+e'
+        button_expand_all.setToolTip(
+            'Expand the node tree', shortcut_key
+        )
+        button_expand_all.setShortcut(shortcut_key)
         button_expand_all.toggle()
 
         #
         button_collapse_all = ActionCollapseAll(self, Icon('collapse_all.png'), 'Collapse All')
-        button_collapse_all.setToolTip('Collapse the node tree')
+        shortcut_key = 'Ctrl+c'
+        button_collapse_all.setToolTip(
+            'Collapse the node tree', shortcut_key
+        )
+        button_collapse_all.setShortcut(shortcut_key)
         button_collapse_all.toggle()
 
         #

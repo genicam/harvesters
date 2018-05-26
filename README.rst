@@ -89,22 +89,6 @@ Currently Harvester GUI supports the following pixel formats that are defined by
 * RGB8 and RGB8Packed
 * BayerRG8, BayerGR8, BayerBG8, and BayerGB8 (No demosaicing supported)
 
-*******************
-System requirements
-*******************
-
-* Python 3.4 or higher
-* Officially certifiled GenTL Producers
-* GenICam compliant machine vision cameras
-
-***************************
-Supported operating systems
-***************************
-
-* macOS
-* Ubuntu
-* Windows
-
 ***********
 Screenshots
 ***********
@@ -131,6 +115,26 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
     :align: center
     :alt: Attribute Controller
     :scale: 40 %
+
+############
+Requirements
+############
+
+*******************
+System requirements
+*******************
+
+* Python 3.4 or higher
+* Officially certifiled GenTL Producers
+* GenICam compliant machine vision cameras
+
+***************************
+Supported operating systems
+***************************
+
+* macOS
+* Ubuntu
+* Windows
 
 ############
 Installation

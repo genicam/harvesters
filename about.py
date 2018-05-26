@@ -149,9 +149,10 @@ class Acknowledgements(QDialog):
         content += '\n'
         content += 'PyQt5 (GPL)\n'
         content += 'Copyright (c) 2018 Riverbank Computing Limited\n'
-        content += 'https://www.riverbankcomputing.com\n'
+        content += 'https://www.riverbankcomputing.com/\n'
         content += '\n'
         content += 'Icons8\n'
+        content += 'Copyright (c) Icons8 LLC\n'
         content += 'https://icons8.com/'
 
         self._text = QPlainTextEdit(content)

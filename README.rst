@@ -305,6 +305,27 @@ Harvester Core
 
 TODO: Finish writing article.
 
+################
+Acknowledgements
+################
+
+Harvester GUI (but not Harvester Core) uses the following open source libraries/resources.
+
+* VisPy (BSD)
+
+    | Copyright (c) 2013-2018 VisPy developers
+    | http://vispy.org/
+        
+* PyQt5 (GPL)
+
+    | Copyright (c) 2018 Riverbank Computing Limited
+    | https://www.riverbankcomputing.com/
+        
+* Icons8
+
+    | Copyright (c) Icons8 LLC
+    | https://icons8.com/
+
 ####################################
 Why is the library called Harvester?
 ####################################

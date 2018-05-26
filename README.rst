@@ -60,7 +60,7 @@ The main features of Harvester GUI are listed as follows:
 * Image dragging using mouse or trackpad
 * An arbitrary selection of image displaying point in the data path (Not implemented yet)
 
-Unlike Harvester Core, Harvester GUI limits the number of GenTL Producers to load is just one. This is just a limitation to not make the GUI complicated. In general, the user should know which GenTL Producer should be loaded to control his target device. It's not necessary to load multiple GenTL Producers for this use case. However, this is just an idea in an early stage. We might support multiple loading on even Harvester GUI in the future.
+Unlike Harvester Core, Harvester GUI limits the number of GenTL Producers to load just one. This is just a limitation to not make the GUI complicated. In general, the user should know which GenTL Producer should be loaded to control his target device. It's not necessary to load multiple GenTL Producers for this use case. However, this is just an idea in an early stage. We might support multiple loading on even Harvester GUI in the future.
 
 Note that VisPy is BSD licensed but PyQt is GPL/Commercial licensed.
 
@@ -90,7 +90,7 @@ The image visualizer widget (below) offers you a visualization of the acquired i
 
 .. image:: image/readme/image_visualizer.png
     :align: center
-    :alt: Image Visualizer
+    :alt: Image visualizer
     :scale: 40 %
 
 The attribute controller widget (below) offers you to manipulate GenICam feature nodes of the target device. Changing exposure time, triggering the target device for image acquisition, storing a set of camera configuration so-called User Set, etc, you can manually control the target device anytime when you want to. It supports visibility filter feature and regular expression feature. These features are useful in a case where you need to display only the features you are interested.

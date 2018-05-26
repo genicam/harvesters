@@ -137,9 +137,9 @@ class Canvas(app.Canvas):
             gloo.clear(color='black')
 
             if self._harvester_core.is_acquiring_images and not self._pause_drawing:
-                if self._harvester_core._latest_texture_data is not None:
+                if self._harvester_core.get_latest_image(False) is not None:
                     # Draw the latest image on the canvas.
-                    self._program['texture'] = self._harvester_core._latest_texture_data
+                    self._program['texture'] = self._harvester_core.get_latest_image(False)
                 else:
                     if self._has_filled_texture:
                         # Keep drawing the image recently drew on the canvas.

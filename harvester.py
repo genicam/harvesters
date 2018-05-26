@@ -293,13 +293,15 @@ class Harvester:
         with QMutexLocker(self._mutex):
             self._timeout_for_image_acquisition = ms
 
-    @property
-    def latest_image(self):
-        with QMutexLocker(self._mutex):
-            if self._latest_texture_data is not None:
-                return np.array(self._latest_texture_data)
+    def get_latest_image(self, return_copy=True):
+        if self._latest_texture_data is not None:
+            if return_copy:
+                with QMutexLocker(self._mutex):
+                    return np.array(self._latest_texture_data)
             else:
-                return None
+                return self._latest_texture_data
+        else:
+            return None
 
     @property
     def processing_units(self):

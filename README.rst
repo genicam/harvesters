@@ -15,6 +15,12 @@ Currently, Harvester is Apache-2.0 licensed and it has been developed and mainta
 
     Pieter Bruegel the Elder, The Harvesters, 1565, oil on wood, © 2000–2018 The Metropolitan Museum of Art
 
+#################
+Table of contents
+#################
+
+.. contents:: Table of Contents
+
 ################################
 What would harvester do for you?
 ################################

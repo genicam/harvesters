@@ -21,6 +21,7 @@
 
 # Related third party imports
 from PyQt5.QtWidgets import QComboBox
+from gentl import NotImplementedException
 
 # Local application/library specific imports
 from observer import Observer
@@ -52,9 +53,8 @@ class ComboBox(QComboBox, Observer):
                     name += d.serial_number
                 try:
                     _ = d.user_defined_name
-                except:
-                    # TODO: Specify appropriate exceptions.
-                    pass
+                except NotImplementedException as e:
+                    print(e)
                 else:
                     if d.user_defined_name != '':
                         name += separator

@@ -251,7 +251,7 @@ Pausing image drawing
     :alt: Pause
     :scale: 40 %
 
-This button is used to temporarily stop drawing images on the canvas pane while it's keep acquiring images in the background. The shortcut key is ``Ctrl+k``. If you want to restart drawing images, just click the button again.
+This button is used to temporarily stop drawing images on the canvas pane while it's keep acquiring images in the background. The shortcut key is ``Ctrl+k``. If you want to resume drawing images, just click the button again. You can do the same thing with the start image acquisition button (``Ctrl+j``).
 
 ==========================
 Stopping image acquisition

@@ -408,7 +408,12 @@ class Harvester:
             self._node_map = None
 
     def start_image_acquisition(self):
-        if not self.is_acquiring_images:
+        if self.is_acquiring_images:
+            # If it's pausing drawing images, just resume it and
+            # immediately return this method.
+            if self.gui.canvas.is_pausing:
+                self.gui.canvas.resume_drawing()
+        else:
             #
             self._data_stream = self.connecting_device.create_data_stream()
             self._data_stream.open(self.connecting_device.data_stream_ids[0])

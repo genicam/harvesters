@@ -422,7 +422,8 @@ class ActionStartImageAcquisition(Action):
         enable = False
         if self.parent_widget.cti_file_paths:
             if self.parent_widget.harvester_core.connecting_device:
-                if not self.parent_widget.harvester_core.is_acquiring_images:
+                if not self.parent_widget.harvester_core.is_acquiring_images or \
+                    self.parent_widget.canvas.is_pausing:
                     enable = True
         self.setEnabled(enable)
 

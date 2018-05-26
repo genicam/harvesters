@@ -240,3 +240,6 @@ class Canvas(app.Canvas):
     def is_pausing(self):
         return True if self._pause_drawing else False
 
+    def resume_drawing(self):
+        self._pause_drawing = False
+

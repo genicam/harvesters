@@ -22,7 +22,7 @@ Table of contents
 .. contents:: Table of Contents
 
 ################################
-What would harvester do for you?
+What would Harvester do for you?
 ################################
 
 Harvester mainly consists of two Python modules, one is an image acquisition engine Harvester Core and the other is GUI, Harvester GUI. In this section, we learn what Harvester offer us.
@@ -78,9 +78,9 @@ Supported operating systems
 * Ubuntu
 * Windows
 
-###########
+***********
 Screenshots
-###########
+***********
 
 In this section, we see some useful GUI which Harvester offers you.
 
@@ -144,9 +144,15 @@ To build the library, please read the README file which is located at the follow
 
     source/Bindings/README.rst
 
-########################
-How to use Harvester GUI
-########################
+####################
+How to use Harvester
+####################
+
+In this section, you will learn how to use Harvester GUI and Harvester Core.
+
+*************
+Harvester GUI
+*************
 
 When you finished building the Python bindings, then you can launch Harvester. To launch Harvester Core or Harvester GUI, we would recommend you to do it on an IDE called PyCharm. You can download the community version of PyCharm for free at the following URL:
 
@@ -181,15 +187,15 @@ Now it is the time to select a GenTL Producer to load. In the toolbar, clicking 
     :alt: Loaded TLSimu
     :scale: 40 %
 
-*******
+=======
 Toolbar
-*******
+=======
 
 Most of Harvester GUI's features can be used through its toolbox. In this section, we describe each button's functionality and how to use it. Regarding shortcut keys, replace ``Ctrl`` with ``Command`` on macOS.
 
-====================
+--------------------
 Selecting a CTI file
-====================
+--------------------
 
 .. image:: image/icon/open_file.png
     :align: left
@@ -198,9 +204,9 @@ Selecting a CTI file
 
 This button is used to select a GenTL Producer file to load. The shortcut key is ``Ctrl+o``.
 
-==========================
+--------------------------
 Updating GenTL information
-==========================
+--------------------------
 
 .. image:: image/icon/update.png
     :align: left
@@ -209,15 +215,15 @@ Updating GenTL information
 
 This button is used to update GenTL information of the GenTL Producer that you are loading on Harvester. The shortcut key is ``Ctrl+u``. It might be useful when you newly connect a device to your system.
 
-====================================
+------------------------------------
 Selecting a GenICam compliant device
-====================================
+------------------------------------
 
 This combo box shows a list of available GenICam compliant devices. You can select a device that you want to control.
 
-=========================================
+-----------------------------------------
 Connecting a selected device to Harvester
-=========================================
+-----------------------------------------
 
 .. image:: image/icon/connect.png
     :align: left
@@ -226,9 +232,9 @@ Connecting a selected device to Harvester
 
 This button is used to connect a device which is being selected by the former combo box. The shortcut key is ``Ctrl+c``. Once you connect the device, the device is exclusively controlled.
 
-==================================================
+--------------------------------------------------
 Disconnecting the connecting device from Harvester
-==================================================
+--------------------------------------------------
 
 .. image:: image/icon/disconnect.png
     :align: left
@@ -237,9 +243,9 @@ Disconnecting the connecting device from Harvester
 
 This button is used to disconnect the connecting device from Harvester. The shortcut key is ``Ctrl+d``.
 
-==========================
+--------------------------
 Starting image acquisition
-==========================
+--------------------------
 
 .. image:: image/icon/start_acquisition.png
     :align: left
@@ -248,9 +254,9 @@ Starting image acquisition
 
 This button is used to start image acquisition. The shortcut key is ``Ctrl+j``. The acquired images will be drawing in the following canvas pane.
 
-=====================
+---------------------
 Pausing image drawing
-=====================
+---------------------
 
 .. image:: image/icon/pause.png
     :align: left
@@ -259,9 +265,9 @@ Pausing image drawing
 
 This button is used to temporarily stop drawing images on the canvas pane while it's keep acquiring images in the background. The shortcut key is ``Ctrl+k``. If you want to resume drawing images, just click the button again. You can do the same thing with the start image acquisition button (``Ctrl+j``).
 
-==========================
+--------------------------
 Stopping image acquisition
-==========================
+--------------------------
 
 .. image:: image/icon/stop_acquisition.png
     :align: left
@@ -270,9 +276,9 @@ Stopping image acquisition
 
 This button is used to stop image acquisition. The shortcut key is ``Ctrl+l``.
 
-===================================
+-----------------------------------
 Showing the device attribute dialog
-===================================
+-----------------------------------
 
 .. image:: image/icon/device_attribute.png
     :align: left
@@ -281,9 +287,9 @@ Showing the device attribute dialog
 
 This button is used to show the device attribute dialog. The shortcut key is ``Ctrl+a``. The device attribute dialog offers you to a way to intuitively control device attribute over a GUI.
 
-========================
+------------------------
 Showing the about dialog
-========================
+------------------------
 
 .. image:: image/icon/about.png
     :align: left
@@ -291,6 +297,12 @@ Showing the about dialog
     :scale: 40 %
 
 This button is used to show the about dialog.
+
+**************
+Harvester Core
+**************
+
+TODO: Finish writing article.
 
 ####################################
 Why is the library called Harvester?

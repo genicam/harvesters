@@ -136,17 +136,229 @@ Supported operating systems
 * Ubuntu
 * Windows
 
-############
-Installation
-############
+##########
+Installing
+##########
 
-For installation instructions and requirements, see the INSTALL.rst file.
+In this section, we will learn how to instruct procedures to get Harvester work.
 
-####################
-How to use Harvester
-####################
+********
+Overview
+********
 
-For usage instructions, see the TUTORIAL.rst file.
+In short, you may think which tools are required to get Harvester work. The answer is listed as follows:
+
+    * The GenApi-Python Binding
+    * The GenTL-Python Binding
+    * The GenICam reference implementation.
+    * A certified GenTL Producer
+    * A GenICam compliant machine vision camera
+
+The first three items will be able to downloaded from the EMVA website in the future. Regarding the 4th item, you should be able to get proprietary product from software vendors who sell image acquisition library. Regarding the 5th item, you should be able to purchase from machine vision camera manufactures all over the world.
+
+******************************
+Installing an official release
+******************************
+
+**NOTE: This way is not available as of May 2018. Thank you for your patience!**
+
+The Harvester project is planning to support distribution via PyPI but it's not done yet. If once we supported it, you should be able to install Harvester invoking the following command:
+
+.. code-block:: shell
+
+    $ pip install genicam.harvester
+
+**********************
+Installing from source
+**********************
+
+In the meantime, the only way to use Harvester is cloning the Harvester package from the GitHub invoking the following command:
+
+.. code-block:: shell
+
+    $ git clone https://github.com/genicam/harvester.git
+
+Harvester requires some Python modules. To install the required modules, please invoke the following command:
+
+.. code-block:: shell
+
+    $ pip install numpy PyQt5 vispy
+
+If you're running Anaconda Python, then you can do the same with the following command:
+
+.. code-block:: shell
+
+    $ conda install numpy pyqt vispy
+
+After that, you'll have to build the Python bindings by yourself; once they're officially released everything should be okay just downloading a distribution package.
+
+The source code can be downloaded from the following URL using Subversion:
+
+    https://genicam.mvtec.com/svn/genicam/branches/_dev_teli_kazunari_1881_20180121/
+
+To build the library, please read the README file which is located at the following directory in the source package:
+
+    source/Bindings/README.rst
+
+#########
+Tutorials
+#########
+
+In this section, we will learn how to use Harvester GUI and Harvester Core.
+
+*************
+Harvester GUI
+*************
+
+When you finished building the Python bindings, then you can launch Harvester. To launch Harvester Core or Harvester GUI, we would recommend you to do it on an IDE called PyCharm. You can download the community version of PyCharm for free at the following URL:
+
+    https://www.jetbrains.com/pycharm/download
+
+After installing PyCharm, open the Harvester package, that you have downloaded from GitHub, from PyCharm.
+
+[IMPORTANT] By default, PyCharm doesn't know where the Python Bings are located. You can tell PyCharm the location in the Preference dialog. You should be able to find the right place just searching from the top-left corner. Then clicking ``Add Content Root`` button in the top-right corner and specify the directory.
+
+.. image:: image/readme/project_structure.png
+    :align: center
+    :alt: Project Structure
+    :scale: 40 %
+
+In the Project Structure page, please add content root where the Python Bindings are located. In general, you should point at the following directory:
+
+    genicam_root/bin/[target dependent]
+
+Having that information, PyCharm can find out those modules which Harvester asks Python to import.
+
+After that, you're ready to launch Harvester GUI (not only Harvester Core). To launch Harvester GUI, selecting ``harvester.py`` in the project pane, then right click it. There you should be able to find ``Run harvester`` in the popped up menu. Just click it. Harvester GUI should pop up.
+
+.. image:: image/readme/run_harvester.png
+    :align: center
+    :alt: Loaded TLSimu
+    :scale: 40 %
+
+Now it is the time to select a GenTL Producer to load. In the toolbar, clicking the left most button, select a CTI file to load. Then a file selection dialog should pop up. In the following example, we chose a GenTL Producer simulator so-called TLSimu.
+
+.. image:: image/readme/loaded_tlsimu.png
+    :align: center
+    :alt: Loaded TLSimu
+    :scale: 40 %
+
+=======
+Toolbar
+=======
+
+Most of Harvester GUI's features can be used through its toolbox. In this section, we describe each button's functionality and how to use it. Regarding shortcut keys, replace ``Ctrl`` with ``Command`` on macOS.
+
+--------------------
+Selecting a CTI file
+--------------------
+
+.. image:: image/icon/open_file.png
+    :align: left
+    :alt: Open file
+    :scale: 40 %
+
+This button is used to select a GenTL Producer file to load. The shortcut key is ``Ctrl+o``.
+
+--------------------------
+Updating GenTL information
+--------------------------
+
+.. image:: image/icon/update.png
+    :align: left
+    :alt: Update
+    :scale: 40 %
+
+This button is used to update GenTL information of the GenTL Producer that you are loading on Harvester. The shortcut key is ``Ctrl+u``. It might be useful when you newly connect a device to your system.
+
+------------------------------------
+Selecting a GenICam compliant device
+------------------------------------
+
+This combo box shows a list of available GenICam compliant devices. You can select a device that you want to control.
+
+-----------------------------------------
+Connecting a selected device to Harvester
+-----------------------------------------
+
+.. image:: image/icon/connect.png
+    :align: left
+    :alt: Connect
+    :scale: 40 %
+
+This button is used to connect a device which is being selected by the former combo box. The shortcut key is ``Ctrl+c``. Once you connect the device, the device is exclusively controlled.
+
+--------------------------------------------------
+Disconnecting the connecting device from Harvester
+--------------------------------------------------
+
+.. image:: image/icon/disconnect.png
+    :align: left
+    :alt: Disconnect
+    :scale: 40 %
+
+This button is used to disconnect the connecting device from Harvester. The shortcut key is ``Ctrl+d``.
+
+--------------------------
+Starting image acquisition
+--------------------------
+
+.. image:: image/icon/start_acquisition.png
+    :align: left
+    :alt: Start image acquisition
+    :scale: 40 %
+
+This button is used to start image acquisition. The shortcut key is ``Ctrl+j``. The acquired images will be drawing in the following canvas pane.
+
+---------------------
+Pausing image drawing
+---------------------
+
+.. image:: image/icon/pause.png
+    :align: left
+    :alt: Pause
+    :scale: 40 %
+
+This button is used to temporarily stop drawing images on the canvas pane while it's keep acquiring images in the background. The shortcut key is ``Ctrl+k``. If you want to resume drawing images, just click the button again. You can do the same thing with the start image acquisition button (``Ctrl+j``).
+
+--------------------------
+Stopping image acquisition
+--------------------------
+
+.. image:: image/icon/stop_acquisition.png
+    :align: left
+    :alt: Stop image acquisition
+    :scale: 40 %
+
+This button is used to stop image acquisition. The shortcut key is ``Ctrl+l``.
+
+-----------------------------------
+Showing the device attribute dialog
+-----------------------------------
+
+.. image:: image/icon/device_attribute.png
+    :align: left
+    :alt: Device attribute
+    :scale: 40 %
+
+This button is used to show the device attribute dialog. The shortcut key is ``Ctrl+a``. The device attribute dialog offers you to a way to intuitively control device attribute over a GUI.
+
+------------------------
+Showing the about dialog
+------------------------
+
+.. image:: image/icon/about.png
+    :align: left
+    :alt: About
+    :scale: 40 %
+
+This button is used to show the about dialog.
+
+**************
+Harvester Core
+**************
+
+TODO: Finish writing article.
 
 ################
 Acknowledgements

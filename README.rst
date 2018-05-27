@@ -194,11 +194,11 @@ After that, you'll have to build the Python bindings by yourself; once they're o
 
 The source code can be downloaded from the following URL using Subversion:
 
-    https://genicam.mvtec.com/svn/genicam/branches/_dev_teli_kazunari_1881_20180121/
+https://genicam.mvtec.com/svn/genicam/branches/_dev_teli_kazunari_1881_20180121/
 
 To build the library, please read the README file which is located at the following directory in the source package:
 
-    source/Bindings/README.rst
+``source/Bindings/README.rst``
 
 #########
 Tutorials
@@ -212,7 +212,7 @@ Harvester GUI
 
 When you finished building the Python bindings, then you can launch Harvester. To launch Harvester Core or Harvester GUI, we would recommend you to do it on an IDE called PyCharm. You can download the community version of PyCharm for free at the following URL:
 
-    https://www.jetbrains.com/pycharm/download
+https://www.jetbrains.com/pycharm/download
 
 After installing PyCharm, open the Harvester package, that you have downloaded from GitHub, from PyCharm.
 
@@ -225,7 +225,7 @@ After installing PyCharm, open the Harvester package, that you have downloaded f
 
 In the Project Structure page, please add content root where the Python Bindings are located. In general, you should point at the following directory:
 
-    genicam_root/bin/[target dependent]
+``genicam_root/bin/[target dependent]``
 
 Having that information, PyCharm can find out those modules which Harvester asks Python to import.
 

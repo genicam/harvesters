@@ -46,8 +46,8 @@ What would Harvester do for you?
 
 Harvester mainly consists of the following two Python modules:
 
-    * *Harvester Core*: An image acquisition engine, and
-    * *Harvester GUI*: Graphical user interface between users & Harvester Core.
+* *Harvester Core*: An image acquisition engine, and
+* *Harvester GUI*: Graphical user interface between users & Harvester Core.
 
 In this section, we will learn what Harvester offers us through these components.
 
@@ -157,11 +157,11 @@ Overview
 
 In short, you may think which tools are required to get Harvester work. The answer is listed as follows:
 
-    * The GenApi-Python Binding
-    * The GenTL-Python Binding
-    * The GenICam reference implementation.
-    * A certified GenTL Producer
-    * A GenICam compliant machine vision camera
+* The GenApi-Python Binding
+* The GenTL-Python Binding
+* The GenICam reference implementation.
+* A certified GenTL Producer
+* A GenICam compliant machine vision camera
 
 The first three items will be able to downloaded from the EMVA website in the future. Regarding the 4th item, you should be able to get proprietary product from software vendors who sell image acquisition library. Regarding the 5th item, you should be able to purchase from machine vision camera manufactures all over the world.
 

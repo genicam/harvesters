@@ -17,6 +17,15 @@ Currently, Harvester is Apache-2.0 licensed and it has been developed and mainta
 
 .. contents:: Table of Contents
 
+
+################
+Asking questions
+################
+
+We have prepared a chat room in Gitter. Please don't hesitate to drop your message when you get a question regarding Harvester!
+
+https://gitter.im/genicam-harvester/Lobby
+
 ###########
 Terminology
 ###########

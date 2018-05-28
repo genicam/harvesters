@@ -8,7 +8,7 @@ The Harvester project develops an open source Python library that consumes the G
 
 Currently, Harvester is Apache-2.0 licensed and it has been developed and maintained by the volunteer contributors all over the world.
 
-.. figure:: image/readme/harvesters.jpg
+.. figure:: https://user-images.githubusercontent.com/8652625/40595190-1e16e90e-626e-11e8-9dc7-207d691c6d6d.jpg
     :align: center
     :alt: The Harvesters
     :scale: 55 %

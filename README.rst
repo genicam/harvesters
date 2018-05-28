@@ -290,7 +290,7 @@ This combo box shows a list of available GenICam compliant devices. You can sele
 Connecting a selected device to Harvester
 -----------------------------------------
 
-.. image:: image/icon/connect.png
+.. image:: https://user-images.githubusercontent.com/8652625/40596045-49c61d54-6273-11e8-8424-d16e923b5b3f.png
     :align: left
     :alt: Connect
     :scale: 40 %
@@ -301,7 +301,7 @@ This button is used to connect a device which is being selected by the former co
 Disconnecting the connecting device from Harvester
 --------------------------------------------------
 
-.. image:: https://user-images.githubusercontent.com/8652625/40596045-49c61d54-6273-11e8-8424-d16e923b5b3f.png
+.. image:: https://user-images.githubusercontent.com/8652625/40596046-49f0fd9e-6273-11e8-83e3-7ba8aad3c4f7.png
     :align: left
     :alt: Disconnect
     :scale: 40 %

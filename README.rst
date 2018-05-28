@@ -334,7 +334,7 @@ This button is used to temporarily stop drawing images on the canvas pane while 
 Stopping image acquisition
 --------------------------
 
-.. image:: image/icon/stop_acquisition.png
+.. image:: https://user-images.githubusercontent.com/8652625/40596024-35d84c86-6273-11e8-89b8-9368db740f22.png
     :align: left
     :alt: Stop image acquisition
     :scale: 40 %
@@ -345,7 +345,7 @@ This button is used to stop image acquisition. The shortcut key is ``Ctrl+l``.
 Showing the device attribute dialog
 -----------------------------------
 
-.. image:: https://user-images.githubusercontent.com/8652625/40596024-35d84c86-6273-11e8-89b8-9368db740f22.png
+.. image:: https://user-images.githubusercontent.com/8652625/40596224-7b2cf0e2-6274-11e8-9088-bb48163968d6.png
     :align: left
     :alt: Device attribute
     :scale: 40 %

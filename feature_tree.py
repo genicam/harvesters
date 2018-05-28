@@ -166,7 +166,7 @@ class FeatureTreeModel(QAbstractItemModel):
     def root_item(self):
         return self._root_item
 
-    def columnCount(self, parent):
+    def columnCount(self, parent=None, *args, **kwargs):
         if parent.isValid():
             return parent.internalPointer().columnCount()
         else:
@@ -206,13 +206,16 @@ class FeatureTreeModel(QAbstractItemModel):
                 ret = Qt.ItemIsEnabled
         return ret
 
-    def headerData(self, section, orientation, role):
-        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
-            return self.root_item.data(section)
+    def headerData(self, p_int, Qt_Orientation, role=None):
+        # p_int: section
+        if Qt_Orientation == Qt.Horizontal and role == Qt.DisplayRole:
+            return self.root_item.data(p_int)
         return None
 
-    def index(self, row, column, parent):
-        if not self.hasIndex(row, column, parent):
+    def index(self, p_int, p_int_1, parent=None, *args, **kwargs):
+        # p_int: row
+        # p_int_1: column
+        if not self.hasIndex(p_int, p_int_1, parent):
             return QModelIndex()
 
         if not parent.isValid():
@@ -220,15 +223,15 @@ class FeatureTreeModel(QAbstractItemModel):
         else:
             parent_item = parent.internalPointer()
 
-        child_item = parent_item.child(row)
+        child_item = parent_item.child(p_int)
         if child_item:
-            return self.createIndex(row, column, child_item)
+            return self.createIndex(p_int, p_int_1, child_item)
         else:
             return QModelIndex()
 
-    def parent(self, index):
+    def parent(self, index=None):
         if not index.isValid():
-            return QModelIndex()
+            return index()
 
         child_item = index.internalPointer()
         parent_item = child_item.parent()
@@ -238,7 +241,7 @@ class FeatureTreeModel(QAbstractItemModel):
 
         return self.createIndex(parent_item.row(), 0, parent_item)
 
-    def rowCount(self, parent):
+    def rowCount(self, parent=None, *args, **kwargs):
         if parent.column() > 0:
             return 0
 
@@ -249,7 +252,7 @@ class FeatureTreeModel(QAbstractItemModel):
 
         return parent_item.childCount()
 
-    def setupModelData(self, features: NodeMap, parent_item):
+    def setupModelData(self, features, parent_item):
         for feature in features:
             interface_type = feature.node.principal_interface_type
             item = TreeItem([feature, feature], parent_item)

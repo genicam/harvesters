@@ -165,29 +165,19 @@ In short, you may think which tools are required to get Harvester work. The answ
 
 The first three items will be able to downloaded from the EMVA website in the future. Regarding the 4th item, you should be able to get proprietary product from software vendors who sell image acquisition library. Regarding the 5th item, you should be able to purchase from machine vision camera manufactures all over the world.
 
-******************************
-Installing an official release
-******************************
+***********************************************************************************
+THIS IS A TEMPORAL INSTRUCTION BUT PLEASE FOLLOW THIS WAY TO GET HARVESTER WORKING!
+***********************************************************************************
 
-**NOTE: This way is not available as of May 2018. Thank you for your patience!**
+We are still working in the development stage so people who those are want to get Harvester working have to prepare everything by themselves (sorry about that!). In this section, we will learn how to prepare required tools/libraries.
 
-The Harvester project is planning to support distribution via PyPI but it's not done yet. If once we supported it, you should be able to install Harvester invoking the following command:
-
-.. code-block:: shell
-
-    $ pip install genicam.harvester
-
-**********************
-Installing from source
-**********************
-
-In the meantime, the only way to use Harvester is cloning the Harvester package from the GitHub invoking the following command:
+First, invoking the following command clone the Harvester from the GitHub :
 
 .. code-block:: shell
 
     $ git clone https://github.com/genicam/harvester.git
 
-Harvester requires some Python modules. To install the required modules, please invoke the following command:
+Harvester requires some Python modules. To install the required modules, please invoke the following command; we're planning to isolate these modules from Harvester Core because these modules are relevant to visualization task but please install them anyway for now:
 
 .. code-block:: shell
 
@@ -199,15 +189,31 @@ If you're running Anaconda Python, then you can do the same with the following c
 
     $ conda install numpy pyqt vispy
 
-After that, you'll have to build the Python bindings by yourself; once they're officially released everything should be okay just downloading a distribution package.
+After that, you'll have to build the Python bindings by yourself. The source code can be downloaded from the following URL using Subversion:
 
-The source code can be downloaded from the following URL using Subversion:
+.. code-block:: shell
 
-https://genicam.mvtec.com/svn/genicam/branches/_dev_teli_kazunari_1881_20180121/
+    $ svn co --username your_account_name https://genicam.mvtec.com/svn/genicam/branches/_dev_teli_kazunari_1881_20180121/
 
-To build the library, please read the README file which is located at the following directory in the source package:
+To build the library, please read the ``README`` file which is located at the following directory in the source package:
 
-``source/Bindings/README.rst``
+``genicam/source/Bindings/README.rst``
+
+Reading that file, you should be able to learn everything you need to build the Python Bindings by yourself.
+
+Before closing this section, please remind that you need to be careful when you choose a Python version (especially Anaconda Python, maybe?) because some distributions have different directory structure or linking symbols. It simply breaks the Python Bindings. We have started collecting some results from our experiences and have listed them in the "System Configuration Matrix" section in the ``README`` file. We hope it helps you to save your time.
+
+********************************************************************************************
+Installing an official release (Under construction; please do not follow this way for now)
+********************************************************************************************
+
+**NOTE: This way is not available as of May 2018. Thank you for your patience!**
+
+The Harvester project is planning to support distribution via PyPI but it's not done yet. If once we supported it, you should be able to install Harvester invoking the following command:
+
+.. code-block:: shell
+
+    $ pip install genicam.harvester
 
 #########
 Tutorials

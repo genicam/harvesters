@@ -40,7 +40,9 @@ Before start talking about the detail, let's take a look at some important termi
 * **Harvester GUI**: A part of Harvester. It works as a graphical user interface of Harvester Core.
 * **A GenICam compliant device**: It's typically a camera. Just involving the GenICam reference implementation, it offers consumers a way to dynamically configure/control the target devices.
 
-.. figure:: https://user-images.githubusercontent.com/8652625/40607653-14e8d866-62a4-11e8-8d00-85e4e4226a01.png
+The following diagram shows the hierarchy and relationship of the relevant modules:
+
+.. figure:: https://user-images.githubusercontent.com/8652625/40607948-e4cfc328-62a4-11e8-899a-4f38d31f903c.png
     :align: center
     :alt: Module hierarchy
     :scale: 40 %

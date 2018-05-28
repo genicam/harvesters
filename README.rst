@@ -262,7 +262,7 @@ Most of Harvester GUI's features can be used through its toolbox. In this sectio
 Selecting a CTI file
 --------------------
 
-.. image:: image/icon/open_file.png
+.. image:: https://user-images.githubusercontent.com/8652625/40596073-7e1b6a82-6273-11e8-9045-68bbbd034281.png
     :align: left
     :alt: Open file
     :scale: 40 %
@@ -273,7 +273,7 @@ This button is used to select a GenTL Producer file to load. The shortcut key is
 Updating GenTL information
 --------------------------
 
-.. image:: image/icon/update.png
+.. image:: https://user-images.githubusercontent.com/8652625/40596091-9354283a-6273-11e8-8c6f-559db511339a.png
     :align: left
     :alt: Update
     :scale: 40 %
@@ -301,7 +301,7 @@ This button is used to connect a device which is being selected by the former co
 Disconnecting the connecting device from Harvester
 --------------------------------------------------
 
-.. image:: image/icon/disconnect.png
+.. image:: https://user-images.githubusercontent.com/8652625/40596045-49c61d54-6273-11e8-8424-d16e923b5b3f.png
     :align: left
     :alt: Disconnect
     :scale: 40 %
@@ -312,7 +312,7 @@ This button is used to disconnect the connecting device from Harvester. The shor
 Starting image acquisition
 --------------------------
 
-.. image:: image/icon/start_acquisition.png
+.. image:: https://user-images.githubusercontent.com/8652625/40596022-34d3d486-6273-11e8-92c3-2349be5fd98f.png
     :align: left
     :alt: Start image acquisition
     :scale: 40 %
@@ -323,7 +323,7 @@ This button is used to start image acquisition. The shortcut key is ``Ctrl+j``. 
 Pausing image drawing
 ---------------------
 
-.. image:: image/icon/pause.png
+.. image:: https://user-images.githubusercontent.com/8652625/40596063-6cae1aba-6273-11e8-9049-2430a042c671.png
     :align: left
     :alt: Pause
     :scale: 40 %
@@ -345,7 +345,7 @@ This button is used to stop image acquisition. The shortcut key is ``Ctrl+l``.
 Showing the device attribute dialog
 -----------------------------------
 
-.. image:: image/icon/device_attribute.png
+.. image:: https://user-images.githubusercontent.com/8652625/40596024-35d84c86-6273-11e8-89b8-9368db740f22.png
     :align: left
     :alt: Device attribute
     :scale: 40 %
@@ -356,7 +356,7 @@ This button is used to show the device attribute dialog. The shortcut key is ``C
 Showing the about dialog
 ------------------------
 
-.. image:: image/icon/about.png
+.. image:: https://user-images.githubusercontent.com/8652625/40596039-449ddc36-6273-11e8-9f91-1eb7830b8e8c.png
     :align: left
     :alt: About
     :scale: 40 %

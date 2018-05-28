@@ -106,7 +106,7 @@ In this section, we see some useful widgets which Harvester offers you.
 
 The image visualizer widget (below) offers you a visualization of the acquired images. In this screenshot, Harvester is acquiring a 4000 x 3000 pixel of RGB8 Packed image at 30 fps; it means it's acquiring images at 8.6 Gbps. It's quite fast isn't it?
 
-.. image:: image/readme/image_visualizer.png
+.. image:: https://user-images.githubusercontent.com/8652625/40595832-f16e21d4-6271-11e8-9a5c-1b8f18875239.png
     :align: center
     :alt: Image visualizer
     :scale: 40 %

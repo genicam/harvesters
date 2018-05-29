@@ -50,7 +50,7 @@ class HarvesterGUI(QMainWindow):
         self._widget_about = None
         self._widget_attribute_controller = None
         self._widget_image_canvas = Canvas(
-            harvester_core=harvester_core, mutex=self.harvester_core._mutex
+            harvester_core=harvester_core, mutex=self.harvester_core.mutex
         )
 
         #

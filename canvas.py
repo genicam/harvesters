@@ -33,7 +33,7 @@ from system import _is_running_on_windows
 
 
 class Canvas(app.Canvas):
-    def __init__(self, harvester_core, width=640, height=480, mutex=None, fps=50.):
+    def __init__(self, harvester_core, width=640, height=480, mutex=None, fps=50., background_color='gray'):
         """
         NOTE: fps should be smaller than or equal to 50 fps. If it's exceed
         VisPy drags down the acquisition performance. This is the issue we
@@ -44,6 +44,9 @@ class Canvas(app.Canvas):
         app.Canvas.__init__(
             self, size=(width, height), vsync=True, autoswap=False
         )
+
+        #
+        self._background_color = background_color
 
         #
         self._magnification = 1.
@@ -133,8 +136,8 @@ class Canvas(app.Canvas):
     def on_draw(self, event):
         #
         with QMutexLocker(self._mutex):
-            # Clear the canvas in black.
-            gloo.clear(color='black')
+            # Clear the canvas in gray.
+            gloo.clear(color=self._background_color)
 
             if self._harvester_core.is_acquiring_images and not self._pause_drawing:
                 if self._harvester_core.get_latest_image(False) is not None:
@@ -190,7 +193,7 @@ class Canvas(app.Canvas):
 
         if swap_buffers:
             # Clear the canvas.
-            gloo.clear(color='black')
+            gloo.clear(color=self._background_color)
 
             # Then swap the texture.
             self.swap_buffers()
@@ -242,4 +245,12 @@ class Canvas(app.Canvas):
 
     def resume_drawing(self):
         self._pause_drawing = False
+
+    @property
+    def background_color(self):
+        return self._background_color
+
+    @background_color.setter
+    def background_color(self, color):
+        self._background_color = color
 

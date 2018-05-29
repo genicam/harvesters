@@ -75,12 +75,12 @@ class AttributeController(QMainWindow):
         'All': EVisibility.Invisible, }
 
 
-    def __init__(self, node_map, parent=None):
+    def __init__(self, node_map, parent_widget=None):
         #
-        super().__init__(parent)
+        super().__init__(parent_widget)
 
         #
-        self._parent = parent
+        self._parent_widget = parent_widget
 
         #
         self.setWindowTitle('Attribute Controller')
@@ -91,7 +91,9 @@ class AttributeController(QMainWindow):
 
         #
         self._node_map = node_map
-        self._model = FeatureTreeModel(self._node_map)
+        self._model = FeatureTreeModel(
+            self._node_map, self._parent_widget.harvester_core.mutex
+        )
 
         #
         self._proxy = FilterProxyModel()

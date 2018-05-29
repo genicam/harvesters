@@ -26,7 +26,7 @@ import time
 from PyQt5.Qt import Qt, QStyledItemDelegate, QEvent, QStyleOptionViewItem, \
     QColor
 from PyQt5.QtCore import QAbstractItemModel, QModelIndex, \
-    QSortFilterProxyModel
+    QSortFilterProxyModel, QMutexLocker
 from PyQt5.QtWidgets import QApplication, QTreeView, \
     QSpinBox, QPushButton, QComboBox, QWidget, \
     QLineEdit
@@ -152,9 +152,12 @@ class FeatureTreeModel(QAbstractItemModel):
         Qt.ForegroundRole
     ]
 
-    def __init__(self, node_map: NodeMap=None, parent: object=None):
+    def __init__(self, node_map: NodeMap=None, mutex=None):
         #
-        super(FeatureTreeModel, self).__init__(parent)
+        super(FeatureTreeModel, self).__init__()
+
+        #
+        self._mutex = mutex
 
         #
         self._root_item = TreeItem(('Feature Name', 'Value'))
@@ -264,27 +267,29 @@ class FeatureTreeModel(QAbstractItemModel):
 
     def setData(self, index: QModelIndex, value, role=Qt.EditRole):
         if role == Qt.EditRole:
-            # TODO: Check the type of the target and convert the given value.
-            self.dataChanged.emit(index, index)
 
-            #
-            tree_item = index.internalPointer()
-            feature = tree_item.own_data[0]
-            interface_type = feature.node.principal_interface_type
-            try:
-                if interface_type == EInterfaceType.intfICommand:
-                    if value:
-                        feature.execute()
-                elif interface_type == EInterfaceType.intfIBoolean:
-                    feature.value = True if value.lower == 'true' else False
-                elif interface_type == EInterfaceType.intfIFloat:
-                    feature.value = float(value)
-                else:
-                    feature.value = value
-                return True
-            except:
-                # TODO: Specify appropriate exceptions
-                return False
+            with QMutexLocker(self._mutex):
+                # TODO: Check the type of the target and convert the given value.
+                self.dataChanged.emit(index, index)
+
+                #
+                tree_item = index.internalPointer()
+                feature = tree_item.own_data[0]
+                interface_type = feature.node.principal_interface_type
+                try:
+                    if interface_type == EInterfaceType.intfICommand:
+                        if value:
+                            feature.execute()
+                    elif interface_type == EInterfaceType.intfIBoolean:
+                        feature.value = True if value.lower == 'true' else False
+                    elif interface_type == EInterfaceType.intfIFloat:
+                        feature.value = float(value)
+                    else:
+                        feature.value = value
+                    return True
+                except:
+                    # TODO: Specify appropriate exceptions
+                    return False
 
 
 class FeatureEditDelegate(QStyledItemDelegate):

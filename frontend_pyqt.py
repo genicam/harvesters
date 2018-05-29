@@ -372,7 +372,7 @@ class ActionConnect(Action):
             self.parent_widget._widget_attribute_controller = \
                 AttributeController(
                     self.parent_widget.harvester_core.node_map,
-                    parent=self.parent_widget
+                    parent_widget=self.parent_widget
                 )
 
     def update(self):

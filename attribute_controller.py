@@ -21,7 +21,7 @@
 import sys
 
 # Related third party imports
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, QMutexLocker
 from PyQt5.QtWidgets import QMainWindow, QApplication, QTreeView, \
     QAction, QComboBox, QLineEdit, QLabel
 
@@ -188,16 +188,18 @@ class AttributeController(QMainWindow):
         group_manipulation.actionTriggered[QAction].connect(self.on_button_clicked_action)
 
     def _invalidate_feature_tree_by_visibility(self):
-        visibility = self._visibility_dict[
-            self._combo_box_visibility.currentText()
-        ]
-        self._proxy.setVisibility(visibility)
-        self._view.expandAll()
+        with QMutexLocker(self._parent_widget.harvester_core.mutex):
+            visibility = self._visibility_dict[
+                self._combo_box_visibility.currentText()
+            ]
+            self._proxy.setVisibility(visibility)
+            self._view.expandAll()
 
     @pyqtSlot('QString')
     def _invalidate_feature_tree_by_keyword(self, keyword):
-        self._proxy.setKeyword(keyword)
-        self._view.expandAll()
+        with QMutexLocker(self._parent_widget.harvester_core.mutex):
+            self._proxy.setKeyword(keyword)
+            self._view.expandAll()
 
     @staticmethod
     def on_button_clicked_action(action):

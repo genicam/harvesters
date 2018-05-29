@@ -288,6 +288,10 @@ class Harvester:
     def timeout_for_image_acquisition(self):
         return self._timeout_for_image_acquisition
 
+    @property
+    def mutex(self):
+        return self._mutex
+
     @timeout_for_image_acquisition.setter
     def timeout_for_image_acquisition(self, ms):
         with QMutexLocker(self._mutex):

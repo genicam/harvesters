@@ -20,7 +20,7 @@
 # Standard library imports
 
 # Related third party imports
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import QMutexLocker
 from PyQt5.QtWidgets import QMainWindow, QApplication, QAction, QComboBox, \
     QDesktopWidget, QWidget, QVBoxLayout, QFileDialog, QDialog, QScrollArea
 
@@ -472,8 +472,10 @@ class ActionShowDevAttribute(Action):
         super().__init__(parent_widget, icon, title)
 
     def _execute(self):
-        self.parent_widget.attribute_controller.show()
-        self.parent_widget.attribute_controller.expand_all()
+        with QMutexLocker(self.parent_widget.harvester_core.mutex):
+            if self.parent_widget.attribute_controller.isHidden():
+                self.parent_widget.attribute_controller.show()
+                self.parent_widget.attribute_controller.expand_all()
 
     def update(self):
         enable = False

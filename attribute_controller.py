@@ -70,6 +70,11 @@ class ActionCollapseAll(Action):
 
 
 class AttributeController(QMainWindow):
+    _visibility_dict = {'Beginner': EVisibility.Beginner,
+        'Expert': EVisibility.Expert, 'Guru': EVisibility.Guru,
+        'All': EVisibility.Invisible, }
+
+
     def __init__(self, node_map, parent=None):
         #
         super().__init__(parent)
@@ -181,13 +186,7 @@ class AttributeController(QMainWindow):
         group_manipulation.actionTriggered[QAction].connect(self.on_button_clicked_action)
 
     def _invalidate_feature_tree_by_visibility(self):
-        visibility_dict = {
-            'Beginner': EVisibility.Beginner,
-            'Expert': EVisibility.Expert,
-            'Guru': EVisibility.Guru,
-            'All': EVisibility.Invisible,
-        }
-        visibility = visibility_dict[
+        visibility = self._visibility_dict[
             self._combo_box_visibility.currentText()
         ]
         self._proxy.setVisibility(visibility)

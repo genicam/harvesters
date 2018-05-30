@@ -376,6 +376,28 @@ Showing the about dialog
 
 This button is used to show the about dialog.
 
+======
+Canvas
+======
+
+--------------------------------
+Zooming into the displayed image
+--------------------------------
+
+If you're using a mouse, spin the wheel to your side. If you are using a trackpad on a macOS, slide two fingers to your side.
+
+------------------------------------
+Zooming out from the displayed image
+------------------------------------
+
+If you're using a mouse, spin the wheel to your pointing finger points at. If you are using a trackpad on a macOS, slide two fingers to the display side.
+
+---------------------------------
+Changing the part being displayed
+---------------------------------
+
+If you're using a mouse, grab any point in the canvas and drag the pointer as if you're physically grabbing the image. The image will follow the pointer. If you are using a trackpad on a macOS, it might be useful if you assign the three finger slide for dragging.
+
 **************
 Harvester Core
 **************

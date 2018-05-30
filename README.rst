@@ -115,7 +115,7 @@ In this section, we see some useful widgets which Harvester offers you.
 
 The image visualizer widget (below) offers you a visualization of the acquired images. In this screenshot, Harvester is acquiring a 4000 x 3000 pixel of RGB8 image at 30 fps; it means it's acquiring images at 8.6 Gbps. It's quite fast isn't it?
 
-.. image:: https://user-images.githubusercontent.com/8652625/40595832-f16e21d4-6271-11e8-9a5c-1b8f18875239.png
+.. image:: https://user-images.githubusercontent.com/8652625/40719181-9eb5fe98-644d-11e8-92bd-d21b7de9a2db.png
     :align: center
     :alt: Image visualizer
     :scale: 40 %
@@ -262,7 +262,7 @@ After that, you're ready to launch Harvester GUI (not only Harvester Core). To l
 
 Now it is the time to select a GenTL Producer to load. In the toolbar, clicking the left most button, select a CTI file to load. Then a file selection dialog should pop up. In the following example, we chose a GenTL Producer simulator so-called TLSimu.
 
-.. image:: https://user-images.githubusercontent.com/8652625/40595909-7dca3564-6272-11e8-8ace-1ac571562474.png
+.. image:: https://user-images.githubusercontent.com/8652625/40719418-88e2d16c-644e-11e8-9b4a-f2f5d5522259.png
     :align: center
     :alt: Loaded TLSimu
     :scale: 40 %

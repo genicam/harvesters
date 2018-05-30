@@ -24,7 +24,7 @@ Asking questions
 
 We have prepared a chat room in Gitter. Please don't hesitate to drop your message when you get a question regarding Harvester!
 
-https://gitter.im/genicam-harvester/Lobby
+https://gitter.im/genicam-harvester/chatroom
 
 ###########
 Terminology

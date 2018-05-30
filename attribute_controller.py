@@ -70,10 +70,12 @@ class ActionCollapseAll(Action):
 
 
 class AttributeController(QMainWindow):
-    _visibility_dict = {'Beginner': EVisibility.Beginner,
-        'Expert': EVisibility.Expert, 'Guru': EVisibility.Guru,
-        'All': EVisibility.Invisible, }
-
+    _visibility_dict = {
+        'Beginner': EVisibility.Beginner,
+        'Expert': EVisibility.Expert,
+        'Guru': EVisibility.Guru,
+        'All': EVisibility.Invisible,
+    }
 
     def __init__(self, node_map, parent_widget=None):
         #

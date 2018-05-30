@@ -502,7 +502,7 @@ class Harvester:
             #
             if self._front_end.lower() == 'pyqt':
                 self.gui.statusBar().showMessage(
-                    'W: {0} x H: {1} ({2}), '
+                    'W: {0} x H: {1}, {2}, '
                     'Image Acquisition: {3:.2f} fps '
                     '(MAX: {4:.2f} fps)'.format(
                         self._current_width, self._current_height,

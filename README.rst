@@ -76,7 +76,7 @@ The main features of Harvester Core are listed as follows:
 
 * Image acquisition over GenTL Producers
 * Multiple loading of GenTL Producers in a single Python script
-* GenICam node manipulation of the target device
+* GenICam feature node manipulation of the target device
 
 Note that the second item implies you can involve multiple types of transport layers in your Python script. Each transport layer has own advantages and disadvantages and you should choose appropriate transport layers following your application's requirement. You just need to acquire images for some purposes and the GenTL Producers deliver the images somehow. It truly is the great benefit of encapsulation by the GenTL Standard!
 

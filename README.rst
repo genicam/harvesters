@@ -4,7 +4,7 @@ Harvester
 
 Harvester is a friendly companion for people who those want to learn computer vision.
 
-You can freely use, modify, distribute Harvester licensed under Apache License-2.0 without worrying about the use of your software: personal, internal or commercial.
+You can freely use, modify, distribute Harvester licensed under `Apache License-2.0 <https://www.apache.org/licenses/LICENSE-2.0>`_ without worrying about the use of your software: personal, internal or commercial.
 
 The Harvester project develops an open source Python library that consumes the GenTL Standard based image acquisition libraries, so-called GenTL Producers. If you have an officially certified GenTL Producer and GenICam compliant machine vision cameras, Harvester offers you high-performance image acquisition from the cameras and visualization of the acquired images on all major platforms. In addition, it offers you interface for numpy to make image processing easier and productive.
 

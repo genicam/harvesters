@@ -208,7 +208,8 @@ class Statistics:
         self._fps_max = 0.
 
     def increment_num_images(self, num=1):
-        self._num_images += num
+        if self._has_acquired_1st_timestamp:
+            self._num_images += num
 
     @property
     def fps(self):

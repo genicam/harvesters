@@ -173,13 +173,59 @@ class Rotate(Processor):
         return output
 
 
+class Statistics:
+    def __init__(self):
+        #
+        super().__init__()
+
+        #
+        self._timestamp_base = 0
+        self._has_acquired_1st_timestamp = False
+        self._fps = 0.
+        self._num_images = 0
+        self._fps_max = 0.
+
+    def set_timestamp(self, timestamp):
+        # TODO: Harvester is temporarily expecting to have ns timestamps.
+        if not self._has_acquired_1st_timestamp:
+            self._timestamp_base = timestamp
+            self._has_acquired_1st_timestamp = True
+        else:
+            diff = timestamp - self._timestamp_base
+            if diff > 0:
+                fps = self._num_images / (diff * 0.000000001)
+                if fps > self._fps_max:
+                    self._fps_max = fps
+                self._fps = fps
+            else:
+                self._fps = 0.
+
+    def reset(self):
+        self._timestamp_base = 0
+        self._has_acquired_1st_timestamp = False
+        self._fps = 0.
+        self._num_images = 0
+        self._fps_max = 0.
+
+    def increment_num_images(self, num=1):
+        self._num_images += num
+
+    @property
+    def fps(self):
+        return self._fps
+
+    @property
+    def fps_max(self):
+        return self._fps_max
+
+
 class Harvester:
     _encodings = {
         TL_CHAR_ENCODING_LIST.TL_CHAR_ENCODING_ASCII: 'ascii',
         TL_CHAR_ENCODING_LIST.TL_CHAR_ENCODING_UTF8: 'utf8'
     }
 
-    def __init__(self, front_end: str=''):
+    def __init__(self, frontend: str= ''):
         #
         super().__init__()
 
@@ -220,20 +266,20 @@ class Harvester:
 
         #
         self._thread_statistics_measurement = None
-        self._timestamp_base_abs = 0
-        self._timestamp_base = 0
-        self._num_images = 0
-        self._statistics_update_cycle = 1  # s
-        self._has_acquired_1st_statistics = False
-        self._fps_max = 0
-        self._fps_ave = 0
         self._current_width = 0
         self._current_height = 0
         self._current_pixel_format = ''
-        self._latest_timestamp = 0
 
         #
-        self._front_end = front_end
+        self._statistics_update_cycle = 1  # s
+        self._statistics_latest = Statistics()
+        self._statistics_overall = Statistics()
+        self._statistics_list = [
+            self._statistics_latest, self._statistics_overall
+        ]
+
+        #
+        self._frontend = frontend
 
         #
         self._timeout_for_image_acquisition = 100  # ms
@@ -245,7 +291,7 @@ class Harvester:
         # You may want to add other processors.
 
         #
-        if self._front_end.lower() == 'pyqt':
+        if self._frontend.lower() == 'pyqt':
             from frontend_pyqt import HarvesterGUI
             self._gui = HarvesterGUI(harvester_core=self)
 
@@ -485,31 +531,21 @@ class Harvester:
         time.sleep(self._statistics_update_cycle)
 
         with QMutexLocker(self._mutex):
-            # TODO: Harvester is temporarily expecting to have ns timestamps.
-            diff_ns = self._latest_timestamp - self._timestamp_base
-            if diff_ns > 0:
-                fps = self._num_images / (diff_ns * 0.000000001)
-            else:
-                fps = 0
-
-            self._fps_max = fps if fps > self._fps_max else self._fps_max
-            if self._has_acquired_1st_statistics:
-                self._fps_ave = (self._fps_ave + fps) / 2
-            else:
-                self._fps_ave = fps
-                self._has_acquired_1st_statistics = True
-
             #
-            if self._front_end.lower() == 'pyqt':
+            if self._frontend.lower() == 'pyqt':
                 self.gui.statusBar().showMessage(
                     'W: {0} x H: {1}, {2}, '
-                    'Image Acquisition: {3:.2f} fps '
-                    '(MAX: {4:.2f} fps)'.format(
-                        self._current_width, self._current_height,
+                    '{3:.1f} fps in the last {4:.1f} s, '
+                    '{5:.1f} fps for over all'.format(
+                        self._current_width,
+                        self._current_height,
                         self._current_pixel_format,
-                        fps, self._fps_max
+                        self._statistics_latest.fps,
+                        self._statistics_update_cycle,
+                        self._statistics_overall.fps,
                     )
                 )
+            self._statistics_latest.reset()
 
     def _worker_image_acquisition(self):
         try:
@@ -533,22 +569,20 @@ class Harvester:
                         self._latest_gentl_buffer
                     )
 
-                #
-                self._num_images += 1
                 buffer = self._event_manager.buffer
 
                 #
-                self._latest_timestamp = buffer.timestamp
+                for statistics in self._statistics_list:
+                    statistics.increment_num_images()
+                    statistics.set_timestamp(buffer.timestamp)
 
                 #
                 if not self._has_acquired_1st_image:
-                    if self._front_end.lower() == 'pyqt':
+                    if self._frontend.lower() == 'pyqt':
                         self.gui.canvas.set_rect(
                             buffer.width, buffer.height
                         )
                     self._has_acquired_1st_image = True
-                    self._timestamp_base = self._latest_timestamp
-                    self._timestamp_base_abs = time.time()
 
                 input = ImageInformation(
                     buffer, self.node_map, None
@@ -658,16 +692,11 @@ class Harvester:
                 self._announced_buffers = []
                 self._data_stream = None
                 self._latest_gentl_buffer = None
-                self._has_acquired_1st_image = False
+
+                for statistics in self._statistics_list:
+                    statistics.reset()
 
     def initialize_acquisition_statistics(self):
-        self._timestamp_base = 0
-        self._timestamp_base_abs = 0
-        self._num_images = 0
-        self._latest_timestamp = 0
-        self._fps_ave = 0
-        self._fps_max = 0
-        self._has_acquired_1st_statistics = False
         self._current_width = self.node_map.Width.value
         self._current_height = self.node_map.Height.value
         self._current_pixel_format = self.node_map.PixelFormat.value
@@ -761,6 +790,6 @@ if __name__ == '__main__':
     my_app.setWindowIcon(Icon('genicam_logo_i.png'))
 
     #
-    with Harvester(front_end='PyQt') as harvester:
+    with Harvester(frontend='PyQt') as harvester:
         harvester.gui.show()
         sys.exit(my_app.exec_())

@@ -31,6 +31,7 @@ from action import Action
 from attribute_controller import AttributeController
 from canvas import Canvas
 from device_list import ComboBox
+from frontend_helper import compose_tooltip
 from icon import Icon
 from system import get_system_font
 
@@ -125,7 +126,9 @@ class HarvesterGUI(QMainWindow):
         button_select_file = ActionSelectFile(self, Icon('open_file.png'),
             'Select file')
         shortcut_key = 'Ctrl+o'
-        button_select_file.setToolTip('Open a CTI file to load', shortcut_key)
+        button_select_file.setToolTip(
+            compose_tooltip('Open a CTI file to load', shortcut_key)
+        )
         button_select_file.setShortcut(shortcut_key)
         button_select_file.toggle()
         observers.append(button_select_file)
@@ -134,7 +137,9 @@ class HarvesterGUI(QMainWindow):
         button_update = ActionUpdateList(self, Icon('update.png'),
             'Update device list')
         shortcut_key = 'Ctrl+u'
-        button_update.setToolTip('Update the device list', shortcut_key)
+        button_update.setToolTip(
+            compose_tooltip('Update the device list', shortcut_key)
+        )
         button_update.setShortcut(shortcut_key)
         button_update.toggle()
         observers.append(button_update)
@@ -142,8 +147,12 @@ class HarvesterGUI(QMainWindow):
         #
         button_connect = ActionConnect(self, Icon('connect.png'), 'Connect')
         shortcut_key = 'Ctrl+c'
-        button_connect.setToolTip('Connect the selected device to Harvester',
-            shortcut_key)
+        button_connect.setToolTip(
+            compose_tooltip(
+                'Connect the selected device to Harvester',
+                shortcut_key
+            )
+        )
         button_connect.setShortcut(shortcut_key)
         button_connect.toggle()
         observers.append(button_connect)
@@ -152,8 +161,12 @@ class HarvesterGUI(QMainWindow):
         button_disconnect = ActionDisconnect(self, Icon('disconnect.png'),
             'Disconnect')
         shortcut_key = 'Ctrl+d'
-        button_disconnect.setToolTip('Disconnect the device from Harvester',
-            shortcut_key)
+        button_disconnect.setToolTip(
+            compose_tooltip(
+                'Disconnect the device from Harvester',
+                shortcut_key
+            )
+        )
         button_disconnect.setShortcut(shortcut_key)
         button_disconnect.toggle()
         observers.append(button_disconnect)
@@ -162,8 +175,9 @@ class HarvesterGUI(QMainWindow):
         button_start_acquisition = ActionStartImageAcquisition(self,
             Icon('start_acquisition.png'), 'Start Acquisition')
         shortcut_key = 'Ctrl+j'
-        button_start_acquisition.setToolTip('Start image acquisition',
-            shortcut_key)
+        button_start_acquisition.setToolTip(
+            compose_tooltip('Start image acquisition', shortcut_key)
+        )
         button_start_acquisition.setShortcut(shortcut_key)
         button_start_acquisition.toggle()
         observers.append(button_start_acquisition)
@@ -172,8 +186,9 @@ class HarvesterGUI(QMainWindow):
         button_toggle_drawing = ActionToggleDrawing(self,
             Icon('pause.png'), 'Stop Drawing')
         shortcut_key = 'Ctrl+k'
-        button_toggle_drawing.setToolTip('Stop drawing',
-            shortcut_key)
+        button_toggle_drawing.setToolTip(
+            compose_tooltip('Stop drawing', shortcut_key)
+        )
         button_toggle_drawing.setShortcut(shortcut_key)
         button_toggle_drawing.toggle()
         observers.append(button_toggle_drawing)
@@ -183,7 +198,7 @@ class HarvesterGUI(QMainWindow):
             Icon('stop_acquisition.png'), 'Stop Acquisition')
         shortcut_key = 'Ctrl+l'
         button_stop_acquisition.setToolTip(
-            'Stop image acquisition', shortcut_key
+            compose_tooltip('Stop image acquisition', shortcut_key)
         )
         button_stop_acquisition.setShortcut(shortcut_key)
         button_stop_acquisition.toggle()
@@ -193,7 +208,9 @@ class HarvesterGUI(QMainWindow):
         button_dev_attribute = ActionShowDevAttribute(self,
             Icon('device_attribute.png'), 'Device Attribute')
         shortcut_key = 'Ctrl+a'
-        button_dev_attribute.setToolTip('Edit device attribute', shortcut_key)
+        button_dev_attribute.setToolTip(
+            compose_tooltip('Edit device attribute', shortcut_key)
+        )
         button_dev_attribute.setShortcut(shortcut_key)
         button_dev_attribute.toggle()
         observers.append(button_dev_attribute)
@@ -201,7 +218,9 @@ class HarvesterGUI(QMainWindow):
         #
         self._widget_about = About(self)
         button_about = ActionShowAbout(self, Icon('about.png'), 'About')
-        button_about.setToolTip('Show information about Harvester')
+        button_about.setToolTip(
+            compose_tooltip('Show information about Harvester')
+        )
         button_about.toggle()
         observers.append(button_about)
 
@@ -217,6 +236,9 @@ class HarvesterGUI(QMainWindow):
             self._widget_device_list.showPopup()
 
         shortcut.activated.connect(show_popup)
+        self._widget_device_list.setToolTip(
+            compose_tooltip('Select a device to connect', shortcut_key)
+        )
         observers.append(self._widget_device_list)
         for d in self.harvester_core.device_info_list:
             self._widget_device_list.addItem(d)

@@ -31,6 +31,7 @@ from genapi import EVisibility
 from action import Action
 from feature_tree import FeatureEditDelegate, FilterProxyModel, \
     FeatureTreeModel
+from frontend_helper import compose_tooltip
 from icon import Icon
 from system import get_system_font
 
@@ -151,7 +152,7 @@ class AttributeController(QMainWindow):
         button_expand_all = ActionExpandAll(self, Icon('expand_all.png'), 'Expand All')
         shortcut_key = 'Ctrl+e'
         button_expand_all.setToolTip(
-            'Expand the node tree', shortcut_key
+            compose_tooltip('Expand the node tree', shortcut_key)
         )
         button_expand_all.setShortcut(shortcut_key)
         button_expand_all.toggle()
@@ -160,7 +161,7 @@ class AttributeController(QMainWindow):
         button_collapse_all = ActionCollapseAll(self, Icon('collapse_all.png'), 'Collapse All')
         shortcut_key = 'Ctrl+c'
         button_collapse_all.setToolTip(
-            'Collapse the node tree', shortcut_key
+            compose_tooltip('Collapse the node tree', shortcut_key)
         )
         button_collapse_all.setShortcut(shortcut_key)
         button_collapse_all.toggle()

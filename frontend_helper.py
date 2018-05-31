@@ -20,38 +20,13 @@
 # Standard library imports
 
 # Related third party imports
-from PyQt5.QtWidgets import QAction
 
 # Local application/library specific imports
-from subject import Subject
 
 
-class Action(QAction, Subject):
-    def __init__(self, parent_widget, icon, title, checkable=False):
-        #
-        super().__init__(icon, title, parent_widget)
+def compose_tooltip(description, shortcut_key=None):
+    tooltip = description
+    if shortcut_key is not None:
+        tooltip += ' (' + shortcut_key + ')'
+    return tooltip
 
-        #
-        self._parent_widget = parent_widget
-        self._dialog = None
-        self._observers = []
-
-        #
-        self.setCheckable(checkable)
-
-    @property
-    def parent_widget(self):
-        return self._parent_widget
-
-    def execute(self):
-        # Execute everything it's responsible for.
-        self._execute()
-
-        # Update itself.
-        self.update()
-
-        # Update its observers.
-        self.update_observers()
-
-    def _execute(self):
-        raise NotImplementedError

@@ -400,6 +400,85 @@ Changing the part being displayed
 
 If you're using a mouse, grab any point in the canvas and drag the pointer as if you're physically grabbing the image. The image will follow the pointer. If you are using a trackpad on a macOS, it might be useful if you assign the three finger slide for dragging.
 
+====================
+Attribute controller
+====================
+
+The attribute controller offers you an interface to each GenICam feature node that the the target device provides.
+
+---------------------------------------------
+Filtering GenICam feature nodes by visibility
+---------------------------------------------
+
+This combo box offers you to apply visibility filter to the GenICam feature node tree. The shortcut key is ``Ctrl+v``
+
+GenICam defines the following visibility levels:
+
+* **Beginner**: Features that should be visible for all users via the GUI and API.
+* **Expert**: Features that require a more in-depth knowledge of the camera functionality.
+* **Guru**: Advanced features that might bring the cameras into a state where it will not work properly anymore if it is set incorrectly for the cameras current mode of operation.
+* **Invisible**: Features that should be kept hidden for the GUI users but still be available via the API.
+
+The following table shows each item in the combo box and the visibility status of each visibility level:
+
+.. list-table::
+    :widths: 15 15 15 15 15
+    :header-rows: 1
+
+    - - Combo box item
+      - Beginner
+      - Expert
+      - Guru
+      - Invisible
+    - - Beginner
+      - Visible
+      - Invisible
+      - Invisible
+      - Invisible
+    - - Expert
+      - Visible
+      - Visible
+      - Invisible
+      - Invisible
+    - - Guru
+      - Visible
+      - Visible
+      - Visible
+      - Invisible
+    - - All
+      - Visible
+      - Visible
+      - Visible
+      - Visible
+
+------------------------------------------------------
+Filitering GenICam feature nodes by regular expression
+------------------------------------------------------
+
+This text edit widget offers you to filter GenICam feature nodes by regular expression.
+
+-------------------------------
+Expanding the feature node tree
+-------------------------------
+
+.. image:: https://user-images.githubusercontent.com/8652625/40780001-f316a950-6511-11e8-9310-c160abadfa49.png
+    :align: left
+    :alt: Expand feature node tree
+    :scale: 40 %
+
+This button is used to expand the feature node tree. The shortcut key is ``Ctrl+e``.
+
+--------------------------------
+Collapsing the feature node tree
+--------------------------------
+
+.. image:: https://user-images.githubusercontent.com/8652625/40779999-f2e49ad2-6511-11e8-993e-7c229d915fe8.png
+    :align: left
+    :alt: Collapse feature node tree
+    :scale: 40 %
+
+This button is used to collapse the feature node tree. The shortcut key is ``Ctrl+c``.
+
 **************
 Harvester Core
 **************

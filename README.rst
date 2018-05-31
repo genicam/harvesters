@@ -112,14 +112,15 @@ Currently Harvester GUI supports the following pixel formats that are defined by
 * ``RGB8``
 * ``BayerRG8``, ``BayerGR8``, ``BayerBG8``, and ``BayerGB8`` (No demosaicing supported)
 
-***********
+###########
 Screenshots
-***********
+###########
 
 In this section, we see some useful windows which Harvester offers you.
 
+****************************
 Image data visualizer window
-============================
+****************************
 
 The image data visualizer window (below) offers you a visualization of the acquired images. In this screenshot, Harvester is acquiring a 4000 x 3000 pixel of RGB8 image at 30 fps; it means it's acquiring images at 8.6 Gbps. It's quite fast isn't it?
 
@@ -128,8 +129,9 @@ The image data visualizer window (below) offers you a visualization of the acqui
     :alt: Image data visualizer
     :scale: 40 %
 
+***************************
 Attribute controller window
-===========================
+***************************
 
 The attribute controller window (below) offers you to manipulate GenICam feature nodes of the target device. Changing exposure time, triggering the target device for image acquisition, storing a set of camera configuration so-called User Set, etc, you can manually control the target device anytime when you want to. It supports visibility filter feature and regular expression feature. These features are useful in a case where you need to display only the features you are interested.
 
@@ -138,8 +140,9 @@ The attribute controller window (below) offers you to manipulate GenICam feature
     :alt: Attribute Controller
     :scale: 40 %
 
+**************
 Harvester Core
-==============
+**************
 
 The following screenshot shows Harvester Core is running on IPython. Harvester Core returns the latest image data at the moment as a Numpy array every time its user call the ``get_image()`` method. Once you get an image you should be able to immediately start image processing. If you're running on Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 

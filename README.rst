@@ -236,13 +236,21 @@ The Harvester project is planning to support distribution via PyPI but it's not 
 Instructions for developers
 ###########################
 
+*****************
+Setting up an IDE
+*****************
+
 When you finished building the Python bindings, then you can launch Harvester. To launch Harvester Core or Harvester GUI, we would recommend you to do it on an IDE called PyCharm. You can download the community version of PyCharm for free at the following URL:
 
 https://www.jetbrains.com/pycharm/download
 
 After installing PyCharm, open the Harvester package, that you have downloaded from GitHub, from PyCharm.
 
-[IMPORTANT] By default, PyCharm doesn't know where the Python Bings are located. You can tell PyCharm the location in the Preference dialog. You should be able to find the right place just searching from the top-left corner. Then clicking ``Add Content Root`` button in the top-right corner and specify the directory.
+**********************************************************
+Telling an IDE the location where the bindings are located
+**********************************************************
+
+By default, PyCharm doesn't know where the Python Bings are located. You can tell PyCharm the location in the Preference dialog. You should be able to find the right place just searching from the top-left corner. Then clicking ``Add Content Root`` button in the top-right corner and specify the directory.
 
 .. image:: https://user-images.githubusercontent.com/8652625/40595910-7df63826-6272-11e8-807a-96c0fb4229d7.png
     :align: center
@@ -255,12 +263,20 @@ In the Project Structure page, please add content root where the Python Bindings
 
 Having that information, PyCharm can find out those modules which Harvester asks Python to import.
 
+***********************
+Launching Harvester GUI
+***********************
+
 After that, you're ready to launch Harvester GUI (not only Harvester Core). To launch Harvester GUI, selecting ``harvester.py`` in the project pane, then right click it. There you should be able to find ``Run harvester`` in the popped up menu. Just click it. Harvester GUI should pop up.
 
 .. image:: https://user-images.githubusercontent.com/8652625/40595912-7e4e5178-6272-11e8-9033-1b9ee58e1fdb.png
     :align: center
     :alt: Loaded TLSimu
     :scale: 40 %
+
+*************************************
+Loading a GenTL Producer on Harvester
+*************************************
 
 Now it is the time to select a GenTL Producer to load. In the toolbar, clicking the left most button, select a CTI file to load. Then a file selection dialog should pop up. In the following example, we chose a GenTL Producer simulator so-called TLSimu.
 

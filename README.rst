@@ -126,9 +126,9 @@ The attribute controller window (below) offers you to manipulate GenICam feature
     :alt: Attribute Controller
     :scale: 40 %
 
-The following screenshot shows Harvester Core is running on IPython. Harvester Core returns the latest image data at the moment as a Numpy array every time its user call the ``get_latest_image()`` method. Once you get an image you should be able to immediately start image processing. If you're running on Jupyter notebook, you should be able to visualize the data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
+The following screenshot shows Harvester Core is running on IPython. Harvester Core returns the latest image data at the moment as a Numpy array every time its user call the ``get_image()`` method. Once you get an image you should be able to immediately start image processing. If you're running on Jupyter notebook, you should be able to visualize the data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
-.. image:: https://user-images.githubusercontent.com/8652625/40595908-7d9f17b2-6272-11e8-877f-6893cd88a828.png
+.. image:: https://user-images.githubusercontent.com/8652625/40784009-3aec2d92-651f-11e8-8620-38bc71f059fb.png
     :align: center
     :alt: Harvester on IPython
     :scale: 40 %

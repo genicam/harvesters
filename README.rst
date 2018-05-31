@@ -299,7 +299,7 @@ This button is used to update GenTL information of the GenTL Producer that you a
 Selecting a GenICam compliant device
 ------------------------------------
 
-This combo box shows a list of available GenICam compliant devices. You can select a device that you want to control.
+This combo box shows a list of available GenICam compliant devices. You can select a device that you want to control.The shortcut key is ``Ctrl+D``, i.e., ``Ctrl+Shift+d``. 
 
 -----------------------------------------
 Connecting a selected device to Harvester

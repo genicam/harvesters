@@ -20,9 +20,10 @@
 # Standard library imports
 
 # Related third party imports
-from PyQt5.QtCore import QMutexLocker
-from PyQt5.QtWidgets import QMainWindow, QApplication, QAction, QComboBox, \
-    QDesktopWidget, QWidget, QVBoxLayout, QFileDialog, QDialog, QScrollArea
+from PyQt5.QtCore import QMutexLocker, Qt
+from PyQt5.QtGui import QKeySequence
+from PyQt5.QtWidgets import QMainWindow, QAction, QComboBox, \
+    QDesktopWidget, QWidget, QVBoxLayout, QFileDialog, QDialog, QShortcut
 
 # Local application/library specific imports
 from about import About
@@ -209,6 +210,13 @@ class HarvesterGUI(QMainWindow):
         self._widget_device_list.setSizeAdjustPolicy(
             QComboBox.AdjustToContents
         )
+        shortcut_key = 'Ctrl+Shift+d'
+        shortcut = QShortcut(QKeySequence(shortcut_key), self)
+
+        def show_popup():
+            self._widget_device_list.showPopup()
+
+        shortcut.activated.connect(show_popup)
         observers.append(self._widget_device_list)
         for d in self.harvester_core.device_info_list:
             self._widget_device_list.addItem(d)

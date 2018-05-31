@@ -161,6 +161,20 @@ class FeatureTreeModel(QAbstractItemModel):
     _editables = [EAccessMode.RW, EAccessMode.WO]
 
     def __init__(self, parent=None, node_map: NodeMap=None, mutex=None):
+        """
+
+        :param parent: Set its parent QWidget object.
+        :param node_map: Set a NodeMap object to model.
+        :param mutex: Set a mutex object to synchronize Qt's dsiplaying task.
+
+        REMARKS: QAbstractItemModel might impact the performance and could
+        slow Harvester. As far as we've confirmed, QAbstractItemModel calls
+        its index() method for every item already shown. Especially, such
+        a call happens every time when (1) its view got/lost focus or (2)
+        its view was scrolled. If such slow performance makes people
+        irritating we should investigate how can we optimize it.
+
+        """
         #
         super().__init__(parent)
 

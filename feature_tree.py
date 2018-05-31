@@ -48,6 +48,8 @@ class TreeItem(object):
         EInterfaceType.intfIRegister,
     ]
 
+    _readable_access_modes = [EAccessMode.RW, EAccessMode.RO]
+
     def __init__(self, data, parent=None):
         self._parent_item = parent
         self._own_data = data
@@ -90,22 +92,24 @@ class TreeItem(object):
                 return None
         else:
             feature = self.own_data[column]
+            value = None
             if column == 0:
-                return feature.node.display_name
+                value = feature.node.display_name
             else:
                 interface_type = feature.node.principal_interface_type
-                if interface_type == EInterfaceType.intfICategory:
-                    return None
-                else:
+
+                if interface_type != EInterfaceType.intfICategory:
                     if interface_type == EInterfaceType.intfICommand:
                         value = '-- Click here --'
                     else:
-                        value = 'N/A'
-                        if feature.node.get_access_mode() == EAccessMode.RW or \
-                                feature.node.get_access_mode() == EAccessMode.RO:
-                            if interface_type in self._readable_nodes:
+                        if feature.node.get_access_mode() in \
+                                self._readable_access_modes and \
+                                interface_type in self._readable_nodes:
                                 value = str(feature.value)
-                    return value
+                        else:
+                            value = 'N/A'
+
+            return value
 
     def tooltip(self, column):
         if isinstance(self.own_data[column], str):
@@ -147,14 +151,18 @@ class TreeItem(object):
 
 
 class FeatureTreeModel(QAbstractItemModel):
+    #
     _capable_roles = [
         Qt.DisplayRole, Qt.ToolTipRole, Qt.BackgroundColorRole,
         Qt.ForegroundRole
     ]
 
-    def __init__(self, node_map: NodeMap=None, mutex=None):
+    #
+    _editables = [EAccessMode.RW, EAccessMode.WO]
+
+    def __init__(self, parent=None, node_map: NodeMap=None, mutex=None):
         #
-        super(FeatureTreeModel, self).__init__()
+        super().__init__(parent)
 
         #
         self._mutex = mutex
@@ -183,14 +191,17 @@ class FeatureTreeModel(QAbstractItemModel):
             return None
 
         item = index.internalPointer()
+        value = None
         if role == Qt.DisplayRole:
-            return item.data(index.column())
+            value = item.data(index.column())
         elif role == Qt.ToolTipRole:
-            return item.tooltip(index.column())
+            value = item.tooltip(index.column())
         elif role == Qt.BackgroundColorRole:
-            return item.background(index.column())
+            value = item.background(index.column())
         else:
-            return item.foreground(index.column())
+            value = item.foreground(index.column())
+
+        return value
 
     def flags(self, index):
         if not index.isValid():
@@ -199,8 +210,8 @@ class FeatureTreeModel(QAbstractItemModel):
         tree_item = index.internalPointer()
         feature = tree_item.own_data[0]
         access_mode = feature.node.get_access_mode()
-        editables = [EAccessMode.RW, EAccessMode.WO]
-        if access_mode in editables:
+
+        if access_mode in self._editables:
             ret = Qt.ItemIsEnabled | Qt.ItemIsEditable
         else:
             if index.column() == 1:

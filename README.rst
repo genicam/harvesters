@@ -223,15 +223,9 @@ The Harvester project is planning to support distribution via PyPI but it's not 
 
     $ pip install genicam.harvester
 
-#########
-Tutorials
-#########
-
-In this section, we will learn how to use Harvester GUI and Harvester Core.
-
-*************
+#############
 Harvester GUI
-*************
+#############
 
 When you finished building the Python bindings, then you can launch Harvester. To launch Harvester Core or Harvester GUI, we would recommend you to do it on an IDE called PyCharm. You can download the community version of PyCharm for free at the following URL:
 
@@ -266,11 +260,12 @@ Now it is the time to select a GenTL Producer to load. In the toolbar, clicking 
     :alt: Loaded TLSimu
     :scale: 40 %
 
+***********
 Main window
-===========
+***********
 
 Toolbar
--------
+=======
 
 Most of Harvester GUI's features can be used through its toolbox. In this section, we describe each button's functionality and how to use it. Regarding shortcut keys, replace ``Ctrl`` with ``Command`` on macOS.
 
@@ -280,7 +275,7 @@ Most of Harvester GUI's features can be used through its toolbox. In this sectio
     :scale: 40 %
 
 Selecting a CTI file
-^^^^^^^^^^^^^^^^^^^^
+--------------------
 
 .. image:: https://user-images.githubusercontent.com/8652625/40596073-7e1b6a82-6273-11e8-9045-68bbbd034281.png
     :align: left
@@ -290,7 +285,7 @@ Selecting a CTI file
 This button is used to select a GenTL Producer file to load. The shortcut key is ``Ctrl+o``.
 
 Updating GenTL information
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------
 
 .. image:: https://user-images.githubusercontent.com/8652625/40596091-9354283a-6273-11e8-8c6f-559db511339a.png
     :align: left
@@ -300,12 +295,12 @@ Updating GenTL information
 This button is used to update GenTL information of the GenTL Producer that you are loading on Harvester. The shortcut key is ``Ctrl+u``. It might be useful when you newly connect a device to your system.
 
 Selecting a GenICam compliant device
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------
 
 This combo box shows a list of available GenICam compliant devices. You can select a device that you want to control. The shortcut key is ``Ctrl+D``, i.e., ``Ctrl+Shift+d``. 
 
 Connecting a selected device to Harvester
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------
 
 .. image:: https://user-images.githubusercontent.com/8652625/40596045-49c61d54-6273-11e8-8424-d16e923b5b3f.png
     :align: left
@@ -315,7 +310,7 @@ Connecting a selected device to Harvester
 This button is used to connect a device which is being selected by the former combo box. The shortcut key is ``Ctrl+c``. Once you connect the device, the device is exclusively controlled.
 
 Disconnecting the connecting device from Harvester
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------------------
 
 .. image:: https://user-images.githubusercontent.com/8652625/40596046-49f0fd9e-6273-11e8-83e3-7ba8aad3c4f7.png
     :align: left
@@ -325,7 +320,7 @@ Disconnecting the connecting device from Harvester
 This button is used to disconnect the connecting device from Harvester. The shortcut key is ``Ctrl+d``.
 
 Starting image acquisition
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------
 
 .. image:: https://user-images.githubusercontent.com/8652625/40596022-34d3d486-6273-11e8-92c3-2349be5fd98f.png
     :align: left
@@ -335,7 +330,7 @@ Starting image acquisition
 This button is used to start image acquisition. The shortcut key is ``Ctrl+j``. The acquired images will be drawing in the following canvas pane.
 
 Pausing image drawing
-^^^^^^^^^^^^^^^^^^^^^
+---------------------
 
 .. image:: https://user-images.githubusercontent.com/8652625/40596063-6cae1aba-6273-11e8-9049-2430a042c671.png
     :align: left
@@ -345,7 +340,7 @@ Pausing image drawing
 This button is used to temporarily stop drawing images on the canvas pane while it's keep acquiring images in the background. The shortcut key is ``Ctrl+k``. If you want to resume drawing images, just click the button again. You can do the same thing with the start image acquisition button (``Ctrl+j``).
 
 Stopping image acquisition
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------
 
 .. image:: https://user-images.githubusercontent.com/8652625/40596024-35d84c86-6273-11e8-89b8-9368db740f22.png
     :align: left
@@ -355,7 +350,7 @@ Stopping image acquisition
 This button is used to stop image acquisition. The shortcut key is ``Ctrl+l``.
 
 Showing the device attribute dialog
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------
 
 .. image:: https://user-images.githubusercontent.com/8652625/40596224-7b2cf0e2-6274-11e8-9088-bb48163968d6.png
     :align: left
@@ -365,7 +360,7 @@ Showing the device attribute dialog
 This button is used to show the device attribute dialog. The shortcut key is ``Ctrl+a``. The device attribute dialog offers you to a way to intuitively control device attribute over a GUI.
 
 Showing the about dialog
-^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------
 
 .. image:: https://user-images.githubusercontent.com/8652625/40596039-449ddc36-6273-11e8-9f91-1eb7830b8e8c.png
     :align: left
@@ -375,7 +370,7 @@ Showing the about dialog
 This button is used to show the about dialog.
 
 Canvas
-------
+======
 
 .. image:: https://user-images.githubusercontent.com/8652625/40781833-5ea766c2-6518-11e8-9be9-436be0a52f14.png
     :align: center
@@ -383,30 +378,31 @@ Canvas
     :scale: 40 %
 
 Zooming into the displayed image
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------
 
 If you're using a mouse, spin the wheel to your side. If you are using a trackpad on a macOS, slide two fingers to your side.
 
 Zooming out from the displayed image
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+------------------------------------
 
 If you're using a mouse, spin the wheel to your pointing finger points at. If you are using a trackpad on a macOS, slide two fingers to the display side.
 
 Changing the part being displayed
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------
 
 If you're using a mouse, grab any point in the canvas and drag the pointer as if you're physically grabbing the image. The image will follow the pointer. If you are using a trackpad on a macOS, it might be useful if you assign the three finger slide for dragging.
 
+***************************
 Attribute controller window
-===========================
+***************************
 
 The attribute controller offers you an interface to each GenICam feature node that the the target device provides.
 
 Toolbar
--------
+=======
 
 Filtering GenICam feature nodes by visibility
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------------------
 
 This combo box offers you to apply visibility filter to the GenICam feature node tree. The shortcut key is ``Ctrl+v``
 
@@ -450,12 +446,12 @@ The following table shows each item in the combo box and the visibility status o
       - Visible
 
 Filtering GenICam feature nodes by regular expression
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------------------
 
 This text edit box offers you to filter GenICam feature nodes by regular expression.
 
 Expanding the feature node tree
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------------
 
 .. image:: https://user-images.githubusercontent.com/8652625/40780001-f316a950-6511-11e8-9310-c160abadfa49.png
     :align: left
@@ -465,7 +461,7 @@ Expanding the feature node tree
 This button is used to expand the feature node tree. The shortcut key is ``Ctrl+e``.
 
 Collapsing the feature node tree
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------
 
 .. image:: https://user-images.githubusercontent.com/8652625/40779999-f2e49ad2-6511-11e8-993e-7c229d915fe8.png
     :align: left
@@ -474,9 +470,9 @@ Collapsing the feature node tree
 
 This button is used to collapse the feature node tree. The shortcut key is ``Ctrl+c``.
 
-**************
+##############
 Harvester Core
-**************
+##############
 
 TODO: Finish writing article.
 

@@ -22,8 +22,9 @@ import sys
 
 # Related third party imports
 from PyQt5.QtCore import pyqtSlot, QMutexLocker
+from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QMainWindow, QApplication, QTreeView, \
-    QAction, QComboBox, QLineEdit, QLabel
+    QAction, QComboBox, QLineEdit, QLabel, QShortcut
 
 from genapi import EVisibility
 
@@ -138,18 +139,34 @@ class AttributeController(QMainWindow):
 
         #
         self._combo_box_visibility = QComboBox()
-        self._combo_box_visibility.setSizeAdjustPolicy(QComboBox.AdjustToContents)
+        self._combo_box_visibility.setSizeAdjustPolicy(
+            QComboBox.AdjustToContents
+        )
 
         items = ('Beginner', 'Expert', 'Guru', 'All')
         for item in items:
             self._combo_box_visibility.addItem(item)
 
-        self._combo_box_visibility.setToolTip('Filter the nodes to show')
+        shortcut_key = 'Ctrl+v'
+        shortcut = QShortcut(QKeySequence(shortcut_key), self)
+
+        def show_popup():
+            self._combo_box_visibility.showPopup()
+
+        shortcut.activated.connect(show_popup)
+
+        self._combo_box_visibility.setToolTip(
+            compose_tooltip('Filter the nodes to show', shortcut_key)
+        )
         self._combo_box_visibility.setFont(get_system_font())
-        self._combo_box_visibility.currentIndexChanged.connect(self._invalidate_feature_tree_by_visibility)
+        self._combo_box_visibility.currentIndexChanged.connect(
+            self._invalidate_feature_tree_by_visibility
+        )
 
         #
-        button_expand_all = ActionExpandAll(self, Icon('expand_all.png'), 'Expand All')
+        button_expand_all = ActionExpandAll(
+            self, Icon('expand_all.png'), 'Expand All'
+        )
         shortcut_key = 'Ctrl+e'
         button_expand_all.setToolTip(
             compose_tooltip('Expand the node tree', shortcut_key)
@@ -158,7 +175,9 @@ class AttributeController(QMainWindow):
         button_expand_all.toggle()
 
         #
-        button_collapse_all = ActionCollapseAll(self, Icon('collapse_all.png'), 'Collapse All')
+        button_collapse_all = ActionCollapseAll(
+            self, Icon('collapse_all.png'), 'Collapse All'
+        )
         shortcut_key = 'Ctrl+c'
         button_collapse_all.setToolTip(
             compose_tooltip('Collapse the node tree', shortcut_key)
@@ -174,7 +193,9 @@ class AttributeController(QMainWindow):
         #
         self._line_edit_search_box = QLineEdit()
         self._line_edit_search_box.setFont(get_system_font())
-        self._line_edit_search_box.textEdited.connect(self._invalidate_feature_tree_by_keyword)
+        self._line_edit_search_box.textEdited.connect(
+            self._invalidate_feature_tree_by_keyword
+        )
 
         #
         group_filter.addWidget(label_visibility)
@@ -188,7 +209,9 @@ class AttributeController(QMainWindow):
         group_manipulation.addAction(button_collapse_all)
 
         #
-        group_manipulation.actionTriggered[QAction].connect(self.on_button_clicked_action)
+        group_manipulation.actionTriggered[QAction].connect(
+            self.on_button_clicked_action
+        )
 
     def _invalidate_feature_tree_by_visibility(self):
         with QMutexLocker(self._parent_widget.harvester_core.mutex):

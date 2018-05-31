@@ -20,7 +20,7 @@
 # Standard library imports
 
 # Related third party imports
-from PyQt5.QtCore import QMutexLocker, Qt
+from PyQt5.QtCore import QMutexLocker
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QMainWindow, QAction, QComboBox, \
     QDesktopWidget, QWidget, QVBoxLayout, QFileDialog, QDialog, QShortcut

@@ -693,6 +693,7 @@ class Harvester:
                 self._announced_buffers = []
                 self._data_stream = None
                 self._latest_gentl_buffer = None
+                self._has_acquired_1st_image = False
 
                 for statistics in self._statistics_list:
                     statistics.reset()

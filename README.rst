@@ -376,6 +376,8 @@ This button is used to show the about dialog.
 Canvas
 ======
 
+The canvas of Harvester GUI offers you not only data visualization but also some intuitive object manipulations.
+
 .. image:: https://user-images.githubusercontent.com/8652625/40781833-5ea766c2-6518-11e8-9be9-436be0a52f14.png
     :align: center
     :alt: Toolbar

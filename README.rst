@@ -72,6 +72,9 @@ You'll be able to download the these language binding runtime libraries from the
 
 If you don't have to visualize acquired images at high frame rate, the combination of Harvester Core and `Matplotlib <https://matplotlib.org>`_ might be ideal for that purpose.
 
+Main features
+=============
+
 The main features of Harvester Core are listed as follows:
 
 * Image acquisition over GenTL Producers
@@ -87,6 +90,9 @@ Harvester GUI (``harvester.HarvesterGUI``)
 ******************************************
 
 Harvester GUI works on the top of Harvester Core and offers you high-performance image data visualization on the fly. It involves VisPy for controlling OpenGL functionality and PyQt for providing GUI.
+
+Main features
+=============
 
 The main features of Harvester GUI are listed as follows:
 

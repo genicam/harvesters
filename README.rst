@@ -273,9 +273,9 @@ Now it is the time to select a GenTL Producer to load. In the toolbar, clicking 
 Harvester GUI
 #############
 
-***********
-Main window
-***********
+****************************
+Image data visualizer window
+****************************
 
 Toolbar
 =======

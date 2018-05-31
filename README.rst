@@ -407,6 +407,11 @@ The attribute controller offers you an interface to each GenICam feature node th
 Toolbar
 =======
 
+.. image:: https://user-images.githubusercontent.com/8652625/40781832-5e6b34ea-6518-11e8-9337-3b22d3ea5adb.png
+    :align: center
+    :alt: Toolbar
+    :scale: 40 %
+
 Filtering GenICam feature nodes by visibility
 ---------------------------------------------
 

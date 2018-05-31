@@ -6,7 +6,7 @@ Harvester is a friendly companion for people who those want to learn computer vi
 
 You can freely use, modify, distribute Harvester licensed under `Apache License-2.0 <https://www.apache.org/licenses/LICENSE-2.0>`_ without worrying about the use of your software: personal, internal or commercial.
 
-The Harvester project develops an open source Python library that consumes the GenTL Standard based image acquisition libraries, so-called GenTL Producers. If you have an officially certified GenTL Producer and GenICam compliant machine vision cameras, Harvester offers you **high-performance image acquisition** from the cameras and **data visualization** of the acquired images on all major platforms. In addition, it offers you interface for `numpy <http://www.numpy.org>`_ to make image processing easier and productive.
+The Harvester project develops an open source Python library that consumes the GenTL Standard based image acquisition libraries, so-called GenTL Producers. If you have an officially certified GenTL Producer and GenICam compliant machine vision cameras, Harvester offers you **high-performance image acquisition** from the cameras and **image data visualization** of the acquired images on all major platforms. In addition, it offers you interface for `numpy <http://www.numpy.org>`_ to make image processing easier and productive.
 
 Currently, Harvester is being developed and maintained by the motivated volunteer contributors from all over the world.
 
@@ -86,11 +86,11 @@ On the other hand, Harvester Core could be considered as a simplified version of
 Harvester GUI (``harvester.HarvesterGUI``)
 ******************************************
 
-Harvester GUI works on the top of Harvester Core and offers you high-performance data visualization on the fly. It involves VisPy for controlling OpenGL functionality and PyQt for providing GUI.
+Harvester GUI works on the top of Harvester Core and offers you high-performance image data visualization on the fly. It involves VisPy for controlling OpenGL functionality and PyQt for providing GUI.
 
 The main features of Harvester GUI are listed as follows:
 
-* Data visualization of the acquired images
+* Image data visualization of the acquired images
 * Image magnification using a mouse wheel or a trackpad
 * Image dragging using a mouse or a trackpad
 * An arbitrary selection of image displaying point in the data path (Not implemented yet)
@@ -112,12 +112,18 @@ Screenshots
 
 In this section, we see some useful windows which Harvester offers you.
 
-The image visualizer window (below) offers you a visualization of the acquired images. In this screenshot, Harvester is acquiring a 4000 x 3000 pixel of RGB8 image at 30 fps; it means it's acquiring images at 8.6 Gbps. It's quite fast isn't it?
+Image data visualizer window
+============================
+
+The image data visualizer window (below) offers you a visualization of the acquired images. In this screenshot, Harvester is acquiring a 4000 x 3000 pixel of RGB8 image at 30 fps; it means it's acquiring images at 8.6 Gbps. It's quite fast isn't it?
 
 .. image:: https://user-images.githubusercontent.com/8652625/40719181-9eb5fe98-644d-11e8-92bd-d21b7de9a2db.png
     :align: center
-    :alt: Image visualizer
+    :alt: Image data visualizer
     :scale: 40 %
+
+Attribute controller window
+===========================
 
 The attribute controller window (below) offers you to manipulate GenICam feature nodes of the target device. Changing exposure time, triggering the target device for image acquisition, storing a set of camera configuration so-called User Set, etc, you can manually control the target device anytime when you want to. It supports visibility filter feature and regular expression feature. These features are useful in a case where you need to display only the features you are interested.
 
@@ -126,7 +132,10 @@ The attribute controller window (below) offers you to manipulate GenICam feature
     :alt: Attribute Controller
     :scale: 40 %
 
-The following screenshot shows Harvester Core is running on IPython. Harvester Core returns the latest image data at the moment as a Numpy array every time its user call the ``get_image()`` method. Once you get an image you should be able to immediately start image processing. If you're running on Jupyter notebook, you should be able to visualize the data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
+Harvester Core
+==============
+
+The following screenshot shows Harvester Core is running on IPython. Harvester Core returns the latest image data at the moment as a Numpy array every time its user call the ``get_image()`` method. Once you get an image you should be able to immediately start image processing. If you're running on Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
 .. image:: https://user-images.githubusercontent.com/8652625/40784009-3aec2d92-651f-11e8-8620-38bc71f059fb.png
     :align: center
@@ -376,7 +385,7 @@ This button is used to show the about dialog.
 Canvas
 ======
 
-The canvas of Harvester GUI offers you not only data visualization but also some intuitive object manipulations.
+The canvas of Harvester GUI offers you not only image data visualization but also some intuitive object manipulations.
 
 .. image:: https://user-images.githubusercontent.com/8652625/40781833-5ea766c2-6518-11e8-9be9-436be0a52f14.png
     :align: center

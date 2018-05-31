@@ -223,9 +223,9 @@ The Harvester project is planning to support distribution via PyPI but it's not 
 
     $ pip install genicam.harvester
 
-#############
-Harvester GUI
-#############
+###########################
+Instructions for developers
+###########################
 
 When you finished building the Python bindings, then you can launch Harvester. To launch Harvester Core or Harvester GUI, we would recommend you to do it on an IDE called PyCharm. You can download the community version of PyCharm for free at the following URL:
 
@@ -259,6 +259,10 @@ Now it is the time to select a GenTL Producer to load. In the toolbar, clicking 
     :align: center
     :alt: Loaded TLSimu
     :scale: 40 %
+
+#############
+Harvester GUI
+#############
 
 ***********
 Main window

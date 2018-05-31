@@ -263,6 +263,12 @@ In the Project Structure page, please add content root where the Python Bindings
 
 Having that information, PyCharm can find out those modules which Harvester asks Python to import.
 
+Using ``PAYTHONPATH`` is also a way to tell Python an additional directory where Python modules are located. If your intended modules are located at ``path/to/module_dir``, you should set up ``PYTHONPATH`` as follows:
+
+.. code-block:: shell
+
+    $ PYTHONPATH=path/to/module_dir
+
 ***********************
 Launching Harvester GUI
 ***********************

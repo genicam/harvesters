@@ -107,12 +107,12 @@ class TreeItem(object):
                                 value = str(feature.value)
                     return value
 
-    def tool_tip(self, column):
+    def tooltip(self, column):
         if isinstance(self.own_data[column], str):
             return None
         else:
             feature = self.own_data[column]
-            return feature.node.tool_tip
+            return feature.node.tooltip
 
     def background(self, column):
         if isinstance(self.own_data[column], str):
@@ -186,7 +186,7 @@ class FeatureTreeModel(QAbstractItemModel):
         if role == Qt.DisplayRole:
             return item.data(index.column())
         elif role == Qt.ToolTipRole:
-            return item.tool_tip(index.column())
+            return item.tooltip(index.column())
         elif role == Qt.BackgroundColorRole:
             return item.background(index.column())
         else:

@@ -135,7 +135,7 @@ class FromNumpy1DToNumpy2D(Processor):
 
         #
         ndarray = None
-        if symbolic in mono_formats:
+        if symbolic in mono_formats or symbolic in bayer_formats:
             ndarray = input.ndarray.reshape(
                 input.buffer.height, input.buffer.width
             )
@@ -143,11 +143,7 @@ class FromNumpy1DToNumpy2D(Processor):
             ndarray = input.ndarray.reshape(
                 input.buffer.height, input.buffer.width, 3
             )
-        elif symbolic in bayer_formats:
-            # TODO: Convert the raw data.
-            ndarray = input.ndarray.reshape(
-                input.buffer.height, input.buffer.width
-            )
+
         output = ImageInformation(
             input.buffer, input.node_map, ndarray
         )

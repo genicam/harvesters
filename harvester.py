@@ -103,7 +103,7 @@ class FromBytesToNumpy1D(Processor):
     def __init__(self):
         #
         super().__init__(
-            brief_description='Converts a Python bytes object to Numpy 1D array'
+            brief_description='Converts a Python bytes object to a Numpy 1D array'
         )
 
     def process(self, input: ImageInformation):
@@ -119,7 +119,7 @@ class FromNumpy1DToNumpy2D(Processor):
     def __init__(self):
         #
         super().__init__(
-            brief_description='Converts a Numpy 1D array to Numpy 1D array')
+            brief_description='Reshape a Numpy 1D array into a Numpy 2D array')
 
     def process(self, input: ImageInformation):
         #

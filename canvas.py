@@ -97,7 +97,8 @@ class Canvas(app.Canvas):
             ]
         )
         self._data['a_texcoord'] = np.array(
-            [[0., 1.], [1., 1.], [0., 0.], [1., 0.]])
+            [[0., 1.], [1., 1.], [0., 0.], [1., 0.]]
+        )
 
         #
         self._program['u_model'] = np.eye(4, dtype=np.float32)

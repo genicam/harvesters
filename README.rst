@@ -21,7 +21,7 @@ Currently, Harvester is being developed and maintained by the motivated voluntee
 
 
 ################
-Asking questions
+Asking Questions
 ################
 
 We have prepared a chat room in Gitter. Please don't hesitate to drop your message when you get a question regarding Harvester!
@@ -50,7 +50,7 @@ The following diagram shows the hierarchy and relationship of the relevant modul
     :scale: 40 %
 
 ################################
-What would Harvester do for you?
+What Would Harvester Do for You?
 ################################
 
 Harvester mainly consists of the following two Python modules:
@@ -60,9 +60,9 @@ Harvester mainly consists of the following two Python modules:
 
 In this section, we will learn what Harvester offers us through these components.
 
-****************************************
-Harvester Core (``harvester.Harvester``)
-****************************************
+******************************************
+Harvester Core aka ``harvester.Harvester``
+******************************************
 
 Harvester Core is an image acquisition engine. No GUI. You can use it as an image acquisition library which acquires images from GenTL Producers through the GenTL-Python Binding and control the target device (it's typically a camera) through the GenApi-Python Binding.
 
@@ -72,8 +72,8 @@ You'll be able to download the these language binding runtime libraries from the
 
 If you don't have to visualize acquired images at high frame rate, the combination of Harvester Core and `Matplotlib <https://matplotlib.org>`_ might be ideal for that purpose.
 
-Main features
-=============
+Harvester Core's Main Features
+==============================
 
 The main features of Harvester Core are listed as follows:
 
@@ -85,14 +85,14 @@ Note that the second item implies you can involve multiple types of transport la
 
 On the other hand, Harvester Core could be considered as a simplified version of the GenTL-Python Binding; actually Harvester Core hides it in its back and shows only intuitive interfaces to its clients. Harvester Core just offers you a relationship between you and a device. Nothing more. We say it again, just you and a device. If you need to manipulate more relevant GenTL modules or have to achieve something over a hardcore way, then you should directly work with the GenTL-Python Binding.
 
-******************************************
-Harvester GUI (``harvester.HarvesterGUI``)
-******************************************
+********************************************
+Harvester GUI aka ``harvester.HarvesterGUI``
+********************************************
 
 Harvester GUI works on the top of Harvester Core and offers you high-performance image data visualization on the fly. It involves VisPy for controlling OpenGL functionality and PyQt for providing GUI.
 
-Main features
-=============
+Harvester GUI's Main Features
+=============================
 
 The main features of Harvester GUI are listed as follows:
 
@@ -103,7 +103,7 @@ The main features of Harvester GUI are listed as follows:
 
 Unlike Harvester Core, Harvester GUI limits the number of GenTL Producers to load just one. This is just a limitation to not make the GUI complicated. In general, the user should know which GenTL Producer should be loaded to control his target device. It's not necessary to load multiple GenTL Producers for this use case. However, this is just an idea in an early stage. We might support multiple loading on even Harvester GUI in the future.
 
-Supported pixel formats
+Supported Pixel Formats
 =======================
 
 Currently Harvester GUI supports the following pixel formats that are defined by the Pixel Format Naming Convention:
@@ -119,7 +119,7 @@ Screenshots
 In this section, we see some useful windows which Harvester offers you.
 
 ****************************
-Image data visualizer window
+Image Data Visualizer Window
 ****************************
 
 The image data visualizer window (below) offers you a visualization of the acquired images. In this screenshot, Harvester is acquiring a 4000 x 3000 pixel of RGB8 image at 30 fps; it means it's acquiring images at 8.6 Gbps. It's quite fast isn't it?
@@ -130,7 +130,7 @@ The image data visualizer window (below) offers you a visualization of the acqui
     :scale: 40 %
 
 ***************************
-Attribute controller window
+Attribute Controller Window
 ***************************
 
 The attribute controller window (below) offers you to manipulate GenICam feature nodes of the target device. Changing exposure time, triggering the target device for image acquisition, storing a set of camera configuration so-called User Set, etc, you can manually control the target device anytime when you want to. It supports visibility filter feature and regular expression feature. These features are useful in a case where you need to display only the features you are interested.
@@ -140,9 +140,9 @@ The attribute controller window (below) offers you to manipulate GenICam feature
     :alt: Attribute Controller
     :scale: 40 %
 
-**************
-Harvester Core
-**************
+*************************
+Harvester Core on IPython
+*************************
 
 The following screenshot shows Harvester Core is running on IPython. Harvester Core returns the latest image data at the moment as a Numpy array every time its user call the ``get_image()`` method. Once you get an image you should be able to immediately start image processing. If you're running on Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
@@ -156,7 +156,7 @@ Requirements
 ############
 
 *******************
-System requirements
+System Requirements
 *******************
 
 * Python 3.4 or higher
@@ -164,16 +164,16 @@ System requirements
 * GenICam compliant machine vision cameras
 
 ***************************
-Supported operating systems
+Supported Operating Systems
 ***************************
 
 * macOS
-* Ubuntu
+* Ubuntu (Not well tested yet)
 * Windows
 
-##########
-Installing
-##########
+####################
+Installing Harvester
+####################
 
 In this section, we will learn how to instruct procedures to get Harvester work.
 
@@ -242,11 +242,11 @@ The Harvester project is planning to support distribution via PyPI but it's not 
     $ pip install genicam.harvester
 
 ###########################
-Instructions for developers
+Instructions for Developers
 ###########################
 
 *****************
-Setting up an IDE
+Setting Up an IDE
 *****************
 
 When you finished building the Python bindings, then you can launch Harvester. To launch Harvester Core or Harvester GUI, we would recommend you to do it on an IDE called PyCharm. You can download the community version of PyCharm for free at the following URL:
@@ -255,9 +255,9 @@ https://www.jetbrains.com/pycharm/download
 
 After installing PyCharm, open the Harvester package, that you have downloaded from GitHub, from PyCharm.
 
-**********************************************************
-Telling an IDE the location where the bindings are located
-**********************************************************
+***************
+Module Location
+***************
 
 By default, PyCharm doesn't know where the Python Bings are located. You can tell PyCharm the location in the Preference dialog. You should be able to find the right place just searching from the top-left corner. Then clicking ``Add Content Root`` button in the top-right corner and specify the directory.
 
@@ -304,12 +304,12 @@ Now it is the time to select a GenTL Producer to load. In the toolbar, clicking 
 Harvester GUI
 #############
 
-****************************
-Image data visualizer window
-****************************
+*********************************************
+Harvester GUI :: Image Data Visualizer Window
+*********************************************
 
-Toolbar
-=======
+Image Data Visualizer Window :: Toolbar
+=======================================
 
 Most of Harvester GUI's features can be used through its toolbox. In this section, we describe each button's functionality and how to use it. Regarding shortcut keys, replace ``Ctrl`` with ``Command`` on macOS.
 
@@ -413,8 +413,8 @@ Showing the about dialog
 
 This button is used to show the about dialog.
 
-Canvas
-======
+Image Data Visualizer Window :: Canvas
+======================================
 
 The canvas of Harvester GUI offers you not only image data visualization but also some intuitive object manipulations.
 
@@ -438,14 +438,14 @@ Changing the part being displayed
 
 If you're using a mouse, grab any point in the canvas and drag the pointer as if you're physically grabbing the image. The image will follow the pointer. If you are using a trackpad on a macOS, it might be useful if you assign the three finger slide for dragging.
 
-***************************
-Attribute controller window
-***************************
+********************************************
+Harvester GUI :: Attribute Controller Window
+********************************************
 
 The attribute controller offers you an interface to each GenICam feature node that the the target device provides.
 
-Toolbar
-=======
+Attribute Controller Window :: Toolbar
+======================================
 
 .. image:: https://user-images.githubusercontent.com/8652625/40781832-5e6b34ea-6518-11e8-9337-3b22d3ea5adb.png
     :align: center
@@ -549,7 +549,7 @@ Harvester GUI (but not Harvester Core) uses the following open source libraries/
     | https://icons8.com/
 
 ####################################
-Why is the library called Harvester?
+Why Is the Library Called Harvester?
 ####################################
 
 Harvester's name was derived from the great Flemish painter, Pieter Bruegel the Elder's painting so-called "The Harvesters". Harvesters harvest a crop every season that has been fully grown and the harvested crop is passed to the consumers. On the other hand, image acquisition libraries acquire images as their crop and the images are passed to the following processes. We found the similarity between them and decided to name our library Harvester.

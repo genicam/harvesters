@@ -221,6 +221,10 @@ After that, you'll have to build the Python bindings by yourself. The source cod
 
     $ svn co --username your_account_name https://genicam.mvtec.com/svn/genicam/branches/_dev_teli_kazunari_1881_20180121/
 
+Note that you need to be a member of EMVA to download a working copy from their repository. To learn about the detail please visit the following EMVA website:
+
+https://www.emva.org/about-emva/membership/
+
 To build the library, please read the ``README`` file which is located at the following directory in the source package:
 
 ``genicam/source/Bindings/README.rst``

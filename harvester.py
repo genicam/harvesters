@@ -154,7 +154,7 @@ class FromNumpy1DToNumpy2D(Processor):
 class Rotate(Processor):
     def __init__(self, angle=0):
         #
-        super().__init__(brief_description='Rotate Numpy 2D array')
+        super().__init__(brief_description='Rotate a Numpy 2D array')
 
         #
         self._angle = angle

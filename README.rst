@@ -1,6 +1,6 @@
-#########
-Harvester
-#########
+###############
+About Harvester
+###############
 
 Harvester is a friendly companion for people who those want to learn computer vision.
 

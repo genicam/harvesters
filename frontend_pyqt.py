@@ -20,7 +20,7 @@
 # Standard library imports
 
 # Related third party imports
-from PyQt5.QtCore import QMutexLocker
+from PyQt5.QtCore import QMutexLocker, QThread
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QMainWindow, QAction, QComboBox, \
     QDesktopWidget, QWidget, QVBoxLayout, QFileDialog, QDialog, QShortcut
@@ -32,8 +32,71 @@ from attribute_controller import AttributeController
 from canvas import Canvas
 from device_list import ComboBox
 from frontend_helper import compose_tooltip
+from harvester_thread import Thread
 from icon import Icon
 from system import get_system_font
+
+
+class PyQtThread(Thread):
+    def __init__(self, mutex=None, worker=None):
+        #
+        super().__init__()
+
+        #
+        self._thread = PyQtThreadImpl(
+            mutex=mutex, parent=self, worker=worker
+        )
+
+    def start(self):
+        self.is_running = True
+        self._thread.start()
+
+    def stop(self):
+        self._thread.stop()
+
+    def run(self):
+        self._thread.run()
+
+    def join(self):
+        self._thread.join()
+
+    def wait(self):
+        self._thread.wait()
+
+    def acquire(self):
+        return self._thread.acquire()
+
+    def release(self):
+        self._thread.release()
+
+
+class PyQtThreadImpl(QThread):
+    def __init__(self, mutex=None, parent=None, worker=None):
+        #
+        super().__init__()
+
+        #
+        self._worker = worker
+        self._mutex = mutex
+        self._parent = parent
+
+    def stop(self):
+        with QMutexLocker(self._mutex):
+            self._parent.is_running = False
+
+    def run(self):
+        while self._parent.is_running:
+            self._worker()
+
+    def join(self):
+        while self._parent.is_running:
+            pass
+
+    def acquire(self):
+        return QMutexLocker(self._mutex)
+
+    def release(self):
+        pass
 
 
 class HarvesterGUI(QMainWindow):

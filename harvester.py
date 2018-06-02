@@ -25,7 +25,6 @@ import time
 import zipfile
 
 # Related third party imports
-from PyQt5.QtCore import QThread, pyqtSignal, QMutexLocker, QMutex
 from PyQt5.QtWidgets import QApplication
 
 import numpy as np
@@ -42,38 +41,10 @@ from gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
 from icon import Icon
 from port import ConcretePort
 from processor import Processor
+from harvester_thread import MutexLocker
 
 
 __version__= '1.0.0, ' + 'Y2018.M05.D25'
-
-
-class ImageAcquisitionThread(QThread):
-    sig_status = pyqtSignal()
-
-    def __init__(self, mutex=None, parent=None):
-        #
-        super().__init__(parent)
-
-        #
-        self._worker = None
-        self._is_running = False
-        self._mutex = mutex
-
-    def setup(self, worker):
-        self._worker = worker
-        self._is_running = True
-
-    def stop(self):
-        with QMutexLocker(self._mutex):
-            self._is_running = False
-
-    def run(self):
-        while self._is_running:
-            self._worker()
-
-    def join(self):
-        while self._is_running:
-            pass
 
 
 class ImageInformation:
@@ -257,7 +228,7 @@ class Harvester:
         self._thread_image_acquisition = None
 
         #
-        self._mutex = QMutex()
+        self._mutex = None
         self._latest_texture_data = None
         self._feature_tree_model = None
 
@@ -289,8 +260,26 @@ class Harvester:
 
         #
         if self._frontend.lower() == 'pyqt':
-            from frontend_pyqt import HarvesterGUI
+            from frontend_pyqt import HarvesterGUI, PyQtThread
+            from PyQt5.QtCore import QMutex
+
+            #
+            self._mutex = QMutex()
+
+            #
             self._gui = HarvesterGUI(harvester_core=self)
+
+            #
+            self._thread_statistics_measurement = PyQtThread(
+                mutex=self._mutex,
+                worker=self._worker_acquisition_statistics
+            )
+
+            #
+            self._thread_image_acquisition = PyQtThread(
+                mutex=self._mutex,
+                worker=self._worker_image_acquisition
+            )
 
     def __enter__(self):
         return self
@@ -337,13 +326,13 @@ class Harvester:
 
     @timeout_for_image_acquisition.setter
     def timeout_for_image_acquisition(self, ms):
-        with QMutexLocker(self._mutex):
+        with MutexLocker(self._thread_image_acquisition):
             self._timeout_for_image_acquisition = ms
 
     def get_image(self, return_copy=True):
         if self._latest_texture_data is not None:
             if return_copy:
-                with QMutexLocker(self._mutex):
+                with MutexLocker(self._thread_image_acquisition):
                     return np.array(self._latest_texture_data)
             else:
                 return self._latest_texture_data
@@ -501,21 +490,9 @@ class Harvester:
 
             #
             self.initialize_acquisition_statistics()
-            self._thread_statistics_measurement = ImageAcquisitionThread(
-                mutex=self._mutex
-            )
-            self._thread_statistics_measurement.setup(
-                self._worker_acquisition_statistics
-            )
             self._thread_statistics_measurement.start()
 
             #
-            self._thread_image_acquisition = ImageAcquisitionThread(
-                mutex=self._mutex
-            )
-            self._thread_image_acquisition.setup(
-                self._worker_image_acquisition
-            )
             self._thread_image_acquisition.start()
 
             #
@@ -527,7 +504,7 @@ class Harvester:
 
         time.sleep(self._statistics_update_cycle)
 
-        with QMutexLocker(self._mutex):
+        with MutexLocker(self._thread_statistics_measurement):
             #
             if self._frontend.lower() == 'pyqt':
                 self.gui.statusBar().showMessage(
@@ -554,7 +531,7 @@ class Harvester:
         except TimeoutException as e:
             print(e)
         else:
-            with QMutexLocker(self._mutex):
+            with MutexLocker(self._thread_image_acquisition):
                 #
                 if not self.is_acquiring_images:
                     return
@@ -657,7 +634,7 @@ class Harvester:
             self._thread_statistics_measurement.stop()
             self._thread_statistics_measurement.wait()
 
-            with QMutexLocker(self._mutex):
+            with MutexLocker(self._thread_image_acquisition):
 
                 #
                 self._event_manager.flush_event_queue()

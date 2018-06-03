@@ -20,7 +20,6 @@
 # Standard library imports
 
 # Related third party imports
-from PyQt5.QtCore import QMutexLocker
 
 import numpy as np
 from vispy import gloo
@@ -30,10 +29,11 @@ from vispy.util.transforms import ortho
 
 # Local application/library specific imports
 from core.system import is_running_on_windows
+from core.thread import MutexLocker
 
 
 class Canvas(app.Canvas):
-    def __init__(self, harvester_core, width=640, height=480, mutex=None, fps=50., background_color='gray'):
+    def __init__(self, harvester_core, width=640, height=480, thread=None, fps=50., background_color='gray'):
         """
         NOTE: fps should be smaller than or equal to 50 fps. If it's exceed
         VisPy drags down the acquisition performance. This is the issue we
@@ -85,7 +85,7 @@ class Canvas(app.Canvas):
 
         #
         self._harvester_core = harvester_core
-        self._mutex = mutex
+        self._thread = thread
         self._program = Program(vertex, fragment, count=4)
         self._width = width
         self._height = height
@@ -136,7 +136,7 @@ class Canvas(app.Canvas):
 
     def on_draw(self, event):
         #
-        with QMutexLocker(self._mutex):
+        with MutexLocker(self._thread):
             # Clear the canvas in gray.
             gloo.clear(color=self._background_color)
 

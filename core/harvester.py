@@ -266,9 +266,6 @@ class Harvester:
             self._mutex = QMutex()
 
             #
-            self._gui = HarvesterGUI(harvester_core=self)
-
-            #
             self._thread_statistics_measurement = PyQtThread(
                 mutex=self._mutex,
                 worker=self._worker_acquisition_statistics
@@ -279,6 +276,9 @@ class Harvester:
                 mutex=self._mutex,
                 worker=self._worker_image_acquisition
             )
+
+            #
+            self._gui = HarvesterGUI(harvester_core=self)
 
     def __enter__(self):
         return self
@@ -353,6 +353,10 @@ class Harvester:
     @property
     def gui(self):
         return self._gui
+
+    @property
+    def thread_image_acquisition(self):
+        return self._thread_image_acquisition
 
     def add_processor(self, processing_unit: Processor):
         self._processing_units.append(processing_unit)

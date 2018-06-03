@@ -18,31 +18,21 @@
 
 
 # Standard library imports
-import platform
-import re
 
 # Related third party imports
+from PyQt5.QtGui import QFont
 
 # Local application/library specific imports
+from system import is_running_on_macos, is_running_on_windows
 
 
-def is_running_on_macos():
-    """
-    Returns a truth value for a proposition: "the program is running on a
-    macOS machine".
-
-    :rtype: bool
-    """
-    pattern = re.compile('darwin', re.IGNORECASE)
-    return False if not pattern.search(platform.platform()) else True
-
-
-def is_running_on_windows():
-    """
-    Returns a truth value for a proposition: "the program is running on a
-    Windows machine".
-
-    :rtype: bool
-    """
-    pattern = re.compile('windows', re.IGNORECASE)
-    return False if not pattern.search(platform.platform()) else True
+def get_system_font():
+    font, size = None, None
+    if is_running_on_windows():
+        font, size = 'Calibri', 12
+    else:
+        if is_running_on_macos():
+            font, size = 'Lucida Sans Unicode', 14
+        else:
+            pass
+    return QFont(font, size)

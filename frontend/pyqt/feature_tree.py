@@ -20,7 +20,6 @@
 # Standard library imports
 import re
 import sys
-import time
 
 # Related third party imports
 from PyQt5.Qt import Qt, QStyledItemDelegate, QEvent, QStyleOptionViewItem, \
@@ -35,7 +34,7 @@ from genapi import NodeMap
 from genapi import EInterfaceType, EAccessMode, EVisibility
 
 # Local application/library specific imports
-from system import get_system_font
+from frontend.pyqt.helper import get_system_font
 
 
 class TreeItem(object):

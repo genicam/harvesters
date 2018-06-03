@@ -25,7 +25,6 @@ import time
 import zipfile
 
 # Related third party imports
-from PyQt5.QtWidgets import QApplication
 
 import numpy as np
 #from scipy import ndimage
@@ -38,7 +37,7 @@ from gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     TL_CHAR_ENCODING_LIST
 
 # Local application/library specific imports
-from icon import Icon
+from frontend.pyqt.icon import Icon
 from port import ConcretePort
 from processor import Processor
 from harvester_thread import MutexLocker
@@ -260,7 +259,7 @@ class Harvester:
 
         #
         if self._frontend.lower() == 'pyqt':
-            from frontend_pyqt import HarvesterGUI, PyQtThread
+            from frontend.pyqt.gui import HarvesterGUI, PyQtThread
             from PyQt5.QtCore import QMutex
 
             #
@@ -760,6 +759,9 @@ class Harvester:
 
 
 if __name__ == '__main__':
+    #
+    from PyQt5.QtWidgets import QApplication
+
     #
     my_app = QApplication(sys.argv)
     my_app.setWindowIcon(Icon('genicam_logo_i.png'))

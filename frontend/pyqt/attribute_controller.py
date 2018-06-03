@@ -29,12 +29,12 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QTreeView, \
 from genapi import EVisibility
 
 # Local application/library specific imports
-from action import Action
-from feature_tree import FeatureEditDelegate, FilterProxyModel, \
+from frontend.helper import compose_tooltip
+from frontend.pyqt.action import Action
+from frontend.pyqt.feature_tree import FeatureEditDelegate, FilterProxyModel, \
     FeatureTreeModel
-from frontend_helper import compose_tooltip
-from icon import Icon
-from system import get_system_font
+from frontend.pyqt.helper import get_system_font
+from frontend.pyqt.icon import Icon
 
 
 """

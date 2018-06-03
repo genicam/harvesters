@@ -29,7 +29,7 @@ from vispy.gloo import Program
 from vispy.util.transforms import ortho
 
 # Local application/library specific imports
-from system import _is_running_on_windows
+from system import is_running_on_windows
 
 
 class Canvas(app.Canvas):
@@ -201,7 +201,7 @@ class Canvas(app.Canvas):
 
     def on_mouse_wheel(self, event):
         self._translate += event.delta[1]
-        power = 5. if _is_running_on_windows() else 7.  # 2 ** power
+        power = 5. if is_running_on_windows() else 7.  # 2 ** power
         stride = 4.
         translate = self._translate
         translate = min(power * stride, translate)

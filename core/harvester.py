@@ -37,7 +37,6 @@ from gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     TL_CHAR_ENCODING_LIST
 
 # Local application/library specific imports
-from frontend.pyqt.icon import Icon
 from core.port import ConcretePort
 from core.processor import Processor
 from core.thread import MutexLocker
@@ -192,9 +191,12 @@ class Harvester:
         TL_CHAR_ENCODING_LIST.TL_CHAR_ENCODING_UTF8: 'utf8'
     }
 
-    def __init__(self, frontend: str= ''):
+    def __init__(self, frontend=None):
         #
         super().__init__()
+
+        #
+        self._frontend = frontend
 
         #
         self._connecting_device = None
@@ -224,15 +226,14 @@ class Harvester:
         self._has_acquired_1st_image = False
 
         #
-        self._thread_image_acquisition = None
+        self._thread_image_acquisition = None  # TODO: Assign the default thread object.
 
         #
-        self._mutex = None
         self._latest_texture_data = None
         self._feature_tree_model = None
 
         #
-        self._thread_statistics_measurement = None
+        self._thread_statistics_measurement = None  # TODO: Assign the default thread object.
         self._current_width = 0
         self._current_height = 0
         self._current_pixel_format = ''
@@ -246,9 +247,6 @@ class Harvester:
         ]
 
         #
-        self._frontend = frontend
-
-        #
         self._timeout_for_image_acquisition = 100  # ms
 
         #
@@ -256,29 +254,6 @@ class Harvester:
         self.add_processor(FromBytesToNumpy1D())
         self.add_processor(FromNumpy1DToNumpy2D())
         # You may want to add other processors.
-
-        #
-        if self._frontend.lower() == 'pyqt':
-            from frontend.pyqt.harvester import HarvesterGUI, PyQtThread
-            from PyQt5.QtCore import QMutex
-
-            #
-            self._mutex = QMutex()
-
-            #
-            self._thread_statistics_measurement = PyQtThread(
-                mutex=self._mutex,
-                worker=self._worker_acquisition_statistics
-            )
-
-            #
-            self._thread_image_acquisition = PyQtThread(
-                mutex=self._mutex,
-                worker=self._worker_image_acquisition
-            )
-
-            #
-            self._gui = HarvesterGUI(harvester_core=self)
 
     def __enter__(self):
         return self
@@ -319,19 +294,15 @@ class Harvester:
     def timeout_for_image_acquisition(self):
         return self._timeout_for_image_acquisition
 
-    @property
-    def mutex(self):
-        return self._mutex
-
     @timeout_for_image_acquisition.setter
     def timeout_for_image_acquisition(self, ms):
-        with MutexLocker(self._thread_image_acquisition):
+        with MutexLocker(self.thread_image_acquisition):
             self._timeout_for_image_acquisition = ms
 
     def get_image(self, return_copy=True):
         if self._latest_texture_data is not None:
             if return_copy:
-                with MutexLocker(self._thread_image_acquisition):
+                with MutexLocker(self.thread_image_acquisition):
                     return np.array(self._latest_texture_data)
             else:
                 return self._latest_texture_data
@@ -351,12 +322,26 @@ class Harvester:
         self._has_revised_list = value
 
     @property
-    def gui(self):
-        return self._gui
+    def frontend(self):
+        return self._frontend
 
     @property
     def thread_image_acquisition(self):
         return self._thread_image_acquisition
+
+    @thread_image_acquisition.setter
+    def thread_image_acquisition(self, obj):
+        self._thread_image_acquisition = obj
+        self._thread_image_acquisition.worker = self._worker_image_acquisition
+
+    @property
+    def thread_statistics_measurement(self):
+        return self._thread_statistics_measurement
+
+    @thread_statistics_measurement.setter
+    def thread_statistics_measurement(self, obj):
+        self._thread_statistics_measurement = obj
+        self._thread_statistics_measurement.worker = self._worker_acquisition_statistics
 
     def add_processor(self, processing_unit: Processor):
         self._processing_units.append(processing_unit)
@@ -450,8 +435,9 @@ class Harvester:
         if self.is_acquiring_images:
             # If it's pausing drawing images, just resume it and
             # immediately return this method.
-            if self.gui.canvas.is_pausing:
-                self.gui.canvas.resume_drawing()
+            if self.frontend:
+                if self.frontend.canvas.is_pausing:
+                    self.frontend.canvas.resume_drawing()
         else:
             #
             self._data_stream = self.connecting_device.create_data_stream()
@@ -493,10 +479,12 @@ class Harvester:
 
             #
             self.initialize_acquisition_statistics()
-            self._thread_statistics_measurement.start()
+            if self.thread_statistics_measurement:
+                self.thread_statistics_measurement.start()
 
             #
-            self._thread_image_acquisition.start()
+            if self.thread_image_acquisition:
+                self.thread_image_acquisition.start()
 
             #
             self.node_map.AcquisitionStart.execute()
@@ -507,10 +495,10 @@ class Harvester:
 
         time.sleep(self._statistics_update_cycle)
 
-        with MutexLocker(self._thread_statistics_measurement):
+        with MutexLocker(self.thread_statistics_measurement):
             #
-            if self._frontend.lower() == 'pyqt':
-                self.gui.statusBar().showMessage(
+            if self.frontend:
+                self.frontend.statusBar().showMessage(
                     'W: {0} x H: {1}, {2}, '
                     '{3:.1f} fps in the last {4:.1f} s, '
                     '{5:.1f} fps for over all'.format(
@@ -534,7 +522,7 @@ class Harvester:
         except TimeoutException as e:
             print(e)
         else:
-            with MutexLocker(self._thread_image_acquisition):
+            with MutexLocker(self.thread_image_acquisition):
                 #
                 if not self.is_acquiring_images:
                     return
@@ -555,8 +543,8 @@ class Harvester:
 
                 #
                 if not self._has_acquired_1st_image:
-                    if self._frontend.lower() == 'pyqt':
-                        self.gui.canvas.set_rect(
+                    if self.frontend:
+                        self.frontend.canvas.set_rect(
                             buffer.width, buffer.height
                         )
                     self._has_acquired_1st_image = True
@@ -631,13 +619,15 @@ class Harvester:
             self._is_acquiring_images = False
 
             #
-            self._thread_image_acquisition.stop()
-            self._thread_image_acquisition.wait()
+            if self.thread_image_acquisition:
+                self.thread_image_acquisition.stop()
+                self.thread_image_acquisition.wait()
 
-            self._thread_statistics_measurement.stop()
-            self._thread_statistics_measurement.wait()
+            if self.thread_statistics_measurement:
+                self.thread_statistics_measurement.stop()
+                self.thread_statistics_measurement.wait()
 
-            with MutexLocker(self._thread_image_acquisition):
+            with MutexLocker(self.thread_image_acquisition):
 
                 #
                 self._event_manager.flush_event_queue()
@@ -762,15 +752,3 @@ class Harvester:
         self.clear_file_paths()
 
 
-if __name__ == '__main__':
-    #
-    from PyQt5.QtWidgets import QApplication
-
-    #
-    my_app = QApplication(sys.argv)
-    my_app.setWindowIcon(Icon('genicam_logo_i.png'))
-
-    #
-    with Harvester(frontend='PyQt') as harvester:
-        harvester.gui.show()
-        sys.exit(my_app.exec_())

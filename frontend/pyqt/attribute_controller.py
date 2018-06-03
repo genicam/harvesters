@@ -96,7 +96,7 @@ class AttributeController(QMainWindow):
         #
         self._node_map = node_map
         self._model = FeatureTreeModel(
-            self, self._node_map, self._parent_widget.harvester_core.mutex
+            self, self._node_map, self._parent_widget.mutex
         )
 
         #

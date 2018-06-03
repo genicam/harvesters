@@ -20,7 +20,7 @@
 # Standard library imports
 
 # Related third party imports
-from PyQt5.QtCore import QMutexLocker, QThread
+from PyQt5.QtCore import QMutexLocker, QMutex
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QMainWindow, QAction, QComboBox, \
     QDesktopWidget, QWidget, QVBoxLayout, QFileDialog, QDialog, QShortcut
@@ -34,78 +34,32 @@ from frontend.pyqt.attribute_controller import AttributeController
 from frontend.pyqt.device_list import ComboBox
 from frontend.pyqt.helper import get_system_font
 from frontend.pyqt.icon import Icon
-from core.thread import Thread
+from frontend.pyqt.thread import PyQtThread
+from core.harvester import Harvester as HarvesterCore
 
 
-class PyQtThread(Thread):
-    def __init__(self, mutex=None, worker=None):
+class Harvester(QMainWindow):
+    def __init__(self):
         #
         super().__init__()
 
         #
-        self._thread = PyQtThreadImpl(
-            mutex=mutex, parent=self, worker=worker
+        self._mutex = QMutex()
+
+        #
+        self._harvester_core = HarvesterCore(frontend=self)
+
+        #
+        self._harvester_core.thread_image_acquisition = PyQtThread(
+            mutex=self._mutex
+        )
+        self._harvester_core.thread_statistics_measurement = PyQtThread(
+            mutex=self._mutex
         )
 
-    def start(self):
-        self.is_running = True
-        self._thread.start()
-
-    def stop(self):
-        self._thread.stop()
-
-    def run(self):
-        self._thread.run()
-
-    def join(self):
-        self._thread.join()
-
-    def wait(self):
-        self._thread.wait()
-
-    def acquire(self):
-        return self._thread.acquire()
-
-    def release(self):
-        self._thread.release()
-
-
-class PyQtThreadImpl(QThread):
-    def __init__(self, mutex=None, parent=None, worker=None):
-        #
-        super().__init__()
+        self._widget_canvas = Canvas(harvester_core=self._harvester_core)
 
         #
-        self._worker = worker
-        self._mutex = mutex
-        self._parent = parent
-
-    def stop(self):
-        with QMutexLocker(self._mutex):
-            self._parent.is_running = False
-
-    def run(self):
-        while self._parent.is_running:
-            self._worker()
-
-    def join(self):
-        while self._parent.is_running:
-            pass
-
-    def acquire(self):
-        return QMutexLocker(self._mutex)
-
-    def release(self):
-        pass
-
-
-class HarvesterGUI(QMainWindow):
-    def __init__(self, harvester_core=None):
-        #
-        super().__init__()
-
-        #
-        self._harvester_core = harvester_core
         self._observer_widgets = []
 
         #
@@ -114,10 +68,6 @@ class HarvesterGUI(QMainWindow):
         self._widget_main = None
         self._widget_about = None
         self._widget_attribute_controller = None
-        self._widget_image_canvas = Canvas(
-            harvester_core=harvester_core,
-            thread=self.harvester_core.thread_image_acquisition
-        )
 
         #
         self._initialize_widgets()
@@ -126,9 +76,15 @@ class HarvesterGUI(QMainWindow):
         for o in self._observer_widgets:
             o.update()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
     @property
     def canvas(self):
-        return self._widget_image_canvas
+        return self._widget_canvas
 
     @property
     def attribute_controller(self):
@@ -153,6 +109,10 @@ class HarvesterGUI(QMainWindow):
     @property
     def harvester_core(self):
         return self._harvester_core
+
+    @property
+    def mutex(self):
+        return self._mutex
 
     def _initialize_widgets(self):
         #
@@ -566,7 +526,7 @@ class ActionShowDevAttribute(Action):
         super().__init__(parent_widget, icon, title)
 
     def _execute(self):
-        with QMutexLocker(self.parent_widget.harvester_core.mutex):
+        with QMutexLocker(self.parent_widget.mutex):
             if self.parent_widget.attribute_controller.isHidden():
                 self.parent_widget.attribute_controller.show()
                 self.parent_widget.attribute_controller.expand_all()
@@ -596,3 +556,16 @@ class ActionShowAbout(Action):
         pass
 
 
+if __name__ == '__main__':
+    #
+    import sys
+    from PyQt5.QtWidgets import QApplication
+
+    #
+    my_app = QApplication(sys.argv)
+    my_app.setWindowIcon(Icon('genicam_logo_i.png'))
+
+    #
+    with Harvester() as harvester:
+        harvester.show()
+        sys.exit(my_app.exec_())

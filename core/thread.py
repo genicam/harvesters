@@ -43,12 +43,14 @@ class MutexLocker:
 
 
 class Thread:
-    def __init__(self):
+    def __init__(self, mutex=None, worker=None):
         #
         super().__init__()
 
         #
         self._is_running = False
+        self._mutex = mutex
+        self._worker = worker
 
     def start(self):
         raise NotImplementedError
@@ -79,15 +81,19 @@ class Thread:
     def is_running(self, value):
         self._is_running = value
 
+    @property
+    def worker(self):
+        return self._worker
+
+    @worker.setter
+    def worker(self, obj):
+        self._worker = obj
+
 
 class NativeThread(Thread):
     def __init__(self, mutex=None, worker=None):
         #
-        super().__init__()
-
-        #
-        self._worker = worker
-        self._mutex = mutex
+        super().__init__(mutex=mutex, worker=worker)
 
     def start(self):
         self._is_running = True

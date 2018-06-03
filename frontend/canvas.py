@@ -33,7 +33,13 @@ from core.thread import MutexLocker
 
 
 class Canvas(app.Canvas):
-    def __init__(self, harvester_core, width=640, height=480, thread=None, fps=50., background_color='gray'):
+    def __init__(
+            self,
+            harvester_core=None,
+            width=640, height=480,
+            fps=50.,
+            background_color='gray'
+    ):
         """
         NOTE: fps should be smaller than or equal to 50 fps. If it's exceed
         VisPy drags down the acquisition performance. This is the issue we
@@ -85,10 +91,8 @@ class Canvas(app.Canvas):
 
         #
         self._harvester_core = harvester_core
-        self._thread = thread
         self._program = Program(vertex, fragment, count=4)
-        self._width = width
-        self._height = height
+        self._width, self._height = width, height
 
         self._data = np.zeros(
             4, dtype=[
@@ -136,7 +140,7 @@ class Canvas(app.Canvas):
 
     def on_draw(self, event):
         #
-        with MutexLocker(self._thread):
+        with MutexLocker(self._harvester_core.thread_image_acquisition):
             # Clear the canvas in gray.
             gloo.clear(color=self._background_color)
 

@@ -26,7 +26,7 @@ from PyQt5.QtWidgets import QMainWindow, QAction, QComboBox, \
     QDesktopWidget, QWidget, QVBoxLayout, QFileDialog, QDialog, QShortcut
 
 # Local application/library specific imports
-from canvas import Canvas
+from frontend.canvas import Canvas
 from frontend.helper import compose_tooltip
 from frontend.pyqt.about import About
 from frontend.pyqt.action import Action
@@ -34,7 +34,7 @@ from frontend.pyqt.attribute_controller import AttributeController
 from frontend.pyqt.device_list import ComboBox
 from frontend.pyqt.helper import get_system_font
 from frontend.pyqt.icon import Icon
-from harvester_thread import Thread
+from core.thread import Thread
 
 
 class PyQtThread(Thread):

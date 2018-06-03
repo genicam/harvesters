@@ -29,7 +29,7 @@ from vispy.gloo import Program
 from vispy.util.transforms import ortho
 
 # Local application/library specific imports
-from system import is_running_on_windows
+from core.system import is_running_on_windows
 
 
 class Canvas(app.Canvas):

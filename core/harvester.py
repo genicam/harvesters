@@ -38,9 +38,9 @@ from gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
 
 # Local application/library specific imports
 from frontend.pyqt.icon import Icon
-from port import ConcretePort
-from processor import Processor
-from harvester_thread import MutexLocker
+from core.port import ConcretePort
+from core.processor import Processor
+from core.thread import MutexLocker
 
 
 __version__= '1.0.0, ' + 'Y2018.M05.D25'
@@ -259,7 +259,7 @@ class Harvester:
 
         #
         if self._frontend.lower() == 'pyqt':
-            from frontend.pyqt.gui import HarvesterGUI, PyQtThread
+            from frontend.pyqt.harvester import HarvesterGUI, PyQtThread
             from PyQt5.QtCore import QMutex
 
             #

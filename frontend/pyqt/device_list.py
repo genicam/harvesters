@@ -25,7 +25,7 @@ from gentl import NotImplementedException
 
 # Local application/library specific imports
 from frontend.pyqt.helper import get_system_font
-from observer import Observer
+from core.observer import Observer
 
 
 class ComboBox(QComboBox, Observer):

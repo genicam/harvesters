@@ -23,7 +23,7 @@
 from PyQt5.QtWidgets import QAction
 
 # Local application/library specific imports
-from subject import Subject
+from core.subject import Subject
 
 
 class Action(QAction, Subject):

@@ -23,7 +23,7 @@
 from PyQt5.QtGui import QFont
 
 # Local application/library specific imports
-from system import is_running_on_macos, is_running_on_windows
+from core.system import is_running_on_macos, is_running_on_windows
 
 
 def get_system_font():

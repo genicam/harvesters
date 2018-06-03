@@ -28,7 +28,7 @@ from PyQt5.QtWidgets import QDialog, QApplication, QPlainTextEdit, \
     QTextEdit
 
 # Local application/library specific imports
-from core import __version__
+from core.harvester import __version__
 from frontend.pyqt.helper import get_system_font
 
 

@@ -23,10 +23,10 @@
 from PyQt5.QtCore import QMutexLocker, QThread
 
 # Local application/library specific imports
-from core.thread import Thread
+from core.thread_ import ThreadBase
 
 
-class PyQtThread(Thread):
+class PyQtThread(ThreadBase):
     def __init__(self, mutex=None, worker=None):
         #
         super().__init__(mutex=mutex, worker=worker)
@@ -36,8 +36,7 @@ class PyQtThread(Thread):
             mutex=mutex, parent=self, worker=worker
         )
 
-    def start(self):
-        self.is_running = True
+    def _start(self):
         self._thread.start()
 
     def stop(self):

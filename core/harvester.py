@@ -20,7 +20,7 @@
 # Standard library imports
 import io
 import pathlib
-import sys
+from threading import Lock
 import time
 import zipfile
 
@@ -39,7 +39,8 @@ from gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
 # Local application/library specific imports
 from core.port import ConcretePort
 from core.processor import Processor
-from core.thread import MutexLocker
+from core.thread import NativeThread
+from core.thread_ import MutexLocker
 
 
 __version__= '1.0.0, ' + 'Y2018.M05.D25'
@@ -226,14 +227,23 @@ class Harvester:
         self._has_acquired_1st_image = False
 
         #
-        self._thread_image_acquisition = None  # TODO: Assign the default thread object.
+        self._mutex = Lock()
+        self._thread_image_acquisition = None
+        self._thread_statistics_measurement = None
+        self.thread_image_acquisition = NativeThread(
+            mutex=self._mutex,
+            worker=self._worker_image_acquisition
+        )
+        self.thread_statistics_measurement = NativeThread(
+            mutex=self._mutex,
+            worker=self._worker_acquisition_statistics
+        )
 
         #
         self._latest_texture_data = None
         self._feature_tree_model = None
 
         #
-        self._thread_statistics_measurement = None  # TODO: Assign the default thread object.
         self._current_width = 0
         self._current_height = 0
         self._current_pixel_format = ''
@@ -480,7 +490,8 @@ class Harvester:
             #
             self.initialize_acquisition_statistics()
             if self.thread_statistics_measurement:
-                self.thread_statistics_measurement.start()
+                #self.thread_statistics_measurement.start()
+                pass
 
             #
             if self.thread_image_acquisition:
@@ -519,6 +530,8 @@ class Harvester:
                 self._event_manager.update_event_data(
                     self._timeout_for_image_acquisition
                 )
+            else:
+                return
         except TimeoutException as e:
             print(e)
         else:
@@ -624,8 +637,11 @@ class Harvester:
                 self.thread_image_acquisition.wait()
 
             if self.thread_statistics_measurement:
+                """
                 self.thread_statistics_measurement.stop()
                 self.thread_statistics_measurement.wait()
+                """
+                pass
 
             with MutexLocker(self.thread_image_acquisition):
 
@@ -752,3 +768,22 @@ class Harvester:
         self.clear_file_paths()
 
 
+if __name__ == '__main__':
+    #
+    from time import sleep
+
+    #
+    with Harvester() as harvester:
+        harvester.add_file_path('/Users/kznr/dev/genicam/bin/Maci64_x64/TLSimu.cti')
+        harvester.initialize_device_info_list()
+        harvester.connect_device(0)
+        harvester.start_image_acquisition()
+        i = 0
+        frames = 50.
+        while i < int(frames):
+            sleep(1./frames)
+            image = harvester.get_image()
+            print(image)
+            i += 1
+        harvester.stop_image_acquisition()
+        print('Finished!')

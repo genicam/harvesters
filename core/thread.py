@@ -23,63 +23,76 @@ from threading import Thread
 # Related third party imports
 
 # Local application/library specific imports
+from core.thread_ import ThreadBase
 
 
-class MutexLocker:
-    def __init__(self, thread: Thread=None):
-        #
-        super().__init__()
-
-        #
-        self._thread = thread
-        self._locked_mutex = None
-
-    def __enter__(self):
-        self._locked_mutex = self._thread.acquire()
-        return self._locked_mutex
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self._thread.release()
-
-
-class Thread:
+class NativeThread(ThreadBase):
     def __init__(self, mutex=None, worker=None):
         #
+        super().__init__(mutex=mutex, worker=worker)
+
+        #
+        self._thread = NativeThreadImpl(mutex=mutex, parent=self, worker=worker)
+        self._thread.start()
+
+    def _start(self):
+        pass
+
+    def stop(self):
+        self._thread.stop()
+
+    def run(self):
+        self._thread.run()
+
+    def join(self):
+        self._thread.join()
+
+    def wait(self):
+        self._thread.join()
+
+    def acquire(self):
+        return self._thread.acquire()
+
+    def release(self):
+        self._thread.release()
+
+    @property
+    def worker(self):
+        return self._thread.worker
+
+    @worker.setter
+    def worker(self, obj):
+        self._thread.worker = obj
+
+
+class NativeThreadImpl(Thread):
+    def __init__(self, mutex=None, parent=None, worker=None):
+        #
         super().__init__()
 
         #
-        self._is_running = False
-        self._mutex = mutex
         self._worker = worker
-
-    def start(self):
-        raise NotImplementedError
+        self._mutex = mutex
+        self._parent = parent
 
     def stop(self):
-        raise NotImplementedError
+        self._parent.is_running = False
 
     def run(self):
-        raise NotImplementedError
+        while self.is_alive():
+            while self._parent.is_running:
+                if self._worker:
+                    self._worker()
 
     def join(self):
-        raise NotImplementedError
-
-    def wait(self):
-        raise NotImplementedError
+        while self._parent.is_running:
+            pass
 
     def acquire(self):
-        raise NotImplementedError
+        return self._mutex.acquire()
 
     def release(self):
-        raise NotImplementedError
-
-    @property
-    def is_running(self):
-        return self._is_running
-
-    @is_running.setter
-    def is_running(self, value):
-        self._is_running = value
+        self._mutex.release()
 
     @property
     def worker(self):
@@ -88,34 +101,3 @@ class Thread:
     @worker.setter
     def worker(self, obj):
         self._worker = obj
-
-
-class NativeThread(Thread):
-    def __init__(self, mutex=None, worker=None):
-        #
-        super().__init__(mutex=mutex, worker=worker)
-
-    def start(self):
-        self._is_running = True
-
-    def stop(self):
-        with MutexLocker(self._mutex):
-            self._is_running = False
-
-    def run(self):
-        while self._is_running:
-            self._worker()
-
-    def join(self):
-        while self._is_running:
-            pass
-
-    def wait(self):
-        pass
-
-    def acquire(self):
-        pass
-
-    def release(self):
-        pass
-

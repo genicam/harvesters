@@ -29,7 +29,7 @@ from vispy.util.transforms import ortho
 
 # Local application/library specific imports
 from core.system import is_running_on_windows
-from core.thread import MutexLocker
+from core.thread_ import MutexLocker
 
 
 class Canvas(app.Canvas):

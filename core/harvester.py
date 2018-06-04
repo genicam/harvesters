@@ -520,10 +520,6 @@ class Harvester:
                 )
             self._statistics_latest.reset()
 
-    def _worker_foo(self):
-        time.sleep(0.05)
-        print(time.time())
-
     def _worker_image_acquisition(self):
         try:
             if self.is_acquiring_images:

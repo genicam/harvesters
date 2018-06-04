@@ -773,13 +773,14 @@ if __name__ == '__main__':
         harvester.add_file_path('C:/Users/z1533tel/dev/genicam/bin/Win64_x64/TLSimu.cti')
         harvester.initialize_device_info_list()
         harvester.connect_device(0)
-        harvester.start_image_acquisition()
-        i = 0
-        frames = 50.
-        while i < int(frames):
-            sleep(1./frames)
-            image = harvester.get_image()
-            print(image)
-            i += 1
-        harvester.stop_image_acquisition()
+        for i in range(10):
+            harvester.start_image_acquisition()
+            j = 0
+            frames = 50.
+            while j < int(frames):
+                sleep(1./frames)
+                image = harvester.get_image()
+                print(image)
+                j += 1
+            harvester.stop_image_acquisition()
         print('Finished!')

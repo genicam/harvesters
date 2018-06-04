@@ -32,17 +32,28 @@ class PyThread(ThreadBase):
         super().__init__(mutex=mutex, worker=worker)
 
         #
-        self._thread = _PyThreadImpl(mutex=mutex, parent=self, worker=worker)
-        #self._thread.start()
+        self._thread = None
+        self._mutex = mutex
+        self._worker = worker
+
 
     def _start(self):
-        pass
+        # Create a Thread object. The object is not reusable.
+        self._thread = _PyThreadImpl(
+            mutex=self._mutex,
+            parent=self,
+            worker=self._worker
+        )
+
+        # Start running its worker method.
+        self._thread.start()
 
     def stop(self):
+        # Prepare to terminate the worker method.
         self._thread.stop()
 
-    def run(self):
-        self._thread.run()
+        # Wait until the run methods is terminated.
+        self._thread.join()
 
     def acquire(self):
         return self._thread.acquire()
@@ -70,15 +81,19 @@ class _PyThreadImpl(Thread):
         self._parent = parent
 
     def stop(self):
-        self.acquire()
-        self._parent.is_running = False
-        self.release()
+        with self._mutex:
+            self._parent.is_running = False
 
     def run(self):
-        while self.is_alive():
-            while self._parent.is_running:
-                if self._worker:
-                    self._worker()
+        """
+        Runs its worker method.
+
+        This method will be terminated once its parent's is_running
+        property turns False.
+        """
+        while self._parent.is_running:
+            if self._worker:
+                self._worker()
 
     def acquire(self):
         return self._mutex.acquire()

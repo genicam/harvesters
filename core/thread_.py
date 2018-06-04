@@ -26,14 +26,13 @@ from threading import Thread
 
 
 class ThreadBase:
-    def __init__(self, mutex=None, worker=None):
+    def __init__(self, mutex=None):
         #
         super().__init__()
 
         #
         self._is_running = False
         self._mutex = mutex
-        self._worker = worker
 
     def start(self):
         self._is_running = True
@@ -61,11 +60,15 @@ class ThreadBase:
 
     @property
     def worker(self):
-        return self._worker
+        raise NotImplementedError
 
     @worker.setter
     def worker(self, obj):
-        self._worker = obj
+        raise NotImplementedError
+
+    @property
+    def mutex(self):
+        raise NotImplementedError
 
 
 class MutexLocker:

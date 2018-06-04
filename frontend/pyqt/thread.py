@@ -29,11 +29,11 @@ from core.thread_ import ThreadBase
 class PyQtThread(ThreadBase):
     def __init__(self, mutex=None, worker=None):
         #
-        super().__init__(mutex=mutex, worker=worker)
+        super().__init__(mutex=mutex)
 
         #
         self._thread = _PyQtThreadImpl(
-            mutex=mutex, parent=self, worker=worker
+            parent=self, worker=worker
         )
 
     def _start(self):
@@ -57,19 +57,22 @@ class PyQtThread(ThreadBase):
     def worker(self, obj):
         self._thread.worker = obj
 
+    @property
+    def mutex(self):
+        return self._mutex
+
 
 class _PyQtThreadImpl(QThread):
-    def __init__(self, mutex=None, parent=None, worker=None):
+    def __init__(self, parent=None, worker=None):
         #
         super().__init__()
 
         #
         self._worker = worker
-        self._mutex = mutex
         self._parent = parent
 
     def stop(self):
-        with QMutexLocker(self._mutex):
+        with QMutexLocker(self._parent.mutex):
             self._parent.is_running = False
 
     def run(self):
@@ -78,7 +81,7 @@ class _PyQtThreadImpl(QThread):
                 self._worker()
 
     def acquire(self):
-        return QMutexLocker(self._mutex)
+        return QMutexLocker(self._parent.mutex)
 
     def release(self):
         pass

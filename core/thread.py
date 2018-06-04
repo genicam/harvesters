@@ -29,18 +29,16 @@ from core.thread_ import ThreadBase
 class PyThread(ThreadBase):
     def __init__(self, mutex=None, worker=None):
         #
-        super().__init__(mutex=mutex, worker=worker)
+        super().__init__(mutex=mutex)
 
         #
         self._thread = None
-        self._mutex = mutex
         self._worker = worker
 
 
     def _start(self):
         # Create a Thread object. The object is not reusable.
         self._thread = _PyThreadImpl(
-            mutex=self._mutex,
             parent=self,
             worker=self._worker
         )
@@ -69,19 +67,22 @@ class PyThread(ThreadBase):
     def worker(self, obj):
         self._thread.worker = obj
 
+    @property
+    def mutex(self):
+        return self._mutex
+
 
 class _PyThreadImpl(Thread):
-    def __init__(self, mutex=None, parent=None, worker=None):
+    def __init__(self, parent=None, worker=None):
         #
         super().__init__()
 
         #
         self._worker = worker
-        self._mutex = mutex
         self._parent = parent
 
     def stop(self):
-        with self._mutex:
+        with self._parent.mutex:
             self._parent.is_running = False
 
     def run(self):
@@ -96,10 +97,10 @@ class _PyThreadImpl(Thread):
                 self._worker()
 
     def acquire(self):
-        return self._mutex.acquire()
+        return self._parent.mutex.acquire()
 
     def release(self):
-        self._mutex.release()
+        self._parent.mutex.release()
 
     @property
     def worker(self):

@@ -45,12 +45,6 @@ class ThreadBase:
     def stop(self):
         raise NotImplementedError
 
-    def run(self):
-        raise NotImplementedError
-
-    def wait(self):
-        raise NotImplementedError
-
     def acquire(self):
         raise NotImplementedError
 

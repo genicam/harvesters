@@ -39,7 +39,7 @@ from gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
 # Local application/library specific imports
 from core.port import ConcretePort
 from core.processor import Processor
-from core.thread import NativeThread
+from core.thread import PyThread
 from core.thread_ import MutexLocker
 
 
@@ -228,13 +228,11 @@ class Harvester:
 
         #
         self._mutex = Lock()
-        self._thread_image_acquisition = None
-        self._thread_statistics_measurement = None
-        self.thread_image_acquisition = NativeThread(
+        self._thread_image_acquisition = PyThread(
             mutex=self._mutex,
             worker=self._worker_image_acquisition
         )
-        self.thread_statistics_measurement = NativeThread(
+        self._thread_statistics_measurement = PyThread(
             mutex=self._mutex,
             worker=self._worker_acquisition_statistics
         )
@@ -490,8 +488,7 @@ class Harvester:
             #
             self.initialize_acquisition_statistics()
             if self.thread_statistics_measurement:
-                #self.thread_statistics_measurement.start()
-                pass
+                self.thread_statistics_measurement.start()
 
             #
             if self.thread_image_acquisition:
@@ -522,6 +519,10 @@ class Harvester:
                     )
                 )
             self._statistics_latest.reset()
+
+    def _worker_foo(self):
+        time.sleep(0.05)
+        print(time.time())
 
     def _worker_image_acquisition(self):
         try:
@@ -632,16 +633,11 @@ class Harvester:
             self._is_acquiring_images = False
 
             #
-            if self.thread_image_acquisition:
+            if self.thread_image_acquisition.is_running:
                 self.thread_image_acquisition.stop()
-                self.thread_image_acquisition.wait()
 
-            if self.thread_statistics_measurement:
-                """
+            if self.thread_statistics_measurement.is_running:
                 self.thread_statistics_measurement.stop()
-                self.thread_statistics_measurement.wait()
-                """
-                pass
 
             with MutexLocker(self.thread_image_acquisition):
 
@@ -774,7 +770,7 @@ if __name__ == '__main__':
 
     #
     with Harvester() as harvester:
-        harvester.add_file_path('/Users/kznr/dev/genicam/bin/Maci64_x64/TLSimu.cti')
+        harvester.add_file_path('C:/Users/z1533tel/dev/genicam/bin/Win64_x64/TLSimu.cti')
         harvester.initialize_device_info_list()
         harvester.connect_device(0)
         harvester.start_image_acquisition()

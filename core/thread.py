@@ -26,14 +26,14 @@ from threading import Thread
 from core.thread_ import ThreadBase
 
 
-class NativeThread(ThreadBase):
+class PyThread(ThreadBase):
     def __init__(self, mutex=None, worker=None):
         #
         super().__init__(mutex=mutex, worker=worker)
 
         #
-        self._thread = NativeThreadImpl(mutex=mutex, parent=self, worker=worker)
-        self._thread.start()
+        self._thread = _PyThreadImpl(mutex=mutex, parent=self, worker=worker)
+        #self._thread.start()
 
     def _start(self):
         pass
@@ -43,12 +43,6 @@ class NativeThread(ThreadBase):
 
     def run(self):
         self._thread.run()
-
-    def join(self):
-        self._thread.join()
-
-    def wait(self):
-        self._thread.join()
 
     def acquire(self):
         return self._thread.acquire()
@@ -65,7 +59,7 @@ class NativeThread(ThreadBase):
         self._thread.worker = obj
 
 
-class NativeThreadImpl(Thread):
+class _PyThreadImpl(Thread):
     def __init__(self, mutex=None, parent=None, worker=None):
         #
         super().__init__()
@@ -76,17 +70,15 @@ class NativeThreadImpl(Thread):
         self._parent = parent
 
     def stop(self):
+        self.acquire()
         self._parent.is_running = False
+        self.release()
 
     def run(self):
         while self.is_alive():
             while self._parent.is_running:
                 if self._worker:
                     self._worker()
-
-    def join(self):
-        while self._parent.is_running:
-            pass
 
     def acquire(self):
         return self._mutex.acquire()

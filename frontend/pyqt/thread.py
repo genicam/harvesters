@@ -32,7 +32,7 @@ class PyQtThread(ThreadBase):
         super().__init__(mutex=mutex, worker=worker)
 
         #
-        self._thread = PyQtThreadImpl(
+        self._thread = _PyQtThreadImpl(
             mutex=mutex, parent=self, worker=worker
         )
 
@@ -41,14 +41,6 @@ class PyQtThread(ThreadBase):
 
     def stop(self):
         self._thread.stop()
-
-    def run(self):
-        self._thread.run()
-
-    def join(self):
-        self._thread.join()
-
-    def wait(self):
         self._thread.wait()
 
     def acquire(self):
@@ -66,7 +58,7 @@ class PyQtThread(ThreadBase):
         self._thread.worker = obj
 
 
-class PyQtThreadImpl(QThread):
+class _PyQtThreadImpl(QThread):
     def __init__(self, mutex=None, parent=None, worker=None):
         #
         super().__init__()
@@ -85,7 +77,7 @@ class PyQtThreadImpl(QThread):
             if self._worker:
                 self._worker()
 
-    def join(self):
+    def wait(self, msecs=None):
         while self._parent.is_running:
             pass
 

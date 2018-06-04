@@ -30,6 +30,7 @@ import numpy as np
 #from scipy import ndimage
 
 from genapi import NodeMap
+from genapi import LogicalErrorException
 from gentl import TimeoutException, AccessDeniedException
 from gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
 from gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
@@ -263,6 +264,10 @@ class Harvester:
         self.add_processor(FromNumpy1DToNumpy2D())
         # You may want to add other processors.
 
+        #
+        self._num_images_to_acquire = -1
+        self._commands = []
+
     def __enter__(self):
         return self
 
@@ -476,10 +481,27 @@ class Harvester:
             )
             self._event_manager = EventManagerNewBuffer(et)
 
+            # Reset the number of images to acquire.
+            try:
+                acq_mode = self.node_map.AcquisitionMode.value
+                if acq_mode == 'Continuous':
+                    num_images_to_acquire = -1
+                elif acq_mode == 'SingleFrame':
+                    num_images_to_acquire = 1
+                elif acq_mode == 'MultiFrame':
+                    num_images_to_acquire = self.node_map.AcquisitionFrameCount.value
+                else:
+                    num_images_to_acquire = -1
+            except LogicalErrorException:
+                # The node doesn't exist.
+                num_images_to_acquire = -1
+
+            self._num_images_to_acquire = num_images_to_acquire
+
             # Start image acquisition.
-            # TODO:
             self._data_stream.start_acquisition(
-                ACQ_START_FLAGS_LIST.ACQ_START_FLAGS_DEFAULT, -1
+                ACQ_START_FLAGS_LIST.ACQ_START_FLAGS_DEFAULT,
+                self._num_images_to_acquire
             )
 
             #
@@ -522,17 +544,25 @@ class Harvester:
 
     def _worker_image_acquisition(self):
         try:
-            if self.is_acquiring_images:
-                time.sleep(0.001)
-                self._event_manager.update_event_data(
-                    self._timeout_for_image_acquisition
-                )
+            if self._num_images_to_acquire == 0:
+                for c in self._commands:
+                    c.execute()
             else:
-                return
+                if self.is_acquiring_images:
+                    time.sleep(0.001)
+                    self._event_manager.update_event_data(
+                        self._timeout_for_image_acquisition
+                    )
+                else:
+                    return
         except TimeoutException as e:
             print(e)
         else:
             with MutexLocker(self.thread_image_acquisition):
+                #
+                if self._num_images_to_acquire >= 1:
+                    self._num_images_to_acquire -= 1
+
                 #
                 if not self.is_acquiring_images:
                     return
@@ -758,6 +788,13 @@ class Harvester:
         self._release_systems()
         self._release_gentl_producers()
         self.clear_file_paths()
+
+    def add_command(self, command):
+        self._commands.append(command)
+
+    def remove_command(self, command):
+        if command in self._commands:
+            self._commands.remove(command)
 
 
 if __name__ == '__main__':

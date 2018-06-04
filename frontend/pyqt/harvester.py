@@ -35,6 +35,7 @@ from frontend.pyqt.device_list import ComboBox
 from frontend.pyqt.helper import get_system_font
 from frontend.pyqt.icon import Icon
 from frontend.pyqt.thread import PyQtThread
+from core.command import Command
 from core.harvester import Harvester as HarvesterCore
 
 
@@ -58,6 +59,13 @@ class Harvester(QMainWindow):
         )
 
         self._widget_canvas = Canvas(harvester_core=self._harvester_core)
+
+        #
+        self._action_stop_image_acquisition = None
+        self._command_stop_image_acquisition = CommandStopImageAcquisition(self)
+        self._harvester_core.add_command(
+            self._command_stop_image_acquisition
+        )
 
         #
         self._observer_widgets = []
@@ -227,6 +235,7 @@ class Harvester(QMainWindow):
         button_stop_acquisition.setShortcut(shortcut_key)
         button_stop_acquisition.toggle()
         observers.append(button_stop_acquisition)
+        self._action_stop_image_acquisition = button_stop_acquisition
 
         #
         button_dev_attribute = ActionShowDevAttribute(self,
@@ -332,11 +341,14 @@ class Harvester(QMainWindow):
         group_help.addAction(button_about)
 
         group_gentl_info.actionTriggered[QAction].connect(
-            self.on_button_clicked_action)
+            self.on_button_clicked_action
+        )
         group_connection.actionTriggered[QAction].connect(
-            self.on_button_clicked_action)
+            self.on_button_clicked_action
+        )
         group_device.actionTriggered[QAction].connect(
-            self.on_button_clicked_action)
+            self.on_button_clicked_action
+        )
         group_help.actionTriggered[QAction].connect(
             self.on_button_clicked_action
         )
@@ -345,6 +357,9 @@ class Harvester(QMainWindow):
     def on_button_clicked_action(action):
         action.execute()
 
+    @property
+    def action_stop_image_acquisition(self):
+        return self._action_stop_image_acquisition
 
 class FormWidget(QWidget):
     def __init__(self, harvester_gui):
@@ -554,6 +569,18 @@ class ActionShowAbout(Action):
 
     def update(self):
         pass
+
+
+class CommandStopImageAcquisition(Command):
+    def __init__(self, parent=None):
+        #
+        super().__init__()
+
+        #
+        self._parent = parent
+
+    def execute(self):
+        self._parent.action_stop_image_acquisition.execute()
 
 
 if __name__ == '__main__':

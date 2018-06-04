@@ -158,6 +158,12 @@ class Canvas(app.Canvas):
                 # Keep drawing the image recently drew on the canvas.
                 if self._has_filled_texture:
                     self._program['texture'] = self._program['texture']
+                else:
+                    if self._harvester_core.get_image(False) is not None:
+                        # Draw the latest image on the canvas.
+                        self._program['texture'] = self._harvester_core.get_image(False)
+                        self._has_filled_texture = True
+
 
             # Actually draw the new image on the texture.
             self._program.draw('triangle_strip')

@@ -289,9 +289,9 @@ Launching Harvester GUI
 
 After that, you're ready to launch Harvester GUI (not only Harvester Core). To launch Harvester GUI, selecting ``frontend/pyqt/harvester.py`` in the project pane, then right click it. There you should be able to find ``Run harvester`` in the popped up menu. Just click it. Harvester GUI should pop up.
 
-.. image:: https://user-images.githubusercontent.com/8652625/40595912-7e4e5178-6272-11e8-9033-1b9ee58e1fdb.png
+.. image:: https://user-images.githubusercontent.com/8652625/40917805-70b4f8f0-683f-11e8-8d8e-0a710875833e.png
     :align: center
-    :alt: Loaded TLSimu
+    :alt: Run harvester
     :scale: 40 %
 
 *************************************

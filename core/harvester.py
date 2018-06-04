@@ -765,22 +765,4 @@ class Harvester:
 
 
 if __name__ == '__main__':
-    #
-    from time import sleep
-
-    #
-    with Harvester() as harvester:
-        harvester.add_file_path('C:/Users/z1533tel/dev/genicam/bin/Win64_x64/TLSimu.cti')
-        harvester.initialize_device_info_list()
-        harvester.connect_device(0)
-        for i in range(10):
-            harvester.start_image_acquisition()
-            j = 0
-            frames = 50.
-            while j < int(frames):
-                sleep(1./frames)
-                image = harvester.get_image()
-                print(image)
-                j += 1
-            harvester.stop_image_acquisition()
-        print('Finished!')
+    pass

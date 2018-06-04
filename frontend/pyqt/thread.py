@@ -77,10 +77,6 @@ class _PyQtThreadImpl(QThread):
             if self._worker:
                 self._worker()
 
-    def wait(self, msecs=None):
-        while self._parent.is_running:
-            pass
-
     def acquire(self):
         return QMutexLocker(self._mutex)
 

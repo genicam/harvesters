@@ -61,9 +61,9 @@ Harvester mainly consists of the following two Python modules:
 
 In this section, we will learn what Harvester offers us through these components.
 
-******************************************
-Harvester Core aka ``harvester.Harvester``
-******************************************
+********************************
+Things Harvester Core Offers You
+********************************
 
 Harvester Core is an image acquisition engine. No GUI. You can use it as an image acquisition library which acquires images from GenTL Producers through the GenTL-Python Binding and control the target device (it's typically a camera) through the GenApi-Python Binding.
 
@@ -86,9 +86,9 @@ Note that the second item implies you can involve multiple types of transport la
 
 On the other hand, Harvester Core could be considered as a simplified version of the GenTL-Python Binding; actually Harvester Core hides it in its back and shows only intuitive interfaces to its clients. Harvester Core just offers you a relationship between you and a device. Nothing more. We say it again, just you and a device. If you need to manipulate more relevant GenTL modules or have to achieve something over a hardcore way, then you should directly work with the GenTL-Python Binding.
 
-********************************************
-Harvester GUI aka ``harvester.HarvesterGUI``
-********************************************
+*******************************
+Things Harvester GUI Offers You
+*******************************
 
 Harvester GUI works on the top of Harvester Core and offers you high-performance image data visualization on the fly. It involves VisPy for controlling OpenGL functionality and PyQt for providing GUI.
 
@@ -287,7 +287,7 @@ Using ``PAYTHONPATH`` is also a way to tell Python an additional directory where
 Launching Harvester GUI
 ***********************
 
-After that, you're ready to launch Harvester GUI (not only Harvester Core). To launch Harvester GUI, selecting ``harvester.py`` in the project pane, then right click it. There you should be able to find ``Run harvester`` in the popped up menu. Just click it. Harvester GUI should pop up.
+After that, you're ready to launch Harvester GUI (not only Harvester Core). To launch Harvester GUI, selecting ``frontend/pyqt/harvester.py`` in the project pane, then right click it. There you should be able to find ``Run harvester`` in the popped up menu. Just click it. Harvester GUI should pop up.
 
 .. image:: https://user-images.githubusercontent.com/8652625/40595912-7e4e5178-6272-11e8-9033-1b9ee58e1fdb.png
     :align: center
@@ -305,9 +305,9 @@ Now it is the time to select a GenTL Producer to load. In the toolbar, clicking 
     :alt: Loaded TLSimu
     :scale: 40 %
 
-#############
-Harvester GUI
-#############
+###################
+Using Harvester GUI
+###################
 
 *********************************************
 Harvester GUI :: Image Data Visualizer Window
@@ -526,9 +526,9 @@ Collapsing the feature node tree
 
 This button is used to collapse the feature node tree. The shortcut key is ``Ctrl+c``.
 
-##############
-Harvester Core
-##############
+####################
+Using Harvester Core
+####################
 
 TODO: Finish writing article.
 

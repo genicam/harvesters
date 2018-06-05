@@ -61,9 +61,9 @@ Harvester mainly consists of the following two Python modules:
 
 In this section, we will learn what Harvester offers us through these components.
 
-********************************
-Things Harvester Core Offers You
-********************************
+**************
+Harvester Core
+**************
 
 Harvester Core is an image acquisition engine. No GUI. You can use it as an image acquisition library which acquires images from GenTL Producers through the GenTL-Python Binding and control the target device (it's typically a camera) through the GenApi-Python Binding.
 
@@ -86,9 +86,9 @@ Note that the second item implies you can involve multiple types of transport la
 
 On the other hand, Harvester Core could be considered as a simplified version of the GenTL-Python Binding; actually Harvester Core hides it in its back and shows only intuitive interfaces to its clients. Harvester Core just offers you a relationship between you and a device. Nothing more. We say it again, just you and a device. If you need to manipulate more relevant GenTL modules or have to achieve something over a hardcore way, then you should directly work with the GenTL-Python Binding.
 
-*******************************
-Things Harvester GUI Offers You
-*******************************
+*************
+Harvester GUI
+*************
 
 Harvester GUI works on the top of Harvester Core and offers you high-performance image data visualization on the fly. It involves VisPy for controlling OpenGL functionality and PyQt for providing GUI.
 

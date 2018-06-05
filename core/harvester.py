@@ -107,14 +107,17 @@ class FromNumpy1DToNumpy2D(Processor):
 
         #
         ndarray = None
-        if symbolic in mono_formats or symbolic in bayer_formats:
-            ndarray = input.ndarray.reshape(
-                input.buffer.height, input.buffer.width
-            )
-        elif symbolic in rgb_formats:
-            ndarray = input.ndarray.reshape(
-                input.buffer.height, input.buffer.width, 3
-            )
+        try:
+            if symbolic in mono_formats or symbolic in bayer_formats:
+                ndarray = input.ndarray.reshape(
+                    input.buffer.height, input.buffer.width
+                )
+            elif symbolic in rgb_formats:
+                ndarray = input.ndarray.reshape(
+                    input.buffer.height, input.buffer.width, 3
+                )
+        except ValueError as e:
+            print(e)
 
         output = ImageInformation(
             input.buffer, input.node_map, ndarray

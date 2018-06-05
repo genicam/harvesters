@@ -536,6 +536,10 @@ TODO: Finish writing article.
 Acknowledgements
 ################
 
+*********************
+Open Source Resources
+*********************
+
 Harvester GUI (but not Harvester Core) uses the following open source libraries/resources.
 
 * VisPy (BSD)
@@ -552,6 +556,23 @@ Harvester GUI (but not Harvester Core) uses the following open source libraries/
 
   | Copyright (c) Icons8 LLC
   | https://icons8.com/
+
+***************
+GenTL Producers
+***************
+
+So far, Harvester has tested GenTL Producers from the following companies and they gave Harvester opportunities to improve itself:
+
+* `Baumer Optronic GmbH <https://www.baumer.com/se/en/>`_
+* `DAHENG VISION <http://en.daheng-image.com/main.html>`_
+* `JAI Ltd. <https://www.jai.com>`_
+* `MATRIX VISION GmbH <https://www.matrix-vision.com/home-en.html>`_
+* `OMRON SENTECH CO.,LTD. <https://sentech.co.jp/en/>`_
+* `Roboception GmbH <https://roboception.com/en/>`_
+* `SICK AG <https://www.sick.com/ag/en/>`_
+* `STEMMER IMAGING AG <https://www.stemmer-imaging.com/en/>`_
+
+Please don't hesitate to tell us if you have tested Harvester with your GenTL Producer. We will add your company/organization name to the list.
 
 ####################################
 Why Is the Library Called Harvester?

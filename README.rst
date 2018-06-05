@@ -4,7 +4,7 @@ About Harvester
 
 Harvester is a friendly companion for people who those want to learn computer vision.
 
-Technical speaking, Harvester is a Python library which is responsible for **image acquisition** and **image data visualization** (optional). Harvester consumes the GenTL Standard compliant image acquisition libraries, so-called GenTL Producers. If you have an officially certified GenTL Producer and GenICam compliant machine vision cameras, then Harvester supply you the acquired image data as `numpy <http://www.numpy.org>`_ array to make your image processing task productive.
+Technically speaking, Harvester is a Python library which is responsible for **image acquisition** and **image data visualization** (optional). Harvester consumes the GenTL Standard compliant image acquisition libraries, so-called GenTL Producers. If you have an officially certified GenTL Producer and GenICam compliant machine vision cameras, then Harvester supply you the acquired image data as `numpy <http://www.numpy.org>`_ array to make your image processing task productive.
 
 You can freely use, modify, distribute Harvester under `Apache License-2.0 <https://www.apache.org/licenses/LICENSE-2.0>`_ without worrying about the use of your software: personal, internal or commercial.
 

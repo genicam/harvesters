@@ -31,7 +31,8 @@ import numpy as np
 
 from genapi import NodeMap
 from genapi import LogicalErrorException
-from gentl import TimeoutException, AccessDeniedException
+from gentl import TimeoutException, AccessDeniedException, \
+    LoadLibraryException
 from gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
 from gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
@@ -755,9 +756,12 @@ class Harvester:
             self._device_info_list = []
 
     def initialize_device_info_list(self):
-        self._open_gentl_producers()
-        self._open_systems()
-        self._update_device_list()
+        try:
+            self._open_gentl_producers()
+            self._open_systems()
+            self._update_device_list()
+        except LoadLibraryException as e:
+            print(e)
 
     def update_device_info_list(self):
         self._release_device_info_list()

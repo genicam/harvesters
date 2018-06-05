@@ -190,6 +190,10 @@ class Statistics:
     def fps_max(self):
         return self._fps_max
 
+    @property
+    def num_images(self):
+        return self._num_images
+
 
 class Harvester:
     _encodings = {
@@ -532,18 +536,35 @@ class Harvester:
         with MutexLocker(self.thread_statistics_measurement):
             #
             if self.frontend:
-                self.frontend.statusBar().showMessage(
-                    'W: {0} x H: {1}, {2}, '
-                    '{3:.1f} fps in the last {4:.1f} s, '
-                    '{5:.1f} fps for over all'.format(
+                #
+                message_config = ''
+                if self.is_acquiring_images:
+                    message_config = 'W: {0} x H: {1}, {2}, '.format(
                         self._current_width,
                         self._current_height,
                         self._current_pixel_format,
-                        self._statistics_latest.fps,
-                        self._statistics_update_cycle,
-                        self._statistics_overall.fps,
                     )
+
+                #
+                message_latest = ''
+                if self._statistics_latest.num_images > 0:
+                    message_latest = '{0:.1f} fps in the last {1:.1f} s, '.format(
+                        self._statistics_latest.fps,
+                        self._statistics_update_cycle
+                    )
+
+                #
+                message_overall = '{0:.1f} fps for over all, ' \
+                                  '{1} images'.format(
+                    self._statistics_overall.fps,
+                    self._statistics_overall.num_images
                 )
+
+                #
+                self.frontend.statusBar().showMessage(
+                    message_config + message_latest + message_overall
+                )
+
             self._statistics_latest.reset()
 
     def _worker_image_acquisition(self):

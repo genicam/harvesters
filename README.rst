@@ -35,13 +35,33 @@ Terminology
 
 Before start talking about the detail, let's take a look at some important terminologies that frequently appear in this document. These terminologies are listed as follows:
 
-* **The GenApi-Python Binding**: A Python module. It communicates with the GenICam reference implementation.
-* **A GenTL Producer**: A C/C++ library. It offers consumers a way to communicate with cameras over physical transport layer dependent technology hiding the detail from the consumer.
-* **The GenTL-Python Binding**: A Python module. It communicates with GenTL Producers.
-* **Harvester**: A Python module that consists of Harvester Core and Harvester GUI.
-* **Harvester Core**: A part of Harvester. It works as an image acquisition engine.
-* **Harvester GUI**: A part of Harvester. It works as a graphical user interface of Harvester Core.
-* **A GenICam compliant device**: It's typically a camera. Just involving the GenICam reference implementation, it offers consumers a way to dynamically configure/control the target devices.
+* **The GenApi-Python Binding**:
+
+  | A Python module that communicates with the GenICam reference implementation.
+
+* **A GenTL Producer**:
+
+  | A C/C++ library that offers consumers a way to communicate with cameras over physical transport layer dependent technology hiding the detail from the consumer.
+
+* **The GenTL-Python Binding**:
+
+  | A Python module that communicates with GenTL Producers.
+
+* **Harvester**:
+
+  | A Python module that consists of Harvester Core and Harvester GUI.
+
+* **Harvester Core**:
+
+  | A part of Harvester that works as an image acquisition engine.
+
+* **Harvester GUI**:
+
+  | A part of Harvester that works as a graphical user interface of Harvester Core.
+
+* **A GenICam compliant device**:
+
+  | It's typically a camera. Just involving the GenICam reference implementation, it offers consumers a way to dynamically configure/control the target devices.
 
 The following diagram shows the hierarchy and relationship of the relevant modules:
 

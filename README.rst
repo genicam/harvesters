@@ -76,8 +76,8 @@ What Would Harvester Do for You?
 
 Harvester mainly consists of the following two Python modules:
 
-* *Harvester Core*: An image acquisition engine, and
-* *Harvester GUI*: Graphical user interface between users & Harvester Core.
+* **Harvester Core**: An image acquisition engine
+* **Harvester GUI**: Graphical user interface between users & Harvester Core
 
 In this section, we will learn what Harvester offers us through these components.
 

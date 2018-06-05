@@ -186,7 +186,7 @@ In short, you may think which tools are required to get Harvester work. The answ
 
 * The GenApi-Python Binding
 * The GenTL-Python Binding
-* The GenICam reference implementation.
+* The GenICam reference implementation
 * A certified GenTL Producer
 * A GenICam compliant machine vision camera
 

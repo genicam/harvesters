@@ -144,10 +144,11 @@ class Canvas(app.Canvas):
             # Clear the canvas in gray.
             gloo.clear(color=self._background_color)
 
+            image = self._harvester_core.get_image(False)
             if self._harvester_core.is_acquiring_images and not self._pause_drawing:
-                if self._harvester_core.get_image(False) is not None:
+                if image is not None:
                     # Draw the latest image on the canvas.
-                    self._program['texture'] = self._harvester_core.get_image(False)
+                    self._program['texture'] = image
                 else:
                     if self._has_filled_texture:
                         # Keep drawing the image recently drew on the canvas.
@@ -159,9 +160,9 @@ class Canvas(app.Canvas):
                 if self._has_filled_texture:
                     self._program['texture'] = self._program['texture']
                 else:
-                    if self._harvester_core.get_image(False) is not None:
+                    if image is not None:
                         # Draw the latest image on the canvas.
-                        self._program['texture'] = self._harvester_core.get_image(False)
+                        self._program['texture'] = image
                         self._has_filled_texture = True
 
 

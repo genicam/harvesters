@@ -470,7 +470,7 @@ class Harvester:
             else:
                 buffer_size = self.node_map.PayloadSize.value
 
-            num_buffers = min_num_buffers * 2
+            num_buffers = min_num_buffers * 10
 
             self._raw_buffers = self._create_raw_buffers(
                 num_buffers, buffer_size
@@ -583,47 +583,45 @@ class Harvester:
         except TimeoutException as e:
             print(e)
         else:
+            #
+            if self._num_images_to_acquire >= 1:
+                self._num_images_to_acquire -= 1
+
+            #
+            if not self.is_acquiring_images:
+                return
+
+            buffer = self._event_manager.buffer
+
+            #
+            for statistics in self._statistics_list:
+                statistics.increment_num_images()
+                statistics.set_timestamp(buffer.timestamp)
+
+            #
+            if not self._has_acquired_1st_image:
+                if self.frontend:
+                    self.frontend.canvas.set_rect(
+                        buffer.width, buffer.height
+                    )
+                self._has_acquired_1st_image = True
+
+            input = ImageInformation(
+                buffer, self.node_map, None
+            )
+            output = None
+
+            for pu in self._processing_units:
+                output = pu.process(input)
+                input = output
+
+            # We've got a new image so now we can reuse the buffer that
+            # we had kept.
             with MutexLocker(self.thread_image_acquisition):
-                #
-                if self._num_images_to_acquire >= 1:
-                    self._num_images_to_acquire -= 1
-
-                #
-                if not self.is_acquiring_images:
-                    return
-
-                # We've got a new image so now we can reuse the buffer that
-                # we had kept.
                 if self._latest_gentl_buffer is not None:
                     self._data_stream.queue_buffer(
                         self._latest_gentl_buffer
                     )
-
-                buffer = self._event_manager.buffer
-
-                #
-                for statistics in self._statistics_list:
-                    statistics.increment_num_images()
-                    statistics.set_timestamp(buffer.timestamp)
-
-                #
-                if not self._has_acquired_1st_image:
-                    if self.frontend:
-                        self.frontend.canvas.set_rect(
-                            buffer.width, buffer.height
-                        )
-                    self._has_acquired_1st_image = True
-
-                input = ImageInformation(
-                    buffer, self.node_map, None
-                )
-                output = None
-
-                for pu in self._processing_units:
-                    output = pu.process(input)
-                    input = output
-
-                #
                 if output.ndarray is not None:
                     self._latest_texture_data = output.ndarray
                     self._latest_gentl_buffer = buffer

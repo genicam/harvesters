@@ -232,7 +232,7 @@ class Canvas(app.Canvas):
 
     def on_mouse_move(self, event):
         if self._is_dragging:
-            ratio = self._magnification
+            ratio = self._magnification * 2.
             delta = event.pos - self._origin
             self._origin = event.pos
             self._coordinate[0] -= (delta[0] * ratio)

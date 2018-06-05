@@ -112,7 +112,7 @@ class Canvas(app.Canvas):
         self._timer = app.Timer(1./fps, connect=self.update, start=True)
 
         #
-        self._translate = 1.
+        self._translate = 0.
         self._latest_translate = self._translate
 
         #

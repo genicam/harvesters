@@ -320,7 +320,7 @@ Loading a GenTL Producer on Harvester
 
 Now it is the time to select a GenTL Producer to load. In the toolbar, clicking the left most button, select a CTI file to load. Then a file selection dialog should pop up. In the following example, we chose a GenTL Producer simulator so-called TLSimu.
 
-.. image:: https://user-images.githubusercontent.com/8652625/40719418-88e2d16c-644e-11e8-9b4a-f2f5d5522259.png
+.. image:: https://user-images.githubusercontent.com/8652625/40985679-96c03c7c-691f-11e8-9e6e-cddae618dc37.png
     :align: center
     :alt: Loaded TLSimu
     :scale: 40 %
@@ -338,7 +338,7 @@ Image Data Visualizer Window :: Toolbar
 
 Most of Harvester GUI's features can be used through its toolbox. In this section, we describe each button's functionality and how to use it. Regarding shortcut keys, replace ``Ctrl`` with ``Command`` on macOS.
 
-.. image:: https://user-images.githubusercontent.com/8652625/40781834-5ed1f374-6518-11e8-90fa-04b74736209d.png
+.. image:: https://user-images.githubusercontent.com/8652625/40985347-e10a95ee-691e-11e8-9063-0c44ba7741da.png
     :align: center
     :alt: Toolbar
     :scale: 40 %
@@ -443,9 +443,9 @@ Image Data Visualizer Window :: Canvas
 
 The canvas of Harvester GUI offers you not only image data visualization but also some intuitive object manipulations.
 
-.. image:: https://user-images.githubusercontent.com/8652625/40781833-5ea766c2-6518-11e8-9be9-436be0a52f14.png
+.. image:: https://user-images.githubusercontent.com/8652625/40985884-f0513eb2-691f-11e8-8727-2a236aa0fe72.png
     :align: center
-    :alt: Toolbar
+    :alt: Canvas
     :scale: 40 %
 
 Zooming into the displayed image
@@ -472,7 +472,7 @@ The attribute controller offers you an interface to each GenICam feature node th
 Attribute Controller Window :: Toolbar
 ======================================
 
-.. image:: https://user-images.githubusercontent.com/8652625/40781832-5e6b34ea-6518-11e8-9337-3b22d3ea5adb.png
+.. image:: https://user-images.githubusercontent.com/8652625/40985511-40e139d2-691f-11e8-8a63-020838e07a6c.png
     :align: center
     :alt: Toolbar
     :scale: 40 %

@@ -588,30 +588,57 @@ So far, Harvester has tested GenTL Producers from the following companies and th
     :align: center
 
     - - Company Name
+      - Camera Link
+      - Camera Link HS
+      - CoaXPress
       - GigE Vision
       - USB3 Vision
     - - `Baumer Optronic GmbH <https://www.baumer.com/se/en/>`_
+      - \-
+      - \-
+      - \-
       - Tested
       - Tested
     - - `DAHENG VISION <http://en.daheng-image.com/main.html>`_
+      - \-
+      - \-
+      - \-
       - Not tested
       - Tested
     - - `JAI Ltd. <https://www.jai.com>`_
+      - \-
+      - \-
+      - \-
       - Not tested
       - Tested
     - - `MATRIX VISION GmbH <https://www.matrix-vision.com/home-en.html>`_
+      - \-
+      - \-
+      - \-
       - Tested
       - Tested
     - - `OMRON SENTECH CO.,LTD. <https://sentech.co.jp/en/>`_
+      - \-
+      - \-
+      - \-
       - Not tested
       - Tested
     - - `Roboception GmbH <https://roboception.com/en/>`_
       - \-
+      - \-
+      - \-
+      - \-
       - Not available
     - - `SICK AG <https://www.sick.com/ag/en/>`_
       - \-
+      - \-
+      - \-
+      - \-
       - Not available
     - - `STEMMER IMAGING AG <https://www.stemmer-imaging.com/en/>`_
+      - \-
+      - \-
+      - \-
       - Tested
       - Tested
 

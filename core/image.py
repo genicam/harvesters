@@ -20,6 +20,7 @@
 # Standard library imports
 
 # Related third party imports
+from gentl import InvalidParameterException
 import numpy as np
 
 # Local application/library specific imports
@@ -36,18 +37,32 @@ class Image:
 
     @property
     def width(self) -> int:
-        return self._parent.gentl_buffer.width
+        try:
+            width = self._parent.gentl_buffer.width
+        except InvalidParameterException:
+            width = self._parent.node_map.Width.value
+
+        return width
 
     @property
     def height(self) -> int:
-        return self._parent.gentl_buffer.height
+        try:
+            height = self._parent.gentl_buffer.height
+        except InvalidParameterException:
+            height = self._parent.node_map.Height.value
+
+        return height
 
     @property
     def pixel_format(self) -> str:
-        pixel_format = self._parent.node_map.PixelFormat.get_entry(
-            self._parent.gentl_buffer.pixel_format
-        )
-        return pixel_format.symbolic
+        try:
+            pixel_format_int = self._parent.gentl_buffer.pixel_format
+        except InvalidParameterException:
+            return self._parent.node_map.PixelFormat.value
+        else:
+            return self._parent.node_map.PixelFormat.get_entry(
+                int(pixel_format_int)
+            ).symbolic
 
     @property
     def ndarray(self) -> np.ndarray:

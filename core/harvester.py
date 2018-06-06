@@ -32,7 +32,7 @@ import numpy as np
 from genapi import NodeMap
 from genapi import LogicalErrorException
 from gentl import TimeoutException, AccessDeniedException, \
-    LoadLibraryException
+    LoadLibraryException, InvalidParameterException
 from gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
 from gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
@@ -391,11 +391,16 @@ class Harvester:
                     for file_info in file_content.infolist():
                         if pathlib.Path(
                                 file_info.filename).suffix.lower() == '.xml':
+                            #
+                            try:
+                                # device -> interface -> system
+                                encoding = self.connecting_device.parent.parent.char_encoding
+                            except InvalidParameterException as e:
+                                encoding = TL_CHAR_ENCODING_LIST.TL_CHAR_ENCODING_UTF8
+
+                            #
                             content = file_content.read(file_info).decode(
-                                self._encodings[
-                                    # device -> interface -> system
-                                    self.connecting_device.parent.parent.char_encoding
-                                ]
+                                self._encodings[encoding]
                             )
                             break
 
@@ -438,7 +443,12 @@ class Harvester:
             #
             self._data_stream = self.connecting_device.create_data_stream()
             self._data_stream.open(self.connecting_device.data_stream_ids[0])
-            min_num_buffers = self._data_stream.buffer_announce_min
+
+            #
+            try:
+                min_num_buffers = self._data_stream.buffer_announce_min
+            except InvalidParameterException as e:
+                min_num_buffers = 16
 
             if self._data_stream.defines_payload_size():
                 buffer_size = self._data_stream.payload_size
@@ -574,20 +584,20 @@ class Harvester:
                 statistics.set_timestamp(gentl_buffer.timestamp)
 
             #
-            if not self._has_acquired_1st_image:
-                if self.frontend:
-                    self.frontend.canvas.set_rect(
-                        gentl_buffer.width, gentl_buffer.height
-                    )
-                self._has_acquired_1st_image = True
-
-            #
             input_buffer = Buffer(gentl_buffer, self.node_map, None)
             output_buffer = None
 
             for pu in self._processing_units:
                 output_buffer = pu.process(input_buffer)
                 input_buffer = output_buffer
+
+            #
+            if not self._has_acquired_1st_image:
+                if self.frontend:
+                    self.frontend.canvas.set_rect(
+                        output_buffer.image.width, output_buffer.image.height
+                    )
+                self._has_acquired_1st_image = True
 
             # We've got a new image so now we can reuse the buffer that
             # we had kept.
@@ -667,9 +677,12 @@ class Harvester:
                 self._event_manager.flush_event_queue()
 
                 # Stop image acquisition.
-                self._data_stream.stop_acquisition(
-                    ACQ_STOP_FLAGS_LIST.ACQ_STOP_FLAGS_KILL
-                )
+                try:
+                    self._data_stream.stop_acquisition(
+                        ACQ_STOP_FLAGS_LIST.ACQ_STOP_FLAGS_KILL
+                    )
+                except TimeoutException as e:
+                    print(e)
                 self.node_map.AcquisitionStop.execute()
 
                 # Flash the queue for image acquisition process.

@@ -32,7 +32,8 @@ import numpy as np
 from genapi import NodeMap
 from genapi import LogicalErrorException
 from gentl import TimeoutException, AccessDeniedException, \
-    LoadLibraryException, InvalidParameterException
+    LoadLibraryException, InvalidParameterException, \
+    NotImplementedException, NotAvailableException
 from gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
 from gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
@@ -131,7 +132,7 @@ class Statistics:
         self._num_images = 0
         self._fps_max = 0.
 
-    def set_timestamp(self, timestamp):
+    def set_timestamp(self, timestamp, frequency):
         # TODO: Harvester is temporarily expecting to have ns timestamps.
         if not self._has_acquired_1st_timestamp:
             self._timestamp_base = timestamp
@@ -139,7 +140,7 @@ class Statistics:
         else:
             diff = timestamp - self._timestamp_base
             if diff > 0:
-                fps = self._num_images / (diff * 0.000000001)
+                fps = self._num_images * frequency / diff
                 if fps > self._fps_max:
                     self._fps_max = fps
                 self._fps = fps
@@ -579,9 +580,7 @@ class Harvester:
             gentl_buffer = self._event_manager.buffer
 
             #
-            for statistics in self._statistics_list:
-                statistics.increment_num_images()
-                statistics.set_timestamp(gentl_buffer.timestamp)
+            self.update_statistics(gentl_buffer)
 
             #
             input_buffer = Buffer(gentl_buffer, self.node_map, None)
@@ -608,6 +607,32 @@ class Harvester:
                     )
                 if output_buffer.image.ndarray is not None:
                     self._latest_buffer = output_buffer
+
+    def update_statistics(self, gentl_buffer):
+        #
+        frequency = 1000000000.
+        try:
+            timestamp = gentl_buffer.timestamp_ns
+        except (InvalidParameterException, NotImplementedException):
+            try:
+                # The unit is device/implementation dependent.
+                timestamp = gentl_buffer.timestamp
+            except:
+                timestamp = 0  # Not available
+            else:
+                try:
+                    frequency = self.connecting_device.timestamp_frequency
+                except (InvalidParameterException, NotImplementedException,
+                        NotAvailableException):
+                    try:
+                        frequency = self.node_map.GevTimestampTickFrequency.value
+                    except LogicalErrorException:
+                        pass
+
+        #
+        for statistics in self._statistics_list:
+            statistics.increment_num_images()
+            statistics.set_timestamp(timestamp, frequency)
 
     @staticmethod
     def _create_raw_buffers(num_buffers, size):

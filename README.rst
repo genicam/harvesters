@@ -492,8 +492,8 @@ GenICam defines the following visibility levels:
 The following table shows each item in the combo box and the visibility status of each visibility level:
 
 .. list-table::
-    :widths: 15 15 15 15 15
     :header-rows: 1
+    :align: center
 
     - - Combo box item
       - Beginner
@@ -583,14 +583,38 @@ GenTL Producers
 
 So far, Harvester has tested GenTL Producers from the following companies and they gave Harvester opportunities to improve itself:
 
-* `Baumer Optronic GmbH <https://www.baumer.com/se/en/>`_
-* `DAHENG VISION <http://en.daheng-image.com/main.html>`_
-* `JAI Ltd. <https://www.jai.com>`_
-* `MATRIX VISION GmbH <https://www.matrix-vision.com/home-en.html>`_
-* `OMRON SENTECH CO.,LTD. <https://sentech.co.jp/en/>`_
-* `Roboception GmbH <https://roboception.com/en/>`_
-* `SICK AG <https://www.sick.com/ag/en/>`_
-* `STEMMER IMAGING AG <https://www.stemmer-imaging.com/en/>`_
+.. list-table::
+    :header-rows: 1
+    :align: center
+
+    - - Company Name
+      - GigE Vision
+      - USB3 Vision
+    - - `Baumer Optronic GmbH <https://www.baumer.com/se/en/>`_
+      - Tested
+      - Tested
+    - - `DAHENG VISION <http://en.daheng-image.com/main.html>`_
+      - Not tested
+      - Tested
+    - - `JAI Ltd. <https://www.jai.com>`_
+      - Not tested
+      - Tested
+    - - `MATRIX VISION GmbH <https://www.matrix-vision.com/home-en.html>`_
+      - Tested
+      - Tested
+    - - `OMRON SENTECH CO.,LTD. <https://sentech.co.jp/en/>`_
+      - Not tested
+      - Tested
+    - - `Roboception GmbH <https://roboception.com/en/>`_
+      - \-
+      - Not available
+    - - `SICK AG <https://www.sick.com/ag/en/>`_
+      - \-
+      - Not available
+    - - `STEMMER IMAGING AG <https://www.stemmer-imaging.com/en/>`_
+      - Tested
+      - Tested
+
 
 Please don't hesitate to tell us if you have tested Harvester with your GenTL Producer. We will add your company/organization name to the list.
 

@@ -34,6 +34,7 @@ from genapi import NodeMap
 from genapi import EInterfaceType, EAccessMode, EVisibility
 
 # Local application/library specific imports
+from core.thread_ import MutexLocker
 from frontend.pyqt.helper import get_system_font
 
 
@@ -159,12 +160,12 @@ class FeatureTreeModel(QAbstractItemModel):
     #
     _editables = [EAccessMode.RW, EAccessMode.WO]
 
-    def __init__(self, parent=None, node_map: NodeMap=None, mutex=None):
+    def __init__(self, parent=None, node_map: NodeMap=None, thread=None):
         """
 
         :param parent: Set its parent QWidget object.
         :param node_map: Set a NodeMap object to model.
-        :param mutex: Set a mutex object to synchronize Qt's dsiplaying task.
+        :param thread: Set a mutex object to synchronize Qt's dsiplaying task.
 
         REMARKS: QAbstractItemModel might impact the performance and could
         slow Harvester. As far as we've confirmed, QAbstractItemModel calls
@@ -178,7 +179,7 @@ class FeatureTreeModel(QAbstractItemModel):
         super().__init__(parent)
 
         #
-        self._mutex = mutex
+        self._thread = thread
 
         #
         self._root_item = TreeItem(('Feature Name', 'Value'))
@@ -292,7 +293,7 @@ class FeatureTreeModel(QAbstractItemModel):
     def setData(self, index: QModelIndex, value, role=Qt.EditRole):
         if role == Qt.EditRole:
 
-            with QMutexLocker(self._mutex):
+            with MutexLocker(self._thread):
                 # TODO: Check the type of the target and convert the given value.
                 self.dataChanged.emit(index, index)
 

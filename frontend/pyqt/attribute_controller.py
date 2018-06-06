@@ -21,7 +21,7 @@
 import sys
 
 # Related third party imports
-from PyQt5.QtCore import pyqtSlot, QMutexLocker
+from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QMainWindow, QApplication, QTreeView, \
     QAction, QComboBox, QLineEdit, QLabel, QShortcut
@@ -29,6 +29,7 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QTreeView, \
 from genapi import EVisibility
 
 # Local application/library specific imports
+from core.thread_ import MutexLocker
 from frontend.helper import compose_tooltip
 from frontend.pyqt.action import Action
 from frontend.pyqt.feature_tree import FeatureEditDelegate, FilterProxyModel, \
@@ -96,7 +97,9 @@ class AttributeController(QMainWindow):
         #
         self._node_map = node_map
         self._model = FeatureTreeModel(
-            self, self._node_map, self._parent_widget.mutex
+            self,
+            self._node_map,
+            self._parent_widget.harvester_core.thread_image_acquisition
         )
 
         #
@@ -214,7 +217,7 @@ class AttributeController(QMainWindow):
         )
 
     def _invalidate_feature_tree_by_visibility(self):
-        with QMutexLocker(self._parent_widget.harvester_core.mutex):
+        with MutexLocker(self._parent_widget.harvester_core.thread_image_acquisition):
             visibility = self._visibility_dict[
                 self._combo_box_visibility.currentText()
             ]
@@ -223,7 +226,7 @@ class AttributeController(QMainWindow):
 
     @pyqtSlot('QString')
     def _invalidate_feature_tree_by_keyword(self, keyword):
-        with QMutexLocker(self._parent_widget.harvester_core.mutex):
+        with MutexLocker(self._parent_widget.harvester_core.thread_image_acquisition):
             self._proxy.setKeyword(keyword)
             self._view.expandAll()
 

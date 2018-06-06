@@ -194,16 +194,14 @@ class Harvester:
         self._systems = []
         self._interfaces = []
         self._device_info_list = []
-        self._data_stream = None
-        self._event_manager = None
 
         #
         self._raw_buffers = []
         self._buffer_tokens = []
         self._announced_buffers = []
         self._latest_buffer = None
-
-        #
+        self._data_stream = None
+        self._event_manager = None
         self._node_map = None
 
         #
@@ -432,6 +430,13 @@ class Harvester:
             #
             self._connecting_device = None
             self._node_map = None
+
+        self._raw_buffers = []
+        self._buffer_tokens = []
+        self._announced_buffers = []
+        self._latest_buffer = None
+        self._data_stream = None
+        self._event_manager = None
 
     def start_image_acquisition(self):
         if self.is_acquiring_images:

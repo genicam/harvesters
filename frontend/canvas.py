@@ -28,7 +28,7 @@ from vispy.gloo import Program
 from vispy.util.transforms import ortho
 
 # Local application/library specific imports
-from core.system import is_running_on_windows
+from core.system import is_running_on_macos
 from core.thread_ import MutexLocker
 
 
@@ -212,8 +212,8 @@ class Canvas(app.Canvas):
 
     def on_mouse_wheel(self, event):
         self._translate += event.delta[1]
-        power = 5. if is_running_on_windows() else 7.  # 2 ** power
-        stride = 4.
+        power = 7. if is_running_on_macos() else 5.  # 2 ** power
+        stride = 4. if is_running_on_macos() else 6.
         translate = self._translate
         translate = min(power * stride, translate)
         translate = max(-power * stride, translate)
@@ -232,7 +232,8 @@ class Canvas(app.Canvas):
 
     def on_mouse_move(self, event):
         if self._is_dragging:
-            ratio = self._magnification * 2.
+            adjustment = 2. if is_running_on_macos() else 1.
+            ratio = self._magnification * adjustment
             delta = event.pos - self._origin
             self._origin = event.pos
             self._coordinate[0] -= (delta[0] * ratio)

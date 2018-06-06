@@ -39,6 +39,7 @@ from gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     TL_CHAR_ENCODING_LIST
 
 # Local application/library specific imports
+from core.buffer import Buffer
 from core.port import ConcretePort
 from core.processor import Processor
 from core.thread import PyThread
@@ -48,29 +49,6 @@ from core.thread_ import MutexLocker
 __version__= '1.0.0, ' + 'Y2018.M05.D25'
 
 
-class ImageInformation:
-    def __init__(self, buffer, node_map, ndarray):
-        #
-        super().__init__()
-
-        #
-        self._buffer = buffer
-        self._node_map = node_map
-        self._ndarray = ndarray
-
-    @property
-    def buffer(self):
-        return self._buffer
-
-    @property
-    def node_map(self):
-        return self._node_map
-
-    @property
-    def ndarray(self):
-        return self._ndarray
-
-
 class FromBytesToNumpy1D(Processor):
     def __init__(self):
         #
@@ -78,13 +56,13 @@ class FromBytesToNumpy1D(Processor):
             brief_description='Converts a Python bytes object to a Numpy 1D array'
         )
 
-    def process(self, input: ImageInformation):
-        output = ImageInformation(
-            input.buffer,
-            input.node_map,
-            np.frombuffer(input.buffer.raw_buffer, dtype='uint8')
+    def process(self, input_buffer: Buffer):
+        output_buffer = Buffer(
+            input_buffer.gentl_buffer,
+            input_buffer.node_map,
+            np.frombuffer(input_buffer.gentl_buffer.raw_buffer, dtype='uint8')
         )
-        return output
+        return output_buffer
 
 
 class FromNumpy1DToNumpy2D(Processor):
@@ -93,12 +71,9 @@ class FromNumpy1DToNumpy2D(Processor):
         super().__init__(
             brief_description='Reshape a Numpy 1D array into a Numpy 2D array')
 
-    def process(self, input: ImageInformation):
+    def process(self, input_buffer: Buffer):
         #
-        pixel_format = input.node_map.PixelFormat.get_entry(
-            input.buffer.pixel_format
-        )
-        symbolic = pixel_format.symbolic
+        symbolic = input_buffer.image.pixel_format
 
         #
         mono_formats = ['Mono8']
@@ -109,21 +84,21 @@ class FromNumpy1DToNumpy2D(Processor):
         ndarray = None
         try:
             if symbolic in mono_formats or symbolic in bayer_formats:
-                ndarray = input.ndarray.reshape(
-                    input.buffer.height, input.buffer.width
+                ndarray = input_buffer.image.ndarray.reshape(
+                    input_buffer.image.height, input_buffer.image.width
                 )
             elif symbolic in rgb_formats:
-                ndarray = input.ndarray.reshape(
-                    input.buffer.height, input.buffer.width, 3
+                ndarray = input_buffer.image.ndarray.reshape(
+                    input_buffer.image.height, input_buffer.image.width, 3
                 )
         except ValueError as e:
             print(e)
 
-        output = ImageInformation(
-            input.buffer, input.node_map, ndarray
+        output_buffer = Buffer(
+            input_buffer.gentl_buffer, input_buffer.node_map, ndarray
         )
 
-        return output
+        return output_buffer
 
 
 class Rotate(Processor):
@@ -134,12 +109,12 @@ class Rotate(Processor):
         #
         self._angle = angle
 
-    def process(self, input: ImageInformation):
+    def process(self, input: Buffer):
         #
         #ndarray = ndimage.rotate(input.ndarray, self._angle)  # Import scipy.
         ndarray = None
-        output = ImageInformation(
-            input.buffer, input.node_map, ndarray
+        output = Buffer(
+            input.gentl_buffer, input.node_map, ndarray
         )
         return output
 
@@ -225,7 +200,7 @@ class Harvester:
         self._raw_buffers = []
         self._buffer_tokens = []
         self._announced_buffers = []
-        self._latest_gentl_buffer = None
+        self._latest_buffer = None
 
         #
         self._node_map = None
@@ -247,7 +222,6 @@ class Harvester:
         )
 
         #
-        self._latest_texture_data = None
         self._feature_tree_model = None
 
         #
@@ -321,14 +295,15 @@ class Harvester:
             self._timeout_for_image_acquisition = ms
 
     def get_image(self, return_copy=True):
-        if self._latest_texture_data is not None:
-            if return_copy:
-                with MutexLocker(self.thread_image_acquisition):
-                    return np.array(self._latest_texture_data)
-            else:
-                return self._latest_texture_data
-        else:
-            return None
+        if self._latest_buffer is not None:
+            if self._latest_buffer.image is not None:
+                if return_copy:
+                    with MutexLocker(self.thread_image_acquisition):
+                        return np.array(self._latest_buffer.image.ndarray)
+                else:
+                    return self._latest_buffer.image.ndarray
+        #
+        return None
 
     @property
     def processing_units(self):
@@ -591,40 +566,38 @@ class Harvester:
             if not self.is_acquiring_images:
                 return
 
-            buffer = self._event_manager.buffer
+            gentl_buffer = self._event_manager.buffer
 
             #
             for statistics in self._statistics_list:
                 statistics.increment_num_images()
-                statistics.set_timestamp(buffer.timestamp)
+                statistics.set_timestamp(gentl_buffer.timestamp)
 
             #
             if not self._has_acquired_1st_image:
                 if self.frontend:
                     self.frontend.canvas.set_rect(
-                        buffer.width, buffer.height
+                        gentl_buffer.width, gentl_buffer.height
                     )
                 self._has_acquired_1st_image = True
 
-            input = ImageInformation(
-                buffer, self.node_map, None
-            )
-            output = None
+            #
+            input_buffer = Buffer(gentl_buffer, self.node_map, None)
+            output_buffer = None
 
             for pu in self._processing_units:
-                output = pu.process(input)
-                input = output
+                output_buffer = pu.process(input_buffer)
+                input_buffer = output_buffer
 
             # We've got a new image so now we can reuse the buffer that
             # we had kept.
             with MutexLocker(self.thread_image_acquisition):
-                if self._latest_gentl_buffer is not None:
+                if self._latest_buffer is not None:
                     self._data_stream.queue_buffer(
-                        self._latest_gentl_buffer
+                        self._latest_buffer.gentl_buffer
                     )
-                if output.ndarray is not None:
-                    self._latest_texture_data = output.ndarray
-                    self._latest_gentl_buffer = buffer
+                if output_buffer.image.ndarray is not None:
+                    self._latest_buffer = output_buffer
 
     @staticmethod
     def _create_raw_buffers(num_buffers, size):
@@ -719,7 +692,7 @@ class Harvester:
                 self._event_manager = None
                 self._announced_buffers = []
                 self._data_stream = None
-                self._latest_gentl_buffer = None
+                self._latest_buffer = None
                 self._has_acquired_1st_image = False
 
                 for statistics in self._statistics_list:

@@ -43,6 +43,7 @@ from gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
 from core.buffer import Buffer
 from core.port import ConcretePort
 from core.processor import Processor
+from core.statistics import Statistics
 from core.thread import PyThread
 from core.thread_ import MutexLocker
 
@@ -50,7 +51,7 @@ from core.thread_ import MutexLocker
 __version__= '1.0.0, ' + 'Y2018.M05.D25'
 
 
-class FromBytesToNumpy1D(Processor):
+class _FromBytesToNumpy1D(Processor):
     def __init__(self):
         #
         super().__init__(
@@ -66,7 +67,7 @@ class FromBytesToNumpy1D(Processor):
         return output_buffer
 
 
-class FromNumpy1DToNumpy2D(Processor):
+class _FromNumpy1DToNumpy2D(Processor):
     def __init__(self):
         #
         super().__init__(
@@ -102,7 +103,7 @@ class FromNumpy1DToNumpy2D(Processor):
         return output_buffer
 
 
-class Rotate(Processor):
+class _Rotate(Processor):
     def __init__(self, angle=0):
         #
         super().__init__(brief_description='Rotate a Numpy 2D array')
@@ -120,57 +121,6 @@ class Rotate(Processor):
         return output
 
 
-class Statistics:
-    def __init__(self):
-        #
-        super().__init__()
-
-        #
-        self._timestamp_base = 0
-        self._has_acquired_1st_timestamp = False
-        self._fps = 0.
-        self._num_images = 0
-        self._fps_max = 0.
-
-    def set_timestamp(self, timestamp, frequency):
-        # TODO: Harvester is temporarily expecting to have ns timestamps.
-        if not self._has_acquired_1st_timestamp:
-            self._timestamp_base = timestamp
-            self._has_acquired_1st_timestamp = True
-        else:
-            diff = timestamp - self._timestamp_base
-            if diff > 0:
-                fps = self._num_images * frequency / diff
-                if fps > self._fps_max:
-                    self._fps_max = fps
-                self._fps = fps
-            else:
-                self._fps = 0.
-
-    def reset(self):
-        self._timestamp_base = 0
-        self._has_acquired_1st_timestamp = False
-        self._fps = 0.
-        self._num_images = 0
-        self._fps_max = 0.
-
-    def increment_num_images(self, num=1):
-        if self._has_acquired_1st_timestamp:
-            self._num_images += num
-
-    @property
-    def fps(self):
-        return self._fps
-
-    @property
-    def fps_max(self):
-        return self._fps_max
-
-    @property
-    def num_images(self):
-        return self._num_images
-
-
 class Harvester:
     #
     _encodings = {
@@ -179,7 +129,7 @@ class Harvester:
     }
 
     #
-    _min_num_bufferes = 16
+    _min_num_buffers = 16
 
     def __init__(self, frontend=None):
         #
@@ -245,8 +195,8 @@ class Harvester:
 
         #
         self._processing_units = []
-        self.add_processor(FromBytesToNumpy1D())
-        self.add_processor(FromNumpy1DToNumpy2D())
+        self.add_processor(_FromBytesToNumpy1D())
+        self.add_processor(_FromNumpy1DToNumpy2D())
         # You may want to add other processors.
 
         #
@@ -257,7 +207,6 @@ class Harvester:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.disconnect_device()
         self.release_all_resources()
 
     @property
@@ -421,27 +370,6 @@ class Harvester:
                 # object.
                 self.node_map.connect(concrete_port, port.name)
 
-    def disconnect_device(self):
-        """
-        Disconnects the connecting device from Harvester.
-
-        :return: None.
-        """
-        if self.connecting_device:
-            if self.connecting_device.is_open():
-                self.stop_image_acquisition()
-                self.connecting_device.close()
-            #
-            self._connecting_device = None
-            self._node_map = None
-
-        self._raw_buffers = []
-        self._buffer_tokens = []
-        self._announced_buffers = []
-        self._latest_buffer = None
-        self._data_stream = None
-        self._event_manager = None
-
     def start_image_acquisition(self):
         if self.is_acquiring_images:
             # If it's pausing drawing images, just resume it and
@@ -457,10 +385,10 @@ class Harvester:
             #
             try:
                 min_num_buffers = self._data_stream.buffer_announce_min
-                if min_num_buffers < self._min_num_bufferes:
-                    min_num_buffers = self._min_num_bufferes
+                if min_num_buffers < self._min_num_buffers:
+                    min_num_buffers = self._min_num_buffers
             except InvalidParameterException as e:
-                min_num_buffers = self._min_num_bufferes
+                min_num_buffers = self._min_num_buffers
 
             num_buffers = min_num_buffers
 
@@ -513,7 +441,7 @@ class Harvester:
             self._is_acquiring_images = True
 
             #
-            self.initialize_acquisition_statistics()
+            self.initialize_statistics()
             if self.thread_statistics_measurement:
                 self.thread_statistics_measurement.start()
 
@@ -591,7 +519,7 @@ class Harvester:
             gentl_buffer = self._event_manager.buffer
 
             #
-            self.update_statistics(gentl_buffer)
+            self._update_statistics(gentl_buffer)
 
             #
             input_buffer = Buffer(gentl_buffer, self.node_map, None)
@@ -619,16 +547,16 @@ class Harvester:
                 if output_buffer.image.ndarray is not None:
                     self._latest_buffer = output_buffer
 
-    def update_statistics(self, gentl_buffer):
+    def _update_statistics(self, gentl_buffer):
         #
-        frequency = 1000000000.
+        frequency = 1000000000.  # Hz
         try:
             timestamp = gentl_buffer.timestamp_ns
         except (InvalidParameterException, NotImplementedException):
             try:
                 # The unit is device/implementation dependent.
                 timestamp = gentl_buffer.timestamp
-            except:
+            except NotImplementedException:
                 timestamp = 0  # Not available
             else:
                 try:
@@ -747,20 +675,20 @@ class Harvester:
                 for statistics in self._statistics_list:
                     statistics.reset()
 
-    def initialize_acquisition_statistics(self):
+    def initialize_statistics(self):
         self._current_width = self.node_map.Width.value
         self._current_height = self.node_map.Height.value
         self._current_pixel_format = self.node_map.PixelFormat.value
 
-    def add_file_path(self, file_path: str):
+    def add_cti_file(self, file_path: str):
         if file_path not in self._cti_file_paths:
             self._cti_file_paths.append(file_path)
 
-    def remove_file_path(self, file_path: str):
+    def remove_cti_file(self, file_path: str):
         if file_path in self._cti_file_paths:
             self._cti_file_paths.remove(file_path)
 
-    def clear_file_paths(self):
+    def clear_file_files_list(self):
         self._cti_file_paths = []
 
     def _open_gentl_producers(self):
@@ -776,43 +704,101 @@ class Harvester:
             system.open()
             self._systems.append(system)
 
+    def release_all_resources(self):
+        self._release_gentl_producers()
+
     def _release_gentl_producers(self):
+        #
+        self._release_systems()
+
+        #
         for producer in self._producers:
             if producer and producer.is_open():
                 producer.close()
+
+        #
         self._producers = []
+        self.clear_file_files_list()
 
     def _release_systems(self):
+        #
+        self._release_interfaces()
+
+        #
         for system in self._systems:
             if system is not None and system.is_open():
                 system.close()
+
+        #
         self._systems = []
 
     def _release_interfaces(self):
+        #
+        self._release_device_info_list()
+
+        #
         if self._interfaces is not None:
             for iface in self._interfaces:
                 if iface.is_open():
                     iface.close()
+
+        #
         self._interfaces = []
 
     def _release_device_info_list(self):
+        #
+        self.disconnect_device()
+
+        #
         if self.device_info_list is not None:
             self._device_info_list = []
+
+    def disconnect_device(self):
+        #
+        self._release_data_stream()
+
+        #
+        if self.connecting_device:
+            if self.connecting_device.is_open():
+                self.stop_image_acquisition()
+                self.connecting_device.close()
+
+        #
+        self._connecting_device = None
+        self._node_map = None
+
+    def _release_data_stream(self):
+        #
+        self._release_buffers()
+
+        #
+        self._data_stream = None
+        self._event_manager = None
+
+    def _release_buffers(self):
+        #
+        self._raw_buffers = []
+        self._buffer_tokens = []
+        self._announced_buffers = []
+        self._latest_buffer = None
 
     def initialize_device_info_list(self):
         try:
             self._open_gentl_producers()
             self._open_systems()
-            self._update_device_list()
+            self.update_device_info_list()
         except LoadLibraryException as e:
             print(e)
 
     def update_device_info_list(self):
-        self._release_device_info_list()
-        self._release_interfaces()
-        self._update_device_list()
+        # This method is available only if Harvester is holding System modules.
+        if self._systems is None:
+            return
 
-    def _update_device_list(self):
+        #
+        self._release_interfaces()
+
+        #
         for system in self._systems:
             #
             system.update_interface_info_list(self.timeout_for_update)
@@ -828,14 +814,6 @@ class Harvester:
 
         #
         self._has_revised_list = True
-
-    def release_all_resources(self):
-        self.disconnect_device()
-        self._release_device_info_list()
-        self._release_interfaces()
-        self._release_systems()
-        self._release_gentl_producers()
-        self.clear_file_paths()
 
     def add_command(self, command):
         self._commands.append(command)

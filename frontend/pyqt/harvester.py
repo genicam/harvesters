@@ -397,7 +397,7 @@ class ActionSelectFile(Action):
             self.parent_widget.harvester_core.release_all_resources()
 
             # Update the path to the target GenTL Producer.
-            self.parent_widget.harvester_core.add_file_path(file_path)
+            self.parent_widget.harvester_core.add_cti_file(file_path)
             print(file_path)
 
             # Update the device list.

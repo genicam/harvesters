@@ -207,7 +207,7 @@ class Harvester:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.release_all_resources()
+        self.reset()
 
     @property
     def node_map(self):
@@ -704,7 +704,7 @@ class Harvester:
             system.open()
             self._systems.append(system)
 
-    def release_all_resources(self):
+    def reset(self):
         self._release_gentl_producers()
 
     def _release_gentl_producers(self):

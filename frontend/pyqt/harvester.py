@@ -88,7 +88,7 @@ class Harvester(QMainWindow):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
+        self._harvester_core.reset()
 
     @property
     def canvas(self):
@@ -394,7 +394,7 @@ class ActionSelectFile(Action):
             file_path = dialog.selectedFiles()[0]
 
             #
-            self.parent_widget.harvester_core.release_all_resources()
+            self.parent_widget.harvester_core.reset()
 
             # Update the path to the target GenTL Producer.
             self.parent_widget.harvester_core.add_cti_file(file_path)

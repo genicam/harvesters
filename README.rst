@@ -1,16 +1,12 @@
-.. figure:: https://user-images.githubusercontent.com/8652625/41114726-3309f1e4-6ac0-11e8-838f-d0a4e30b3b57.png
-    :align: center
-    :alt: Harvester Logo
-
-.. contents:: Table of Contents
-    :depth: 1
-
 .. figure:: https://user-images.githubusercontent.com/8652625/40595190-1e16e90e-626e-11e8-9dc7-207d691c6d6d.jpg
     :align: center
     :alt: The Harvesters
     :scale: 55 %
 
     Pieter Bruegel the Elder, The Harvesters, 1565, oil on wood, © 2000–2018 The Metropolitan Museum of Art
+
+.. contents:: Table of Contents
+    :depth: 1
 
 ###############
 About Harvester

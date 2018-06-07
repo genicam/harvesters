@@ -48,7 +48,7 @@ class Harvester(QMainWindow):
         self._mutex = QMutex()
 
         #
-        self._harvester_core = HarvesterCore(frontend=self)
+        self._harvester_core = HarvesterCore(frontend=self, profile=False)
 
         #
         self._harvester_core.thread_image_acquisition = PyQtThread(

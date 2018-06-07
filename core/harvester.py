@@ -210,6 +210,11 @@ class Harvester:
         if profile:
             from core.helper.profiler import Profiler
             self._profiler = Profiler()
+        else:
+            self._profiler = None
+
+        if self._profiler:
+            self._profiler.print_diff()
 
     def __enter__(self):
         return self
@@ -398,6 +403,9 @@ class Harvester:
 
         self._connecting_device = None
         self._concrete_port = None
+
+        if self._profiler:
+            self._profiler.print_diff()
 
     def start_image_acquisition(self):
         if self.is_acquiring_images:

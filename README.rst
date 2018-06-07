@@ -5,6 +5,13 @@ Harvester
 .. contents:: Table of Contents
     :depth: 1
 
+.. figure:: https://user-images.githubusercontent.com/8652625/40595190-1e16e90e-626e-11e8-9dc7-207d691c6d6d.jpg
+    :align: center
+    :alt: The Harvesters
+    :scale: 55 %
+
+    Pieter Bruegel the Elder, The Harvesters, 1565, oil on wood, © 2000–2018 The Metropolitan Museum of Art
+
 ###############
 About Harvester
 ###############
@@ -16,13 +23,6 @@ Technically speaking, Harvester is a Python library which is responsible for **i
 You can freely use, modify, distribute Harvester under `Apache License-2.0 <https://www.apache.org/licenses/LICENSE-2.0>`_ without worrying about the use of your software: personal, internal or commercial.
 
 Currently, Harvester is being developed and maintained by the motivated volunteer contributors from all over the world.
-
-.. figure:: https://user-images.githubusercontent.com/8652625/40595190-1e16e90e-626e-11e8-9dc7-207d691c6d6d.jpg
-    :align: center
-    :alt: The Harvesters
-    :scale: 55 %
-
-    Pieter Bruegel the Elder, The Harvesters, 1565, oil on wood, © 2000–2018 The Metropolitan Museum of Art
 
 ################
 Asking Questions

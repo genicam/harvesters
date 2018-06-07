@@ -1,6 +1,6 @@
-#########
-Harvester
-#########
+.. figure:: https://user-images.githubusercontent.com/8652625/41114514-9f59bb14-6abf-11e8-8e06-9c61526e7757.png
+    :align: center
+    :alt: Harvester Logo
 
 .. contents:: Table of Contents
     :depth: 1

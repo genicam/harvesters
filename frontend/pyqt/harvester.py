@@ -111,8 +111,8 @@ class Harvester(QMainWindow):
         return self._widget_device_list
 
     @property
-    def cti_file_paths(self):
-        return self.harvester_core.cti_file_paths
+    def cti_files_list(self):
+        return self.harvester_core.cti_files_list
 
     @property
     def harvester_core(self):
@@ -420,7 +420,7 @@ class ActionUpdateList(Action):
 
     def update(self):
         enable = False
-        if self.parent_widget.cti_file_paths:
+        if self.parent_widget.cti_files_list:
             if self.parent_widget.harvester_core.connecting_device is None:
                 enable = True
         self.setEnabled(enable)
@@ -447,7 +447,7 @@ class ActionConnect(Action):
     def update(self):
         #
         enable = False
-        if self.parent_widget.cti_file_paths:
+        if self.parent_widget.cti_files_list:
             if self.parent_widget.harvester_core.connecting_device is None:
                 enable = True
         self.setEnabled(enable)
@@ -473,7 +473,7 @@ class ActionDisconnect(Action):
 
         #
         enable = False
-        if self.parent_widget.cti_file_paths:
+        if self.parent_widget.cti_files_list:
             if self.parent_widget.harvester_core.connecting_device:
                 enable = True
         self.setEnabled(enable)
@@ -489,7 +489,7 @@ class ActionStartImageAcquisition(Action):
 
     def update(self):
         enable = False
-        if self.parent_widget.cti_file_paths:
+        if self.parent_widget.cti_files_list:
             if self.parent_widget.harvester_core.connecting_device:
                 if not self.parent_widget.harvester_core.is_acquiring_images or \
                     self.parent_widget.canvas.is_pausing:
@@ -507,7 +507,7 @@ class ActionToggleDrawing(Action):
 
     def update(self):
         enable = False
-        if self.parent_widget.cti_file_paths:
+        if self.parent_widget.cti_files_list:
             if self.parent_widget.harvester_core.connecting_device:
                 if self.parent_widget.harvester_core.is_acquiring_images:
                     enable = True
@@ -528,7 +528,7 @@ class ActionStopImageAcquisition(Action):
 
     def update(self):
         enable = False
-        if self.parent_widget.cti_file_paths:
+        if self.parent_widget.cti_files_list:
             if self.parent_widget.harvester_core.connecting_device:
                 if self.parent_widget.harvester_core.is_acquiring_images:
                     enable = True
@@ -548,7 +548,7 @@ class ActionShowDevAttribute(Action):
 
     def update(self):
         enable = False
-        if self.parent_widget.cti_file_paths:
+        if self.parent_widget.cti_files_list:
             if self.parent_widget.harvester_core.connecting_device is not None:
                 enable = True
         self.setEnabled(enable)

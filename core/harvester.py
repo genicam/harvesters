@@ -131,7 +131,7 @@ class Harvester:
     #
     _min_num_buffers = 16
 
-    def __init__(self, frontend=None):
+    def __init__(self, frontend=None, profile=False):
         #
         super().__init__()
 
@@ -202,6 +202,11 @@ class Harvester:
         #
         self._num_images_to_acquire = -1
         self._commands = []
+
+        #
+        if profile:
+            from core.profiler import Profiler
+            self._profiler = Profiler()
 
     def __enter__(self):
         return self

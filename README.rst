@@ -565,17 +565,26 @@ Harvester GUI (but not Harvester Core) uses the following open source libraries/
 * VisPy (BSD)
 
   | Copyright (c) 2013-2018 VisPy developers
-  | http://vispy.org/
+  | http://vispy.org
+  | https://github.com/vispy/vispy
         
 * PyQt5 (GPL)
 
   | Copyright (c) 2018 Riverbank Computing Limited
-  | https://www.riverbankcomputing.com/
+  | https://www.riverbankcomputing.com
+  | https://pypi.org/project/PyQt5/
+        
+* Pympler (Apache-2.0)
+
+  | Copyright (c) Jean Brouwers, Ludwig Haehne, Robert Schuppenies
+  | https://pythonhosted.org/Pympler/
+  | https://github.com/pympler/pympler
+  | https://pypi.org/project/Pympler/
         
 * Icons8
 
   | Copyright (c) Icons8 LLC
-  | https://icons8.com/
+  | https://icons8.com
 
 ***************
 GenTL Producers

@@ -205,7 +205,7 @@ class Harvester:
 
         #
         if profile:
-            from core.profiler import Profiler
+            from core.helper.profiler import Profiler
             self._profiler = Profiler()
 
     def __enter__(self):

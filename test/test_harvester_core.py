@@ -18,14 +18,13 @@
 
 
 # Standard library imports
-from time import sleep
 import unittest
 
 # Related third party imports
 
 # Local application/library specific imports
 from core.harvester import Harvester
-from core.system import is_running_on_windows
+from core.helper.system import is_running_on_windows
 
 
 class TestHarvesterCore(unittest.TestCase):

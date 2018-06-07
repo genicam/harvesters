@@ -398,15 +398,15 @@ Starting image acquisition
 
 This button is used to start image acquisition. The shortcut key is ``Ctrl+j``. The acquired images will be drawing in the following canvas pane.
 
-Pausing image drawing
----------------------
+Pausing/Resuming image drawing
+------------------------------
 
 .. image:: https://user-images.githubusercontent.com/8652625/40596063-6cae1aba-6273-11e8-9049-2430a042c671.png
     :align: left
     :alt: Pause
     :scale: 40 %
 
-This button is used to temporarily stop drawing images on the canvas pane while it's keep acquiring images in the background. The shortcut key is ``Ctrl+k``. If you want to resume drawing images, just click the button again. You can do the same thing with the start image acquisition button (``Ctrl+j``).
+This button is used to pausing/resuming drawing images on the canvas pane while it's keep acquiring images in the background. The shortcut key is ``Ctrl+k``. If you want to resume drawing images, just click the button again. You can do the same thing with the start image acquisition button (``Ctrl+j``).
 
 Stopping image acquisition
 --------------------------

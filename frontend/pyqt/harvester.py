@@ -216,10 +216,10 @@ class Harvester(QMainWindow):
 
         #
         button_toggle_drawing = ActionToggleDrawing(self,
-            Icon('pause.png'), 'Stop Drawing')
+            Icon('pause.png'), 'Pause/Resume Drawing')
         shortcut_key = 'Ctrl+k'
         button_toggle_drawing.setToolTip(
-            compose_tooltip('Stop drawing', shortcut_key)
+            compose_tooltip('Pause/Resume drawing', shortcut_key)
         )
         button_toggle_drawing.setShortcut(shortcut_key)
         button_toggle_drawing.toggle()

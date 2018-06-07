@@ -18,7 +18,7 @@ Currently, Harvester is being developed and maintained by the motivated voluntee
     Pieter Bruegel the Elder, The Harvesters, 1565, oil on wood, © 2000–2018 The Metropolitan Museum of Art
 
 .. contents:: Table of Contents
-    :depth: 2
+    :depth: 1
 
 
 ################

@@ -39,7 +39,7 @@ class ComboBox(QComboBox, Observer):
         return self._parent_widget
 
     def update(self):
-        if self.parent_widget.harvester_core.has_revised_list:
+        if self.parent_widget.harvester_core.has_revised_device_info_list:
             self.clear()
             separator = '::'
             for d in self.parent_widget.harvester_core.device_info_list:
@@ -61,7 +61,7 @@ class ComboBox(QComboBox, Observer):
                         name += d.user_defined_name
                 self.addItem(name)
         #
-        self.parent_widget.harvester_core.has_revised_list = False
+        self.parent_widget.harvester_core.has_revised_device_info_list = False
 
         #
         enable = False

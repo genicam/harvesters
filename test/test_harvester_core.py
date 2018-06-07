@@ -42,7 +42,7 @@ class TestHarvesterCore(unittest.TestCase):
                 if is_running_on_windows() else \
                 '/Users/kznr/dev/genicam/bin/Win64_x64/TLSimu.cti'
             harvester.add_cti_file(path)
-            harvester.initialize_device_info_list()
+            harvester.update_device_info_list()
             harvester.connect_device(0)
             for i in range(5):
                 harvester.start_image_acquisition()

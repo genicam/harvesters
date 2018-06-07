@@ -401,7 +401,7 @@ class ActionSelectFile(Action):
             print(file_path)
 
             # Update the device list.
-            self.parent_widget.harvester_core.initialize_device_info_list()
+            self.parent_widget.harvester_core.update_device_info_list()
 
     def update(self):
         enable = False

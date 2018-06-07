@@ -159,7 +159,7 @@ class Harvester:
         self._node_map = None
 
         #
-        self._has_revised_list = False
+        self._has_revised_device_list = False
         self._timeout_for_update = 1000  # ms
         self._has_acquired_1st_image = False
 
@@ -194,7 +194,7 @@ class Harvester:
         self._timeout_for_image_acquisition = 100  # ms
 
         #
-        self._processing_units = []
+        self._processors = []
         self.add_processor(_FromBytesToNumpy1D())
         self.add_processor(_FromNumpy1DToNumpy2D())
         # You may want to add other processors.
@@ -258,16 +258,16 @@ class Harvester:
         return None
 
     @property
-    def processing_units(self):
-        return self._processing_units
+    def processors(self):
+        return self._processors
 
     @property
-    def has_revised_list(self):
-        return self._has_revised_list
+    def has_revised_device_info_list(self):
+        return self._has_revised_device_list
 
-    @has_revised_list.setter
-    def has_revised_list(self, value):
-        self._has_revised_list = value
+    @has_revised_device_info_list.setter
+    def has_revised_device_info_list(self, value):
+        self._has_revised_device_list = value
 
     @property
     def frontend(self):
@@ -291,8 +291,8 @@ class Harvester:
         self._thread_statistics_measurement = obj
         self._thread_statistics_measurement.worker = self._worker_acquisition_statistics
 
-    def add_processor(self, processing_unit: Processor):
-        self._processing_units.append(processing_unit)
+    def add_processor(self, processor: Processor):
+        self._processors.append(processor)
 
     def connect_device(self, index):
         if self.connecting_device is None:
@@ -441,7 +441,7 @@ class Harvester:
             self._is_acquiring_images = True
 
             #
-            self.initialize_statistics()
+            self.reset_statistics()
             if self.thread_statistics_measurement:
                 self.thread_statistics_measurement.start()
 
@@ -525,8 +525,8 @@ class Harvester:
             input_buffer = Buffer(gentl_buffer, self.node_map, None)
             output_buffer = None
 
-            for pu in self._processing_units:
-                output_buffer = pu.process(input_buffer)
+            for p in self._processors:
+                output_buffer = p.process(input_buffer)
                 input_buffer = output_buffer
 
             #
@@ -675,7 +675,7 @@ class Harvester:
                 for statistics in self._statistics_list:
                     statistics.reset()
 
-    def initialize_statistics(self):
+    def reset_statistics(self):
         self._current_width = self.node_map.Width.value
         self._current_height = self.node_map.Height.value
         self._current_pixel_format = self.node_map.PixelFormat.value
@@ -688,7 +688,7 @@ class Harvester:
         if file_path in self._cti_file_paths:
             self._cti_file_paths.remove(file_path)
 
-    def clear_file_files_list(self):
+    def reset_cti_files_list(self):
         self._cti_file_paths = []
 
     def _open_gentl_producers(self):
@@ -705,6 +705,7 @@ class Harvester:
             self._systems.append(system)
 
     def reset(self):
+        self.reset_cti_files_list()
         self._release_gentl_producers()
 
     def _release_gentl_producers(self):
@@ -718,7 +719,6 @@ class Harvester:
 
         #
         self._producers = []
-        self.clear_file_files_list()
 
     def _release_systems(self):
         #
@@ -782,38 +782,32 @@ class Harvester:
         self._announced_buffers = []
         self._latest_buffer = None
 
-    def initialize_device_info_list(self):
+    def update_device_info_list(self):
+        #
+        self._release_gentl_producers()
+
         try:
             self._open_gentl_producers()
             self._open_systems()
-            self.update_device_info_list()
+            #
+            for system in self._systems:
+                #
+                system.update_interface_info_list(self.timeout_for_update)
+
+                #
+                for i_info in system.interface_info_list:
+                    iface = i_info.create_interface()
+                    iface.open()
+                    iface.update_device_info_list(self.timeout_for_update)
+                    self._interfaces.append(iface)
+                    for d_info in iface.device_info_list:
+                        self.device_info_list.append(d_info)
+
         except LoadLibraryException as e:
             print(e)
-
-    def update_device_info_list(self):
-        # This method is available only if Harvester is holding System modules.
-        if self._systems is None:
-            return
-
-        #
-        self._release_interfaces()
-
-        #
-        for system in self._systems:
-            #
-            system.update_interface_info_list(self.timeout_for_update)
-
-            #
-            for i_info in system.interface_info_list:
-                iface = i_info.create_interface()
-                iface.open()
-                iface.update_device_info_list(self.timeout_for_update)
-                self._interfaces.append(iface)
-                for d_info in iface.device_info_list:
-                    self.device_info_list.append(d_info)
-
-        #
-        self._has_revised_list = True
+            self._has_revised_device_list = False
+        else:
+            self._has_revised_device_list = True
 
     def add_command(self, command):
         self._commands.append(command)

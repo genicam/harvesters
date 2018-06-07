@@ -1,4 +1,4 @@
-.. figure:: https://user-images.githubusercontent.com/8652625/41114514-9f59bb14-6abf-11e8-8e06-9c61526e7757.png
+.. figure:: https://user-images.githubusercontent.com/8652625/41114726-3309f1e4-6ac0-11e8-838f-d0a4e30b3b57.png
     :align: center
     :alt: Harvester Logo
 

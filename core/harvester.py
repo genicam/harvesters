@@ -139,7 +139,6 @@ class Harvester:
         self._frontend = frontend
 
         #
-        self._connecting_device = None
         self._is_acquiring_images = False
 
         #
@@ -148,15 +147,19 @@ class Harvester:
         self._systems = []
         self._interfaces = []
         self._device_info_list = []
+        self._concrete_port = None
 
         #
         self._raw_buffers = []
         self._buffer_tokens = []
         self._announced_buffers = []
         self._latest_buffer = None
+
         self._data_stream = None
         self._event_manager = None
+
         self._node_map = None
+        self._connecting_device = None
 
         #
         self._has_revised_device_list = False
@@ -296,80 +299,105 @@ class Harvester:
         self._processors.append(processor)
 
     def connect_device(self, index):
-        if self.connecting_device is None:
-            # Instantiate a GenTL Device module.
-            self._connecting_device = self._device_info_list[
-                index].create_device()
+        if self.connecting_device:
+            return
 
-            # Then open it.
-            try:
-                self.connecting_device.open(
-                    DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
-                )
-            except AccessDeniedException as e:
-                print(e)
-                self.disconnect_device()
-            else:
-                # And get an alias of its GenTL Port module.
-                port = self.connecting_device.remote_port
+        # Instantiate a GenTL Device module.
+        self._connecting_device = self._device_info_list[
+            index].create_device()
 
-                # Inquire it's URL information.
-                # TODO: Consider a case where len(url_info_list) > 1.
-                url = port.url_info_list[0].url
+        # Then open it.
+        try:
+            self.connecting_device.open(
+                DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
+            )
+        except AccessDeniedException as e:
+            print(e)
+            self.disconnect_device()
+        else:
+            # And get an alias of its GenTL Port module.
+            port = self.connecting_device.remote_port
 
-                # And parse the URL.
-                location, others = url.split(':', 1)
-                file_name, address, size = others.split(';')
-                address = int(address, 16)
+            # Inquire it's URL information.
+            # TODO: Consider a case where len(url_info_list) > 1.
+            url = port.url_info_list[0].url
 
-                # It may specify the schema version.
-                delimiter = '?'
-                if delimiter in size:
-                    size, _ = size.split(delimiter)
-                size = int(size, 16)
+            # And parse the URL.
+            location, others = url.split(':', 1)
+            file_name, address, size = others.split(';')
+            address = int(address, 16)
 
-                # Now we get the file content.
-                content = port.read(address, size)
+            # It may specify the schema version.
+            delimiter = '?'
+            if delimiter in size:
+                size, _ = size.split(delimiter)
+            size = int(size, 16)
 
-                # But wait, we have to check if it's a zip file or not.
-                content = content[1]
-                file_content = io.BytesIO(content)
+            # Now we get the file content.
+            content = port.read(address, size)
 
-                # Let's check the reality.
-                if zipfile.is_zipfile(file_content):
-                    # Yes, that's a zip file.
-                    file_content = zipfile.ZipFile(file_content, 'r')
+            # But wait, we have to check if it's a zip file or not.
+            content = content[1]
+            file_content = io.BytesIO(content)
 
-                    # Extract the file content from the zip file.
-                    for file_info in file_content.infolist():
-                        if pathlib.Path(
-                                file_info.filename).suffix.lower() == '.xml':
-                            #
-                            try:
-                                # device -> interface -> system
-                                encoding = self.connecting_device.parent.parent.char_encoding
-                            except InvalidParameterException as e:
-                                encoding = TL_CHAR_ENCODING_LIST.TL_CHAR_ENCODING_UTF8
+            # Let's check the reality.
+            if zipfile.is_zipfile(file_content):
+                # Yes, that's a zip file.
+                file_content = zipfile.ZipFile(file_content, 'r')
 
-                            #
-                            content = file_content.read(file_info).decode(
-                                self._encodings[encoding]
-                            )
-                            break
+                # Extract the file content from the zip file.
+                for file_info in file_content.infolist():
+                    if pathlib.Path(
+                            file_info.filename).suffix.lower() == '.xml':
+                        #
+                        try:
+                            # device -> interface -> system
+                            encoding = self.connecting_device.parent.parent.char_encoding
+                        except InvalidParameterException as e:
+                            encoding = TL_CHAR_ENCODING_LIST.TL_CHAR_ENCODING_UTF8
 
-                # Instantiate a GenICam node map object.
-                self._node_map = NodeMap()
+                        #
+                        content = file_content.read(file_info).decode(
+                            self._encodings[encoding]
+                        )
+                        break
 
-                # Then load the XML file content on the node map object.
-                self.node_map.load_xml_from_string(content)
+            # Instantiate a GenICam node map object.
+            self._node_map = NodeMap()
 
-                # Instantiate a concrete port object of the remote device's
-                # port.
-                concrete_port = ConcretePort(self.connecting_device.remote_port)
+            # Then load the XML file content on the node map object.
+            self.node_map.load_xml_from_string(content)
 
-                # And finally connect the concrete port on the node map
-                # object.
-                self.node_map.connect(concrete_port, port.name)
+            # Instantiate a concrete port object of the remote device's
+            # port.
+            self._concrete_port = ConcretePort(self.connecting_device.remote_port)
+
+            # And finally connect the concrete port on the node map
+            # object.
+            self.node_map.connect(self._concrete_port, port.name)
+
+            if self._profiler:
+                self._profiler.print_diff()
+
+    def disconnect_device(self):
+        #
+        if self.connecting_device:
+            if self.connecting_device.is_open():
+                self.stop_image_acquisition()
+                self.connecting_device.close()
+
+        #
+        self._release_data_stream()
+
+        #
+        self._event_manager = None
+
+        if self._node_map:
+            self._node_map.disconnect()
+        self._node_map = None
+
+        self._connecting_device = None
+        self._concrete_port = None
 
     def start_image_acquisition(self):
         if self.is_acquiring_images:
@@ -753,21 +781,6 @@ class Harvester:
         #
         if self.device_info_list is not None:
             self._device_info_list = []
-
-    def disconnect_device(self):
-        #
-        if self.connecting_device:
-            if self.connecting_device.is_open():
-                self.stop_image_acquisition()
-                self.connecting_device.close()
-
-        #
-        self._release_data_stream()
-
-        #
-        self._event_manager = None
-        self._connecting_device = None
-        self._node_map = None
 
     def _release_data_stream(self):
         #

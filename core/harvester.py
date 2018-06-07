@@ -391,12 +391,6 @@ class Harvester:
                 self.stop_image_acquisition()
                 self.connecting_device.close()
 
-        #
-        self._release_data_stream()
-
-        #
-        self._event_manager = None
-
         if self._node_map:
             self._node_map.disconnect()
         self._node_map = None
@@ -630,9 +624,9 @@ class Harvester:
         _buffer_tokens = []
 
         # Append Buffer Token object to the list.
-        for i in range(len(raw_buffers)):
+        for i, buffer in enumerate(raw_buffers):
             _buffer_tokens.append(
-                BufferToken(raw_buffers[i], i)
+                BufferToken(buffer, i)
             )
 
         # Then returns the list.
@@ -643,11 +637,9 @@ class Harvester:
         announced_buffers = []
 
         # Iterate announcing buffers in the Buffer Tokens.
-        for i in range(len(_buffer_tokens)):
+        for token in _buffer_tokens:
             # Get an announced buffer.
-            announced_buffer = self._data_stream.announce_buffer(
-                _buffer_tokens[i]
-            )
+            announced_buffer = self._data_stream.announce_buffer(token)
 
             # And append it to the list.
             announced_buffers.append(announced_buffer)
@@ -695,19 +687,7 @@ class Harvester:
                 self._event_manager.unregister_event()
 
                 #
-                for i in range(len(self._announced_buffers)):
-                    _ = self._data_stream.revoke_buffer(
-                        self._announced_buffers[i]
-                    )
-                #
-                self._data_stream.close()
-
-                #
-                self._event_manager = None
-                self._announced_buffers = []
-                self._data_stream = None
-                self._latest_buffer = None
-                self._has_acquired_1st_image = False
+                self._release_data_stream()
 
                 for statistics in self._statistics_list:
                     statistics.reset()
@@ -795,14 +775,25 @@ class Harvester:
         self._release_buffers()
 
         #
+        if self._data_stream:
+            if self._data_stream.is_open():
+                self._data_stream.close()
+
+        #
         self._data_stream = None
+        self._event_manager = None
 
     def _release_buffers(self):
+        #
+        for buffer in self._announced_buffers:
+            _ = self._data_stream.revoke_buffer(buffer)
+
         #
         self._raw_buffers = []
         self._buffer_tokens = []
         self._announced_buffers = []
         self._latest_buffer = None
+        self._has_acquired_1st_image = False
 
     def update_device_info_list(self):
         #

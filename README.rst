@@ -560,30 +560,40 @@ Acknowledgements
 Open Source Resources
 *********************
 
-Harvester GUI (but not Harvester Core) uses the following open source libraries/resources.
+Harvester Core uses the following open source libraries/resources:
 
-* VisPy (BSD)
+* Pympler
 
-  | Copyright (c) 2013-2018 VisPy developers
-  | http://vispy.org
-  | https://github.com/vispy/vispy
-        
-* PyQt5 (GPL)
-
-  | Copyright (c) 2018 Riverbank Computing Limited
-  | https://www.riverbankcomputing.com
-  | https://pypi.org/project/PyQt5/
-        
-* Pympler (Apache-2.0)
-
+  | License: `Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0.html>`_
   | Copyright (c) Jean Brouwers, Ludwig Haehne, Robert Schuppenies
+
   | https://pythonhosted.org/Pympler/
   | https://github.com/pympler/pympler
   | https://pypi.org/project/Pympler/
         
+Harvester GUI uses the following open source libraries/resources:
+
+* VisPy
+
+  | License: `BSD 3-Clause <https://opensource.org/licenses/BSD-3-Clause>`_
+  | Copyright (c) 2013-2018 VisPy developers
+
+  | http://vispy.org
+  | https://github.com/vispy/vispy
+        
+* PyQt5
+
+  | License: `GPLv3 <https://www.gnu.org/licenses/gpl-3.0.en.html>`_
+  | Copyright (c) 2018 Riverbank Computing Limited
+
+  | https://www.riverbankcomputing.com
+  | https://pypi.org/project/PyQt5/
+        
 * Icons8
 
+  | License: `Creative Commons Attribution-NoDerivs 3.0 Unported <https://creativecommons.org/licenses/by-nd/3.0/>`_
   | Copyright (c) Icons8 LLC
+
   | https://icons8.com
 
 ***************

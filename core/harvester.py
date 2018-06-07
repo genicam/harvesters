@@ -755,15 +755,16 @@ class Harvester:
 
     def disconnect_device(self):
         #
-        self._release_data_stream()
-
-        #
         if self.connecting_device:
             if self.connecting_device.is_open():
                 self.stop_image_acquisition()
                 self.connecting_device.close()
 
         #
+        self._release_data_stream()
+
+        #
+        self._event_manager = None
         self._connecting_device = None
         self._node_map = None
 
@@ -773,7 +774,6 @@ class Harvester:
 
         #
         self._data_stream = None
-        self._event_manager = None
 
     def _release_buffers(self):
         #

@@ -172,10 +172,14 @@ class Statistics:
 
 
 class Harvester:
+    #
     _encodings = {
         TL_CHAR_ENCODING_LIST.TL_CHAR_ENCODING_ASCII: 'ascii',
         TL_CHAR_ENCODING_LIST.TL_CHAR_ENCODING_UTF8: 'utf8'
     }
+
+    #
+    _min_num_bufferes = 16
 
     def __init__(self, frontend=None):
         #
@@ -453,15 +457,17 @@ class Harvester:
             #
             try:
                 min_num_buffers = self._data_stream.buffer_announce_min
+                if min_num_buffers < self._min_num_bufferes:
+                    min_num_buffers = self._min_num_bufferes
             except InvalidParameterException as e:
-                min_num_buffers = 16
+                min_num_buffers = self._min_num_bufferes
+
+            num_buffers = min_num_buffers
 
             if self._data_stream.defines_payload_size():
                 buffer_size = self._data_stream.payload_size
             else:
                 buffer_size = self.node_map.PayloadSize.value
-
-            num_buffers = min_num_buffers * 10
 
             self._raw_buffers = self._create_raw_buffers(
                 num_buffers, buffer_size

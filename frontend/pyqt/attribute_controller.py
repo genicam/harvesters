@@ -168,7 +168,7 @@ class AttributeController(QMainWindow):
 
         #
         button_expand_all = ActionExpandAll(
-            self, Icon('expand_all.png'), 'Expand All'
+            self, Icon('expand.png'), 'Expand All'
         )
         shortcut_key = 'Ctrl+e'
         button_expand_all.setToolTip(
@@ -179,7 +179,7 @@ class AttributeController(QMainWindow):
 
         #
         button_collapse_all = ActionCollapseAll(
-            self, Icon('collapse_all.png'), 'Collapse All'
+            self, Icon('collapse.png'), 'Collapse All'
         )
         shortcut_key = 'Ctrl+c'
         button_collapse_all.setToolTip(

@@ -275,10 +275,6 @@ class Harvester:
         self._has_revised_device_list = value
 
     @property
-    def frontend(self):
-        return self._frontend
-
-    @property
     def thread_image_acquisition(self):
         return self._thread_image_acquisition
 
@@ -379,9 +375,9 @@ class Harvester:
         if self.is_acquiring_images:
             # If it's pausing drawing images, just resume it and
             # immediately return this method.
-            if self.frontend:
-                if self.frontend.canvas.is_pausing:
-                    self.frontend.canvas.resume_drawing()
+            if self._frontend:
+                if self._frontend.canvas.is_pausing:
+                    self._frontend.canvas.resume_drawing()
         else:
             #
             self._data_stream = self.connecting_device.create_data_stream()
@@ -465,7 +461,7 @@ class Harvester:
 
         with MutexLocker(self.thread_statistics_measurement):
             #
-            if self.frontend:
+            if self._frontend:
                 #
                 message_config = ''
                 if self.is_acquiring_images:
@@ -491,7 +487,7 @@ class Harvester:
                 )
 
                 #
-                self.frontend.statusBar().showMessage(
+                self._frontend.statusBar().showMessage(
                     message_config + message_latest + message_overall
                 )
 
@@ -536,8 +532,8 @@ class Harvester:
 
             #
             if not self._has_acquired_1st_image:
-                if self.frontend:
-                    self.frontend.canvas.set_rect(
+                if self._frontend:
+                    self._frontend.canvas.set_rect(
                         output_buffer.image.width, output_buffer.image.height
                     )
                 self._has_acquired_1st_image = True

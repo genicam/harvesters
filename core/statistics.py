@@ -19,6 +19,7 @@
 
 
 # Standard library imports
+import time
 
 # Related third party imports
 
@@ -31,6 +32,8 @@ class Statistics:
         super().__init__()
 
         #
+        self._time_base = 0
+        self._time_elapsed = 0
         self._timestamp_base = 0
         self._has_acquired_1st_timestamp = False
         self._fps = 0.
@@ -38,7 +41,6 @@ class Statistics:
         self._fps_max = 0.
 
     def set_timestamp(self, timestamp, frequency):
-        # TODO: Harvester is temporarily expecting to have ns timestamps.
         if not self._has_acquired_1st_timestamp:
             self._timestamp_base = timestamp
             self._has_acquired_1st_timestamp = True
@@ -53,6 +55,7 @@ class Statistics:
                 self._fps = 0.
 
     def reset(self):
+        self._time_base = 0
         self._timestamp_base = 0
         self._has_acquired_1st_timestamp = False
         self._fps = 0.
@@ -62,6 +65,9 @@ class Statistics:
     def increment_num_images(self, num=1):
         if self._has_acquired_1st_timestamp:
             self._num_images += num
+            self._time_elapsed = time.time() - self._time_base
+        else:
+            self._time_base = time.time()
 
     @property
     def fps(self):
@@ -74,4 +80,8 @@ class Statistics:
     @property
     def num_images(self):
         return self._num_images
+
+    @property
+    def elapsed_time_s(self):
+        return self._time_elapsed
 

@@ -511,9 +511,10 @@ class Harvester:
                     )
 
                 #
-                message_overall = '{0:.1f} fps for over all, ' \
-                                  '{1} images'.format(
+                message_overall = '{0:.1f} fps in the last {1:d} s, ' \
+                                  '{2} images'.format(
                     self._statistics_overall.fps,
+                    int(self._statistics_overall.elapsed_time_s),
                     self._statistics_overall.num_images
                 )
 

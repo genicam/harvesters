@@ -60,6 +60,8 @@ class Harvester(QMainWindow):
         )
 
         self._widget_canvas = Canvas(harvester_core=self._harvester_core)
+        self._widget_canvas.create_native()
+        self._widget_canvas.native.setParent(self)
 
         #
         self._action_stop_image_acquisition = None

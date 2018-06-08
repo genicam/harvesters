@@ -140,32 +140,12 @@ class Canvas(app.Canvas):
         self.apply_magnification()
 
     def on_draw(self, event):
-        #
         with MutexLocker(self._harvester_core.thread_image_acquisition):
             # Clear the canvas in gray.
             gloo.clear(color=self._background_color)
 
-            image = self._harvester_core.get_image(False)
-            if self._harvester_core.is_acquiring_images and not self._pause_drawing:
-                if image is not None:
-                    # Draw the latest image on the canvas.
-                    self._program['texture'] = image
-                else:
-                    if self._has_filled_texture:
-                        # Keep drawing the image recently drew on the canvas.
-                        self._program['texture'] = self._program['texture']
-                if not self._has_filled_texture:
-                    self._has_filled_texture = True
-            else:
-                # Keep drawing the image recently drew on the canvas.
-                if self._has_filled_texture:
-                    self._program['texture'] = self._program['texture']
-                else:
-                    if image is not None:
-                        # Draw the latest image on the canvas.
-                        self._program['texture'] = image
-                        self._has_filled_texture = True
-
+            #
+            self._update_texture()
 
             # Actually draw the new image on the texture.
             self._program.draw('triangle_strip')
@@ -173,6 +153,31 @@ class Canvas(app.Canvas):
             # Then swap the texture. You'll see the canvas updates the
             # texture we see.
             self.swap_buffers()
+
+    def _update_texture(self):
+        #
+        image = self._harvester_core.get_image(False)
+
+        #
+        if self._harvester_core.is_acquiring_images and not self._pause_drawing:
+            if image is not None:
+                # Draw the latest image on the canvas.
+                self._program['texture'] = image
+            else:
+                if self._has_filled_texture:
+                    # Keep drawing the image recently drew on the canvas.
+                    self._program['texture'] = self._program['texture']
+            if not self._has_filled_texture:
+                self._has_filled_texture = True
+        else:
+            # Keep drawing the image recently drew on the canvas.
+            if self._has_filled_texture:
+                self._program['texture'] = self._program['texture']
+            else:
+                if image is not None:
+                    # Draw the latest image on the canvas.
+                    self._program['texture'] = image
+                    self._has_filled_texture = True
 
     def on_resize(self, event):
         self.apply_magnification()

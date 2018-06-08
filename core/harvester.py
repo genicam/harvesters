@@ -494,13 +494,11 @@ class Harvester:
             #
             if self._frontend:
                 #
-                message_config = ''
-                if self.is_acquiring_images:
-                    message_config = 'W: {0} x H: {1}, {2}, '.format(
-                        self._current_width,
-                        self._current_height,
-                        self._current_pixel_format,
-                    )
+                message_config = 'W: {0} x H: {1}, {2}, '.format(
+                    self._current_width,
+                    self._current_height,
+                    self._current_pixel_format,
+                )
 
                 #
                 message_latest = ''

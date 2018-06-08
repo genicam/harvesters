@@ -23,7 +23,7 @@
 from PyQt5.QtCore import QMutexLocker, QMutex
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QMainWindow, QAction, QComboBox, \
-    QDesktopWidget, QWidget, QVBoxLayout, QFileDialog, QDialog, QShortcut
+    QDesktopWidget, QFileDialog, QDialog, QShortcut
 
 # Local application/library specific imports
 from frontend.canvas import Canvas
@@ -135,8 +135,7 @@ class Harvester(QMainWindow):
         self._initialize_gui_toolbar(self._observer_widgets)
 
         #
-        self._widget_main = FormWidget(self)
-        self.setCentralWidget(self._widget_main)
+        self.setCentralWidget(self.canvas.native)
 
         #
         self.resize(800, 600)
@@ -360,21 +359,6 @@ class Harvester(QMainWindow):
     @property
     def action_stop_image_acquisition(self):
         return self._action_stop_image_acquisition
-
-class FormWidget(QWidget):
-    def __init__(self, harvester_gui):
-        #
-        super(FormWidget, self).__init__(harvester_gui)
-
-        #
-        self._harvester_gui = harvester_gui
-
-        #
-        self._layout = QVBoxLayout()
-        self._layout.addWidget(self._harvester_gui.canvas.native)
-
-        #
-        self.setLayout(self._layout)
 
 
 class ActionSelectFile(Action):

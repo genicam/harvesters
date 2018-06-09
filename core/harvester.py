@@ -20,6 +20,7 @@
 
 # Standard library imports
 import io
+import datetime
 import pathlib
 from threading import Lock
 import time
@@ -509,10 +510,11 @@ class Harvester:
                     )
 
                 #
-                message_overall = '{0:.1f} fps in the last {1:d} s, ' \
-                                  '{2} images'.format(
+                message_overall = '{0:.1f} fps in the last {1}, {2} images'.format(
                     self._statistics_overall.fps,
-                    int(self._statistics_overall.elapsed_time_s),
+                    str(datetime.timedelta(
+                        seconds=int(self._statistics_overall.elapsed_time_s)
+                    )),
                     self._statistics_overall.num_images
                 )
 

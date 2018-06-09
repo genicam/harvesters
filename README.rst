@@ -144,7 +144,7 @@ Image Data Visualizer Window
 
 The image data visualizer window (below) offers you a visualization of the acquired images. In this screenshot, Harvester is acquiring a 4000 x 3000 pixel of RGB8 image at 30 fps; it means it's acquiring images at 8.6 Gbps. It's quite fast isn't it?
 
-.. image:: https://user-images.githubusercontent.com/8652625/41188214-57c9ec24-6bf5-11e8-97b9-3d24fa610185.png
+.. image:: https://user-images.githubusercontent.com/8652625/41188277-e7735f90-6bf5-11e8-8642-9e8c97b51100.png
     :align: center
     :alt: Image data visualizer
     :scale: 40 %

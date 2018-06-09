@@ -34,6 +34,37 @@ from core.thread_ import MutexLocker
 
 
 class Canvas(app.Canvas):
+    #
+    _vertex = """
+            // Uniforms
+            uniform mat4 u_model;
+            uniform mat4 u_view;
+            uniform mat4 u_projection;
+
+            // Attributes
+            attribute vec2 a_position;
+            attribute vec2 a_texcoord;
+
+            // Varyings
+            varying vec2 v_texcoord;
+
+            // Main
+            void main (void)
+            {
+                v_texcoord = a_texcoord;
+                gl_Position = u_projection * u_view * u_model * vec4(a_position, 0.0, 1.0);
+            }
+        """
+
+    _fragment = """
+            varying vec2 v_texcoord;
+            uniform sampler2D texture;
+            void main()
+            {
+                gl_FragColor = texture2D(texture, v_texcoord);
+            }
+        """
+
     def __init__(
             self,
             harvester_core=None,
@@ -60,39 +91,8 @@ class Canvas(app.Canvas):
         self._has_filled_texture = False
 
         #
-        vertex = """
-            // Uniforms
-            uniform mat4 u_model;
-            uniform mat4 u_view;
-            uniform mat4 u_projection;
-
-            // Attributes
-            attribute vec2 a_position;
-            attribute vec2 a_texcoord;
-
-            // Varyings
-            varying vec2 v_texcoord;
-
-            // Main
-            void main (void)
-            {
-                v_texcoord = a_texcoord;
-                gl_Position = u_projection * u_view * u_model * vec4(a_position, 0.0, 1.0);
-            }
-        """
-
-        fragment = """
-            varying vec2 v_texcoord;
-            uniform sampler2D texture;
-            void main()
-            {
-                gl_FragColor = texture2D(texture, v_texcoord);
-            }
-        """
-
-        #
         self._harvester_core = harvester_core
-        self._program = Program(vertex, fragment, count=4)
+        self._program = Program(self._vertex, self._fragment, count=4)
         self._width, self._height = width, height
 
         self._data = np.zeros(
@@ -110,7 +110,7 @@ class Canvas(app.Canvas):
         self._program['u_view'] = np.eye(4, dtype=np.float32)
 
         #
-        self._timer = app.Timer(1./fps, connect=self.update, start=True)
+        self._timer = app.Timer(1./fps, connect=self.on_timer, start=True)
 
         #
         self._translate = 0.
@@ -120,9 +120,6 @@ class Canvas(app.Canvas):
         self._is_dragging = False
         self._coordinate = [0, 0]
         self._origin = [0, 0]
-
-        #
-        self.set_rect(width, height)
 
         # If it's True , the canvas keeps image acquisition but do not
         # draw images on the canvas.
@@ -139,11 +136,14 @@ class Canvas(app.Canvas):
         #
         self.apply_magnification()
 
-    def on_draw(self, event):
-        with MutexLocker(self._harvester_core.thread_image_acquisition):
-            # Clear the canvas in gray.
-            gloo.clear(color=self._background_color)
+    def on_timer(self, event):
+        self.update()
 
+    def on_draw(self, event):
+        # Clear the canvas in gray.
+        gloo.clear(color=self._background_color)
+
+        with MutexLocker(self._harvester_core.thread_image_acquisition):
             #
             self._update_texture()
 
@@ -163,26 +163,20 @@ class Canvas(app.Canvas):
             if image is not None:
                 # Draw the latest image on the canvas.
                 self._program['texture'] = image
-            else:
-                if self._has_filled_texture:
-                    # Keep drawing the image recently drew on the canvas.
-                    self._program['texture'] = self._program['texture']
-            if not self._has_filled_texture:
-                self._has_filled_texture = True
+                if not self._has_filled_texture:
+                    self._has_filled_texture = True
         else:
-            # Keep drawing the image recently drew on the canvas.
-            if self._has_filled_texture:
-                self._program['texture'] = self._program['texture']
-            else:
+            if not self._has_filled_texture:
                 if image is not None:
                     # Draw the latest image on the canvas.
                     self._program['texture'] = image
-                    self._has_filled_texture = True
+                    if not self._has_filled_texture:
+                        self._has_filled_texture = True
 
     def on_resize(self, event):
         self.apply_magnification()
 
-    def apply_magnification(self, swap_buffers=True):
+    def apply_magnification(self):
         #
         canvas_w, canvas_h = self.physical_size
         gloo.set_viewport(0, 0, canvas_w, canvas_h)
@@ -209,12 +203,8 @@ class Canvas(app.Canvas):
         #
         self._program.bind(gloo.VertexBuffer(self._data))
 
-        if swap_buffers:
-            # Clear the canvas.
-            gloo.clear(color=self._background_color)
-
-            # Then swap the texture.
-            self.swap_buffers()
+        #
+        self.update()
 
     def on_mouse_wheel(self, event):
         self._translate += event.delta[1]
@@ -226,7 +216,7 @@ class Canvas(app.Canvas):
         self._translate = translate
         self._magnification = 2 ** (self._translate / stride)
         if self._latest_translate != self._translate:
-            self.apply_magnification(False)
+            self.apply_magnification()
             self._latest_translate = self._translate
 
     def on_mouse_press(self, event):
@@ -244,7 +234,7 @@ class Canvas(app.Canvas):
             self._origin = event.pos
             self._coordinate[0] -= (delta[0] * ratio)
             self._coordinate[1] += (delta[1] * ratio)
-            self.apply_magnification(False)
+            self.apply_magnification()
 
     def stop_drawing(self):
         self._timer.stop()

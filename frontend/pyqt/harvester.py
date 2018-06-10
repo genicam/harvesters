@@ -19,12 +19,13 @@
 
 
 # Standard library imports
+import sys
 
 # Related third party imports
-from PyQt5.QtCore import QMutexLocker, QMutex
+from PyQt5.QtCore import QMutexLocker, QMutex, pyqtSignal
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QMainWindow, QAction, QComboBox, \
-    QDesktopWidget, QFileDialog, QDialog, QShortcut
+    QDesktopWidget, QFileDialog, QDialog, QShortcut, QApplication
 
 # Local application/library specific imports
 from frontend.canvas import Canvas
@@ -40,7 +41,10 @@ from core.command import Command
 from core.harvester import Harvester as HarvesterCore
 
 
-class Harvester(QMainWindow):
+class _Harvester(QMainWindow):
+    #
+    _updated_statistics = pyqtSignal(str)
+
     def __init__(self):
         #
         super().__init__()
@@ -80,12 +84,23 @@ class Harvester(QMainWindow):
         self._widget_about = None
         self._widget_attribute_controller = None
 
+        self._harvester_core.updated_statistics = self._updated_statistics
+        self._harvester_core.updated_statistics.connect(self.update_statistics)
+
         #
         self._initialize_widgets()
 
         #
         for o in self._observer_widgets:
             o.update()
+
+        self._is_going_to_terminate = False
+
+    def update_statistics(self, message):
+        self.statusBar().showMessage(message)
+
+    def closeEvent(self, QCloseEvent):
+        self._is_going_to_terminate = True
 
     def __enter__(self):
         return self
@@ -570,16 +585,15 @@ class CommandStopImageAcquisition(Command):
         self._parent.action_stop_image_acquisition.execute()
 
 
+class Harvester(QApplication):
+    def __init__(self, argv):
+        super().__init__(argv)
+        self.setWindowIcon(Icon('genicam_logo_i.png'))
+        self._harvester = _Harvester()
+        self._harvester.show()
+
+
 if __name__ == '__main__':
-    #
-    import sys
-    from PyQt5.QtWidgets import QApplication
+    harvester = Harvester(sys.argv)
+    sys.exit(harvester.exec_())
 
-    #
-    my_app = QApplication(sys.argv)
-    my_app.setWindowIcon(Icon('genicam_logo_i.png'))
-
-    #
-    with Harvester() as harvester:
-        harvester.show()
-        sys.exit(my_app.exec_())

@@ -35,7 +35,7 @@ from genapi import NodeMap
 from genapi import LogicalErrorException
 from gentl import TimeoutException, AccessDeniedException, \
     LoadLibraryException, InvalidParameterException, \
-    NotImplementedException, NotAvailableException
+    NotImplementedException, NotAvailableException, ClosedException
 from gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
 from gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
@@ -187,6 +187,8 @@ class Harvester:
         self._current_height = 0
         self._current_pixel_format = ''
 
+        self._updated_statistics = None
+
         #
         self._statistics_update_cycle = 1  # s
         self._statistics_latest = Statistics()
@@ -223,6 +225,14 @@ class Harvester:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.reset()
+
+    @property
+    def updated_statistics(self):
+        return self._updated_statistics
+
+    @updated_statistics.setter
+    def updated_statistics(self, obj):
+        self._updated_statistics = obj
 
     @property
     def node_map(self):
@@ -519,9 +529,12 @@ class Harvester:
                 )
 
                 #
-                self._frontend.statusBar().showMessage(
-                    message_config + message_latest + message_overall
-                )
+                if self.updated_statistics:
+                    self.updated_statistics.emit(
+                        '{0}'.format(
+                            message_config + message_latest + message_overall
+                        )
+                    )
 
             self._statistics_latest.reset()
 

@@ -80,7 +80,7 @@ class Canvas(app.Canvas):
 
         #
         app.Canvas.__init__(
-            self, size=(width, height), vsync=True, autoswap=False
+            self, size=(width, height), vsync=True, autoswap=True
         )
 
         #
@@ -110,11 +110,11 @@ class Canvas(app.Canvas):
         self._program['u_view'] = np.eye(4, dtype=np.float32)
 
         #
-        self._timer = app.Timer(1./fps, connect=self.on_timer, start=True)
-
-        #
         self._translate = 0.
         self._latest_translate = self._translate
+
+        #
+        self._timer = app.Timer(1./fps, connect=self.update, start=True)
 
         #
         self._is_dragging = False
@@ -136,42 +136,22 @@ class Canvas(app.Canvas):
         #
         self.apply_magnification()
 
-    def on_timer(self, event):
-        self.update()
-
     def on_draw(self, event):
         # Clear the canvas in gray.
         gloo.clear(color=self._background_color)
-
-        with MutexLocker(self._harvester_core.thread_image_acquisition):
-            #
-            self._update_texture()
-
-            # Actually draw the new image on the texture.
-            self._program.draw('triangle_strip')
-
-            # Then swap the texture. You'll see the canvas updates the
-            # texture we see.
-            self.swap_buffers()
+        self._update_texture()
 
     def _update_texture(self):
-        #
-        image = self._harvester_core.get_image(False)
+        with MutexLocker(self._harvester_core.thread_image_acquisition):
+            #
+            image = self._harvester_core.get_image(False)
 
-        #
-        if self._harvester_core.is_acquiring_images and not self._pause_drawing:
-            if image is not None:
-                # Draw the latest image on the canvas.
-                self._program['texture'] = image
-                if not self._has_filled_texture:
-                    self._has_filled_texture = True
-        else:
-            if not self._has_filled_texture:
+            #
+            if self._harvester_core.is_acquiring_images and not self._pause_drawing:
                 if image is not None:
-                    # Draw the latest image on the canvas.
                     self._program['texture'] = image
-                    if not self._has_filled_texture:
-                        self._has_filled_texture = True
+
+            self._program.draw('triangle_strip')
 
     def on_resize(self, event):
         self.apply_magnification()
@@ -203,9 +183,6 @@ class Canvas(app.Canvas):
         #
         self._program.bind(gloo.VertexBuffer(self._data))
 
-        #
-        self.update()
-
     def on_mouse_wheel(self, event):
         self._translate += event.delta[1]
         power = 7. if is_running_on_macos() else 5.  # 2 ** power
@@ -235,12 +212,6 @@ class Canvas(app.Canvas):
             self._coordinate[0] -= (delta[0] * ratio)
             self._coordinate[1] += (delta[1] * ratio)
             self.apply_magnification()
-
-    def stop_drawing(self):
-        self._timer.stop()
-
-    def start_drawing(self):
-        self._timer.start()
 
     def pause_drawing(self, pause=True):
         self._pause_drawing = pause

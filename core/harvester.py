@@ -727,14 +727,22 @@ class Harvester:
         #
         for file_path in self._cti_files_list:
             producer = GenTLProducer.create_producer()
-            producer.open(file_path)
-            self._producers.append(producer)
+            try:
+                producer.open(file_path)
+            except ClosedException as e:
+                print(e)
+            else:
+                self._producers.append(producer)
 
     def _open_systems(self):
         for producer in self._producers:
             system = producer.create_system()
-            system.open()
-            self._systems.append(system)
+            try:
+                system.open()
+            except ClosedException as e:
+                print(e)
+            else:
+                self._systems.append(system)
 
     def reset(self):
         self.reset_cti_files_list()

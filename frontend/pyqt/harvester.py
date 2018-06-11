@@ -37,13 +37,15 @@ from frontend.pyqt.device_list import ComboBox
 from frontend.pyqt.helper import get_system_font
 from frontend.pyqt.icon import Icon
 from frontend.pyqt.thread import PyQtThread
-from core.command import Command
 from core.harvester import Harvester as HarvesterCore
 
 
 class _Harvester(QMainWindow):
     #
     _updated_statistics = pyqtSignal(str)
+
+    #
+    _signal_stop_image_acquisition = pyqtSignal()
 
     def __init__(self):
         #
@@ -69,10 +71,6 @@ class _Harvester(QMainWindow):
 
         #
         self._action_stop_image_acquisition = None
-        self._command_stop_image_acquisition = CommandStopImageAcquisition(self)
-        self._harvester_core.add_command(
-            self._command_stop_image_acquisition
-        )
 
         #
         self._observer_widgets = []
@@ -84,8 +82,13 @@ class _Harvester(QMainWindow):
         self._widget_about = None
         self._widget_attribute_controller = None
 
+        #
         self._harvester_core.updated_statistics = self._updated_statistics
         self._harvester_core.updated_statistics.connect(self.update_statistics)
+
+        #
+        self._harvester_core.signal_stop_image_acquisition = self._signal_stop_image_acquisition
+        self._harvester_core.signal_stop_image_acquisition.connect(self._stop_image_acquisition)
 
         #
         self._initialize_widgets()
@@ -95,6 +98,9 @@ class _Harvester(QMainWindow):
             o.update()
 
         self._is_going_to_terminate = False
+
+    def _stop_image_acquisition(self):
+        self.action_stop_image_acquisition.execute()
 
     def update_statistics(self, message):
         self.statusBar().showMessage(message)
@@ -571,18 +577,6 @@ class ActionShowAbout(Action):
 
     def update(self):
         pass
-
-
-class CommandStopImageAcquisition(Command):
-    def __init__(self, parent=None):
-        #
-        super().__init__()
-
-        #
-        self._parent = parent
-
-    def execute(self):
-        self._parent.action_stop_image_acquisition.execute()
 
 
 class Harvester(QApplication):

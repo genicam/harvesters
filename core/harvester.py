@@ -35,7 +35,8 @@ from genapi import NodeMap
 from genapi import LogicalErrorException
 from gentl import TimeoutException, AccessDeniedException, \
     LoadLibraryException, InvalidParameterException, \
-    NotImplementedException, NotAvailableException, ClosedException
+    NotImplementedException, NotAvailableException, ClosedException, \
+    ResourceInUseException
 from gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
 from gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
@@ -188,6 +189,7 @@ class Harvester:
         self._current_pixel_format = ''
 
         self._updated_statistics = None
+        self._signal_stop_image_acquisition = None
 
         #
         self._statistics_update_cycle = 1  # s
@@ -233,6 +235,14 @@ class Harvester:
     @updated_statistics.setter
     def updated_statistics(self, obj):
         self._updated_statistics = obj
+
+    @property
+    def signal_stop_image_acquisition(self):
+        return self._signal_stop_image_acquisition
+
+    @signal_stop_image_acquisition.setter
+    def signal_stop_image_acquisition(self, obj):
+        self._signal_stop_image_acquisition = obj
 
     @property
     def node_map(self):
@@ -426,6 +436,9 @@ class Harvester:
             self._data_stream.open(self.connecting_device.data_stream_ids[0])
 
             #
+            self._initialize_buffers()
+
+            #
             try:
                 min_num_buffers = self._data_stream.buffer_announce_min
                 if min_num_buffers < self._min_num_buffers:
@@ -540,17 +553,13 @@ class Harvester:
 
     def _worker_image_acquisition(self):
         try:
-            if self._num_images_to_acquire == 0:
-                for c in self._commands:
-                    c.execute()
+            if self.is_acquiring_images:
+                time.sleep(0.001)
+                self._event_manager.update_event_data(
+                    self._timeout_for_image_acquisition
+                )
             else:
-                if self.is_acquiring_images:
-                    time.sleep(0.001)
-                    self._event_manager.update_event_data(
-                        self._timeout_for_image_acquisition
-                    )
-                else:
-                    return
+                return
         except TimeoutException as e:
             print(e)
         else:
@@ -592,6 +601,11 @@ class Harvester:
                     )
                 if output_buffer.image.ndarray is not None:
                     self._latest_buffer = output_buffer
+
+            if self._num_images_to_acquire == 0:
+                #
+                if self.signal_stop_image_acquisition:
+                    self.signal_stop_image_acquisition.emit()
 
     def _update_statistics(self, gentl_buffer):
         #
@@ -667,7 +681,6 @@ class Harvester:
             self._data_stream.queue_buffer(buffer)
 
     def stop_image_acquisition(self):
-
         if self.is_acquiring_images:
             #
             self._is_acquiring_images = False
@@ -680,7 +693,6 @@ class Harvester:
                 self.thread_statistics_measurement.stop()
 
             with MutexLocker(self.thread_image_acquisition):
-
                 #
                 self._event_manager.flush_event_queue()
 
@@ -689,8 +701,14 @@ class Harvester:
                     self._data_stream.stop_acquisition(
                         ACQ_STOP_FLAGS_LIST.ACQ_STOP_FLAGS_KILL
                     )
+                except ResourceInUseException:
+                    # Device throw RESOURCE_IN_USE exception
+                    # if the acquisition has already terminated or
+                    # it has not been started.
+                    pass
                 except TimeoutException as e:
                     print(e)
+
                 self.node_map.AcquisitionStop.execute()
 
                 # Flash the queue for image acquisition process.
@@ -704,8 +722,8 @@ class Harvester:
                 #
                 self._release_data_stream()
 
-                for statistics in self._statistics_list:
-                    statistics.reset()
+            for statistics in self._statistics_list:
+                statistics.reset()
 
     def reset_statistics(self):
         self._current_width = self.node_map.Width.value
@@ -808,10 +826,11 @@ class Harvester:
 
     def _release_buffers(self):
         #
-        for buffer in self._announced_buffers:
-            _ = self._data_stream.revoke_buffer(buffer)
+        if self._data_stream:
+            for buffer in self._announced_buffers:
+                _ = self._data_stream.revoke_buffer(buffer)
 
-        #
+    def _initialize_buffers(self):
         self._raw_buffers = []
         self._buffer_tokens = []
         self._announced_buffers = []
@@ -844,13 +863,6 @@ class Harvester:
             self._has_revised_device_list = False
         else:
             self._has_revised_device_list = True
-
-    def add_command(self, command):
-        self._commands.append(command)
-
-    def remove_command(self, command):
-        if command in self._commands:
-            self._commands.remove(command)
 
 
 if __name__ == '__main__':

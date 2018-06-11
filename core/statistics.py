@@ -47,7 +47,7 @@ class Statistics:
         else:
             diff = timestamp - self._timestamp_base
             if diff > 0:
-                fps = self._num_images * frequency / diff
+                fps = (self._num_images - 1) * frequency / diff
                 if fps > self._fps_max:
                     self._fps_max = fps
                 self._fps = fps
@@ -64,10 +64,10 @@ class Statistics:
 
     def increment_num_images(self, num=1):
         if self._has_acquired_1st_timestamp:
-            self._num_images += num
             self._time_elapsed = time.time() - self._time_base
         else:
             self._time_base = time.time()
+        self._num_images += num
 
     @property
     def fps(self):

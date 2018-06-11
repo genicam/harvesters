@@ -147,9 +147,8 @@ class Canvas(app.Canvas):
             image = self._harvester_core.get_image(False)
 
             #
-            if self._harvester_core.is_acquiring_images and not self._pause_drawing:
-                if image is not None:
-                    self._program['texture'] = image
+            if not self._pause_drawing and image is not None:
+                self._program['texture'] = image
 
             self._program.draw('triangle_strip')
 

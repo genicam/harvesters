@@ -612,11 +612,11 @@ class Harvester:
         frequency = 1000000000.  # Hz
         try:
             timestamp = gentl_buffer.timestamp_ns
-        except (InvalidParameterException, NotImplementedException):
+        except (InvalidParameterException, NotImplementedException, NotAvailableException):
             try:
                 # The unit is device/implementation dependent.
                 timestamp = gentl_buffer.timestamp
-            except NotImplementedException:
+            except (NotImplementedException, NotAvailableException):
                 timestamp = 0  # Not available
             else:
                 try:

@@ -144,7 +144,7 @@ class Harvester:
         self._is_acquiring_images = False
 
         #
-        self._cti_files_list = []
+        self._cti_files = []
         self._producers = []
         self._systems = []
         self._interfaces = []
@@ -243,8 +243,8 @@ class Harvester:
         return self._connecting_device
 
     @property
-    def cti_files_list(self):
-        return self._cti_files_list
+    def cti_files(self):
+        return self._cti_files
 
     @property
     def is_acquiring_images(self):
@@ -713,19 +713,19 @@ class Harvester:
         self._current_pixel_format = self.node_map.PixelFormat.value
 
     def add_cti_file(self, file_path: str):
-        if file_path not in self._cti_files_list:
-            self._cti_files_list.append(file_path)
+        if file_path not in self._cti_files:
+            self._cti_files.append(file_path)
 
     def remove_cti_file(self, file_path: str):
-        if file_path in self._cti_files_list:
-            self._cti_files_list.remove(file_path)
+        if file_path in self._cti_files:
+            self._cti_files.remove(file_path)
 
-    def reset_cti_files_list(self):
-        self._cti_files_list = []
+    def discard_cti_files(self):
+        self._cti_files = []
 
     def _open_gentl_producers(self):
         #
-        for file_path in self._cti_files_list:
+        for file_path in self._cti_files:
             producer = GenTLProducer.create_producer()
             try:
                 producer.open(file_path)
@@ -745,7 +745,7 @@ class Harvester:
                 self._systems.append(system)
 
     def reset(self):
-        self.reset_cti_files_list()
+        self.discard_cti_files()
         self._release_gentl_producers()
 
     def _release_gentl_producers(self):

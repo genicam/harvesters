@@ -281,7 +281,7 @@ class Harvester:
         with MutexLocker(self.thread_image_acquisition):
             self._timeout_for_image_acquisition = ms
 
-    def get_image(self, return_copy=True):
+    def acquire_images(self, return_copy=True):
         if self._latest_buffer is not None:
             if self._latest_buffer.image is not None:
                 if return_copy:

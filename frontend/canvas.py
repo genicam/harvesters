@@ -144,7 +144,7 @@ class Canvas(app.Canvas):
     def _update_texture(self):
         with MutexLocker(self._harvester_core.thread_image_acquisition):
             #
-            image = self._harvester_core.get_image(False)
+            image = self._harvester_core.acquire_images(False)
 
             #
             if not self._pause_drawing and image is not None:

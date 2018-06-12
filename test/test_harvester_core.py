@@ -50,7 +50,7 @@ class TestHarvesterCore(unittest.TestCase):
                 frames = 10.
                 while j < int(frames):
                     sleep(1. / frames)
-                    image = harvester.get_image()
+                    image = harvester.acquire_images()
                     print(image)
                     j += 1
                 harvester.stop_image_acquisition()

@@ -22,7 +22,7 @@
 
 # Related third party imports
 from PyQt5.QtWidgets import QComboBox
-from gentl import NotImplementedException
+from gentl import NotImplementedException, NotAvailableException
 
 # Local application/library specific imports
 from frontend.pyqt.helper import get_system_font
@@ -54,8 +54,8 @@ class ComboBox(QComboBox, Observer):
                     name += d.serial_number
                 try:
                     _ = d.user_defined_name
-                except NotImplementedException as e:
-                    print(e)
+                except (NotImplementedException, NotAvailableException) as e:
+                    pass
                 else:
                     if d.user_defined_name != '':
                         name += separator

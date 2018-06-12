@@ -18,11 +18,14 @@
 # ----------------------------------------------------------------------------
 
 # Prepare options.
+build=
 test=
 upload=
 
-while getopts tu opt ; do
+while getopts btu opt ; do
   case $opt in
+  b)
+    build=true ;;
   t)
     test=true ;;
   u)
@@ -43,8 +46,11 @@ do
   fi
 done
 
-# Create a distribution package.
-python3 setup.py sdist bdist_wheel
+# BUild a distribution package.
+if [ "x$build" = "xtrue" ]
+then
+  python3 setup.py sdist bdist_wheel
+fi
 
 url="https://upload.pypi.org/legacy/"
 if [ "x$test" = "xtrue" ]

@@ -64,7 +64,7 @@ Before start talking about the detail, let's take a look at some important termi
 
 The following diagram shows the hierarchy and relationship of the relevant modules:
 
-.. figure:: https://user-images.githubusercontent.com/8652625/40815325-a6c2e1bc-6580-11e8-9953-0aeaf194ea52.png
+.. figure:: https://user-images.githubusercontent.com/8652625/41278759-9d0a5ea0-6e65-11e8-976b-2db8d085b9aa.png
     :align: center
     :alt: Module hierarchy
     :scale: 40 %

@@ -92,10 +92,14 @@ class About(QDialog):
         #
         self._button_acknowledgements = QPushButton()
         self._button_acknowledgements.setText('Acknowledgements')
-        self._button_acknowledgements.clicked.connect(self._handle_open_dialog)
+        self._button_acknowledgements.clicked.connect(
+            self._handle_open_dialog
+        )
 
         #
-        text_version = TransparentLineEdit('Version ' + versioneer.get_version())
+        text_version = TransparentLineEdit(
+            'Version ' + versioneer.get_version()
+        )
         text_copyright = TransparentLineEdit('Copyright (c) 2018 EMVA')
 
         layout_textual_info.addWidget(text_version)

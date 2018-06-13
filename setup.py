@@ -24,6 +24,7 @@ import setuptools
 # Related third party imports
 
 # Local application/library specific imports
+import versioneer
 
 
 with open('README.rst', 'r') as fh:
@@ -31,7 +32,7 @@ with open('README.rst', 'r') as fh:
 
 setuptools.setup(
     name='genicam.harvester',
-    version='0.0.1',
+    version=versioneer.get_version(),
     author='Kazunari Kudo',
     author_email='who.is.kazunari@gmail.com',
     description='Image acquisition & data visualization with Python',

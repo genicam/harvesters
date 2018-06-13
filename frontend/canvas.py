@@ -121,6 +121,10 @@ class Canvas(app.Canvas):
         self._coordinate = [0, 0]
         self._origin = [0, 0]
 
+        #
+        self.apply_magnification()
+        self._program['texture'] = np.zeros((height, width), dtype='uint8')
+
         # If it's True , the canvas keeps image acquisition but do not
         # draw images on the canvas.
         self._pause_drawing = False

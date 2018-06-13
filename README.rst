@@ -14,7 +14,7 @@ About Harvester
 
 Harvester is a friendly companion for people who those want to learn computer vision.
 
-Technically speaking, Harvester is a Python library which is responsible for **image acquisition** and **image data visualization** (optional). Harvester consumes the GenTL Standard compliant image acquisition libraries, so-called GenTL Producers. If you have an officially certified GenTL Producer and GenICam compliant machine vision cameras, then Harvester supply you the acquired image data as `numpy <http://www.numpy.org>`_ array to make your image processing task productive.
+Technically speaking, Harvester is a Python library which is responsible for **image acquisition** and **image data visualization** (optional). Harvester consumes image acquisition libraries, so-called GenTL Producers. If you have an officially certified GenTL Producer and GenICam compliant machine vision cameras, then Harvester supply you the acquired image data as `numpy <http://www.numpy.org>`_ array to make your image processing task productive.
 
 You can freely use, modify, distribute Harvester under `Apache License-2.0 <https://www.apache.org/licenses/LICENSE-2.0>`_ without worrying about the use of your software: personal, internal or commercial.
 
@@ -69,9 +69,9 @@ The following diagram shows the hierarchy and relationship of the relevant modul
     :alt: Module hierarchy
     :scale: 40 %
 
-################################
-What Would Harvester Do for You?
-################################
+########
+Features
+########
 
 Harvester mainly consists of the following two Python modules:
 
@@ -191,9 +191,9 @@ Supported Operating Systems
 * Ubuntu (Not well tested yet)
 * Windows
 
-####################
-Installing Harvester
-####################
+#######
+Install
+#######
 
 In this section, we will learn how to instruct procedures to get Harvester work.
 
@@ -324,9 +324,9 @@ Now it is the time to select a GenTL Producer to load. In the toolbar, clicking 
     :alt: Loaded TLSimu
     :scale: 40 %
 
-###################
-Using Harvester GUI
-###################
+#############
+Harvester GUI
+#############
 
 *********************************************
 Harvester GUI :: Image Data Visualizer Window
@@ -545,9 +545,9 @@ Collapsing the feature node tree
 
 This button is used to collapse the feature node tree. The shortcut key is ``Ctrl+c``.
 
-####################
-Using Harvester Core
-####################
+##############
+Harvester Core
+##############
 
 TODO: Finish writing article.
 
@@ -636,13 +636,21 @@ So far, Harvester has tested GenTL Producers from the following companies and th
 
 Please don't hesitate to tell us if you have tested Harvester with your GenTL Producer. We will add your company/organization name to the list.
 
-####################################
-Why Is the Library Called Harvester?
-####################################
+##############
+Why Harvester?
+##############
 
 Harvester's name was derived from the great Flemish painter, Pieter Bruegel the Elder's painting so-called "The Harvesters". Harvesters harvest a crop every season that has been fully grown and the harvested crop is passed to the consumers. On the other hand, image acquisition libraries acquire images as their crop and the images are passed to the following processes. We found the similarity between them and decided to name our library Harvester.
 
 Apart from anything else, we love its peaceful and friendly name. We hope you also like it ;-)
+
+##############
+External Links
+##############
+
+    * `Harvester at GitHub <https://github.com/genicam/harvester>`_
+    * `Harvester at PyPI <https://pypi.org/project/genicam.harvester/>`_
+
 
 #######
 Credits
@@ -652,6 +660,5 @@ The initial idea about Harvester suddenly came up to Kazunari Kudo's head in the
 
 The following individuals have directly or indirectly contributed to the development activity of Harvester or encouraged the developers by their thoughtful warm words:
 
-    Rod Barman, Stefan Battmer, David Beek, David Bernecker, Chris Beynon, Eric Bourbonnais, George Chamberlain, Thomas Detjen, Friedrich Dierks, Dana Diezemann, Emile Dodin, Reynold Dodson, Sascha Dorenbeck, Erik Eloff, Katie Ensign, Andreas Ertl, James Falconer, Werner Feith, Maciej Gara, Andreas Gau, Sebastien Gendreau, Francois Gobeil, Werner Goeman, Jean-Paul Goglio, Markus Grebing, Eric Gross, Ioannis Hadjicharalambous, Uwe Hagmaier, Tim Handschack, Christopher Hartmann, Reinhard Heister, Gerhard Helfrich, Jochem Herrmann, Heiko Hirschmueller, Tom Hopfner, David Hoese, Karsten Ingeman Christensen, Mattias Johannesson, Mark Jones, Mattias Josefsson, Martin Kersting, Stephan Kieneke, Tom Kirchner, Lutz Koschorreck, Frank Krehl, Maarten Kuijk, Max Larin, Ralf Lay, Min Liu, Sergey Loginonvskikh, Thomas Lueck, Alain Marchand, Rocco Matano, Masahide Matsubara, Stephane Maurice, Robert McCurrach, Mike Miethig, Thies Moeller, Roman Moie, Marcel Naggatz, Hartmut Nebelung, Damian Nesbitt, Quang Nhan Nguyen, Klaus-Henning Noffz, Neerav Patel, Jan Pech, Merlin Plock, Joerg Preckwinkel, Benjamin Pussacq, Dave Reaves, Thomas Reuter, Andreas Rittinger, Ryan Robe, Nicolas P. Rougier, Matthias Schaffland, Michael Schmidt, Jan Scholze, Martin Schwarzbauer, Rupert Stelz, Madhura Suresh, Chendra Hadi Suryanto, Timo Teifel, Laval Tremblay, Tim Vlaar, Silvio Voitzsch, Stefan Von Weihe, Frederik Voncken, Roman Wagner, Ansger Waschki, Anne Wendel, Jean-Michel Wintgens, Manfred Wuetschner, Jang Xu, Christoph Zierl, and Juraj Zopp
-
+  | Rod Barman, Stefan Battmer, David Beek, David Bernecker, Chris Beynon, Eric Bourbonnais, George Chamberlain, Thomas Detjen, Friedrich Dierks, Dana Diezemann, Emile Dodin, Reynold Dodson, Sascha Dorenbeck, Erik Eloff, Katie Ensign, Andreas Ertl, James Falconer, Werner Feith, Maciej Gara, Andreas Gau, Sebastien Gendreau, Francois Gobeil, Werner Goeman, Jean-Paul Goglio, Markus Grebing, Eric Gross, Ioannis Hadjicharalambous, Uwe Hagmaier, Tim Handschack, Christopher Hartmann, Reinhard Heister, Gerhard Helfrich, Jochem Herrmann, Heiko Hirschmueller, Tom Hopfner, David Hoese, Karsten Ingeman Christensen, Mattias Johannesson, Mark Jones, Mattias Josefsson, Martin Kersting, Stephan Kieneke, Tom Kirchner, Lutz Koschorreck, Frank Krehl, Maarten Kuijk, Max Larin, Ralf Lay, Min Liu, Sergey Loginonvskikh, Thomas Lueck, Alain Marchand, Rocco Matano, Masahide Matsubara, Stephane Maurice, Robert McCurrach, Mike Miethig, Thies Moeller, Roman Moie, Marcel Naggatz, Hartmut Nebelung, Damian Nesbitt, Quang Nhan Nguyen, Klaus-Henning Noffz, Neerav Patel, Jan Pech, Merlin Plock, Joerg Preckwinkel, Benjamin Pussacq, Dave Reaves, Thomas Reuter, Andreas Rittinger, Ryan Robe, Nicolas P. Rougier, Matthias Schaffland, Michael Schmidt, Jan Scholze, Martin Schwarzbauer, Rupert Stelz, Madhura Suresh, Chendra Hadi Suryanto, Timo Teifel, Laval Tremblay, Tim Vlaar, Silvio Voitzsch, Stefan Von Weihe, Frederik Voncken, Roman Wagner, Ansger Waschki, Anne Wendel, Jean-Michel Wintgens, Manfred Wuetschner, Jang Xu, Christoph Zierl, and Juraj Zopp
 

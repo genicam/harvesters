@@ -43,7 +43,10 @@ class DecoratedDialog(QDialog):
 
     def paintEvent(self, event):
         painter = QPainter(self)
-        painter.drawPixmap(self.rect(), QPixmap('frontend/image/background/about.jpg'))
+        painter.drawPixmap(
+            self.rect(),
+            QPixmap('frontend/image/background/about.jpg')
+        )
 
 
 class TransparentLineEdit(QLineEdit):

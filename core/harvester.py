@@ -51,9 +51,6 @@ from core.thread import PyThread
 from core.thread_ import MutexLocker
 
 
-__version__= '1.0.0, ' + 'Y2018.M05.D25'
-
-
 class _FromBytesToNumpy1D(Processor):
     def __init__(self):
         #

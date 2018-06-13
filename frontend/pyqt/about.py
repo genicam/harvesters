@@ -29,7 +29,7 @@ from PyQt5.QtWidgets import QDialog, QApplication, QPlainTextEdit, \
     QTextEdit
 
 # Local application/library specific imports
-from core.harvester import __version__
+import versioneer
 from frontend.pyqt.helper import get_system_font
 
 
@@ -95,7 +95,7 @@ class About(QDialog):
         self._button_acknowledgements.clicked.connect(self._handle_open_dialog)
 
         #
-        text_version = TransparentLineEdit('Version' + __version__)
+        text_version = TransparentLineEdit('Version ' + versioneer.get_version())
         text_copyright = TransparentLineEdit('Copyright (c) 2018 EMVA')
 
         layout_textual_info.addWidget(text_version)
@@ -143,21 +143,25 @@ class Acknowledgements(QDialog):
         content = 'Cover Drawing:\n'
         content += '\n'
         content += 'Pieter Bruegel the Elder, The Harvesters\n'
-        content += 'Copyright (c) 2000–2018 The Metropolitan Museum of Arts\n'
-        content += '\n'
+        content += 'Copyright (c) 2000–2018 The Metropolitan Museum of Arts'
+        content += '\n\n'
         content += 'Open Source Libraries/Resources:\n'
         content += '\n'
         content += 'VisPy (BSD)\n'
         content += 'Copyright (c) 2013-2018 VisPy developers\n'
-        content += 'http://vispy.org/\n'
-        content += '\n'
+        content += 'http://vispy.org/'
+        content += '\n\n'
         content += 'PyQt5 (GPL)\n'
         content += 'Copyright (c) 2018 Riverbank Computing Limited\n'
-        content += 'https://www.riverbankcomputing.com/\n'
-        content += '\n'
-        content += 'Icons8\n'
+        content += 'https://www.riverbankcomputing.com/'
+        content += '\n\n'
+        content += 'Icons8 (Creative Commons Attribution-NoDerivs 3.0 Unported)\n'
         content += 'Copyright (c) Icons8 LLC\n'
-        content += 'https://icons8.com/'
+        content += 'https://icons8.comn'
+        content += '\n\n'
+        content += 'Versioneer (Public Domain, CC0-1.0)\n'
+        content += 'Copyright (c) 2018 Brian Warner\n'
+        content += 'https://github.com/warner/python-versioneer'
 
         self._text = QPlainTextEdit(content)
         self._text.setReadOnly(True)

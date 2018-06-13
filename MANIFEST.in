@@ -1,2 +1,4 @@
 include LICENSE
-recursive-include image *
+recursive-include image *include versioneer.py
+include _version.py
+include versioneer.py

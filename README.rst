@@ -570,6 +570,13 @@ Harvester Core uses the following open source libraries/resources:
   | https://github.com/pympler/pympler
   | https://pypi.org/project/Pympler/
         
+* Versioneer
+
+  | License: `The Creative Commons "Public Domain Dedication" license  (CC0-1.0) <https://creativecommons.org/publicdomain/zero/1.0/>`_
+  | Copyright (c) 2018 Brian Warner
+
+  | https://github.com/warner/python-versioneer
+
 Harvester GUI uses the following open source libraries/resources:
 
 * VisPy

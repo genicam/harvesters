@@ -128,7 +128,7 @@ class Harvester:
         TL_CHAR_ENCODING_LIST.TL_CHAR_ENCODING_UTF8: 'utf8'
     }
 
-    def __init__(self, frontend=None, profile=False):
+    def __init__(self, frontend=None, profile=False, min_num_buffers=16):
         #
         super().__init__()
 
@@ -160,7 +160,7 @@ class Harvester:
         self._connecting_device = None
 
         #
-        self._min_num_buffers = 16
+        self._min_num_buffers = min_num_buffers
         self._num_extra_buffers = 1
 
         #

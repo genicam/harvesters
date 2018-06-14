@@ -146,15 +146,20 @@ class Canvas(app.Canvas):
         self._update_texture()
 
     def _update_texture(self):
-        with MutexLocker(self._harvester_core.thread_image_acquisition):
-            #
-            image = self._harvester_core.get_image(False)
+        #with MutexLocker(self._harvester_core.thread_image_acquisition):
+        # Fetch a buffer.
+        buffer = self._harvester_core.fetch_buffer()
 
-            #
-            if not self._pause_drawing and image is not None:
-                self._program['texture'] = image
+        # Set the image as the texture of our canvas.
+        if not self._pause_drawing and buffer:
+            self._program['texture'] = buffer.image.ndarray
 
-            self._program.draw('triangle_strip')
+        # Draw the texture.
+        self._program.draw('triangle_strip')
+
+        # Queue the buffer because we have consumed it.
+        if buffer:
+            self._harvester_core.queue_buffer(buffer)
 
     def on_resize(self, event):
         self.apply_magnification()

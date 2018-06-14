@@ -128,9 +128,6 @@ class Harvester:
         TL_CHAR_ENCODING_LIST.TL_CHAR_ENCODING_UTF8: 'utf8'
     }
 
-    #
-    _min_num_buffers = 16
-
     def __init__(self, frontend=None, profile=False):
         #
         super().__init__()
@@ -153,6 +150,7 @@ class Harvester:
         self._raw_buffers = []
         self._buffer_tokens = []
         self._announced_buffers = []
+        self._fetched_buffers = []
         self._latest_buffer = None
 
         self._data_stream = None
@@ -160,6 +158,10 @@ class Harvester:
 
         self._node_map = None
         self._connecting_device = None
+
+        #
+        self._min_num_buffers = 16
+        self._num_extra_buffers = 1
 
         #
         self._has_revised_device_list = False
@@ -277,17 +279,6 @@ class Harvester:
     def timeout_for_image_acquisition(self, ms):
         with MutexLocker(self.thread_image_acquisition):
             self._timeout_for_image_acquisition = ms
-
-    def get_image(self, return_copy=True):
-        if self._latest_buffer is not None:
-            if self._latest_buffer.image is not None:
-                if return_copy:
-                    with MutexLocker(self.thread_image_acquisition):
-                        return np.array(self._latest_buffer.image.ndarray)
-                else:
-                    return self._latest_buffer.image.ndarray
-        #
-        return None
 
     @property
     def processors(self):
@@ -436,14 +427,13 @@ class Harvester:
             self._initialize_buffers()
 
             #
+            num_required_buffers = self._min_num_buffers + self._num_extra_buffers
             try:
-                min_num_buffers = self._data_stream.buffer_announce_min
-                if min_num_buffers < self._min_num_buffers:
-                    min_num_buffers = self._min_num_buffers
+                num_buffers = self._data_stream.buffer_announce_min
+                if num_buffers < num_required_buffers:
+                    num_buffers = num_required_buffers
             except InvalidParameterException as e:
-                min_num_buffers = self._min_num_buffers
-
-            num_buffers = min_num_buffers
+                num_buffers = num_required_buffers
 
             if self._data_stream.defines_payload_size():
                 buffer_size = self._data_stream.payload_size
@@ -592,17 +582,44 @@ class Harvester:
             # We've got a new image so now we can reuse the buffer that
             # we had kept.
             with MutexLocker(self.thread_image_acquisition):
-                if self._latest_buffer is not None:
-                    self._data_stream.queue_buffer(
-                        self._latest_buffer.gentl_buffer
-                    )
+                if len(self._fetched_buffers) > self._num_extra_buffers:
+                    # We have 2 buffers now so we queue the oldest buffer.
+                    self.queue_buffer(self._fetched_buffers.pop(0))
+                    # Then one buffer remains for our client.
+
                 if output_buffer.image.ndarray is not None:
-                    self._latest_buffer = output_buffer
+                    # Append the recently fetched buffer.
+                    self._fetched_buffers.append(output_buffer)
 
             if self._num_images_to_acquire == 0:
                 #
                 if self.signal_stop_image_acquisition:
                     self.signal_stop_image_acquisition.emit()
+
+    def fetch_buffer(self, timeout_ms=0):
+        if not self.is_acquiring_images:
+            return None
+
+        watch_timeout = True if timeout_ms > 0 else False
+        buffer = None
+
+        while True:
+            if watch_timeout and time.time() > timeout_ms:
+                print('Detected timeout before fetching a buffer.')
+                break
+            else:
+                if self._fetched_buffers:
+                    # Return the oldest buffer.
+                    buffer = self._fetched_buffers.pop(0)
+                    break
+
+        return buffer
+
+    def queue_buffer(self, buffer):
+        if self._data_stream:
+            self._data_stream.queue_buffer(
+                buffer.gentl_buffer
+            )
 
     def _update_statistics(self, gentl_buffer):
         #
@@ -831,6 +848,7 @@ class Harvester:
         self._raw_buffers = []
         self._buffer_tokens = []
         self._announced_buffers = []
+        self._fetched_buffers = []
         self._latest_buffer = None
         self._has_acquired_1st_image = False
 

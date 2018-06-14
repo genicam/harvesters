@@ -50,8 +50,14 @@ class TestHarvesterCore(unittest.TestCase):
                 frames = 10.
                 while j < int(frames):
                     sleep(1. / frames)
-                    image = harvester.get_image()
-                    print(image)
+                    buffer = harvester.fetch_buffer()
+                    print('W: {0} x H: {1}, {2}, {3}'.format(
+                        buffer.image.width,
+                        buffer.image.height,
+                        buffer.image.pixel_format,
+                        buffer.image.ndarray
+                    ))
+                    harvester.queue_buffer(buffer)
                     j += 1
                 harvester.stop_image_acquisition()
 

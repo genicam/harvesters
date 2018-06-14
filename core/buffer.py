@@ -28,18 +28,31 @@ from core.image import Image
 
 
 class Buffer:
-    def __init__(self, gentl_buffer=None, node_map=None, raw_data: np.ndarray=None):
+    def __init__(self, data_stream=None, gentl_buffer=None, node_map=None, image: np.ndarray=None):
         #
         super().__init__()
 
         #
+        self._data_stream = data_stream
         self._gentl_buffer = gentl_buffer
         self._node_map = node_map
-        self._image = Image(self, raw_data)
+        self._image = Image(self, image)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # Queue the buffer when it goes outside of the scope.
+        if self._data_stream and self._gentl_buffer:
+            self._data_stream.queue_buffer(self._gentl_buffer)
 
     @property
     def image(self) -> Image:
         return self._image
+
+    @property
+    def data_stream(self):
+        return self._data_stream
 
     @property
     def gentl_buffer(self):
@@ -48,3 +61,5 @@ class Buffer:
     @property
     def node_map(self):
         return self._node_map
+
+

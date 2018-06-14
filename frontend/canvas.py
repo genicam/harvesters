@@ -146,20 +146,22 @@ class Canvas(app.Canvas):
         self._update_texture()
 
     def _update_texture(self):
-        #with MutexLocker(self._harvester_core.thread_image_acquisition):
         # Fetch a buffer.
-        buffer = self._harvester_core.fetch_buffer()
+        try:
+            with self._harvester_core.fetch_buffer() as buffer:
+                # Set the image as the texture of our canvas.
+                if not self._pause_drawing and buffer:
+                    self._program['texture'] = buffer.image.ndarray
 
-        # Set the image as the texture of our canvas.
-        if not self._pause_drawing and buffer:
-            self._program['texture'] = buffer.image.ndarray
+                # Draw the texture.
+                self._program.draw('triangle_strip')
+        except AttributeError:
+            # Harvester Core has not started image acquisition so
+            # calling fetch_buffer() raises AttributeError because
+            # None object is used for the with statement.
 
-        # Draw the texture.
-        self._program.draw('triangle_strip')
-
-        # Queue the buffer because we have consumed it.
-        if buffer:
-            self._harvester_core.queue_buffer(buffer)
+            # Draw the texture.
+            self._program.draw('triangle_strip')
 
     def on_resize(self, event):
         self.apply_magnification()

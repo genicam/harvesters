@@ -60,9 +60,10 @@ class _FromBytesToNumpy1D(Processor):
 
     def process(self, input_buffer: Buffer):
         output_buffer = Buffer(
-            input_buffer.gentl_buffer,
-            input_buffer.node_map,
-            np.frombuffer(input_buffer.gentl_buffer.raw_buffer, dtype='uint8')
+            data_stream=input_buffer.data_stream,
+            gentl_buffer=input_buffer.gentl_buffer,
+            node_map=input_buffer.node_map,
+            image=np.frombuffer(input_buffer.gentl_buffer.raw_buffer, dtype='uint8')
         )
         return output_buffer
 
@@ -97,7 +98,10 @@ class _FromNumpy1DToNumpy2D(Processor):
             print(e)
 
         output_buffer = Buffer(
-            input_buffer.gentl_buffer, input_buffer.node_map, ndarray
+            data_stream=input_buffer.data_stream,
+            gentl_buffer=input_buffer.gentl_buffer,
+            node_map=input_buffer.node_map,
+            image=ndarray
         )
 
         return output_buffer
@@ -116,7 +120,10 @@ class _Rotate(Processor):
         #ndarray = ndimage.rotate(input.ndarray, self._angle)  # Import scipy.
         ndarray = None
         output = Buffer(
-            input.gentl_buffer, input.node_map, ndarray
+            data_stream=input.data_stream,
+            gentl_buffer=input.gentl_buffer,
+            node_map=input.node_map,
+            image=ndarray
         )
         return output
 
@@ -564,7 +571,7 @@ class Harvester:
             self._update_statistics(gentl_buffer)
 
             #
-            input_buffer = Buffer(gentl_buffer, self.node_map, None)
+            input_buffer = Buffer(self._data_stream, gentl_buffer, self.node_map, None)
             output_buffer = None
 
             for p in self._processors:

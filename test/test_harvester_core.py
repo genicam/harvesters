@@ -45,21 +45,49 @@ class TestHarvesterCore(unittest.TestCase):
             harvester.update_device_info_list()
             harvester.connect_device(0)
             for i in range(5):
+                print('---> going to start image acquisition.')
                 harvester.start_image_acquisition()
                 j = 0
                 frames = 10.
                 while j < int(frames):
+                    # Emulate a refresh cycle.
                     sleep(1. / frames)
-                    buffer = harvester.fetch_buffer()
-                    print('W: {0} x H: {1}, {2}, {3}'.format(
-                        buffer.image.width,
-                        buffer.image.height,
-                        buffer.image.pixel_format,
-                        buffer.image.ndarray
-                    ))
-                    harvester.queue_buffer(buffer)
+
+                    if j % 2 == 0:
+                        # Option 1: This way is secure and preferred.
+                        try:
+                            # We know we've started image acquisition but this
+                            # try-except block is demonstrating a case where
+                            # a client called fetch_buffer method even though
+                            # he'd forgotten to start image acquisition.
+                            with harvester.fetch_buffer() as buffer:
+                                self.print_buffer(buffer)
+                        except AttributeError:
+                            # Harvester Core has not started image acquisition so
+                            # calling fetch_buffer() raises AttributeError because
+                            # None object is used for the with statement.
+                            pass
+                    else:
+                        # Option 2: You can manually do the same job but not
+                        # recommended because you might forget to queue the
+                        # buffer.
+                        buffer = harvester.fetch_buffer()
+                        self.print_buffer(buffer)
+                        harvester.queue_buffer(buffer)
+
+                    #
                     j += 1
                 harvester.stop_image_acquisition()
+                print('<--- have just stopped image acquisition.')
+
+    @staticmethod
+    def print_buffer(buffer):
+        print('W: {0} x H: {1}, {2}, {3}'.format(
+            buffer.image.width,
+            buffer.image.height,
+            buffer.image.pixel_format,
+            buffer.image.ndarray
+        ))
 
 
 if __name__ == '__main__':

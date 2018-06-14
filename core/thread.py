@@ -36,11 +36,10 @@ class PyThread(ThreadBase):
         self._thread = None
         self._worker = worker
 
-
     def _start(self):
         # Create a Thread object. The object is not reusable.
         self._thread = _PyThreadImpl(
-            parent=self,
+            base=self,
             worker=self._worker
         )
 
@@ -74,17 +73,17 @@ class PyThread(ThreadBase):
 
 
 class _PyThreadImpl(Thread):
-    def __init__(self, parent=None, worker=None):
+    def __init__(self, base=None, worker=None):
         #
         super().__init__()
 
         #
         self._worker = worker
-        self._parent = parent
+        self._base = base
 
     def stop(self):
-        with self._parent.mutex:
-            self._parent.is_running = False
+        with self._base.mutex:
+            self._base.is_running = False
 
     def run(self):
         """
@@ -93,15 +92,15 @@ class _PyThreadImpl(Thread):
         This method will be terminated once its parent's is_running
         property turns False.
         """
-        while self._parent.is_running:
+        while self._base.is_running:
             if self._worker:
                 self._worker()
 
     def acquire(self):
-        return self._parent.mutex.acquire()
+        return self._base.mutex.acquire()
 
     def release(self):
-        self._parent.mutex.release()
+        self._base.mutex.release()
 
     @property
     def worker(self):

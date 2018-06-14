@@ -82,9 +82,6 @@ class About(QDialog):
         self.setWindowTitle('About Harvester')
 
         #
-        self._parent = parent
-
-        #
         layout_main = QVBoxLayout()
         layout_textual_info = QVBoxLayout()
         layout_image = QHBoxLayout()
@@ -126,7 +123,7 @@ class About(QDialog):
         self._acknowledgements.setModal(True)
 
     def _get_version_info(self):
-        return 'Version ' + self._parent.version
+        return 'Version ' + self.parent().version
 
     def _handle_open_dialog(self):
         self._acknowledgements.show()

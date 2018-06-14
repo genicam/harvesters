@@ -33,16 +33,11 @@ class Action(QAction, Subject):
         super().__init__(icon, title, parent)
 
         #
-        self._parent = parent
         self._dialog = None
         self._observers = []
 
         #
         self.setCheckable(checkable)
-
-    @property
-    def parent(self):
-        return self._parent
 
     def execute(self):
         # Execute everything it's responsible for.

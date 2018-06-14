@@ -56,7 +56,7 @@ class ActionExpandAll(Action):
         super().__init__(icon, title, parent=parent)
 
     def _execute(self):
-        self._parent.expand_all()
+        self.parent().expand_all()
 
     def update(self):
         pass
@@ -68,7 +68,7 @@ class ActionCollapseAll(Action):
         super().__init__(icon, title, parent=parent)
 
     def _execute(self):
-        self._parent.collapse_all()
+        self.parent().collapse_all()
 
     def update(self):
         pass
@@ -87,9 +87,6 @@ class AttributeController(QMainWindow):
         super().__init__(parent)
 
         #
-        self._parent = parent
-
-        #
         self.setWindowTitle('Attribute Controller')
 
         #
@@ -101,7 +98,7 @@ class AttributeController(QMainWindow):
         self._model = FeatureTreeModel(
             self,
             self._node_map,
-            self._parent.harvester_core.thread_image_acquisition
+            self.parent().harvester_core.thread_image_acquisition
         )
 
         #
@@ -219,7 +216,7 @@ class AttributeController(QMainWindow):
         )
 
     def _invalidate_feature_tree_by_visibility(self):
-        with MutexLocker(self._parent.harvester_core.thread_image_acquisition):
+        with MutexLocker(self.parent().harvester_core.thread_image_acquisition):
             visibility = self._visibility_dict[
                 self._combo_box_visibility.currentText()
             ]
@@ -228,7 +225,7 @@ class AttributeController(QMainWindow):
 
     @pyqtSlot('QString')
     def _invalidate_feature_tree_by_keyword(self, keyword):
-        with MutexLocker(self._parent.harvester_core.thread_image_acquisition):
+        with MutexLocker(self.parent().harvester_core.thread_image_acquisition):
             self._proxy.setKeyword(keyword)
             self._view.expandAll()
 

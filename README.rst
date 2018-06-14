@@ -14,7 +14,12 @@ About Harvester
 
 Harvester is a friendly companion for people who those want to learn computer vision.
 
-Technically speaking, Harvester is a Python library which is responsible for **image acquisition** and **image data visualization** (optional). Harvester consumes image acquisition libraries, so-called GenTL Producers. If you have an officially certified GenTL Producer and GenICam compliant machine vision cameras, then Harvester supply you the acquired image data as `numpy <http://www.numpy.org>`_ array to make your image processing task productive.
+Technically speaking, Harvester is a Python library which is responsible for the following tasks:
+
+* Image acquisition
+* Image data visualization (optional)
+
+Harvester consumes image acquisition libraries, so-called GenTL Producers. If you have an officially certified GenTL Producer and GenICam compliant machine vision cameras, then Harvester supply you the acquired image data as `numpy <http://www.numpy.org>`_ array to make your image processing task productive.
 
 You can freely use, modify, distribute Harvester under `Apache License-2.0 <https://www.apache.org/licenses/LICENSE-2.0>`_ without worrying about the use of your software: personal, internal or commercial.
 
@@ -27,6 +32,96 @@ Asking Questions
 We have prepared a chat room in Gitter. Please don't hesitate to drop your message when you get a question regarding Harvester!
 
 https://gitter.im/genicam-harvester/chatroom
+
+#############
+Collaborators
+#############
+
+So far, Harvester has tested GenTL Producers and GenICam compliant devices from the following companies and they gave Harvester opportunities to improve its quality:
+
+.. list-table::
+    :header-rows: 1
+    :align: center
+
+    - - Company Name
+      - GigE Vision
+      - USB3 Vision
+      - Devices
+    - - `Active Silicon <https://www.activesilicon.com/>`_
+      - \-
+      - \-
+      - N/A
+    - - `Adimec <https://www.adimec.com/>`_
+      - N/A
+      - N/A
+      - \-
+    - - `Allied Vision <https://www.alliedvision.com/en/digital-industrial-camera-solutions.html>`_
+      - \-
+      - \-
+      - \-
+    - - `Autometion Technology <https://www.automationtechnology.de/cms/en/>`_
+      - N/A
+      - N/A
+      - Tested
+    - - `Baumer Optronic <https://www.baumer.com/se/en/>`_
+      - Tested
+      - Tested
+      - Tested
+    - - `DAHENG VISION <http://en.daheng-image.com/main.html>`_
+      - \-
+      - Tested
+      - Tested
+    - - `Euresys <https://www.euresys.com/Homepage>`_
+      - \-
+      - \-
+      - N/A
+    - - `Gardasoft <http://www.gardasoft.com/>`_
+      - N/A
+      - N/A
+      - Tested
+    - - `JAI <https://www.jai.com>`_
+      - \-
+      - Tested
+      - \-
+    - - `MATRIX VISION <https://www.matrix-vision.com/home-en.html>`_
+      - Tested
+      - Tested
+      - \-
+    - - `OMRON SENTECH <https://sentech.co.jp/en/>`_
+      - \-
+      - Tested
+      - Tested
+    - - `PCO <https://www.pco-imaging.com/>`_
+      - \-
+      - \-
+      - \-
+    - - `Roboception <https://roboception.com/en/>`_
+      - N/A
+      - N/A
+      - Tested
+    - - `SICK <https://www.sick.com/ag/en/>`_
+      - \-
+      - N/A
+      - \-
+    - - `Silicon Software <https://silicon.software/>`_
+      - \-
+      - \-
+      - N/A
+    - - `STEMMER IMAGING <https://www.stemmer-imaging.com/en/>`_
+      - Tested
+      - Tested
+      - N/A
+    - - `Vieworks <http://www.vieworks.com/eng/main.html>`_
+      - \-
+      - \-
+      - \-
+    - - `XIMEA <https://www.ximea.com/>`_
+      - \-
+      - \-
+      - \-
+
+
+Please don't hesitate to tell us if you have tested Harvester with your GenTL Producer or GenICam compliant device. We will add your company/organization name to the list.
 
 ###########
 Terminology
@@ -191,9 +286,9 @@ Supported Operating Systems
 * Ubuntu (Not well tested yet)
 * Windows
 
-#######
-Install
-#######
+############
+Installation
+############
 
 In this section, we will learn how to instruct procedures to get Harvester work.
 
@@ -601,47 +696,6 @@ Harvester GUI uses the following open source libraries/resources:
   | Copyright (c) Icons8 LLC
 
   | https://icons8.com
-
-***************
-GenTL Producers
-***************
-
-So far, Harvester has tested GenTL Producers from the following companies and they gave Harvester opportunities to improve itself:
-
-.. list-table::
-    :header-rows: 1
-    :align: center
-
-    - - Company Name
-      - GigE Vision
-      - USB3 Vision
-    - - `Baumer Optronic GmbH <https://www.baumer.com/se/en/>`_
-      - Tested
-      - Tested
-    - - `DAHENG VISION <http://en.daheng-image.com/main.html>`_
-      - Not tested
-      - Tested
-    - - `JAI Ltd. <https://www.jai.com>`_
-      - Not tested
-      - Tested
-    - - `MATRIX VISION GmbH <https://www.matrix-vision.com/home-en.html>`_
-      - Tested
-      - Tested
-    - - `OMRON SENTECH CO.,LTD. <https://sentech.co.jp/en/>`_
-      - Not tested
-      - Tested
-    - - `Roboception GmbH <https://roboception.com/en/>`_
-      - \-
-      - Not available
-    - - `SICK AG <https://www.sick.com/ag/en/>`_
-      - \-
-      - Not available
-    - - `STEMMER IMAGING AG <https://www.stemmer-imaging.com/en/>`_
-      - Tested
-      - Tested
-
-
-Please don't hesitate to tell us if you have tested Harvester with your GenTL Producer. We will add your company/organization name to the list.
 
 ##############
 Why Harvester?

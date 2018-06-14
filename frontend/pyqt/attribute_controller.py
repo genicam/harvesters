@@ -51,23 +51,24 @@ https://github.com/bgr/PyQt5_modeltest/tree/842904692a1d8286c6a87c9e6544f4abe553
 
 
 class ActionExpandAll(Action):
-    def __init__(self, parent_widget, icon, title):
-        super().__init__(parent_widget, icon, title)
+    def __init__(self, icon, title, parent=None):
+        #
+        super().__init__(icon, title, parent=parent)
 
     def _execute(self):
-        self._parent_widget.expand_all()
+        self._parent.expand_all()
 
     def update(self):
         pass
 
 
 class ActionCollapseAll(Action):
-    def __init__(self, parent_widget, icon, title):
+    def __init__(self, icon, title, parent=None):
         #
-        super().__init__(parent_widget, icon, title)
+        super().__init__(icon, title, parent=parent)
 
     def _execute(self):
-        self._parent_widget.collapse_all()
+        self._parent.collapse_all()
 
     def update(self):
         pass
@@ -169,7 +170,7 @@ class AttributeController(QMainWindow):
 
         #
         button_expand_all = ActionExpandAll(
-            self, Icon('expand.png'), 'Expand All'
+            Icon('expand.png'), 'Expand All', self
         )
         shortcut_key = 'Ctrl+e'
         button_expand_all.setToolTip(
@@ -180,7 +181,7 @@ class AttributeController(QMainWindow):
 
         #
         button_collapse_all = ActionCollapseAll(
-            self, Icon('collapse.png'), 'Collapse All'
+            Icon('collapse.png'), 'Collapse All', self
         )
         shortcut_key = 'Ctrl+c'
         button_collapse_all.setToolTip(

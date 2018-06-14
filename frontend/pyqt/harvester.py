@@ -62,7 +62,7 @@ class _Harvester(QMainWindow):
             parent=self, mutex=self._mutex
         )
         self._harvester_core.thread_statistics_measurement = PyQtThread(
-            mutex=self._mutex
+            parent=self, mutex=self._mutex
         )
 
         self._widget_canvas = Canvas(harvester_core=self._harvester_core)
@@ -178,8 +178,9 @@ class _Harvester(QMainWindow):
         group_help = self.addToolBar('Help')
 
         #
-        button_select_file = ActionSelectFile(self, Icon('open_file.png'),
-            'Select file')
+        button_select_file = ActionSelectFile(
+            Icon('open_file.png'), 'Select file', self
+        )
         shortcut_key = 'Ctrl+o'
         button_select_file.setToolTip(
             compose_tooltip('Open a CTI file to load', shortcut_key)
@@ -189,8 +190,9 @@ class _Harvester(QMainWindow):
         observers.append(button_select_file)
 
         #
-        button_update = ActionUpdateList(self, Icon('update.png'),
-            'Update device list')
+        button_update = ActionUpdateList(
+            Icon('update.png'), 'Update device list', self
+        )
         shortcut_key = 'Ctrl+u'
         button_update.setToolTip(
             compose_tooltip('Update the device list', shortcut_key)
@@ -200,7 +202,9 @@ class _Harvester(QMainWindow):
         observers.append(button_update)
 
         #
-        button_connect = ActionConnect(self, Icon('connect.png'), 'Connect')
+        button_connect = ActionConnect(
+            Icon('connect.png'), 'Connect', self
+        )
         shortcut_key = 'Ctrl+c'
         button_connect.setToolTip(
             compose_tooltip(
@@ -213,8 +217,9 @@ class _Harvester(QMainWindow):
         observers.append(button_connect)
 
         #
-        button_disconnect = ActionDisconnect(self, Icon('disconnect.png'),
-            'Disconnect')
+        button_disconnect = ActionDisconnect(
+            Icon('disconnect.png'), 'Disconnect', self
+        )
         shortcut_key = 'Ctrl+d'
         button_disconnect.setToolTip(
             compose_tooltip(
@@ -227,8 +232,9 @@ class _Harvester(QMainWindow):
         observers.append(button_disconnect)
 
         #
-        button_start_acquisition = ActionStartImageAcquisition(self,
-            Icon('start_acquisition.png'), 'Start Acquisition')
+        button_start_acquisition = ActionStartImageAcquisition(
+            Icon('start_acquisition.png'), 'Start Acquisition', self
+        )
         shortcut_key = 'Ctrl+j'
         button_start_acquisition.setToolTip(
             compose_tooltip('Start image acquisition', shortcut_key)
@@ -238,8 +244,9 @@ class _Harvester(QMainWindow):
         observers.append(button_start_acquisition)
 
         #
-        button_toggle_drawing = ActionToggleDrawing(self,
-            Icon('pause.png'), 'Pause/Resume Drawing')
+        button_toggle_drawing = ActionToggleDrawing(
+            Icon('pause.png'), 'Pause/Resume Drawing', self
+        )
         shortcut_key = 'Ctrl+k'
         button_toggle_drawing.setToolTip(
             compose_tooltip('Pause/Resume drawing', shortcut_key)
@@ -249,8 +256,9 @@ class _Harvester(QMainWindow):
         observers.append(button_toggle_drawing)
 
         #
-        button_stop_acquisition = ActionStopImageAcquisition(self,
-            Icon('stop_acquisition.png'), 'Stop Acquisition')
+        button_stop_acquisition = ActionStopImageAcquisition(
+            Icon('stop_acquisition.png'), 'Stop Acquisition', self
+        )
         shortcut_key = 'Ctrl+l'
         button_stop_acquisition.setToolTip(
             compose_tooltip('Stop image acquisition', shortcut_key)
@@ -261,8 +269,9 @@ class _Harvester(QMainWindow):
         self._action_stop_image_acquisition = button_stop_acquisition
 
         #
-        button_dev_attribute = ActionShowDevAttribute(self,
-            Icon('device_attribute.png'), 'Device Attribute')
+        button_dev_attribute = ActionShowDevAttribute(
+            Icon('device_attribute.png'), 'Device Attribute', self
+        )
         shortcut_key = 'Ctrl+a'
         button_dev_attribute.setToolTip(
             compose_tooltip('Edit device attribute', shortcut_key)
@@ -273,7 +282,9 @@ class _Harvester(QMainWindow):
 
         #
         self._widget_about = About(self)
-        button_about = ActionShowAbout(self, Icon('about.png'), 'About')
+        button_about = ActionShowAbout(
+            Icon('about.png'), 'About', self
+        )
         button_about.setToolTip(
             compose_tooltip('Show information about Harvester')
         )
@@ -386,9 +397,9 @@ class _Harvester(QMainWindow):
 
 
 class ActionSelectFile(Action):
-    def __init__(self, harvester_gui, icon, title):
+    def __init__(self, icon, title, parent=None):
         #
-        super().__init__(harvester_gui, icon, title)
+        super().__init__(icon, title, parent)
 
     def _execute(self):
         # Show a dialog and update the CTI file list.
@@ -419,9 +430,9 @@ class ActionSelectFile(Action):
 
 
 class ActionUpdateList(Action):
-    def __init__(self, parent_widget, icon, title):
+    def __init__(self, icon, title, parent=None):
         #
-        super().__init__(parent_widget, icon, title)
+        super().__init__(icon, title, parent=parent)
 
     def _execute(self):
         self.parent_widget.harvester_core.update_device_info_list()
@@ -435,9 +446,9 @@ class ActionUpdateList(Action):
 
 
 class ActionConnect(Action):
-    def __init__(self, parent_widget, icon, title):
+    def __init__(self, icon, title, parent=None):
         #
-        super().__init__(parent_widget, icon, title)
+        super().__init__(icon, title, parent=parent)
 
     def _execute(self):
         # connect the selected device to Harvest.
@@ -462,9 +473,9 @@ class ActionConnect(Action):
 
 
 class ActionDisconnect(Action):
-    def __init__(self, parent_widget, icon, title):
+    def __init__(self, icon, title, parent=None):
         #
-        super().__init__(parent_widget, icon, title)
+        super().__init__(icon, title, parent=parent)
 
     def _execute(self):
         # Disconnect the device from Harvest.
@@ -488,9 +499,9 @@ class ActionDisconnect(Action):
 
 
 class ActionStartImageAcquisition(Action):
-    def __init__(self, parent_widget, icon, title):
+    def __init__(self, icon, title, parent=None):
         #
-        super().__init__(parent_widget, icon, title)
+        super().__init__(icon, title, parent=parent)
 
     def _execute(self):
         self.parent_widget.harvester_core.start_image_acquisition()
@@ -506,9 +517,9 @@ class ActionStartImageAcquisition(Action):
 
 
 class ActionToggleDrawing(Action):
-    def __init__(self, parent_widget, icon, title):
+    def __init__(self, icon, title, parent=None):
         #
-        super().__init__(parent_widget, icon, title, checkable=True)
+        super().__init__(icon, title, parent=parent, checkable=True)
 
     def _execute(self):
         self.parent_widget.canvas.toggle_drawing()
@@ -526,9 +537,9 @@ class ActionToggleDrawing(Action):
 
 
 class ActionStopImageAcquisition(Action):
-    def __init__(self, parent_widget, icon, title):
+    def __init__(self, icon, title, parent=None):
         #
-        super().__init__(parent_widget, icon, title)
+        super().__init__(icon, title, parent=parent)
 
     def _execute(self):
         self.parent_widget.harvester_core.stop_image_acquisition()
@@ -544,9 +555,9 @@ class ActionStopImageAcquisition(Action):
 
 
 class ActionShowDevAttribute(Action):
-    def __init__(self, parent_widget, icon, title):
+    def __init__(self, icon, title, parent=None):
         #
-        super().__init__(parent_widget, icon, title)
+        super().__init__(icon, title, parent=parent)
 
     def _execute(self):
         with QMutexLocker(self.parent_widget.mutex):
@@ -563,12 +574,12 @@ class ActionShowDevAttribute(Action):
 
 
 class ActionShowAbout(Action):
-    def __init__(self, parent_widget, icon, title):
+    def __init__(self, icon, title, parent=None):
         #
-        super().__init__(parent_widget, icon, title)
+        super().__init__(icon, title, parent=parent)
 
         #
-        self._dialog = parent_widget.about
+        self._dialog = parent.about
         self._is_model = False
 
     def _execute(self):

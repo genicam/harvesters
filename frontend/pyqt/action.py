@@ -28,12 +28,12 @@ from core.subject import Subject
 
 
 class Action(QAction, Subject):
-    def __init__(self, parent_widget, icon, title, checkable=False):
+    def __init__(self, icon, title, parent=None, checkable=False):
         #
-        super().__init__(icon, title, parent_widget)
+        super().__init__(icon, title, parent)
 
         #
-        self._parent_widget = parent_widget
+        self._parent = parent
         self._dialog = None
         self._observers = []
 
@@ -42,7 +42,7 @@ class Action(QAction, Subject):
 
     @property
     def parent_widget(self):
-        return self._parent_widget
+        return self._parent
 
     def execute(self):
         # Execute everything it's responsible for.

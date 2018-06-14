@@ -28,13 +28,13 @@ from core.thread_ import ThreadBase
 
 
 class PyQtThread(ThreadBase):
-    def __init__(self, mutex=None, worker=None):
+    def __init__(self, parent=None, mutex=None, worker=None):
         #
         super().__init__(mutex=mutex)
 
         #
         self._thread = _PyQtThreadImpl(
-            base=self, worker=worker
+            parent=parent, base=self, worker=worker
         )
 
     def _start(self):
@@ -64,9 +64,9 @@ class PyQtThread(ThreadBase):
 
 
 class _PyQtThreadImpl(QThread):
-    def __init__(self, base=None, worker=None):
+    def __init__(self, parent=None, base=None, worker=None):
         #
-        super().__init__()
+        super().__init__(parent)
 
         #
         self._worker = worker

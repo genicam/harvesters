@@ -59,7 +59,7 @@ class _Harvester(QMainWindow):
 
         #
         self._harvester_core.thread_image_acquisition = PyQtThread(
-            mutex=self._mutex
+            parent=self, mutex=self._mutex
         )
         self._harvester_core.thread_statistics_measurement = PyQtThread(
             mutex=self._mutex

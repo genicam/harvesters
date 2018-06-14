@@ -41,7 +41,7 @@ class Action(QAction, Subject):
         self.setCheckable(checkable)
 
     @property
-    def parent_widget(self):
+    def parent(self):
         return self._parent
 
     def execute(self):

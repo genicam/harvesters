@@ -34,9 +34,9 @@ from frontend.pyqt.helper import get_system_font
 
 
 class DecoratedDialog(QDialog):
-    def __init__(self, parent_widget=None, path_to_image=None):
+    def __init__(self, parent=None, path_to_image=None):
         #
-        super().__init__(parent_widget)
+        super().__init__(parent)
 
         #
         self._path_to_image = path_to_image
@@ -74,15 +74,15 @@ class TransparentTextEdit(QTextEdit):
 
 
 class About(QDialog):
-    def __init__(self, parent_widget=None):
+    def __init__(self, parent=None):
         #
-        super().__init__(parent_widget)
+        super().__init__(parent)
 
         #
         self.setWindowTitle('About Harvester')
 
         #
-        self._parent_widget = parent_widget
+        self._parent = parent
 
         #
         layout_main = QVBoxLayout()
@@ -126,7 +126,7 @@ class About(QDialog):
         self._acknowledgements.setModal(True)
 
     def _get_version_info(self):
-        return 'Version ' + self._parent_widget.version
+        return 'Version ' + self._parent.version
 
     def _handle_open_dialog(self):
         self._acknowledgements.show()

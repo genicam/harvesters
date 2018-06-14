@@ -30,20 +30,20 @@ from core.observer import Observer
 
 
 class ComboBox(QComboBox, Observer):
-    def __init__(self, parent_widget):
+    def __init__(self, parent):
         super().__init__()
-        self._parent_widget = parent_widget
+        self._parent = parent
         self.setFont(get_system_font())
 
     @property
-    def parent_widget(self):
-        return self._parent_widget
+    def parent(self):
+        return self._parent
 
     def update(self):
-        if self.parent_widget.harvester_core.has_revised_device_info_list:
+        if self.parent.harvester_core.has_revised_device_info_list:
             self.clear()
             separator = '::'
-            for d in self.parent_widget.harvester_core.device_info_list:
+            for d in self.parent.harvester_core.device_info_list:
                 name = d.parent.parent.vendor  # i.e., system.vendor
                 name += separator
                 name += d.vendor
@@ -62,11 +62,11 @@ class ComboBox(QComboBox, Observer):
                         name += d.user_defined_name
                 self.addItem(name)
         #
-        self.parent_widget.harvester_core.has_revised_device_info_list = False
+        self.parent.harvester_core.has_revised_device_info_list = False
 
         #
         enable = False
-        if self.parent_widget.cti_files:
-            if self.parent_widget.harvester_core.connecting_device is None:
+        if self.parent.cti_files:
+            if self.parent.harvester_core.connecting_device is None:
                 enable = True
         self.setEnabled(enable)

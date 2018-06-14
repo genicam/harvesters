@@ -403,7 +403,7 @@ class ActionSelectFile(Action):
 
     def _execute(self):
         # Show a dialog and update the CTI file list.
-        dialog = QFileDialog(self.parent_widget)
+        dialog = QFileDialog(self.parent)
         dialog.setWindowTitle('Select a CTI file to load')
         dialog.setNameFilter('CTI files (*.cti)')
         dialog.setFileMode(QFileDialog.ExistingFile)
@@ -413,18 +413,18 @@ class ActionSelectFile(Action):
             file_path = dialog.selectedFiles()[0]
 
             #
-            self.parent_widget.harvester_core.reset()
+            self.parent.harvester_core.reset()
 
             # Update the path to the target GenTL Producer.
-            self.parent_widget.harvester_core.add_cti_file(file_path)
+            self.parent.harvester_core.add_cti_file(file_path)
             print(file_path)
 
             # Update the device list.
-            self.parent_widget.harvester_core.update_device_info_list()
+            self.parent.harvester_core.update_device_info_list()
 
     def update(self):
         enable = False
-        if self.parent_widget.harvester_core.connecting_device is None:
+        if self.parent.harvester_core.connecting_device is None:
             enable = True
         self.setEnabled(enable)
 
@@ -435,12 +435,12 @@ class ActionUpdateList(Action):
         super().__init__(icon, title, parent=parent)
 
     def _execute(self):
-        self.parent_widget.harvester_core.update_device_info_list()
+        self.parent.harvester_core.update_device_info_list()
 
     def update(self):
         enable = False
-        if self.parent_widget.cti_files:
-            if self.parent_widget.harvester_core.connecting_device is None:
+        if self.parent.cti_files:
+            if self.parent.harvester_core.connecting_device is None:
                 enable = True
         self.setEnabled(enable)
 
@@ -452,22 +452,22 @@ class ActionConnect(Action):
 
     def _execute(self):
         # connect the selected device to Harvest.
-        self.parent_widget.harvester_core.connect_device(
-            self.parent_widget.device_list.currentIndex()
+        self.parent.harvester_core.connect_device(
+            self.parent.device_list.currentIndex()
         )
 
-        if self.parent_widget.harvester_core.node_map:
-            self.parent_widget._widget_attribute_controller = \
+        if self.parent.harvester_core.node_map:
+            self.parent._widget_attribute_controller = \
                 AttributeController(
-                    self.parent_widget.harvester_core.node_map,
-                    parent_widget=self.parent_widget
+                    self.parent.harvester_core.node_map,
+                    parent=self.parent
                 )
 
     def update(self):
         #
         enable = False
-        if self.parent_widget.cti_files:
-            if self.parent_widget.harvester_core.connecting_device is None:
+        if self.parent.cti_files:
+            if self.parent.harvester_core.connecting_device is None:
                 enable = True
         self.setEnabled(enable)
 
@@ -479,21 +479,21 @@ class ActionDisconnect(Action):
 
     def _execute(self):
         # Disconnect the device from Harvest.
-        self.parent_widget.harvester_core.disconnect_device()
+        self.parent.harvester_core.disconnect_device()
 
     def update(self):
         # Close attribute dialog if it's been opened.
-        if self.parent_widget.attribute_controller:
-            if self.parent_widget.attribute_controller.isVisible():
-                self.parent_widget.attribute_controller.close()
+        if self.parent.attribute_controller:
+            if self.parent.attribute_controller.isVisible():
+                self.parent.attribute_controller.close()
 
-        if self.parent_widget.harvester_core.connecting_device is None:
-            self.parent_widget.harvester_core._feature_tree_model = None
+        if self.parent.harvester_core.connecting_device is None:
+            self.parent.harvester_core._feature_tree_model = None
 
         #
         enable = False
-        if self.parent_widget.cti_files:
-            if self.parent_widget.harvester_core.connecting_device:
+        if self.parent.cti_files:
+            if self.parent.harvester_core.connecting_device:
                 enable = True
         self.setEnabled(enable)
 
@@ -504,14 +504,14 @@ class ActionStartImageAcquisition(Action):
         super().__init__(icon, title, parent=parent)
 
     def _execute(self):
-        self.parent_widget.harvester_core.start_image_acquisition()
+        self.parent.harvester_core.start_image_acquisition()
 
     def update(self):
         enable = False
-        if self.parent_widget.cti_files:
-            if self.parent_widget.harvester_core.connecting_device:
-                if not self.parent_widget.harvester_core.is_acquiring_images or \
-                    self.parent_widget.canvas.is_pausing:
+        if self.parent.cti_files:
+            if self.parent.harvester_core.connecting_device:
+                if not self.parent.harvester_core.is_acquiring_images or \
+                    self.parent.canvas.is_pausing:
                     enable = True
         self.setEnabled(enable)
 
@@ -522,17 +522,17 @@ class ActionToggleDrawing(Action):
         super().__init__(icon, title, parent=parent, checkable=True)
 
     def _execute(self):
-        self.parent_widget.canvas.toggle_drawing()
+        self.parent.canvas.toggle_drawing()
 
     def update(self):
         enable = False
-        if self.parent_widget.cti_files:
-            if self.parent_widget.harvester_core.connecting_device:
-                if self.parent_widget.harvester_core.is_acquiring_images:
+        if self.parent.cti_files:
+            if self.parent.harvester_core.connecting_device:
+                if self.parent.harvester_core.is_acquiring_images:
                     enable = True
         self.setEnabled(enable)
         #
-        checked = True if self.parent_widget.canvas.is_pausing else False
+        checked = True if self.parent.canvas.is_pausing else False
         self.setChecked(checked)
 
 
@@ -542,14 +542,14 @@ class ActionStopImageAcquisition(Action):
         super().__init__(icon, title, parent=parent)
 
     def _execute(self):
-        self.parent_widget.harvester_core.stop_image_acquisition()
-        self.parent_widget.canvas.pause_drawing(False)
+        self.parent.harvester_core.stop_image_acquisition()
+        self.parent.canvas.pause_drawing(False)
 
     def update(self):
         enable = False
-        if self.parent_widget.cti_files:
-            if self.parent_widget.harvester_core.connecting_device:
-                if self.parent_widget.harvester_core.is_acquiring_images:
+        if self.parent.cti_files:
+            if self.parent.harvester_core.connecting_device:
+                if self.parent.harvester_core.is_acquiring_images:
                     enable = True
         self.setEnabled(enable)
 
@@ -560,15 +560,15 @@ class ActionShowDevAttribute(Action):
         super().__init__(icon, title, parent=parent)
 
     def _execute(self):
-        with QMutexLocker(self.parent_widget.mutex):
-            if self.parent_widget.attribute_controller.isHidden():
-                self.parent_widget.attribute_controller.show()
-                self.parent_widget.attribute_controller.expand_all()
+        with QMutexLocker(self.parent.mutex):
+            if self.parent.attribute_controller.isHidden():
+                self.parent.attribute_controller.show()
+                self.parent.attribute_controller.expand_all()
 
     def update(self):
         enable = False
-        if self.parent_widget.cti_files:
-            if self.parent_widget.harvester_core.connecting_device is not None:
+        if self.parent.cti_files:
+            if self.parent.harvester_core.connecting_device is not None:
                 enable = True
         self.setEnabled(enable)
 

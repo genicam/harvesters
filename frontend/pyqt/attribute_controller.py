@@ -82,12 +82,12 @@ class AttributeController(QMainWindow):
         'All': EVisibility.Invisible,
     }
 
-    def __init__(self, node_map, parent_widget=None):
+    def __init__(self, node_map, parent=None):
         #
-        super().__init__(parent_widget)
+        super().__init__(parent)
 
         #
-        self._parent_widget = parent_widget
+        self._parent = parent
 
         #
         self.setWindowTitle('Attribute Controller')
@@ -101,7 +101,7 @@ class AttributeController(QMainWindow):
         self._model = FeatureTreeModel(
             self,
             self._node_map,
-            self._parent_widget.harvester_core.thread_image_acquisition
+            self._parent.harvester_core.thread_image_acquisition
         )
 
         #
@@ -219,7 +219,7 @@ class AttributeController(QMainWindow):
         )
 
     def _invalidate_feature_tree_by_visibility(self):
-        with MutexLocker(self._parent_widget.harvester_core.thread_image_acquisition):
+        with MutexLocker(self._parent.harvester_core.thread_image_acquisition):
             visibility = self._visibility_dict[
                 self._combo_box_visibility.currentText()
             ]
@@ -228,7 +228,7 @@ class AttributeController(QMainWindow):
 
     @pyqtSlot('QString')
     def _invalidate_feature_tree_by_keyword(self, keyword):
-        with MutexLocker(self._parent_widget.harvester_core.thread_image_acquisition):
+        with MutexLocker(self._parent.harvester_core.thread_image_acquisition):
             self._proxy.setKeyword(keyword)
             self._view.expandAll()
 

@@ -24,70 +24,54 @@ import unittest
 # Related third party imports
 
 # Local application/library specific imports
-from core.harvester import Harvester
-from core.helper.system import is_running_on_windows
+from test.base_harvester import TestHarvesterCoreBase
 
 
-class TestHarvesterCore(unittest.TestCase):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def test_harvester_core(self):
-        #
-        from time import sleep
-
-        #
-        with Harvester() as harvester:
-            path = 'C:/Users/z1533tel/dev/genicam/bin/Win64_x64/TLSimu.cti' \
-                if is_running_on_windows() else \
-                '/Users/kznr/dev/genicam/bin/Win64_x64/TLSimu.cti'
-            harvester.add_cti_file(path)
-            harvester.update_device_info_list()
-            harvester.connect_device(0)
-            for i in range(5):
-                print('---> going to start image acquisition.')
-                harvester.start_image_acquisition()
-                j = 0
-                frames = 10.
-                while j < int(frames):
-                    # Emulate a refresh cycle.
-                    sleep(1. / frames)
-
-                    if j % 2 == 0:
-                        # Option 1: This way is secure and preferred.
-                        try:
-                            # We know we've started image acquisition but this
-                            # try-except block is demonstrating a case where
-                            # a client called fetch_buffer method even though
-                            # he'd forgotten to start image acquisition.
-                            with harvester.fetch_buffer() as buffer:
-                                self.print_buffer(buffer)
-                        except AttributeError:
-                            # Harvester Core has not started image acquisition so
-                            # calling fetch_buffer() raises AttributeError because
-                            # None object is used for the with statement.
-                            pass
-                    else:
-                        # Option 2: You can manually do the same job but not
-                        # recommended because you might forget to queue the
-                        # buffer.
-                        buffer = harvester.fetch_buffer()
-                        self.print_buffer(buffer)
-                        harvester.queue_buffer(buffer)
-
-                    #
-                    j += 1
-                harvester.stop_image_acquisition()
-                print('<--- have just stopped image acquisition.')
-
+class TestHarvesterCore(TestHarvesterCoreBase):
     @staticmethod
     def print_buffer(buffer):
-        print('W: {0} x H: {1}, {2}, {3}'.format(
+        print('W: {0} x H: {1}, {2}\n{3}'.format(
             buffer.image.width,
             buffer.image.height,
             buffer.image.pixel_format,
             buffer.image.ndarray
         ))
+
+    def test_harvester_core(self):
+        #
+        for i in range(3):
+            print('---> going to start image acquisition.')
+            self._harvester.start_image_acquisition()
+            j = 0
+            # Run it as fast as possible.
+            frames = 256.
+            while j < int(frames):
+                if j % 2 == 0:
+                    # Option 1: This way is secure and preferred.
+                    try:
+                        # We know we've started image acquisition but this
+                        # try-except block is demonstrating a case where
+                        # a client called fetch_buffer method even though
+                        # he'd forgotten to start image acquisition.
+                        with self._harvester.fetch_buffer() as buffer:
+                            self.print_buffer(buffer)
+                    except AttributeError:
+                        # Harvester Core has not started image acquisition so
+                        # calling fetch_buffer() raises AttributeError because
+                        # None object is used for the with statement.
+                        pass
+                else:
+                    # Option 2: You can manually do the same job but not
+                    # recommended because you might forget to queue the
+                    # buffer.
+                    buffer = self._harvester.fetch_buffer()
+                    self.print_buffer(buffer)
+                    self._harvester.queue_buffer(buffer)
+
+                #
+                j += 1
+            self._harvester.stop_image_acquisition()
+            print('<--- have just stopped image acquisition.')
 
 
 if __name__ == '__main__':

@@ -154,11 +154,8 @@ class Harvester:
         self._concrete_port = None
 
         #
-        self._raw_buffers = []
-        self._buffer_tokens = []
         self._announced_buffers = []
         self._fetched_buffers = []
-        self._latest_buffer = None
 
         self._data_stream = None
         self._event_manager = None
@@ -444,14 +441,15 @@ class Harvester:
             else:
                 buffer_size = self.node_map.PayloadSize.value
 
-            self._raw_buffers = self._create_raw_buffers(
+            raw_buffers = self._create_raw_buffers(
                 num_buffers, buffer_size
             )
-            self._buffer_tokens = self._create_buffer_tokens(
-                self._raw_buffers
+            buffer_tokens = self._create_buffer_tokens(
+                raw_buffers
             )
+
             self._announced_buffers = self._announce_buffers(
-                self._buffer_tokens
+                buffer_tokens
             )
             self._queue_announced_buffers(self._announced_buffers)
 
@@ -847,16 +845,15 @@ class Harvester:
 
     def _release_buffers(self):
         #
+        revoked_buffers = []
         if self._data_stream:
-            for buffer in self._announced_buffers:
-                _ = self._data_stream.revoke_buffer(buffer)
+            for i, buffer in enumerate(self._announced_buffers):
+                revoked_buffers.append(self._data_stream.revoke_buffer(buffer))
+
+        self._announced_buffers = revoked_buffers
 
     def _initialize_buffers(self):
-        self._raw_buffers = []
-        self._buffer_tokens = []
-        self._announced_buffers = []
         self._fetched_buffers = []
-        self._latest_buffer = None
         self._has_acquired_1st_image = False
 
     def update_device_info_list(self):

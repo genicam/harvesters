@@ -40,7 +40,7 @@ from frontend.pyqt.thread import PyQtThread
 from core.harvester import Harvester as HarvesterCore
 
 
-class _Harvester(QMainWindow):
+class Harvester(QMainWindow):
     #
     _updated_statistics = pyqtSignal(str)
 
@@ -590,15 +590,10 @@ class ActionShowAbout(Action):
         pass
 
 
-class Harvester(QApplication):
-    def __init__(self, argv):
-        super().__init__(argv)
-        self.setWindowIcon(Icon('genicam_logo_i.png'))
-        self._harvester = _Harvester()
-        self._harvester.show()
-
-
 if __name__ == '__main__':
-    harvester = Harvester(sys.argv)
-    sys.exit(harvester.exec_())
+    app = QApplication(sys.argv)
+    app.setWindowIcon(Icon('genicam_logo_i.png'))
+    harvester = Harvester()
+    harvester.show()
+    sys.exit(app.exec_())
 

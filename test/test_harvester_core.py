@@ -39,8 +39,8 @@ class TestHarvesterCore(TestHarvesterCoreBase):
 
     def test_harvester_core(self):
         #
-            print('---> going to start image acquisition.')
         for i in range(60):
+            print('---> {0}: started'.format(i))
             self._harvester.start_image_acquisition()
             j = 0
             # Run it as fast as possible.
@@ -71,7 +71,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
                 #
                 j += 1
             self._harvester.stop_image_acquisition()
-            print('<--- have just stopped image acquisition.')
+            print('      <--- stopped')
 
 
 if __name__ == '__main__':

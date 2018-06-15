@@ -39,12 +39,12 @@ class TestHarvesterCore(TestHarvesterCoreBase):
 
     def test_harvester_core(self):
         #
-        for i in range(3):
             print('---> going to start image acquisition.')
+        for i in range(60):
             self._harvester.start_image_acquisition()
             j = 0
             # Run it as fast as possible.
-            frames = 256.
+            frames = 128.
             while j < int(frames):
                 if j % 2 == 0:
                     # Option 1: This way is secure and preferred.

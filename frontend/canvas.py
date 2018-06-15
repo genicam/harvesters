@@ -160,6 +160,14 @@ class Canvas(app.Canvas):
             # calling fetch_buffer() raises AttributeError because
             # None object is used for the with statement.
 
+            # Update on June 15th, 2018:
+            # According to a VisPy developer, they have not finished
+            # porting VisPy to PyQt5. Once they finished the development
+            # we should try it out if it gives us the maximum refresh rate.
+            # See the following URL to check the latest information:
+            #
+            #     https://github.com/vispy/vispy/issues/1394
+
             # Draw the texture.
             self._program.draw('triangle_strip')
 

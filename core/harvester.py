@@ -431,9 +431,6 @@ class Harvester:
             self._data_stream.open(self.connecting_device.data_stream_ids[0])
 
             #
-            self._initialize_buffers()
-
-            #
             num_required_buffers = self._min_num_buffers + self._num_extra_buffers
             try:
                 num_buffers = self._data_stream.buffer_announce_min
@@ -742,6 +739,9 @@ class Harvester:
 
                 #
                 self._release_data_stream()
+
+            #
+            self._initialize_buffers()
 
             for statistics in self._statistics_list:
                 statistics.reset()

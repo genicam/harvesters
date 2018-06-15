@@ -623,7 +623,7 @@ class Harvester:
         return buffer
 
     def queue_buffer(self, buffer):
-        if self._data_stream:
+        if self._data_stream and buffer:
             self._data_stream.queue_buffer(
                 buffer.gentl_buffer
             )

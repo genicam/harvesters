@@ -47,6 +47,10 @@ class PyThread(ThreadBase):
         self._thread.start()
 
     def stop(self):
+        #
+        if self._thread is None:
+            return
+
         # Prepare to terminate the worker method.
         self._thread.stop()
 
@@ -54,17 +58,37 @@ class PyThread(ThreadBase):
         self._thread.join()
 
     def acquire(self):
+        #
+        if self._thread is None:
+            return None
+
+        #
         return self._thread.acquire()
 
     def release(self):
+        #
+        if self._thread is None:
+            return
+
+        #
         self._thread.release()
 
     @property
     def worker(self):
+        #
+        if self._thread is None:
+            return None
+
+        #
         return self._thread.worker
 
     @worker.setter
     def worker(self, obj):
+        #
+        if self._thread is None:
+            return
+
+        #
         self._thread.worker = obj
 
     @property

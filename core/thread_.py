@@ -82,10 +82,20 @@ class MutexLocker:
         self._locked_mutex = None
 
     def __enter__(self):
+        #
+        if self._thread is None:
+            return None
+
+        #
         self._locked_mutex = self._thread.acquire()
         return self._locked_mutex
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        #
+        if self._thread is None:
+            return
+
+        #
         self._thread.release()
 
 

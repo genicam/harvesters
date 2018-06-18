@@ -40,7 +40,7 @@ from gentl import TimeoutException, AccessDeniedException, \
 from gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
 from gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
-    TL_CHAR_ENCODING_LIST
+    TL_CHAR_ENCODING_LIST, PAYLOADTYPE_INFO_IDS
 
 # Local application/library specific imports
 from core.buffer import Buffer
@@ -51,7 +51,27 @@ from core.thread import PyThread
 from core.thread_ import MutexLocker
 
 
-class _FromBytesToNumpy1D(Processor):
+class _ProcessorPayloadTypeImage(Processor):
+    def __init__(self):
+        #
+        super().__init__(
+            brief_description='Processes a PAYLOAD_TYPE_IMAGE buffer'
+        )
+
+        #
+        self._processors.append(_ProcessorConvertPyBytesToNumpy1D())
+        self._processors.append(_ConvertNumpy1DToNumpy2D())
+
+
+class _ProcessorPayloadTypeMultiPart(Processor):
+    def __init__(self):
+        #
+        super().__init__(
+            brief_description='Processes a PAYLOAD_TYPE_MULTI_PART buffer'
+        )
+
+
+class _ProcessorConvertPyBytesToNumpy1D(Processor):
     def __init__(self):
         #
         super().__init__(
@@ -68,7 +88,7 @@ class _FromBytesToNumpy1D(Processor):
         return output_buffer
 
 
-class _FromNumpy1DToNumpy2D(Processor):
+class _ConvertNumpy1DToNumpy2D(Processor):
     def __init__(self):
         #
         super().__init__(
@@ -206,10 +226,7 @@ class Harvester:
         self._timeout_for_image_acquisition = 100  # ms
 
         #
-        self._processors = []
-        self.add_processor(_FromBytesToNumpy1D())
-        self.add_processor(_FromNumpy1DToNumpy2D())
-        # You may want to add other processors.
+        self._user_defined_processor = None
 
         #
         self._num_images_to_acquire = -1
@@ -285,8 +302,12 @@ class Harvester:
             self._timeout_for_image_acquisition = ms
 
     @property
-    def processors(self):
-        return self._processors
+    def user_defined_processor(self):
+        return self._user_defined_processor
+
+    @user_defined_processor.setter
+    def user_defined_processor(self, obj):
+        self._user_defined_processor = obj
 
     @property
     def has_revised_device_info_list(self):
@@ -314,8 +335,14 @@ class Harvester:
         self._thread_statistics_measurement = obj
         self._thread_statistics_measurement.worker = self._worker_acquisition_statistics
 
-    def add_processor(self, processor: Processor):
-        self._processors.append(processor)
+    @staticmethod
+    def _get_default_processor(gentl_buffer):
+        processor = None
+        if gentl_buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE:
+            processor = _ProcessorPayloadTypeImage()
+        elif gentl_buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART:
+            processor = _ProcessorPayloadTypeMultiPart()
+        return processor
 
     def connect_device(self, index):
         if self.connecting_device:
@@ -567,11 +594,13 @@ class Harvester:
 
             #
             input_buffer = Buffer(self._data_stream, gentl_buffer, self.node_map, None)
-            output_buffer = None
 
-            for p in self._processors:
-                output_buffer = p.process(input_buffer)
-                input_buffer = output_buffer
+            if self.user_defined_processor:
+                processor = self.user_defined_processor
+            else:
+                processor = self._get_default_processor(gentl_buffer)
+
+            output_buffer = processor.process(input_buffer)
 
             #
             if not self._has_acquired_1st_image:

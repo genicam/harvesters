@@ -32,11 +32,18 @@ class Processor:
 
         #
         self._brief_description = brief_description
+        self._processors = []
 
     @property
     def brief_description(self):
         return self._brief_description
 
-    def process(self, input):
-        raise NotImplementedError
+    def process(self, input_buffer):
+        output_buffer = None
+
+        for p in self._processors:
+            output_buffer = p.process(input_buffer)
+            input_buffer = output_buffer
+
+        return output_buffer
 

@@ -37,7 +37,26 @@ from frontend.pyqt.device_list import ComboBox
 from frontend.pyqt.helper import get_system_font
 from frontend.pyqt.icon import Icon
 from frontend.pyqt.thread import PyQtThread
+from core.buffer import Buffer
 from core.harvester import Harvester as HarvesterCore
+from core.processor import Processor
+
+
+class _ProcessorUpdateCanvas(Processor):
+    def __init__(self, canvas: Canvas):
+        #
+        super().__init__(
+            'Updates the VisPy canvas'
+        )
+
+        #
+        self._canvas = canvas
+
+    def process(self, input_buffer: Buffer):
+        self._canvas.set_rect(
+            input_buffer.image.width, input_buffer.image.height
+        )
+        return input_buffer
 
 
 class Harvester(QMainWindow):

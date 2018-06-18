@@ -232,7 +232,9 @@ class Harvester:
         self._timeout_for_image_acquisition = 100  # ms
 
         #
+        self._user_defined_pre_processor = None
         self._user_defined_processor = None
+        self._user_defined_post_processor = None
 
         #
         self._num_images_to_acquire = -1
@@ -314,6 +316,22 @@ class Harvester:
     @user_defined_processor.setter
     def user_defined_processor(self, obj):
         self._user_defined_processor = obj
+
+    @property
+    def user_defined_pre_processor(self):
+        return self._user_defined_pre_processor
+
+    @user_defined_pre_processor.setter
+    def user_defined_pre_processor(self, obj):
+        self._user_defined_pre_processor = obj
+
+    @property
+    def user_defined_post_processor(self):
+        return self._user_defined_post_processor
+
+    @user_defined_post_processor.setter
+    def user_defined_post_processor(self, obj):
+        self._user_defined_post_processor = obj
 
     @property
     def has_revised_device_info_list(self):
@@ -602,20 +620,28 @@ class Harvester:
             #
             input_buffer = Buffer(self._data_stream, gentl_buffer, self.node_map, None)
 
+            processors = []
+
+            # Pre-processor
+            if self.user_defined_pre_processor:
+                processors.append(self.user_defined_pre_processor)
+
+            #
             if self.user_defined_processor:
                 processor = self.user_defined_processor
             else:
                 processor = self._get_default_processor(gentl_buffer)
 
-            output_buffer = processor.process(input_buffer)
+            processors.append(processor)
 
-            #
-            if not self._has_acquired_1st_image:
-                if self._frontend:
-                    self._frontend.canvas.set_rect(
-                        output_buffer.image.width, output_buffer.image.height
-                    )
-                self._has_acquired_1st_image = True
+            # Post processor
+            if self.user_defined_post_processor:
+                processors.append(self.user_defined_post_processor)
+
+            # Put the buffer in the process flow.
+            for p in processors:
+                output_buffer = p.process(input_buffer)
+                input_buffer = output_buffer
 
             # We've got a new image so now we can reuse the buffer that
             # we had kept.

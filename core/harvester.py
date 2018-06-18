@@ -89,6 +89,12 @@ class _ProcessorConvertPyBytesToNumpy1D(Processor):
 
 
 class _ConvertNumpy1DToNumpy2D(Processor):
+    #
+    _mono_formats = ['Mono8']
+    _rgb_formats = ['RGB8', 'RGB8Packed']
+    _rgba_formats = ['RGBa8']
+    _bayer_formats = ['BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8']
+
     def __init__(self):
         #
         super().__init__(
@@ -98,21 +104,21 @@ class _ConvertNumpy1DToNumpy2D(Processor):
         #
         symbolic = input_buffer.image.pixel_format
 
-        #
-        mono_formats = ['Mono8']
-        rgb_formats = ['RGB8', 'RGB8Packed']
-        bayer_formats = ['BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8']
 
         #
         ndarray = None
         try:
-            if symbolic in mono_formats or symbolic in bayer_formats:
+            if symbolic in self._mono_formats or symbolic in self._bayer_formats:
                 ndarray = input_buffer.image.ndarray.reshape(
                     input_buffer.image.height, input_buffer.image.width
                 )
-            elif symbolic in rgb_formats:
+            elif symbolic in self._rgb_formats:
                 ndarray = input_buffer.image.ndarray.reshape(
                     input_buffer.image.height, input_buffer.image.width, 3
+                )
+            elif symbolic in self._rgba_formats:
+                ndarray = input_buffer.image.ndarray.reshape(
+                    input_buffer.image.height, input_buffer.image.width, 4
                 )
         except ValueError as e:
             print(e)
@@ -338,9 +344,10 @@ class Harvester:
     @staticmethod
     def _get_default_processor(gentl_buffer):
         processor = None
-        if gentl_buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE:
+        payload_type = gentl_buffer.payload_type
+        if payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE:
             processor = _ProcessorPayloadTypeImage()
-        elif gentl_buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART:
+        elif payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART:
             processor = _ProcessorPayloadTypeMultiPart()
         return processor
 

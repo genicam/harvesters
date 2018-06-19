@@ -605,10 +605,6 @@ class Harvester:
             print(e)
         else:
             #
-            if self._num_images_to_acquire >= 1:
-                self._num_images_to_acquire -= 1
-
-            #
             if not self.is_acquiring_images:
                 return
 
@@ -618,8 +614,6 @@ class Harvester:
             self._update_statistics(gentl_buffer)
 
             #
-            input_buffer = Buffer(self._data_stream, gentl_buffer, self.node_map, None)
-
             processors = []
 
             # Pre-processor
@@ -639,21 +633,29 @@ class Harvester:
                 processors.append(self.user_defined_post_processor)
 
             # Put the buffer in the process flow.
+            input_buffer = Buffer(self._data_stream, gentl_buffer, self.node_map, None)
+            output_buffer = None
+
             for p in processors:
                 output_buffer = p.process(input_buffer)
                 input_buffer = output_buffer
 
-            # We've got a new image so now we can reuse the buffer that
-            # we had kept.
-            with MutexLocker(self.thread_image_acquisition):
-                if len(self._fetched_buffers) > self._num_extra_buffers:
-                    # We have 2 buffers now so we queue the oldest buffer.
-                    self.queue_buffer(self._fetched_buffers.pop(0))
-                    # Then one buffer remains for our client.
+            if output_buffer:
+                # We've got a new image so now we can reuse the buffer that
+                # we had kept.
+                with MutexLocker(self.thread_image_acquisition):
+                    if len(self._fetched_buffers) > self._num_extra_buffers:
+                        # We have 2 buffers now so we queue the oldest buffer.
+                        self.queue_buffer(self._fetched_buffers.pop(0))
+                        # Then one buffer remains for our client.
 
-                if output_buffer.image.ndarray is not None:
-                    # Append the recently fetched buffer.
-                    self._fetched_buffers.append(output_buffer)
+                    if output_buffer.image.ndarray is not None:
+                        # Append the recently fetched buffer.
+                        self._fetched_buffers.append(output_buffer)
+
+            #
+            if self._num_images_to_acquire >= 1:
+                self._num_images_to_acquire -= 1
 
             if self._num_images_to_acquire == 0:
                 #

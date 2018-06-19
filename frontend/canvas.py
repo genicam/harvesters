@@ -155,6 +155,9 @@ class Canvas(app.Canvas):
         # Fetch a buffer.
         try:
             with self._harvester_core.fetch_buffer() as buffer:
+                # Update the canvas size if needed.
+                self.set_rect(buffer.image.width, buffer.image.height)
+
                 # Set the image as the texture of our canvas.
                 if not self._pause_drawing and buffer:
                     self._program['texture'] = buffer.image.ndarray

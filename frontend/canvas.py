@@ -134,11 +134,17 @@ class Canvas(app.Canvas):
         self._has_filled_texture = False
 
         #
-        self._width = width
-        self._height = height
+        updated = False
 
         #
-        self.apply_magnification()
+        if self._width != width or self._height != height:
+            self._width = width
+            self._height = height
+            updated = True
+
+        #
+        if updated:
+            self.apply_magnification()
 
     def on_draw(self, event):
         # Clear the canvas in gray.

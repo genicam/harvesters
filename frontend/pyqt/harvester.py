@@ -89,6 +89,11 @@ class Harvester(QMainWindow):
         self._widget_canvas.native.setParent(self)
 
         #
+        self._harvester_core.user_defined_post_processor = _ProcessorUpdateCanvas(
+            self._widget_canvas
+        )
+
+        #
         self._action_stop_image_acquisition = None
 
         #

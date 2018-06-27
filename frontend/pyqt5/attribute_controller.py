@@ -32,11 +32,11 @@ from genapi import EVisibility
 # Local application/library specific imports
 from core.thread_ import MutexLocker
 from frontend.helper import compose_tooltip
-from frontend.pyqt.action import Action
-from frontend.pyqt.feature_tree import FeatureEditDelegate, FilterProxyModel, \
+from frontend.pyqt5.action import Action
+from frontend.pyqt5.feature_tree import FeatureEditDelegate, FilterProxyModel, \
     FeatureTreeModel
-from frontend.pyqt.helper import get_system_font
-from frontend.pyqt.icon import Icon
+from frontend.pyqt5.helper import get_system_font
+from frontend.pyqt5.icon import Icon
 
 
 """

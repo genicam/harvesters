@@ -25,7 +25,7 @@ from PyQt5.QtWidgets import QComboBox
 from gentl import NotImplementedException, NotAvailableException
 
 # Local application/library specific imports
-from frontend.pyqt.helper import get_system_font
+from frontend.pyqt5.helper import get_system_font
 from core.observer import Observer
 
 

@@ -30,13 +30,13 @@ from PyQt5.QtWidgets import QMainWindow, QAction, QComboBox, \
 # Local application/library specific imports
 from frontend.canvas import Canvas
 from frontend.helper import compose_tooltip
-from frontend.pyqt.about import About
-from frontend.pyqt.action import Action
-from frontend.pyqt.attribute_controller import AttributeController
-from frontend.pyqt.device_list import ComboBox
-from frontend.pyqt.helper import get_system_font
-from frontend.pyqt.icon import Icon
-from frontend.pyqt.thread import PyQtThread
+from frontend.pyqt5.about import About
+from frontend.pyqt5.action import Action
+from frontend.pyqt5.attribute_controller import AttributeController
+from frontend.pyqt5.device_list import ComboBox
+from frontend.pyqt5.helper import get_system_font
+from frontend.pyqt5.icon import Icon
+from frontend.pyqt5.thread import PyQtThread
 from core.buffer import Buffer
 from core.harvester import Harvester as HarvesterCore
 

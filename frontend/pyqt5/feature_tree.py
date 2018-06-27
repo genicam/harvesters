@@ -36,7 +36,7 @@ from genapi import EInterfaceType, EAccessMode, EVisibility
 
 # Local application/library specific imports
 from core.thread_ import MutexLocker
-from frontend.pyqt.helper import get_system_font
+from frontend.pyqt5.helper import get_system_font
 
 
 class TreeItem(object):

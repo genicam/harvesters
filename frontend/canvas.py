@@ -213,12 +213,12 @@ class Canvas(app.Canvas):
     def on_mouse_wheel(self, event):
         self._translate += event.delta[1]
         power = 7. if is_running_on_macos() else 5.  # 2 ** power
-        stride = 4. if is_running_on_macos() else 6.
+        stride = 4. if is_running_on_macos() else 7.
         translate = self._translate
         translate = min(power * stride, translate)
         translate = max(-power * stride, translate)
         self._translate = translate
-        self._magnification = 2 ** (self._translate / stride)
+        self._magnification = 2 ** -(self._translate / stride)
         if self._latest_translate != self._translate:
             self.apply_magnification()
             self._latest_translate = self._translate

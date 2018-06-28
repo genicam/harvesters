@@ -545,12 +545,12 @@ The canvas of Harvester GUI offers you not only image data visualization but als
 Zooming into the displayed image
 --------------------------------
 
-If you're using a mouse, spin the wheel to your side. If you are using a trackpad on a macOS, slide two fingers to your side.
+If you're using a mouse, spin the wheel to your pointing finger points at. If you are using a trackpad on a macOS, slide two fingers to the display side.
 
 Zooming out from the displayed image
 ------------------------------------
 
-If you're using a mouse, spin the wheel to your pointing finger points at. If you are using a trackpad on a macOS, slide two fingers to the display side.
+If you're using a mouse, spin the wheel to your side. If you are using a trackpad on a macOS, slide two fingers to your side.
 
 Changing the part being displayed
 ---------------------------------

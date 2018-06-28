@@ -23,10 +23,9 @@ import re
 import sys
 
 # Related third party imports
-from PyQt5.Qt import Qt, QStyledItemDelegate, QEvent, QStyleOptionViewItem, \
-    QColor
+from PyQt5.Qt import Qt, QStyledItemDelegate, QColor
 from PyQt5.QtCore import QAbstractItemModel, QModelIndex, \
-    QSortFilterProxyModel, QMutexLocker
+    QSortFilterProxyModel
 from PyQt5.QtWidgets import QApplication, QTreeView, \
     QSpinBox, QPushButton, QComboBox, QWidget, \
     QLineEdit

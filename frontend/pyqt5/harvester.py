@@ -37,7 +37,6 @@ from frontend.pyqt5.device_list import ComboBox
 from frontend.pyqt5.helper import get_system_font
 from frontend.pyqt5.icon import Icon
 from frontend.pyqt5.thread import PyQtThread
-from core.buffer import Buffer
 from core.harvester import Harvester as HarvesterCore
 
 

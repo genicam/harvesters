@@ -324,12 +324,6 @@ Harvester requires some Python modules. To install the required modules, please 
 
     $ pip install numpy PyQt5 vispy
 
-If you're running Anaconda Python, then you can do the same with the following command:
-
-.. code-block:: shell
-
-    $ conda install numpy pyqt vispy
-
 After that, you'll have to build the Python bindings by yourself. The source code can be downloaded from the following URL using Subversion:
 
 .. code-block:: shell

@@ -42,7 +42,7 @@ from core.harvester import Harvester as HarvesterCore
 
 class Harvester(QMainWindow):
     #
-    _updated_statistics = pyqtSignal(str)
+    _signal_updated_statistics = pyqtSignal(str)
 
     #
     _signal_stop_image_acquisition = pyqtSignal()
@@ -83,7 +83,7 @@ class Harvester(QMainWindow):
         self._widget_attribute_controller = None
 
         #
-        self._harvester_core.updated_statistics = self._updated_statistics
+        self._harvester_core.updated_statistics = self._signal_updated_statistics
         self._harvester_core.updated_statistics.connect(self.update_statistics)
 
         #

@@ -34,8 +34,22 @@ from core.thread_ import MutexLocker
 
 
 class Canvas(app.Canvas):
-    #
-    _vertex = """
+    def __init__(
+            self,
+            harvester_core=None,
+            width=640, height=480,
+            fps=50.,
+            background_color='gray',
+            vertex_shader=None,
+            fragment_shader=None
+    ):
+        """
+        NOTE: fps should be smaller than or equal to 50 fps. If it's exceed
+        VisPy drags down the acquisition performance. This is the issue we
+        have to investigate.
+        """
+
+        self._vertex_shader = vertex_shader if vertex_shader else """
             // Uniforms
             uniform mat4 u_model;
             uniform mat4 u_view;
@@ -56,26 +70,13 @@ class Canvas(app.Canvas):
             }
         """
 
-    _fragment = """
+        self._fragment_shader = fragment_shader if fragment_shader else """
             varying vec2 v_texcoord;
             uniform sampler2D texture;
             void main()
             {
                 gl_FragColor = texture2D(texture, v_texcoord);
             }
-        """
-
-    def __init__(
-            self,
-            harvester_core=None,
-            width=640, height=480,
-            fps=50.,
-            background_color='gray'
-    ):
-        """
-        NOTE: fps should be smaller than or equal to 50 fps. If it's exceed
-        VisPy drags down the acquisition performance. This is the issue we
-        have to investigate.
         """
 
         #
@@ -92,7 +93,7 @@ class Canvas(app.Canvas):
 
         #
         self._harvester_core = harvester_core
-        self._program = Program(self._vertex, self._fragment, count=4)
+        self._program = Program(self._vertex_shader, self._fragment_shader, count=4)
         self._width, self._height = width, height
 
         self._data = np.zeros(

@@ -324,6 +324,7 @@ class Harvester(QMainWindow):
 
         #
         button_update.add_observer(self._widget_device_list)
+        button_update.add_observer(button_connect)
 
         #
         button_connect.add_observer(button_select_file)
@@ -467,7 +468,8 @@ class ActionConnect(Action):
         #
         enable = False
         if self.parent().cti_files:
-            if self.parent().harvester_core.connecting_device is None:
+            if self.parent().harvester_core.device_info_list and \
+                    self.parent().harvester_core.connecting_device is None:
                 enable = True
         self.setEnabled(enable)
 

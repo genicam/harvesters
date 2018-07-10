@@ -65,9 +65,10 @@ class Harvester(QMainWindow):
             parent=self, mutex=self._mutex
         )
 
-        self._widget_canvas_raw = Canvas(harvester_core=self._harvester_core)
-        self._widget_canvas_raw.create_native()
-        self._widget_canvas_raw.native.setParent(self)
+        self._widget_canvas = Canvas(harvester_core=self._harvester_core)
+        self._widget_canvas.set_shaders()  # Pass custom shares if needed.
+        self._widget_canvas.create_native()
+        self._widget_canvas.native.setParent(self)
 
         #
         self._action_stop_image_acquisition = None
@@ -116,7 +117,7 @@ class Harvester(QMainWindow):
 
     @property
     def canvas(self):
-        return self._widget_canvas_raw
+        return self._widget_canvas
 
     @property
     def attribute_controller(self):

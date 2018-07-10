@@ -80,28 +80,58 @@ class Canvas(app.Canvas):
         """
 
         #
+        self._harvester_core = harvester_core
+
+        #
         app.Canvas.__init__(
             self, size=(width, height), vsync=True, autoswap=True
         )
 
         #
-        self._background_color = background_color
-
-        #
+        self._program = None
+        self._data = None
+        self._coordinate = None
+        self._origin = None
+        self._translate = 0.
+        self._latest_translate = self._translate
         self._magnification = 1.
-        self._has_filled_texture = False
 
         #
-        self._harvester_core = harvester_core
-        self._program = Program(self._vertex_shader, self._fragment_shader, count=4)
+        self._background_color = background_color
+        self._has_filled_texture = False
         self._width, self._height = width, height
 
+        #
+        self._is_dragging = False
+
+        # If it's True , the canvas keeps image acquisition but do not
+        # draw images on the canvas.
+        self._pause_drawing = False
+
+        # Apply shaders.
+        self.set_shaders(
+            vertex_shader=self._vertex_shader,
+            fragment_shader=self._fragment_shader
+        )
+
+        #
+        self._timer = app.Timer(1./fps, connect=self.update, start=True)
+
+    def set_shaders(self, vertex_shader=None, fragment_shader=None):
+        #
+        vs = vertex_shader if vertex_shader else self._vertex_shader
+        fs = fragment_shader if fragment_shader else self._fragment_shader
+        self._program = Program(vs, fs, count=4)
+
+        #
         self._data = np.zeros(
             4, dtype=[
                 ('a_position', np.float32, 2),
                 ('a_texcoord', np.float32, 2)
             ]
         )
+
+        #
         self._data['a_texcoord'] = np.array(
             [[0., 1.], [1., 1.], [0., 0.], [1., 0.]]
         )
@@ -111,24 +141,16 @@ class Canvas(app.Canvas):
         self._program['u_view'] = np.eye(4, dtype=np.float32)
 
         #
-        self._translate = 0.
-        self._latest_translate = self._translate
-
-        #
-        self._timer = app.Timer(1./fps, connect=self.update, start=True)
-
-        #
-        self._is_dragging = False
         self._coordinate = [0, 0]
         self._origin = [0, 0]
 
         #
-        self.apply_magnification()
-        self._program['texture'] = np.zeros((height, width), dtype='uint8')
+        self._program['texture'] = np.zeros(
+            (self._height, self._width), dtype='uint8'
+        )
 
-        # If it's True , the canvas keeps image acquisition but do not
-        # draw images on the canvas.
-        self._pause_drawing = False
+        #
+        self.apply_magnification()
 
     def set_rect(self, width, height):
         #

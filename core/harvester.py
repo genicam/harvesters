@@ -370,11 +370,11 @@ class Harvester:
         return processor
 
     def connect_device(self, index):
-        if self.connecting_device:
+        if self.connecting_device or self.device_info_list is None:
             return
 
         # Instantiate a GenTL Device module.
-        self._connecting_device = self._device_info_list[
+        self._connecting_device = self.device_info_list[
             index].create_device()
 
         # Then open it.

@@ -506,10 +506,10 @@ class Harvester:
             self._queue_announced_buffers(self._announced_buffers)
 
             #
-            et = self._data_stream.register_event(
+            event_token = self._data_stream.register_event(
                 EVENT_TYPE_LIST.EVENT_NEW_BUFFER
             )
-            self._event_manager = EventManagerNewBuffer(et)
+            self._event_manager = EventManagerNewBuffer(event_token)
 
             # Reset the number of images to acquire.
             try:

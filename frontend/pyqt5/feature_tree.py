@@ -162,11 +162,6 @@ class FeatureTreeModel(QAbstractItemModel):
 
     def __init__(self, parent=None, node_map: NodeMap=None, thread=None):
         """
-
-        :param parent: Set its parent QWidget object.
-        :param node_map: Set a NodeMap object to model.
-        :param thread: Set a mutex object to synchronize Qt's dsiplaying task.
-
         REMARKS: QAbstractItemModel might impact the performance and could
         slow Harvester. As far as we've confirmed, QAbstractItemModel calls
         its index() method for every item already shown. Especially, such
@@ -469,7 +464,6 @@ class FilterProxyModel(QSortFilterProxyModel):
     def setKeyword(self, keyword: str):
         self._keyword = keyword
         self.invalidateFilter()
-
 
     def filterAcceptsRow(self, src_row, src_parent: QModelIndex):
         #

@@ -22,11 +22,11 @@
 
 # Related third party imports
 from PyQt5.QtWidgets import QComboBox
-from gentl import NotImplementedException, NotAvailableException
+from genicam2.gentl import NotImplementedException, NotAvailableException
 
 # Local application/library specific imports
-from frontend.pyqt5.helper import get_system_font
-from core.observer import Observer
+from harvester._private.frontend.pyqt5.helper import get_system_font
+from harvester._private.core.observer import Observer
 
 
 class ComboBox(QComboBox, Observer):

@@ -31,24 +31,24 @@ import zipfile
 import numpy as np
 #from scipy import ndimage
 
-from genapi import NodeMap
-from genapi import LogicalErrorException
-from gentl import TimeoutException, AccessDeniedException, \
+from genicam2.genapi import NodeMap
+from genicam2.genapi import LogicalErrorException
+from genicam2.gentl import TimeoutException, AccessDeniedException, \
     LoadLibraryException, InvalidParameterException, \
     NotImplementedException, NotAvailableException, ClosedException, \
     ResourceInUseException
-from gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
-from gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
+from genicam2.gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
+from genicam2.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
     TL_CHAR_ENCODING_LIST, PAYLOADTYPE_INFO_IDS
 
 # Local application/library specific imports
-from core.buffer import Buffer
-from core.port import ConcretePort
-from core.processor import Processor
-from core.statistics import Statistics
-from core.thread import PyThread
-from core.thread_ import MutexLocker
+from harvester._private.core.buffer import Buffer
+from harvester._private.core.port import ConcretePort
+from harvester._private.core.processor import Processor
+from harvester._private.core.statistics import Statistics
+from harvester._private.core.thread import PyThread
+from harvester._private.core.thread_ import MutexLocker
 
 
 class _ProcessorPayloadTypeImage(Processor):
@@ -245,7 +245,7 @@ class Harvester:
 
         #
         if profile:
-            from core.helper.profiler import Profiler
+            from _private.core.helper import Profiler
             self._profiler = Profiler()
         else:
             self._profiler = None

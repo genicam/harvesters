@@ -29,8 +29,8 @@ from PyQt5.QtWidgets import QDialog, QApplication, QPlainTextEdit, \
     QTextEdit
 
 # Local application/library specific imports
-import versioneer
-from frontend.pyqt5.helper import get_system_font
+import harvester.versioneer
+from harvester._private.frontend.pyqt5.helper import get_system_font
 
 
 class DecoratedDialog(QDialog):

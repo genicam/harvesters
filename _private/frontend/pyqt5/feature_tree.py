@@ -30,12 +30,12 @@ from PyQt5.QtWidgets import QApplication, QTreeView, \
     QSpinBox, QPushButton, QComboBox, QWidget, \
     QLineEdit
 
-from genapi import NodeMap
-from genapi import EInterfaceType, EAccessMode, EVisibility
+from genicam2.genapi import NodeMap
+from genicam2.genapi import EInterfaceType, EAccessMode, EVisibility
 
 # Local application/library specific imports
-from core.thread_ import MutexLocker
-from frontend.pyqt5.helper import get_system_font
+from harvester._private.core.thread_ import MutexLocker
+from harvester._private.frontend.pyqt5.helper import get_system_font
 
 
 class TreeItem(object):

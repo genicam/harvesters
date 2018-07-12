@@ -30,5 +30,5 @@ class Icon(QIcon):
     def __init__(self, file_name):
         #
         super().__init__(
-            'frontend/image/icon/' + file_name
+            '_private/frontend/image/icon/' + file_name
         )

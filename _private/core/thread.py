@@ -24,7 +24,7 @@ from threading import Thread
 # Related third party imports
 
 # Local application/library specific imports
-from core.thread_ import ThreadBase
+from harvester._private.core.thread_ import ThreadBase
 
 
 class PyThread(ThreadBase):

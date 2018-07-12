@@ -19,7 +19,6 @@
 
 
 # Standard library imports
-from threading import Thread
 
 # Related third party imports
 

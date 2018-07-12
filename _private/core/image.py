@@ -21,7 +21,7 @@
 # Standard library imports
 
 # Related third party imports
-from gentl import InvalidParameterException
+from genicam2.gentl import InvalidParameterException
 import numpy as np
 
 # Local application/library specific imports

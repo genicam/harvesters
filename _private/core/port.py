@@ -21,9 +21,9 @@
 # Standard library imports
 
 # Related third party imports
-from genapi import AbstractPort
-from genapi import EAccessMode
-from gentl import Port
+from genicam2.genapi import AbstractPort
+from genicam2.genapi import EAccessMode
+from genicam2.gentl import Port
 
 # Local application/library specific imports
 

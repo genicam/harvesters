@@ -27,16 +27,16 @@ from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QMainWindow, QApplication, QTreeView, \
     QAction, QComboBox, QLineEdit, QLabel, QShortcut
 
-from genapi import EVisibility
+from genicam2.genapi import EVisibility
 
 # Local application/library specific imports
-from core.thread_ import MutexLocker
-from frontend.helper import compose_tooltip
-from frontend.pyqt5.action import Action
-from frontend.pyqt5.feature_tree import FeatureEditDelegate, FilterProxyModel, \
-    FeatureTreeModel
-from frontend.pyqt5.helper import get_system_font
-from frontend.pyqt5.icon import Icon
+from harvester._private.core.thread_ import MutexLocker
+from harvester._private.frontend.helper import compose_tooltip
+from harvester._private.frontend.pyqt5.action import Action
+from harvester._private.frontend.pyqt5.feature_tree import \
+    FeatureEditDelegate, FilterProxyModel, FeatureTreeModel
+from harvester._private.frontend.pyqt5.helper import get_system_font
+from harvester._private.frontend.pyqt5.icon import Icon
 
 """
 

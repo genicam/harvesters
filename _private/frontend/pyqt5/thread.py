@@ -24,7 +24,7 @@
 from PyQt5.QtCore import QMutexLocker, QThread
 
 # Local application/library specific imports
-from core.thread_ import ThreadBase
+from harvester._private.core.thread_ import ThreadBase
 
 
 class PyQtThread(ThreadBase):

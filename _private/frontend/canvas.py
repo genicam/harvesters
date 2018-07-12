@@ -29,8 +29,7 @@ from vispy.gloo import Program
 from vispy.util.transforms import ortho
 
 # Local application/library specific imports
-from core.helper.system import is_running_on_macos
-from core.thread_ import MutexLocker
+from harvester._private.core.helper.system import is_running_on_macos
 
 
 class Canvas(app.Canvas):

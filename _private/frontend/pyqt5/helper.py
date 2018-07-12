@@ -21,33 +21,19 @@
 # Standard library imports
 
 # Related third party imports
-from PyQt5.QtWidgets import QAction
+from PyQt5.QtGui import QFont
 
 # Local application/library specific imports
-from core.subject import Subject
+from harvester._private.core.helper.system import is_running_on_macos, \
+    is_running_on_windows
 
 
-class Action(QAction, Subject):
-    def __init__(self, icon, title, parent=None, checkable=False):
-        #
-        super().__init__(icon, title, parent)
-
-        #
-        self._dialog = None
-        self._observers = []
-
-        #
-        self.setCheckable(checkable)
-
-    def execute(self):
-        # Execute everything it's responsible for.
-        self._execute()
-
-        # Update itself.
-        self.update()
-
-        # Update its observers.
-        self.update_observers()
-
-    def _execute(self):
-        raise NotImplementedError
+def get_system_font():
+    if is_running_on_windows():
+        font, size = 'Calibri', 12
+    else:
+        if is_running_on_macos():
+            font, size = 'Lucida Sans Unicode', 14
+        else:
+            font, size = 'Sans-serif', 11
+    return QFont(font, size)

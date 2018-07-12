@@ -51,6 +51,8 @@ class TreeItem(object):
     _readable_access_modes = [EAccessMode.RW, EAccessMode.RO]
 
     def __init__(self, data=None, parent_item=None):
+        #
+        super().__init__()
 
         #
         self._parent_item = parent_item
@@ -178,7 +180,7 @@ class FeatureTreeModel(QAbstractItemModel):
 
         """
         #
-        super().__init__(parent)
+        super().__init__()
 
         #
         self._thread = thread
@@ -286,46 +288,43 @@ class FeatureTreeModel(QAbstractItemModel):
         for feature in features:
             interface_type = feature.node.principal_interface_type
             item = TreeItem([feature, feature], parent_item)
+            parent_item.appendChild(item)
             if interface_type == EInterfaceType.intfICategory:
-                parent_item.appendChild(item)
                 self.setupModelData(feature.features, item)
-            else:
-                parent_item.appendChild(item)
 
     def setData(self, index: QModelIndex, value, role=Qt.EditRole):
         if role == Qt.EditRole:
+            # TODO: Check the type of the target and convert the given value.
+            self.dataChanged.emit(index, index)
 
-            with MutexLocker(self._thread):
-                # TODO: Check the type of the target and convert the given value.
-                self.dataChanged.emit(index, index)
-
-                #
-                tree_item = index.internalPointer()
-                feature = tree_item.own_data[0]
-                interface_type = feature.node.principal_interface_type
-                try:
-                    if interface_type == EInterfaceType.intfICommand:
-                        if value:
-                            feature.execute()
-                    elif interface_type == EInterfaceType.intfIBoolean:
-                        feature.value = True if value.lower == 'true' else False
-                    elif interface_type == EInterfaceType.intfIFloat:
-                        feature.value = float(value)
-                    else:
-                        feature.value = value
-                    return True
-                except:
-                    # TODO: Specify appropriate exceptions
-                    return False
+            #
+            tree_item = index.internalPointer()
+            feature = tree_item.own_data[0]
+            interface_type = feature.node.principal_interface_type
+            try:
+                if interface_type == EInterfaceType.intfICommand:
+                    if value:
+                        feature.execute()
+                elif interface_type == EInterfaceType.intfIBoolean:
+                    feature.value = True if value.lower == 'true' else False
+                elif interface_type == EInterfaceType.intfIFloat:
+                    feature.value = float(value)
+                else:
+                    feature.value = value
+                return True
+            except:
+                # TODO: Specify appropriate exceptions
+                return False
 
 
 class FeatureEditDelegate(QStyledItemDelegate):
-    def __init__(self, proxy):
+    def __init__(self, proxy, thread=None, parent=None):
         #
         super().__init__()
 
         #
         self._proxy = proxy
+        self._thread = thread
 
     def createEditor(self, parent: QWidget, QStyleOptionViewItem, proxy_index: QModelIndex):
 
@@ -397,26 +396,27 @@ class FeatureEditDelegate(QStyledItemDelegate):
 
     def setModelData(self, editor: QWidget, model: QAbstractItemModel, proxy_index: QModelIndex):
 
-        src_index = self._proxy.mapToSource(proxy_index)
-        tree_item = src_index.internalPointer()
-        feature = tree_item.own_data[0]
-        interface_type = feature.node.principal_interface_type
+        with MutexLocker(self._thread):
+            src_index = self._proxy.mapToSource(proxy_index)
+            tree_item = src_index.internalPointer()
+            feature = tree_item.own_data[0]
+            interface_type = feature.node.principal_interface_type
 
-        if interface_type == EInterfaceType.intfIInteger:
-            data = editor.value()
-            model.setData(proxy_index, data)
-        elif interface_type == EInterfaceType.intfIBoolean:
-            data = editor.currentText()
-            model.setData(proxy_index, data)
-        elif interface_type == EInterfaceType.intfIEnumeration:
-            data = editor.currentText()
-            model.setData(proxy_index, data)
-        elif interface_type == EInterfaceType.intfIString:
-            data = editor.text()
-            model.setData(proxy_index, data)
-        elif interface_type == EInterfaceType.intfIFloat:
-            data = editor.text()
-            model.setData(proxy_index, data)
+            if interface_type == EInterfaceType.intfIInteger:
+                data = editor.value()
+                model.setData(proxy_index, data)
+            elif interface_type == EInterfaceType.intfIBoolean:
+                data = editor.currentText()
+                model.setData(proxy_index, data)
+            elif interface_type == EInterfaceType.intfIEnumeration:
+                data = editor.currentText()
+                model.setData(proxy_index, data)
+            elif interface_type == EInterfaceType.intfIString:
+                data = editor.text()
+                model.setData(proxy_index, data)
+            elif interface_type == EInterfaceType.intfIFloat:
+                data = editor.text()
+                model.setData(proxy_index, data)
 
     def on_button_clicked(self, proxy_index: QModelIndex):
 
@@ -430,7 +430,7 @@ class FeatureEditDelegate(QStyledItemDelegate):
 
 
 class FilterProxyModel(QSortFilterProxyModel):
-    def __init__(self, visibility=EVisibility.Beginner):
+    def __init__(self, visibility=EVisibility.Beginner, parent=None):
         #
         super().__init__()
 

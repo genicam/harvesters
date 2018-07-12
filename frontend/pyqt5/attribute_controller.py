@@ -38,7 +38,6 @@ from frontend.pyqt5.feature_tree import FeatureEditDelegate, FilterProxyModel, \
 from frontend.pyqt5.helper import get_system_font
 from frontend.pyqt5.icon import Icon
 
-
 """
 
 If you got into a trouble relate to model, the following tool could give
@@ -84,7 +83,7 @@ class AttributeController(QMainWindow):
 
     def __init__(self, node_map, parent=None):
         #
-        super().__init__(parent)
+        super().__init__(parent=parent)
 
         #
         self.setWindowTitle('Attribute Controller')
@@ -96,21 +95,22 @@ class AttributeController(QMainWindow):
         #
         self._node_map = node_map
         self._model = FeatureTreeModel(
-            self,
-            self._node_map,
-            self.parent().harvester_core.thread_image_acquisition
+            node_map=self._node_map,
+            thread=self.parent().harvester_core.thread_image_acquisition,
         )
 
         #
         self._proxy = FilterProxyModel()
         self._proxy.setSourceModel(self._model)
-        self._proxy.setDynamicSortFilter(True)
+        self._proxy.setDynamicSortFilter(False)
 
         #
-        self._delegate = FeatureEditDelegate(proxy=self._proxy)
+        self._delegate = FeatureEditDelegate(
+            proxy=self._proxy,
+            thread = self.parent().harvester_core.thread_image_acquisition
+        )
         self._view.setModel(self._proxy)
         self._view.setItemDelegate(self._delegate)
-        self._view.setUniformRowHeights(True)
 
         #
         unit = 260

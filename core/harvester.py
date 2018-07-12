@@ -161,9 +161,12 @@ class Harvester:
         TL_CHAR_ENCODING_LIST.TL_CHAR_ENCODING_UTF8: 'utf8'
     }
 
-    def __init__(self, frontend=None, profile=False, min_num_buffers=16):
+    def __init__(self, frontend=None, profile=False, min_num_buffers=16, parent=None):
         #
         super().__init__()
+
+        #
+        self._parent = parent
 
         #
         self._frontend = frontend

@@ -28,12 +28,11 @@ from core.helper.system import is_running_on_macos, is_running_on_windows
 
 
 def get_system_font():
-    font, size = None, None
     if is_running_on_windows():
         font, size = 'Calibri', 12
     else:
         if is_running_on_macos():
             font, size = 'Lucida Sans Unicode', 14
         else:
-            pass
+            font, size = 'Sans-serif', 11
     return QFont(font, size)

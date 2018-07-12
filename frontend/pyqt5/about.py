@@ -95,7 +95,8 @@ class About(QDialog):
 
         #
         text_version = TransparentLineEdit(
-            'Version ' + versioneer.get_version()
+            #'Version ' + versioneer.get_version()
+            'Version ' + 'N/A'
         )
         text_copyright = TransparentLineEdit('Copyright (c) 2018 EMVA')
 

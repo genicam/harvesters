@@ -50,8 +50,10 @@ class TreeItem(object):
 
     _readable_access_modes = [EAccessMode.RW, EAccessMode.RO]
 
-    def __init__(self, data, parent=None):
-        self._parent_item = parent
+    def __init__(self, data=None, parent_item=None):
+
+        #
+        self._parent_item = parent_item
         self._own_data = data
         self._child_items = []
 

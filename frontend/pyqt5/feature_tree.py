@@ -93,8 +93,8 @@ class TreeItem(object):
             except IndexError:
                 return None
         else:
+            value = ''
             feature = self.own_data[column]
-            value = None
             if column == 0:
                 value = feature.node.display_name
             else:
@@ -256,7 +256,7 @@ class FeatureTreeModel(QAbstractItemModel):
 
     def parent(self, index=None):
         if not index.isValid():
-            return index()
+            return index
 
         child_item = index.internalPointer()
         parent_item = child_item.parent()

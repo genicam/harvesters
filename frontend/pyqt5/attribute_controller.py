@@ -45,7 +45,7 @@ If you got into a trouble relate to model, the following tool could give
 you a hint. ModelTest is a Python script and it tests your model and report
 the result:
 
-https://github.com/bgr/PyQt5_modeltest/tree/842904692a1d8286c6a87c9e6544f4abe553eb12
+https://github.com/bgr/PyQt5_modeltest
 
 """
 

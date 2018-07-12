@@ -104,12 +104,17 @@ class TreeItem(object):
                     if interface_type == EInterfaceType.intfICommand:
                         value = '-- Click here --'
                     else:
+                        value = 'N/A'
                         if feature.node.get_access_mode() in \
                                 self._readable_access_modes and \
                                 interface_type in self._readable_nodes:
+                            try:
                                 value = str(feature.value)
-                        else:
-                            value = 'N/A'
+                            except AttributeError:
+                                try:
+                                    value = feature.to_string()
+                                except AttributeError:
+                                    pass
 
             return value
 

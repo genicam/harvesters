@@ -261,10 +261,64 @@ Harvester Core on IPython
 
 The following screenshot shows Harvester Core is running on IPython. Harvester Core returns the latest image data at the moment as a Numpy array every time its user call the ``get_image()`` method. Once you get an image you should be able to immediately start image processing. If you're running on Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
-.. image:: https://user-images.githubusercontent.com/8652625/41411895-4fcb33b6-7019-11e8-905c-86cf87422931.png
+.. image:: https://user-images.githubusercontent.com/8652625/42694062-0de16f58-86ec-11e8-9c28-fceffa1774db.png
     :align: center
     :alt: Harvester on IPython
     :scale: 40 %
+
+.. code-block:: python
+
+    (genicam) kznr@Kazunaris-MacBook:~% ipython
+    Python 3.5.3 |Continuum Analytics, Inc.| (default, Mar  6 2017, 12:15:08)
+    Type 'copyright', 'credits' or 'license' for more information
+    IPython 6.3.1 -- An enhanced Interactive Python. Type '?' for help.
+
+    In [1]: from harvester.core import Harvester
+
+    In [2]: h = Harvester()
+
+    In [3]: h.add_cti_file('/Users/kznr/dev/genicam/bin/Maci64_x64/TLSimu.cti')
+
+    In [4]: h.update_device_info_list()
+
+    In [5]: for i, info in enumerate(h.device_info_list):
+       ...:     print('{0}: {1}'.format(i, info.display_name))
+       ...:
+    0: Test_Mono (SN0)
+    1: Test_Color (SN1)
+    2: Test_Mono (SN0)
+    3: Test_Color (SN1)
+
+    In [6]: h.connect_device(0)
+
+    In [7]: h.device.node_map.Width.value = 16
+
+    In [8]: h.device.node_map.Height.value = 8
+
+    In [9]: h.device.node_map.PixelFormat.value = 'Mono8'
+
+    In [10]: h.start_image_acquisition()
+
+    In [11]: with h.fetch_buffer() as b:
+        ...:     print('1D: {0}'.format(b.image.ndarray))
+        ...:     print('2D: {0}'.format(b.image.ndarray.reshape(b.image.height, b.image.width)))
+        ...:
+    1D: [ 6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21  7  8  9 10 11 12 13 14
+     15 16 17 18 19 20 21 22  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
+      9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 10 11 12 13 14 15 16 17
+     18 19 20 21 22 23 24 25 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26
+     12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 13 14 15 16 17 18 19 20
+     21 22 23 24 25 26 27 28]
+    2D: [[ 6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21]
+     [ 7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22]
+     [ 8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23]
+     [ 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24]
+     [10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25]
+     [11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26]
+     [12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27]
+     [13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28]]
+
+    In [12]: h.stop_image_acquisition()
 
 ############
 Requirements

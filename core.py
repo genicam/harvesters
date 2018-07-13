@@ -367,7 +367,9 @@ class Harvester:
             processor = _ProcessorPayloadTypeMultiPart()
         return processor
 
-    def connect_device(self, item_id=0, user_defined_name=None):
+    def connect_device(self, item_id=0, id_info=None, model=None,
+            serial_number=None, user_defined_name=None, vendor=None):
+        #
         if self.device or self.device_info_list is None:
             # TODO: Throw an exception to tell clients that there's no
             # device to connect.

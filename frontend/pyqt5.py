@@ -147,7 +147,7 @@ class Harvester(QMainWindow):
 
     def _initialize_widgets(self):
         #
-        self.setWindowTitle('Harvester')
+        self.setWindowTitle('GenICam.Harvester')
         self.setFont(get_system_font())
 
         #

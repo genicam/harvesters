@@ -147,6 +147,9 @@ class Harvester(QMainWindow):
 
     def _initialize_widgets(self):
         #
+        self.setWindowIcon(Icon('genicam_logo_i.png'))
+
+        #
         self.setWindowTitle('GenICam.Harvester')
         self.setFont(get_system_font())
 
@@ -593,7 +596,6 @@ class ActionShowAbout(Action):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    app.setWindowIcon(Icon('genicam_logo_i.png'))
     harvester = Harvester()
     harvester.show()
     sys.exit(app.exec_())

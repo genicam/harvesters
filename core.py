@@ -27,9 +27,7 @@ import time
 import zipfile
 
 # Related third party imports
-
 import numpy as np
-#from scipy import ndimage
 
 from genicam2.genapi import NodeMap
 from genicam2.genapi import LogicalErrorException
@@ -40,35 +38,15 @@ from genicam2.gentl import TimeoutException, AccessDeniedException, \
 from genicam2.gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
 from genicam2.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
-    TL_CHAR_ENCODING_LIST, PAYLOADTYPE_INFO_IDS
+    TL_CHAR_ENCODING_LIST
 
 # Local application/library specific imports
 from harvester._private.core.buffer import Buffer
 from harvester._private.core.port import ConcretePort
-from harvester._private.core.processor import Processor
 from harvester._private.core.statistics import Statistics
 from harvester._private.core.thread import PyThread
 from harvester._private.core.thread_ import MutexLocker
-
-
-class _ProcessorPayloadTypeImage(Processor):
-    def __init__(self):
-        #
-        super().__init__(
-            brief_description='Processes a PAYLOAD_TYPE_IMAGE buffer'
-        )
-
-        #
-        self._processors.append(_ProcessorConvertPyBytesToNumpy1D())
-        self._processors.append(_ConvertNumpy1DToNumpy2D())
-
-
-class _ProcessorPayloadTypeMultiPart(Processor):
-    def __init__(self):
-        #
-        super().__init__(
-            brief_description='Processes a PAYLOAD_TYPE_MULTI_PART buffer'
-        )
+from harvester.processor import Processor
 
 
 class _ProcessorConvertPyBytesToNumpy1D(Processor):
@@ -86,72 +64,6 @@ class _ProcessorConvertPyBytesToNumpy1D(Processor):
             image=np.frombuffer(input_buffer.gentl_buffer.raw_buffer, dtype='uint8')
         )
         return output_buffer
-
-
-class _ConvertNumpy1DToNumpy2D(Processor):
-    #
-    _mono_formats = ['Mono8']
-    _rgb_formats = ['RGB8', 'RGB8Packed']
-    _rgba_formats = ['RGBa8']
-    _bayer_formats = ['BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8']
-
-    def __init__(self):
-        #
-        super().__init__(
-            brief_description='Reshape a Numpy 1D array into a Numpy 2D array')
-
-    def process(self, input_buffer: Buffer):
-        #
-        symbolic = input_buffer.image.pixel_format
-
-
-        #
-        ndarray = None
-        try:
-            if symbolic in self._mono_formats or symbolic in self._bayer_formats:
-                ndarray = input_buffer.image.ndarray.reshape(
-                    input_buffer.image.height, input_buffer.image.width
-                )
-            elif symbolic in self._rgb_formats:
-                ndarray = input_buffer.image.ndarray.reshape(
-                    input_buffer.image.height, input_buffer.image.width, 3
-                )
-            elif symbolic in self._rgba_formats:
-                ndarray = input_buffer.image.ndarray.reshape(
-                    input_buffer.image.height, input_buffer.image.width, 4
-                )
-        except ValueError as e:
-            print(e)
-
-        output_buffer = Buffer(
-            data_stream=input_buffer.data_stream,
-            gentl_buffer=input_buffer.gentl_buffer,
-            node_map=input_buffer.node_map,
-            image=ndarray
-        )
-
-        return output_buffer
-
-
-class _Rotate(Processor):
-    def __init__(self, angle=0):
-        #
-        super().__init__(brief_description='Rotate a Numpy 2D array')
-
-        #
-        self._angle = angle
-
-    def process(self, input: Buffer):
-        #
-        #ndarray = ndimage.rotate(input.ndarray, self._angle)  # Import scipy.
-        ndarray = None
-        output = Buffer(
-            data_stream=input.data_stream,
-            gentl_buffer=input.gentl_buffer,
-            node_map=input.node_map,
-            image=ndarray
-        )
-        return output
 
 
 class Harvester:
@@ -234,9 +146,9 @@ class Harvester:
         self._timeout_for_image_acquisition = 100  # ms
 
         #
-        self._user_defined_pre_processor = None
-        self._user_defined_processor = None
-        self._user_defined_post_processor = None
+        self._processors = []
+        self._system_defined_processors = [_ProcessorConvertPyBytesToNumpy1D()]
+        self._user_defined_processors = []
 
         #
         self._num_images_to_acquire = -1
@@ -308,28 +220,8 @@ class Harvester:
             self._timeout_for_image_acquisition = ms
 
     @property
-    def user_defined_processor(self):
-        return self._user_defined_processor
-
-    @user_defined_processor.setter
-    def user_defined_processor(self, obj):
-        self._user_defined_processor = obj
-
-    @property
-    def user_defined_pre_processor(self):
-        return self._user_defined_pre_processor
-
-    @user_defined_pre_processor.setter
-    def user_defined_pre_processor(self, obj):
-        self._user_defined_pre_processor = obj
-
-    @property
-    def user_defined_post_processor(self):
-        return self._user_defined_post_processor
-
-    @user_defined_post_processor.setter
-    def user_defined_post_processor(self, obj):
-        self._user_defined_post_processor = obj
+    def user_defined_processors(self):
+        return self._user_defined_processors
 
     @property
     def has_revised_device_info_list(self):
@@ -356,16 +248,6 @@ class Harvester:
     def thread_statistics_measurement(self, obj):
         self._thread_statistics_measurement = obj
         self._thread_statistics_measurement.worker = self._worker_acquisition_statistics
-
-    @staticmethod
-    def _get_default_processor(gentl_buffer):
-        processor = None
-        payload_type = gentl_buffer.payload_type
-        if payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE:
-            processor = _ProcessorPayloadTypeImage()
-        elif payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART:
-            processor = _ProcessorPayloadTypeMultiPart()
-        return processor
 
     def connect_device(self, item_id=0, id_info=None, model=None,
             serial_number=None, user_defined_name=None, vendor=None):
@@ -530,6 +412,15 @@ class Harvester:
 
             self._num_images_to_acquire = num_images_to_acquire
 
+            # Update the sequence of image processors.
+            self._processors = []
+
+            for p in self._system_defined_processors:
+                self._processors.append(p)
+
+            for p in self.user_defined_processors:
+                self._processors.append(p)
+
             # Start image acquisition.
             self._data_stream.start_acquisition(
                 ACQ_START_FLAGS_LIST.ACQ_START_FLAGS_DEFAULT,
@@ -615,30 +506,13 @@ class Harvester:
             #
             self._update_statistics(gentl_buffer)
 
-            #
-            processors = []
-
-            # Pre-processor
-            if self.user_defined_pre_processor:
-                processors.append(self.user_defined_pre_processor)
-
-            #
-            if self.user_defined_processor:
-                processor = self.user_defined_processor
-            else:
-                processor = self._get_default_processor(gentl_buffer)
-
-            processors.append(processor)
-
-            # Post processor
-            if self.user_defined_post_processor:
-                processors.append(self.user_defined_post_processor)
-
             # Put the buffer in the process flow.
-            input_buffer = Buffer(self._data_stream, gentl_buffer, self.device.node_map, None)
+            input_buffer = Buffer(
+                self._data_stream, gentl_buffer, self.device.node_map, None
+            )
             output_buffer = None
 
-            for p in processors:
+            for p in self._processors:
                 output_buffer = p.process(input_buffer)
                 input_buffer = output_buffer
 

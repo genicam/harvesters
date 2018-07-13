@@ -22,12 +22,16 @@
 import sys
 
 # Related third party imports
+import numpy as np
 from PyQt5.QtCore import QMutexLocker, QMutex, pyqtSignal
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QMainWindow, QAction, QComboBox, \
     QDesktopWidget, QFileDialog, QDialog, QShortcut, QApplication
 
+from genicam2.gentl import PAYLOADTYPE_INFO_IDS
+
 # Local application/library specific imports
+from harvester._private.core.buffer import Buffer
 from harvester._private.frontend.canvas import Canvas
 from harvester._private.frontend.helper import compose_tooltip
 from harvester._private.frontend.pyqt5.about import About
@@ -38,6 +42,91 @@ from harvester._private.frontend.pyqt5.helper import get_system_font
 from harvester._private.frontend.pyqt5.icon import Icon
 from harvester._private.frontend.pyqt5.thread import PyQtThread
 from harvester.core import Harvester as HarvesterCore
+from harvester.processor import Processor
+
+
+class _ProcessorPayloadTypeImage(Processor):
+    def __init__(self):
+        #
+        super().__init__(
+            brief_description='Processes a PAYLOAD_TYPE_IMAGE buffer'
+        )
+
+        #
+        self._processors.append(_ConvertNumpy1DToNumpy2D())
+
+
+class _ProcessorPayloadTypeMultiPart(Processor):
+    def __init__(self):
+        #
+        super().__init__(
+            brief_description='Processes a PAYLOAD_TYPE_MULTI_PART buffer'
+        )
+
+
+class _ConvertNumpy1DToNumpy2D(Processor):
+    #
+    _mono_formats = ['Mono8']
+    _rgb_formats = ['RGB8', 'RGB8Packed']
+    _rgba_formats = ['RGBa8']
+    _bayer_formats = ['BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8']
+
+    def __init__(self):
+        #
+        super().__init__(
+            brief_description='Reshape a Numpy 1D array into a Numpy 2D array')
+
+    def process(self, input_buffer: Buffer):
+        #
+        symbolic = input_buffer.image.pixel_format
+
+        #
+        ndarray = None
+        try:
+            if symbolic in self._mono_formats or symbolic in self._bayer_formats:
+                ndarray = input_buffer.image.ndarray.reshape(
+                    input_buffer.image.height, input_buffer.image.width
+                )
+            elif symbolic in self._rgb_formats:
+                ndarray = input_buffer.image.ndarray.reshape(
+                    input_buffer.image.height, input_buffer.image.width, 3
+                )
+            elif symbolic in self._rgba_formats:
+                ndarray = input_buffer.image.ndarray.reshape(
+                    input_buffer.image.height, input_buffer.image.width, 4
+                )
+        except ValueError as e:
+            print(e)
+
+        output_buffer = Buffer(
+            data_stream=input_buffer.data_stream,
+            gentl_buffer=input_buffer.gentl_buffer,
+            node_map=input_buffer.node_map,
+            image=ndarray
+        )
+
+        return output_buffer
+
+
+class _Rotate(Processor):
+    def __init__(self, angle=0):
+        #
+        super().__init__(brief_description='Rotate a Numpy 2D array')
+
+        #
+        self._angle = angle
+
+    def process(self, input: Buffer):
+        #
+        #ndarray = ndimage.rotate(input.ndarray, self._angle)  # Import scipy.
+        ndarray = None
+        output = Buffer(
+            data_stream=input.data_stream,
+            gentl_buffer=input.gentl_buffer,
+            node_map=input.node_map,
+            image=ndarray
+        )
+        return output
 
 
 class Harvester(QMainWindow):
@@ -54,6 +143,10 @@ class Harvester(QMainWindow):
 
         #
         self._harvester_core = HarvesterCore(frontend=self, profile=False, parent=self)
+        self._harvester_core.user_defined_processors.clear()
+        self._harvester_core.user_defined_processors.append(
+            _ConvertNumpy1DToNumpy2D()
+        )
 
         #
         self._harvester_core.thread_image_acquisition = PyQtThread(
@@ -144,6 +237,16 @@ class Harvester(QMainWindow):
     @property
     def mutex(self):
         return self._mutex
+
+    @staticmethod
+    def _get_default_processor(gentl_buffer):
+        processor = None
+        payload_type = gentl_buffer.payload_type
+        if payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE:
+            processor = _ProcessorPayloadTypeImage()
+        elif payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART:
+            processor = _ProcessorPayloadTypeMultiPart()
+        return processor
 
     def _initialize_widgets(self):
         #

@@ -75,13 +75,21 @@ So far, Harvester has tested GenTL Producers and GenICam compliant devices from 
       - \-
       - \-
       - N/A
-    - - `Gardasoft <http://www.gardasoft.com/>`_
+    - - `FLIR <https://www.flir.com>`_
+      - N/A
+      - N/A
+      - \-
+    - - `Gardasoft <http://www.gardasoft.com>`_
       - N/A
       - N/A
       - Tested
     - - `JAI <https://www.jai.com>`_
       - \-
       - Tested
+      - \-
+    - - `Lucid Vision Labs <https://thinklucid.com>`_
+      - \-
+      - N/A
       - \-
     - - `MATRIX VISION <https://www.matrix-vision.com/home-en.html>`_
       - Tested
@@ -337,7 +345,7 @@ Supported Operating Systems
 ***************************
 
 * macOS
-* Ubuntu (Not well tested yet)
+* Ubuntu
 * Windows
 
 ############

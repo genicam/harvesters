@@ -189,8 +189,7 @@ class Harvester:
         self._data_stream = None
         self._event_manager = None
 
-        self._node_map = None
-        self._connecting_device = None
+        self._device = None
 
         #
         self._min_num_buffers = min_num_buffers
@@ -276,12 +275,8 @@ class Harvester:
         self._signal_stop_image_acquisition = obj
 
     @property
-    def node_map(self):
-        return self._node_map
-
-    @property
-    def connecting_device(self):
-        return self._connecting_device
+    def device(self):
+        return self._device
 
     @property
     def cti_files(self):
@@ -373,18 +368,18 @@ class Harvester:
         return processor
 
     def connect_device(self, item_id=0, user_defined_name=None):
-        if self.connecting_device or self.device_info_list is None:
+        if self.device or self.device_info_list is None:
             # TODO: Throw an exception to tell clients that there's no
             # device to connect.
             return
 
         # Instantiate a GenTL Device module.
-        self._connecting_device = self.device_info_list[
-            item_id].create_device()
+        self._device = \
+            device=self.device_info_list[item_id].create_device()
 
         # Then open it.
         try:
-            self.connecting_device.open(
+            self.device.open(
                 DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
             )
         except AccessDeniedException as e:
@@ -392,7 +387,7 @@ class Harvester:
             self.disconnect_device()
         else:
             # And get an alias of its GenTL Port module.
-            port = self.connecting_device.remote_port
+            port = self.device.remote_port
 
             # Inquire it's URL information.
             # TODO: Consider a case where len(url_info_list) > 1.
@@ -428,7 +423,7 @@ class Harvester:
                         #
                         try:
                             # device -> interface -> system
-                            encoding = self.connecting_device.parent.parent.char_encoding
+                            encoding = self.device.parent.parent.char_encoding
                         except InvalidParameterException as e:
                             encoding = TL_CHAR_ENCODING_LIST.TL_CHAR_ENCODING_UTF8
 
@@ -439,34 +434,34 @@ class Harvester:
                         break
 
             # Instantiate a GenICam node map object.
-            self._node_map = NodeMap()
+            self.device.node_map = NodeMap()
 
             # Then load the XML file content on the node map object.
-            self.node_map.load_xml_from_string(content)
+            self.device.node_map.load_xml_from_string(content)
 
             # Instantiate a concrete port object of the remote device's
             # port.
-            self._concrete_port = ConcretePort(self.connecting_device.remote_port)
+            self._concrete_port = ConcretePort(self.device.remote_port)
 
             # And finally connect the concrete port on the node map
             # object.
-            self.node_map.connect(self._concrete_port, port.name)
+            self.device.node_map.connect(self._concrete_port, port.name)
 
             if self._profiler:
                 self._profiler.print_diff()
 
     def disconnect_device(self):
         #
-        if self.connecting_device:
-            if self.connecting_device.is_open():
+        if self.device:
+            if self.device.is_open():
                 self.stop_image_acquisition()
-                self.connecting_device.close()
+                self.device.close()
 
-        if self._node_map:
-            self._node_map.disconnect()
-        self._node_map = None
+            if self.device.node_map:
+                self.device.node_map.disconnect()
+            self.device.node_map = None
 
-        self._connecting_device = None
+        self._device = None
         self._concrete_port = None
 
         if self._profiler:
@@ -481,8 +476,8 @@ class Harvester:
                     self._frontend.canvas.resume_drawing()
         else:
             #
-            self._data_stream = self.connecting_device.create_data_stream()
-            self._data_stream.open(self.connecting_device.data_stream_ids[0])
+            self._data_stream = self.device.create_data_stream()
+            self._data_stream.open(self.device.data_stream_ids[0])
 
             #
             num_required_buffers = self._min_num_buffers + self._num_extra_buffers
@@ -496,7 +491,7 @@ class Harvester:
             if self._data_stream.defines_payload_size():
                 buffer_size = self._data_stream.payload_size
             else:
-                buffer_size = self.node_map.PayloadSize.value
+                buffer_size = self.device.node_map.PayloadSize.value
 
             raw_buffers = self._create_raw_buffers(
                 num_buffers, buffer_size
@@ -518,7 +513,7 @@ class Harvester:
 
             # Reset the number of images to acquire.
             try:
-                acq_mode = self.node_map.AcquisitionMode.value
+                acq_mode = self.device.node_map.AcquisitionMode.value
                 if acq_mode == 'Continuous':
                     num_images_to_acquire = -1
                 elif acq_mode == 'SingleFrame':
@@ -552,7 +547,7 @@ class Harvester:
                 self.thread_image_acquisition.start()
 
             #
-            self.node_map.AcquisitionStart.execute()
+            self.device.node_map.AcquisitionStart.execute()
 
     def _worker_acquisition_statistics(self):
         if not self.is_acquiring_images:
@@ -638,7 +633,7 @@ class Harvester:
                 processors.append(self.user_defined_post_processor)
 
             # Put the buffer in the process flow.
-            input_buffer = Buffer(self._data_stream, gentl_buffer, self.node_map, None)
+            input_buffer = Buffer(self._data_stream, gentl_buffer, self.device.node_map, None)
             output_buffer = None
 
             for p in processors:
@@ -705,11 +700,11 @@ class Harvester:
                 timestamp = 0  # Not available
             else:
                 try:
-                    frequency = self.connecting_device.timestamp_frequency
+                    frequency = self.device.timestamp_frequency
                 except (InvalidParameterException, NotImplementedException,
                         NotAvailableException):
                     try:
-                        frequency = self.node_map.GevTimestampTickFrequency.value
+                        frequency = self.device.node_map.GevTimestampTickFrequency.value
                     except LogicalErrorException:
                         pass
 
@@ -794,7 +789,7 @@ class Harvester:
                 except TimeoutException as e:
                     print(e)
 
-                self.node_map.AcquisitionStop.execute()
+                self.device.node_map.AcquisitionStop.execute()
 
                 # Flash the queue for image acquisition process.
                 self._data_stream.flush_buffer_queue(
@@ -814,9 +809,9 @@ class Harvester:
                 statistics.reset()
 
     def reset_statistics(self):
-        self._current_width = self.node_map.Width.value
-        self._current_height = self.node_map.Height.value
-        self._current_pixel_format = self.node_map.PixelFormat.value
+        self._current_width = self.device.node_map.Width.value
+        self._current_height = self.device.node_map.Height.value
+        self._current_pixel_format = self.device.node_map.PixelFormat.value
 
     def add_cti_file(self, file_path: str):
         if file_path not in self._cti_files:

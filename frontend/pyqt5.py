@@ -427,7 +427,7 @@ class ActionSelectFile(Action):
 
     def update(self):
         enable = False
-        if self.parent().harvester_core.connecting_device is None:
+        if self.parent().harvester_core.device is None:
             enable = True
         self.setEnabled(enable)
 
@@ -443,7 +443,7 @@ class ActionUpdateList(Action):
     def update(self):
         enable = False
         if self.parent().cti_files:
-            if self.parent().harvester_core.connecting_device is None:
+            if self.parent().harvester_core.device is None:
                 enable = True
         self.setEnabled(enable)
 
@@ -459,10 +459,10 @@ class ActionConnect(Action):
             self.parent().device_list.currentIndex()
         )
 
-        if self.parent().harvester_core.node_map:
+        if self.parent().harvester_core.device.node_map:
             self.parent()._widget_attribute_controller = \
                 AttributeController(
-                    self.parent().harvester_core.node_map,
+                    self.parent().harvester_core.device.node_map,
                     parent=self.parent()
                 )
 
@@ -471,7 +471,7 @@ class ActionConnect(Action):
         enable = False
         if self.parent().cti_files:
             if self.parent().harvester_core.device_info_list and \
-                    self.parent().harvester_core.connecting_device is None:
+                    self.parent().harvester_core.device is None:
                 enable = True
         self.setEnabled(enable)
 
@@ -491,13 +491,13 @@ class ActionDisconnect(Action):
             if self.parent().attribute_controller.isVisible():
                 self.parent().attribute_controller.close()
 
-        if self.parent().harvester_core.connecting_device is None:
+        if self.parent().harvester_core.device is None:
             self.parent().harvester_core._feature_tree_model = None
 
         #
         enable = False
         if self.parent().cti_files:
-            if self.parent().harvester_core.connecting_device:
+            if self.parent().harvester_core.device:
                 enable = True
         self.setEnabled(enable)
 
@@ -513,7 +513,7 @@ class ActionStartImageAcquisition(Action):
     def update(self):
         enable = False
         if self.parent().cti_files:
-            if self.parent().harvester_core.connecting_device:
+            if self.parent().harvester_core.device:
                 if not self.parent().harvester_core.is_acquiring_images or \
                         self.parent().canvas.is_pausing:
                     enable = True
@@ -531,7 +531,7 @@ class ActionToggleDrawing(Action):
     def update(self):
         enable = False
         if self.parent().cti_files:
-            if self.parent().harvester_core.connecting_device:
+            if self.parent().harvester_core.device:
                 if self.parent().harvester_core.is_acquiring_images:
                     enable = True
         self.setEnabled(enable)
@@ -552,7 +552,7 @@ class ActionStopImageAcquisition(Action):
     def update(self):
         enable = False
         if self.parent().cti_files:
-            if self.parent().harvester_core.connecting_device:
+            if self.parent().harvester_core.device:
                 if self.parent().harvester_core.is_acquiring_images:
                     enable = True
         self.setEnabled(enable)
@@ -572,7 +572,7 @@ class ActionShowDevAttribute(Action):
     def update(self):
         enable = False
         if self.parent().cti_files:
-            if self.parent().harvester_core.connecting_device is not None:
+            if self.parent().harvester_core.device is not None:
                 enable = True
         self.setEnabled(enable)
 

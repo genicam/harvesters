@@ -62,6 +62,6 @@ class ComboBox(QComboBox, Observer):
         #
         enable = False
         if self.parent().parent().cti_files:
-            if self.parent().parent().harvester_core.connecting_device is None:
+            if self.parent().parent().harvester_core.device is None:
                 enable = True
         self.setEnabled(enable)

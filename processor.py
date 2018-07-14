@@ -26,17 +26,17 @@
 
 
 class Processor:
-    def __init__(self, brief_description):
+    def __init__(self, description):
         #
         super().__init__()
 
         #
-        self._brief_description = brief_description
+        self._description = description
         self._processors = []
 
     @property
-    def brief_description(self):
-        return self._brief_description
+    def description(self):
+        return self._description
 
     def process(self, input_buffer):
         output_buffer = None

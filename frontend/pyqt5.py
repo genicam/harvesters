@@ -49,7 +49,7 @@ class _ProcessorPayloadTypeImage(Processor):
     def __init__(self):
         #
         super().__init__(
-            brief_description='Processes a PAYLOAD_TYPE_IMAGE buffer'
+            description='Processes a PAYLOAD_TYPE_IMAGE buffer'
         )
 
         #
@@ -60,7 +60,7 @@ class _ProcessorPayloadTypeMultiPart(Processor):
     def __init__(self):
         #
         super().__init__(
-            brief_description='Processes a PAYLOAD_TYPE_MULTI_PART buffer'
+            description='Processes a PAYLOAD_TYPE_MULTI_PART buffer'
         )
 
 
@@ -74,7 +74,7 @@ class _ConvertNumpy1DToNumpy2D(Processor):
     def __init__(self):
         #
         super().__init__(
-            brief_description='Reshape a Numpy 1D array into a Numpy 2D array')
+            description='Reshapes a Numpy 1D array into a Numpy 2D array')
 
     def process(self, input_buffer: Buffer):
         #
@@ -111,7 +111,7 @@ class _ConvertNumpy1DToNumpy2D(Processor):
 class _Rotate(Processor):
     def __init__(self, angle=0):
         #
-        super().__init__(brief_description='Rotate a Numpy 2D array')
+        super().__init__(description='Rotates a Numpy 2D array')
 
         #
         self._angle = angle

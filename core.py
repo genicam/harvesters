@@ -53,7 +53,7 @@ class _ProcessorConvertPyBytesToNumpy1D(Processor):
     def __init__(self):
         #
         super().__init__(
-            brief_description='Converts a Python bytes object to a Numpy 1D array'
+            description='Converts a Python bytes object to a Numpy 1D array'
         )
 
     def process(self, input_buffer: Buffer):

@@ -274,7 +274,7 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
     :alt: Harvester on IPython
     :scale: 40 %
 
-.. code-block:: python
+.. ipython::
 
     (genicam) kznr@Kazunaris-MacBook:~% ipython
     Python 3.5.3 |Continuum Analytics, Inc.| (default, Mar  6 2017, 12:15:08)

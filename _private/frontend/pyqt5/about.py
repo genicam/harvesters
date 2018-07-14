@@ -45,7 +45,7 @@ class DecoratedDialog(QDialog):
         painter = QPainter(self)
         painter.drawPixmap(
             self.rect(),
-            QPixmap('frontend/image/background/about.jpg')
+            QPixmap('_private/frontend/image/background/about.jpg')
         )
 
 

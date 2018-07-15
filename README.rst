@@ -861,6 +861,7 @@ The following individuals have directly or indirectly contributed to the develop
 * Madhura Suresh
 * Chendra Hadi Suryanto
 * Timo Teifel
+* Albert Theuwissen
 * Laval Tremblay
 * Tim Vlaar
 * Silvio Voitzsch

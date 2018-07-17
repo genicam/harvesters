@@ -544,16 +544,15 @@ class Harvester:
 
         watch_timeout = True if timeout_ms > 0 else False
         buffer = None
+        base = time.time()
 
-        while True:
-            if watch_timeout and time.time() > timeout_ms:
+        while buffer is None:
+            if watch_timeout and (time.time() - base) > timeout_ms:
                 break
             else:
                 with MutexLocker(self.thread_image_acquisition):
                     if self._fetched_buffers:
-                        # Return the oldest buffer.
-                        buffer = self._fetched_buffers.pop(0)
-                        break
+                        buffer = self._fetched_buffers.pop(-1)
 
         return buffer
 

@@ -547,13 +547,13 @@ class Harvester:
 
         while True:
             if watch_timeout and time.time() > timeout_ms:
-                print('Detected timeout before fetching a buffer.')
                 break
             else:
-                if self._fetched_buffers:
-                    # Return the oldest buffer.
-                    buffer = self._fetched_buffers.pop(0)
-                    break
+                with MutexLocker(self.thread_image_acquisition):
+                    if self._fetched_buffers:
+                        # Return the oldest buffer.
+                        buffer = self._fetched_buffers.pop(0)
+                        break
 
         return buffer
 

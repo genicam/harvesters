@@ -29,7 +29,7 @@ from vispy.gloo import Program
 from vispy.util.transforms import ortho
 
 # Local application/library specific imports
-from harvester._private.core.helper.system import is_running_on_macos
+from harvesters._private.core.helper.system import is_running_on_macos
 
 
 class Canvas(app.Canvas):

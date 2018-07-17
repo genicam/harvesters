@@ -30,13 +30,13 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QTreeView, \
 from genicam2.genapi import EVisibility
 
 # Local application/library specific imports
-from harvester._private.core.thread_ import MutexLocker
-from harvester._private.frontend.helper import compose_tooltip
-from harvester._private.frontend.pyqt5.action import Action
-from harvester._private.frontend.pyqt5.feature_tree import \
+from harvesters._private.core.thread_ import MutexLocker
+from harvesters._private.frontend.helper import compose_tooltip
+from harvesters._private.frontend.pyqt5.action import Action
+from harvesters._private.frontend.pyqt5.feature_tree import \
     FeatureEditDelegate, FilterProxyModel, FeatureTreeModel
-from harvester._private.frontend.pyqt5.helper import get_system_font
-from harvester._private.frontend.pyqt5.icon import Icon
+from harvesters._private.frontend.pyqt5.helper import get_system_font
+from harvesters._private.frontend.pyqt5.icon import Icon
 
 """
 

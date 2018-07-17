@@ -24,7 +24,7 @@
 import numpy as np
 
 # Local application/library specific imports
-from harvester._private.core.image import Image
+from harvesters._private.core.image import Image
 
 
 class Buffer:

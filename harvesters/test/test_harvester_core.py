@@ -24,7 +24,7 @@ import unittest
 # Related third party imports
 
 # Local application/library specific imports
-from harvester.test.base_harvester import TestHarvesterCoreBase
+from harvesters.test.base_harvester import TestHarvesterCoreBase
 
 
 class TestHarvesterCore(TestHarvesterCoreBase):
@@ -71,7 +71,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
                 #
                 j += 1
             self._harvester.stop_image_acquisition()
-            print('    <--- stopped {0}'.format(i))
+            print('    <--- {0}: stopped'.format(i))
 
 
 if __name__ == '__main__':

@@ -34,8 +34,8 @@ from genicam2.genapi import NodeMap
 from genicam2.genapi import EInterfaceType, EAccessMode, EVisibility
 
 # Local application/library specific imports
-from harvester._private.core.thread_ import MutexLocker
-from harvester._private.frontend.pyqt5.helper import get_system_font
+from harvesters._private.core.thread_ import MutexLocker
+from harvesters._private.frontend.pyqt5.helper import get_system_font
 
 
 class TreeItem(object):

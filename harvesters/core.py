@@ -41,12 +41,12 @@ from genicam2.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     TL_CHAR_ENCODING_LIST
 
 # Local application/library specific imports
-from harvester._private.core.buffer import Buffer
-from harvester._private.core.port import ConcretePort
-from harvester._private.core.statistics import Statistics
-from harvester._private.core.thread import PyThread
-from harvester._private.core.thread_ import MutexLocker
-from harvester.processor import Processor
+from harvesters._private.core.buffer import Buffer
+from harvesters._private.core.port import ConcretePort
+from harvesters._private.core.statistics import Statistics
+from harvesters._private.core.thread import PyThread
+from harvesters._private.core.thread_ import MutexLocker
+from harvesters.processor import Processor
 
 
 class _ProcessorConvertPyBytesToNumpy1D(Processor):

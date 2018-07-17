@@ -24,7 +24,7 @@
 from PyQt5.QtWidgets import QAction
 
 # Local application/library specific imports
-from harvester._private.core.subject import Subject
+from harvesters._private.core.subject import Subject
 
 
 class Action(QAction, Subject):

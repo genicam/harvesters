@@ -25,8 +25,8 @@ import unittest
 # Related third party imports
 
 # Local application/library specific imports
-from harvester.core import Harvester
-from harvester._private.core.helper.system import is_running_on_windows
+from harvesters.core import Harvester
+from harvesters._private.core.helper.system import is_running_on_windows
 
 
 class TestHarvesterCoreBase(unittest.TestCase):

@@ -24,7 +24,7 @@
 from PyQt5.QtGui import QFont
 
 # Local application/library specific imports
-from harvester._private.core.helper.system import is_running_on_macos, \
+from harvesters._private.core.helper.system import is_running_on_macos, \
     is_running_on_windows
 
 

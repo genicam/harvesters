@@ -19,6 +19,7 @@
 
 
 # Standard library imports
+import os
 import setuptools
 from distutils import log
 
@@ -26,7 +27,6 @@ from distutils import log
 
 # Local application/library specific imports
 import versioneer
-
 
 
 #

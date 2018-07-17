@@ -1,4 +1,10 @@
-include LICENSE
-recursive-include image *include versioneer.py
+# Versioneer
 include _version.py
 include versioneer.py
+
+#
+recursive-include harvester *.py *.jpg *.png
+
+# Misc
+include LICENSE
+include README.rst

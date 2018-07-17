@@ -20,6 +20,7 @@
 
 # Standard library imports
 import setuptools
+from distutils import log
 
 # Related third party imports
 
@@ -27,22 +28,49 @@ import setuptools
 import versioneer
 
 
+
+#
+log.set_verbosity(log.DEBUG)
+log.info('Entered setup.py')
+log.info('$PATH=%s' % os.environ['PATH'])
+
+__doc__ = ''
 with open('README.rst', 'r') as fh:
-    long_description = fh.read()
+    __doc__ = fh.read()
+
+name = 'genicam.harvester'
+description = 'Image acquisition & data visualization with Python'
 
 setuptools.setup(
-    name='genicam.harvester',
-    version=versioneer.get_version(),
-    author='Kazunari Kudo',
-    author_email='who.is.kazunari@gmail.com',
-    description='Image acquisition & data visualization with Python',
-    long_description=long_description,
-    long_description_content_type='text/x-rst',
-    url='https://github.com/genicam/harvester',
-    packages=setuptools.find_packages(),
+    author='The GenICam Committee',
+    author_email='genicam@list.stemmer-imaging.com',
     classifiers=(
-        'Programming Language :: Python :: 3.4',
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Science/Research',
+        'Intended Audience :: Education',
+        'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
         'Operating System :: MacOS :: MacOS X',
+        'Operating System :: Microsoft :: Windows',
+        'Operating System :: POSIX',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ),
+    description=description,
+    download_url='https://pypi.org/project/genicam.harvester/',
+    install_requires=['numpy'],
+    license='Apache Software License V2.0',
+    long_description=__doc__,
+    long_description_content_type='text/x-rst',
+    name=name,
+    package_dir={
+        'harvester': 'harvester',
+    },
+    packages=setuptools.find_packages(),
+    platforms='any',
+    provides=['harvester'],
+    url='https://github.com/genicam/harvester',
+    version=versioneer.get_version(),
  )

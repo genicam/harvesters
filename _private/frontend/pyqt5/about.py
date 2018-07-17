@@ -29,7 +29,7 @@ from PyQt5.QtWidgets import QDialog, QApplication, QPlainTextEdit, \
     QTextEdit
 
 # Local application/library specific imports
-import harvester.versioneer
+import harvester.versioneer as versioneer
 from harvester._private.frontend.pyqt5.helper import get_system_font
 
 
@@ -95,8 +95,7 @@ class About(QDialog):
 
         #
         text_version = TransparentLineEdit(
-            #'Version ' + versioneer.get_version()
-            'Version ' + 'N/A'
+            'Version ' + versioneer.get_version()
         )
         text_copyright = TransparentLineEdit('Copyright (c) 2018 EMVA')
 

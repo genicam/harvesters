@@ -26,7 +26,7 @@ from distutils import log
 # Related third party imports
 
 # Local application/library specific imports
-import harvesters.versioneer
+import harvesters.versioneer as versioneer
 
 
 #

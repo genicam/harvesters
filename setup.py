@@ -66,7 +66,7 @@ setuptools.setup(
     long_description_content_type='text/x-rst',
     name=name,
     package_dir={
-        'harvester': 'harvester',
+        'genicam.harvester': 'genicam.harvester'
     },
     packages=setuptools.find_packages(),
     platforms='any',

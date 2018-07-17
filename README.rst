@@ -516,7 +516,7 @@ This button is used to update GenTL information of the GenTL Producer that you a
 Selecting a GenICam compliant device
 ------------------------------------
 
-This combo box shows a list of available GenICam compliant devices. You can select a device that you want to control. The shortcut key is ``Ctrl+D``, i.e., ``Ctrl+Shift+d``. 
+This combo box shows a list of available GenICam compliant devices. You can select a device that you want to control. The shortcut key is ``Ctrl+D``, i.e., ``Ctrl+Shift+d``.
 
 Connecting a selected device to Harvester
 -----------------------------------------
@@ -720,7 +720,7 @@ Harvester Core uses the following open source libraries/resources:
   | https://pythonhosted.org/Pympler/
   | https://github.com/pympler/pympler
   | https://pypi.org/project/Pympler/
-        
+
 * Versioneer
 
   | License: `The Creative Commons "Public Domain Dedication" license  (CC0-1.0) <https://creativecommons.org/publicdomain/zero/1.0/>`_
@@ -737,7 +737,7 @@ Harvester GUI uses the following open source libraries/resources:
 
   | http://vispy.org
   | https://github.com/vispy/vispy
-        
+
 * PyQt5
 
   | License: `GPLv3 <https://www.gnu.org/licenses/gpl-3.0.en.html>`_
@@ -745,7 +745,7 @@ Harvester GUI uses the following open source libraries/resources:
 
   | https://www.riverbankcomputing.com
   | https://pypi.org/project/PyQt5/
-        
+
 * Icons8
 
   | License: `Creative Commons Attribution-NoDerivs 3.0 Unported <https://creativecommons.org/licenses/by-nd/3.0/>`_
@@ -777,102 +777,4 @@ The initial idea about Harvester suddenly came up to Kazunari Kudo's head in the
 
 The following individuals have directly or indirectly contributed to the development activity of Harvester or encouraged the developers by their thoughtful warm words:
 
-* Rod Barman
-* Stefan Battmer
-* David Beek
-* Jan Becvar
-* David Bernecker
-* Chris Beynon
-* Eric Bourbonnais
-* George Chamberlain
-* Thomas Detjen
-* Friedrich Dierks
-* Dana Diezemann
-* Emile Dodin
-* Reynold Dodson
-* Sascha Dorenbeck
-* Erik Eloff
-* Katie Ensign
-* Andreas Ertl
-* James Falconer
-* Werner Feith
-* Maciej Gara
-* Andreas Gau
-* Sebastien Gendreau
-* Francois Gobeil
-* Werner Goeman
-* Jean-Paul Goglio
-* Markus Grebing
-* Eric Gross
-* Ioannis Hadjicharalambous
-* Uwe Hagmaier
-* Tim Handschack
-* Christopher Hartmann
-* Reinhard Heister
-* Gerhard Helfrich
-* Jochem Herrmann
-* Heiko Hirschmueller
-* Tom Hopfner
-* David Hoese
-* Karsten Ingeman Christensen
-* Severi Jaaskelainen
-* Mattias Johannesson
-* Mark Jones
-* Mattias Josefsson
-* Martin Kersting
-* Stephan Kieneke
-* Tom Kirchner
-* Lutz Koschorreck
-* Frank Krehl
-* Maarten Kuijk
-* Max Larin
-* Ralf Lay
-* Min Liu
-* Sergey Loginonvskikh
-* Thomas Lueck
-* Alain Marchand
-* Rocco Matano
-* Masahide Matsubara
-* Stephane Maurice
-* Robert McCurrach
-* Mike Miethig
-* Thies Moeller
-* Roman Moie
-* Marcel Naggatz
-* Hartmut Nebelung
-* Damian Nesbitt
-* Quang Nhan Nguyen
-* Klaus-Henning Noffz
-* Neerav Patel
-* Jan Pech
-* Merlin Plock
-* Joerg Preckwinkel
-* Benjamin Pussacq
-* Dave Reaves
-* Thomas Reuter
-* Andreas Rittinger
-* Ryan Robe
-* Nicolas P. Rougier
-* Matthias Schaffland
-* Michael Schmidt
-* Jan Scholze
-* Martin Schwarzbauer
-* Rupert Stelz
-* Madhura Suresh
-* Chendra Hadi Suryanto
-* Timo Teifel
-* Albert Theuwissen
-* Laval Tremblay
-* Tim Vlaar
-* Silvio Voitzsch
-* Stefan Von Weihe
-* Frederik Voncken
-* Roman Wagner
-* Ansger Waschki
-* Anne Wendel
-* Jean-Michel Wintgens
-* Manfred Wuetschner
-* Jang Xu
-* Christoph Zierl
-* Juraj Zopp
-
+Rod Barman, Stefan Battmer, David Beek, Jan Becvar, David Bernecker, Chris Beynon, Eric Bourbonnais, George Chamberlain, Thomas Detjen, Friedrich Dierks, Dana Diezemann, Emile Dodin, Reynold Dodson, Sascha Dorenbeck, Erik Eloff, Katie Ensign, Andreas Ertl, James Falconer, Werner Feith, Maciej Gara, Andreas Gau, Sebastien Gendreau, Francois Gobeil, Werner Goeman, Jean-Paul Goglio, Markus Grebing, Eric Gross, Ioannis Hadjicharalambous, Uwe Hagmaier, Tim Handschack, Christopher Hartmann, Reinhard Heister, Gerhard Helfrich, Jochem Herrmann, Heiko Hirschmueller, Tom Hopfner, David Hoese, Karsten Ingeman Christensen, Severi Jaaskelainen, Mattias Johannesson, Mark Jones, Mattias Josefsson, Martin Kersting, Stephan Kieneke, Tom Kirchner, Lutz Koschorreck, Frank Krehl, Maarten Kuijk, Max Larin, Ralf Lay, Min Liu, Sergey Loginonvskikh, Thomas Lueck, Alain Marchand, Rocco Matano, Masahide Matsubara, Stephane Maurice, Robert McCurrach, Mike Miethig, Thies Moeller, Roman Moie, Marcel Naggatz, Hartmut Nebelung, Damian Nesbitt, Quang Nhan Nguyen, Klaus-Henning Noffz, Neerav Patel, Jan Pech, Merlin Plock, Joerg Preckwinkel, Benjamin Pussacq, Dave Reaves, Thomas Reuter, Andreas Rittinger, Ryan Robe, Nicolas P. Rougier, Matthias Schaffland, Michael Schmidt, Jan Scholze, Martin Schwarzbauer, Rupert Stelz, Madhura Suresh, Chendra Hadi Suryanto, Timo Teifel, Albert Theuwissen, Laval Tremblay, Tim Vlaar, Silvio Voitzsch, Stefan Von Weihe, Frederik Voncken, Roman Wagner, Ansger Waschki, Anne Wendel, Jean-Michel Wintgens, Manfred Wuetschner, Jang Xu, Christoph Zierl, and Juraj Zopp

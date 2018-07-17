@@ -24,7 +24,7 @@ import unittest
 # Related third party imports
 
 # Local application/library specific imports
-from test.base_harvester import TestHarvesterCoreBase
+from harvester.test.base_harvester import TestHarvesterCoreBase
 
 
 class TestHarvesterCore(TestHarvesterCoreBase):

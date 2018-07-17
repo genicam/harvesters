@@ -3,7 +3,7 @@ include _version.py
 include versioneer.py
 
 #
-recursive-include genicam.harvester *.py *.jpg *.png
+recursive-include harvesters *.py *.jpg *.png
 
 # Misc
 include LICENSE

@@ -38,7 +38,7 @@ __doc__ = ''
 with open('README.rst', 'r') as fh:
     __doc__ = fh.read()
 
-name = 'genicam.harvester'
+name = 'harvesters'
 description = 'Image acquisition & data visualization with Python'
 
 setuptools.setup(
@@ -59,18 +59,18 @@ setuptools.setup(
         'Programming Language :: Python :: 3.6',
     ),
     description=description,
-    download_url='https://pypi.org/project/genicam.harvester/',
+    download_url='https://pypi.org/project/harvesters/',
     install_requires=['numpy'],
     license='Apache Software License V2.0',
     long_description=__doc__,
     long_description_content_type='text/x-rst',
     name=name,
     package_dir={
-        'genicam.harvester': 'genicam.harvester'
+        'harvesters': 'harvesters'
     },
     packages=setuptools.find_packages(),
     platforms='any',
     provides=['harvester'],
     url='https://github.com/genicam/harvester',
     version=versioneer.get_version(),
- )
+)

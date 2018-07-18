@@ -1,5 +1,4 @@
 # Versioneer
-include _version.py
 include versioneer.py
 
 #

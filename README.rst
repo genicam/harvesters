@@ -523,7 +523,7 @@ Now you can quit the program.
 How to Use Harvester GUI
 ########################
 
-You can use Harvester GUIT with the following code:
+You can use Harvester GUI with the following code:
 
 .. code-block:: python
 

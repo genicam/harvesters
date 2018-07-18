@@ -70,7 +70,7 @@ setuptools.setup(
     },
     packages=setuptools.find_packages(),
     platforms='any',
-    provides=['harvester'],
-    url='https://github.com/genicam/harvester',
+    provides=['harvesters'],
+    url='https://github.com/genicam/harvesters',
     version=versioneer.get_version(),
 )

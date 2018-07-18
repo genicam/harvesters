@@ -281,7 +281,7 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
     Type 'copyright', 'credits' or 'license' for more information
     IPython 6.3.1 -- An enhanced Interactive Python. Type '?' for help.
 
-    In [1]: from harvester.core import Harvester
+    In [1]: from harvesters.core import Harvester
 
     In [2]: h = Harvester()
 

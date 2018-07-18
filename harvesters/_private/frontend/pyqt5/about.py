@@ -89,6 +89,7 @@ class About(QDialog):
         #
         self._button_acknowledgements = QPushButton()
         self._button_acknowledgements.setText('Acknowledgements')
+        self._button_acknowledgements.setFont(get_system_font())
         self._button_acknowledgements.clicked.connect(
             self._handle_open_dialog
         )

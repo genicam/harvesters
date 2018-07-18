@@ -35,7 +35,7 @@ log.info('Entered setup.py')
 log.info('$PATH=%s' % os.environ['PATH'])
 
 __doc__ = ''
-with open('README.rst', 'r') as fh:
+with open('README.rst', 'r',encoding='utf-8_sig') as fh:
     __doc__ = fh.read()
 
 name = 'harvesters'

@@ -540,7 +540,7 @@ To use Harvester GUI, let's create a Python script file, naming ``foo.py``, that
 
 Then launch ``foo.py``:
 
-.. code-block:: python
+.. code-block:: shell
 
     $ python foo.py
 

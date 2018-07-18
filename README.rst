@@ -472,7 +472,7 @@ The following code will list devices that you can access:
 
 .. code-block:: python
 
-    for i, info enumerate(h.device_info_list):
+    for i, info in enumerate(h.device_info_list):
         print('{0}: {1}'.format(i, info.display_name))
 
 And you connect a device to the Harvester object:

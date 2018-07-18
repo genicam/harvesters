@@ -384,7 +384,7 @@ Or you could clone Harvester first and manually install it using ``setup.py``.
 .. code-block:: shell
 
     $ git clone https://github.com/genicam/harvester.git
-    $ setup.py install
+    $ python setup.py install
 
 If you want to use Harvester GUI, then please install the following modules:
 

@@ -1,9 +1,6 @@
 # Versioneer
 include versioneer.py
 
-#
-recursive-include harvesters/_private/frontend/image *
-
 global-exclude __pycache__
 global-exclude *.py[co]
 

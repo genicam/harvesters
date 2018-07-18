@@ -448,6 +448,7 @@ First, let's import Harvester:
 Then instantiate a Harvester object:
 
 .. code-block:: python
+
     h = Harvester()
 
 And load a CTI file:
@@ -461,7 +462,7 @@ Note that you can add more CTI files. To add another CTI file, just repeat calli
 .. code-block:: python
 
     h.remove_cti_file('path/to/gentl_producer.cti')
-    
+
 And now we have to update the list of devices:
 
 .. code-block:: python
@@ -481,7 +482,7 @@ And you connect a device to the Harvester object:
 
     h.connect_device(0)
 
-The following code starts image acquisition: 
+The following code starts image acquisition:
 
 .. code-block:: python
 
@@ -504,13 +505,13 @@ Having that code, the fetched buffer, ``buffer``, is automatically queued once t
 
 In this option, again, do not forget that you have to queue the buffer by yourself. If you forgot queueing it, then you'll lose a buffer that can be used for image acquisition.
 
-The following code stops image acquisition: 
+The following code stops image acquisition:
 
 .. code-block:: python
 
     h.stop_image_acquisition()
 
-And the following code disconnects the device from Harvester: 
+And the following code disconnects the device from Harvester:
 
 .. code-block:: python
 

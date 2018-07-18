@@ -449,7 +449,7 @@ Having that code, the fetched buffer, ``buffer``, is automatically queued once t
     print(buffer.image.ndarray)
     h.queue_buffer(buffer)
 
-In this option, again, do not forget that you have to queue the buffer by yourself. If you forot queueing it, you'll lose a buffer that can be used for image acquisition.
+In this option, again, do not forget that you have to queue the buffer by yourself. If you forgot queueing it, then you'll lose a buffer that can be used for image acquisition.
 
 ########################
 How to Use Harvester GUI

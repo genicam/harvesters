@@ -5,6 +5,9 @@ include versioneer.py
 #
 recursive-include harvesters *.py *.jpg *.png
 
+global-exclude __pycache__
+global-exclude *.py[co]
+
 # Misc
 include LICENSE
 include README.rst

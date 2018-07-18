@@ -529,6 +529,7 @@ You can use Harvester GUIT with the following code:
 
     import sys
     from PyQt5.QtWidgets import QApplication
+    from harvesters.frontend.pyqt5 import Harvester
 
 
     if __name__ == '__main__':

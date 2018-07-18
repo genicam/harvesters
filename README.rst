@@ -439,17 +439,52 @@ Please remind that you need to be careful when you choose a Python version (espe
 How to Use Harvester Core
 #########################
 
-You can use Harvester Core to control a device with the following code:
+First, let's import Harvester:
 
 .. code-block:: python
 
     import harvesters.core import Harvester
 
+Then instantiate a Harvester object:
 
+.. code-block:: python
     h = Harvester()
+
+And load a CTI file:
+
+.. code-block:: python
+
     h.add_cti_file('path/to/gentl_producer.cti')
+
+Note that you can add more CTI files. To add another CTI file, just repeat calling ``add_cti_file`` method passing the target CTI file. In contrary sense, you can remove a specific CTI file that you have added with the following code:
+
+.. code-block:: python
+
+    h.remove_cti_file('path/to/gentl_producer.cti')
+    
+And now we have to update the list of devices:
+
+.. code-block:: python
+
     h.update_device_info_list()
+
+The following code will list devices that you can access:
+
+.. code-block:: python
+
+    for i, info enumerate(h.device_info_list):
+        print('{0}: {1}'.format(i, info.display_name))
+
+And you connect a device to the Harvester object:
+
+.. code-block:: python
+
     h.connect_device(0)
+
+The following code starts image acquisition: 
+
+.. code-block:: python
+
     h.start_image_acquisition()
 
 To fetch a buffer that has been filled up with an image, you can have 2 options; the first option is to use the ``with`` statement:
@@ -468,6 +503,20 @@ Having that code, the fetched buffer, ``buffer``, is automatically queued once t
     h.queue_buffer(buffer)
 
 In this option, again, do not forget that you have to queue the buffer by yourself. If you forgot queueing it, then you'll lose a buffer that can be used for image acquisition.
+
+The following code stops image acquisition: 
+
+.. code-block:: python
+
+    h.stop_image_acquisition()
+
+And the following code disconnects the device from Harvester: 
+
+.. code-block:: python
+
+    h.disconnect_device()
+
+Now you can quit the program.
 
 ########################
 How to Use Harvester GUI

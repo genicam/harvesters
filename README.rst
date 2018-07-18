@@ -415,7 +415,25 @@ To build the library, please read the ``README`` file which is located at the fo
 
 Reading that file, you should be able to learn everything you need to build the Python Bindings by yourself.
 
-Before closing this section, please remind that you need to be careful when you choose a Python version (especially Anaconda Python, maybe?) because some distributions have different directory structure or linking symbols. It simply breaks the Python Bindings. We have started collecting some results from our experiences and have listed them in the "System Configuration Matrix" section in the ``README`` file. We hope it helps you to save your time.
+In the final release, a ``setup.py`` for the Python Bindings will be provided with the GenICam reference implementation package that is distributed at the EMVA website but it's not been available yet. Until it turns available, you may go on a way to manually create a symlink to bridge your target Python interpreter and the built/provided binaries.
+
+The Python Bindings should be packed as ``genicam2``. So on Windows, to create a symlink ``genicam2`` in your target Python interpreter, please invoke the following command:
+
+.. code-block:: shell
+
+    $ mklink /D path/to/target/site-packages/genicam2 path/to/source/genicam/bin/Win64_x64
+
+Or, on Linux or macOS, you can do the same invoking the following command; please replace ``Linux64_x64`` with ``Maci64_x64``:
+
+.. code-block:: shell
+
+    ln –s path/to/source/genicam/bin/Linux64_x64 path/to/target/site-packages/genicam2
+
+************************************
+Remarks Regaring the Python Bindings
+************************************
+
+Please remind that you need to be careful when you choose a Python version (especially Anaconda Python, maybe?) because some distributions have different directory structure or linking symbols. It simply breaks the Python Bindings. We have started collecting some results from our experiences and have listed them in the "System Configuration Matrix" section in the ``README`` file. We hope it helps you to save your time.
 
 #########################
 How to Use Harvester Core

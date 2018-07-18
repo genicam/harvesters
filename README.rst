@@ -344,6 +344,8 @@ System Requirements
 Supported Operating Systems
 ***************************
 
+Harvester has been tested with the following operating systems.
+
 * macOS
 * Ubuntu
 * Windows

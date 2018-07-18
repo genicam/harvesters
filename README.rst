@@ -465,8 +465,8 @@ You can use Harvester GUIT with the following code:
 
     if __name__ == '__main__':
         app = QApplication(sys.argv)
-        harvester = Harvester()
-        harvester.show()
+        h = Harvester()
+        h.show()
         sys.exit(app.exec_())
 
 #############

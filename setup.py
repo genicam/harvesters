@@ -68,6 +68,12 @@ setuptools.setup(
     package_dir={
         'harvesters': 'harvesters'
     },
+    package_data={
+        'harvesters': [
+            '_private/frontend/image/*/*.jpg',
+            '_private/frontend/image/*/*.png'
+        ]
+    },
     packages=setuptools.find_packages(),
     platforms='any',
     provides=['harvesters'],

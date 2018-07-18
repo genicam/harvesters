@@ -7,6 +7,7 @@ recursive-include harvesters *.jpg *.png
 #
 global-exclude __pycache__
 global-exclude *.py[co]
+global-exclude \.DS_Store
 
 global-include *.jpg *.png
 

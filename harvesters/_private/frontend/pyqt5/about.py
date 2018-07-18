@@ -31,6 +31,7 @@ from PyQt5.QtWidgets import QDialog, QApplication, QPlainTextEdit, \
 # Local application/library specific imports
 from harvesters.__init__ import __version__
 from harvesters._private.frontend.pyqt5.helper import get_system_font
+from harvesters._helper import get_package_root
 
 
 class DecoratedDialog(QDialog):
@@ -45,7 +46,7 @@ class DecoratedDialog(QDialog):
         painter = QPainter(self)
         painter.drawPixmap(
             self.rect(),
-            QPixmap('_private/frontend/image/background/about.jpg')
+            QPixmap(get_package_root() + '/_private/frontend/image/background/about.jpg')
         )
 
 

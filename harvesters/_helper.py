@@ -19,17 +19,13 @@
 
 
 # Standard library imports
+import os
 
 # Related third party imports
-from PyQt5.QtGui import QIcon
 
 # Local application/library specific imports
-from harvesters._helper import get_package_root
 
 
-class Icon(QIcon):
-    def __init__(self, file_name):
-        #
-        super().__init__(
-            get_package_root() + '/_private/frontend/image/icon/' + file_name
-        )
+def get_package_root():
+    return os.path.dirname(os.path.abspath(__file__))
+

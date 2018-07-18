@@ -362,37 +362,48 @@ Overview
 
 In short, you may think which tools are required to get Harvester work. The answer is listed as follows:
 
-* The GenApi-Python Binding
-* The GenTL-Python Binding
+* The Python Bindings for GenApi & GenTL
 * The GenICam reference implementation
 * A certified GenTL Producer
 * A GenICam compliant machine vision camera
 
-The first three items will be able to downloaded from the EMVA website in the future. Regarding the 4th item, you should be able to get proprietary product from software vendors who sell image acquisition library. Regarding the 5th item, you should be able to purchase from machine vision camera manufactures all over the world.
+The first two items will be able to downloaded from the EMVA website in the future. Regarding the 3rd item, you should be able to get proprietary product from software vendors who sell image acquisition library. Regarding the 4th item, you should be able to purchase from machine vision camera manufactures all over the world.
 
-***********************************************************************************
-THIS IS A TEMPORAL INSTRUCTION BUT PLEASE FOLLOW THIS WAY TO GET HARVESTER WORKING!
-***********************************************************************************
+********************
+Installing Harvester
+********************
 
-We are still working in the development stage so people who those are want to get Harvester working have to prepare everything by themselves (sorry about that!). In this section, we will learn how to prepare required tools/libraries.
+You can install Harvester via PyPI invoking the following command:
 
-First, invoking the following command clone the Harvester from the GitHub :
+.. code-block:: shell
+
+    $ pip install harvesters numpy
+
+Or you could clone Harvester first and manually install it using ``setup.py``.
 
 .. code-block:: shell
 
     $ git clone https://github.com/genicam/harvester.git
+    $ setup.py install
 
-Harvester requires some Python modules. To install the required modules, please invoke the following command; we're planning to isolate these modules from Harvester Core because these modules are relevant to visualization task but please install them anyway for now:
-
-.. code-block:: shell
-
-    $ pip install numpy PyQt5 vispy
-
-After that, you'll have to build the Python bindings by yourself. The source code can be downloaded from the following URL using Subversion:
+If you want to use Harvester GUI, then please install the following modules:
 
 .. code-block:: shell
 
-    $ svn co --username your_account_name https://genicam.mvtec.com/svn/genicam/branches/_dev_teli_kazunari_1881_20180121/
+    $ pip install PyQt5 vispy
+
+
+******************************
+Installing the Python Bindings
+******************************
+
+Harvester requires the GenApi-Python Binding and the GenTL-Python Binding. As of July 2018, it's not officially distributed yet by EMVA. Having that fact, the only way to get those is building them by yourself.
+
+The source code can be downloaded from the following URL using Subversion:
+
+.. code-block:: shell
+
+    $ svn co https://genicam.mvtec.com/svn/genicam/branches/_dev_teli_kazunari_1881_20180121/
 
 Note that you need to be a member of EMVA to download a working copy from their repository. To learn about the detail please visit the following EMVA website:
 
@@ -406,76 +417,55 @@ Reading that file, you should be able to learn everything you need to build the 
 
 Before closing this section, please remind that you need to be careful when you choose a Python version (especially Anaconda Python, maybe?) because some distributions have different directory structure or linking symbols. It simply breaks the Python Bindings. We have started collecting some results from our experiences and have listed them in the "System Configuration Matrix" section in the ``README`` file. We hope it helps you to save your time.
 
-********************************************************************************************
-Installing an official release (Under construction; please do not follow this way for now)
-********************************************************************************************
+#########################
+How to Use Harvester Core
+#########################
 
-**NOTE: This way is not available as of May 2018. Thank you for your patience!**
+You can use Harvester Core to control a device with the following code:
 
-The Harvester project is planning to support distribution via PyPI but it's not done yet. If once we supported it, you should be able to install Harvester invoking the following command:
+.. code-block:: python
 
-.. code-block:: shell
+    import harvesters.core import Harvester
 
-    $ pip install harvesters
 
-###########################
-Instructions for Developers
-###########################
+    h = Harvester()
+    h.add_cti_file('path/to/gentl_producer.cti')
+    h.update_device_info_list()
+    h.connect_device(0)
+    h.start_image_acquisition()
 
-*****************
-Setting Up an IDE
-*****************
+To fetch a buffer that has been filled up with an image, you can have 2 options; the first option is to use the ``with`` statement:
 
-When you finished building the Python bindings, then you can launch Harvester. To launch Harvester Core or Harvester GUI, we would recommend you to do it on an IDE called PyCharm. You can download the community version of PyCharm for free at the following URL:
+.. code-block:: python
 
-https://www.jetbrains.com/pycharm/download
+    with h.fetch_buffer() as buffer:
+        print(buffer.image.ndarray)
 
-After installing PyCharm, open the Harvester package, that you have downloaded from GitHub, from PyCharm.
+Having that code, the fetched buffer, ``buffer``, is automatically queued once the code step out from the scop of the ``with`` statement. It's prevents to queue it by accident. The other option is to manually queue the fetched buffer by yourself:
 
-***************
-Module Location
-***************
+.. code-block:: python
 
-By default, PyCharm doesn't know where the Python Bings are located. You can tell PyCharm the location in the Preference dialog. You should be able to find the right place just searching from the top-left corner. Then clicking ``Add Content Root`` button in the top-right corner and specify the directory.
+    buffer = h.fetch_buffer()
+    print(buffer.image.ndarray)
+    h.queue_buffer(buffer)
 
-.. image:: https://user-images.githubusercontent.com/8652625/40595910-7df63826-6272-11e8-807a-96c0fb4229d7.png
-    :align: center
-    :alt: Project Structure
-    :scale: 40 %
+In this option, again, do not forget that you have to queue the buffer by yourself. If you forot queueing it, you'll lose a buffer that can be used for image acquisition.
 
-In the Project Structure page, please add content root where the Python Bindings are located. In general, you should point at the following directory:
+########################
+How to Use Harvester GUI
+########################
 
-``genicam_root/bin/[target dependent]``
+.. code-block:: python
 
-Having that information, PyCharm can find out those modules which Harvester asks Python to import.
+    import sys
+    from PyQt5.QtWidgets import QApplication
 
-Using ``PAYTHONPATH`` is also a way to tell Python an additional directory where Python modules are located. If your intended modules are located at ``path/to/module_dir``, you should set up ``PYTHONPATH`` as follows:
 
-.. code-block:: shell
-
-    $ PYTHONPATH=path/to/module_dir
-
-***********************
-Launching Harvester GUI
-***********************
-
-After that, you're ready to launch Harvester GUI (not only Harvester Core). To launch Harvester GUI, selecting ``frontend/pyqt/harvester.py`` in the project pane, then right click it. There you should be able to find ``Run harvester`` in the popped up menu. Just click it. Harvester GUI should pop up.
-
-.. image:: https://user-images.githubusercontent.com/8652625/40917805-70b4f8f0-683f-11e8-8d8e-0a710875833e.png
-    :align: center
-    :alt: Run harvester
-    :scale: 40 %
-
-*************************************
-Loading a GenTL Producer on Harvester
-*************************************
-
-Now it is the time to select a GenTL Producer to load. In the toolbar, clicking the left most button, select a CTI file to load. Then a file selection dialog should pop up. In the following example, we chose a GenTL Producer simulator so-called TLSimu.
-
-.. image:: https://user-images.githubusercontent.com/8652625/40985679-96c03c7c-691f-11e8-9e6e-cddae618dc37.png
-    :align: center
-    :alt: Loaded TLSimu
-    :scale: 40 %
+    if __name__ == '__main__':
+        app = QApplication(sys.argv)
+        harvester = Harvester()
+        harvester.show()
+        sys.exit(app.exec_())
 
 #############
 Harvester GUI

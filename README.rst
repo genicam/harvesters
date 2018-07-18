@@ -523,7 +523,7 @@ Now you can quit the program.
 How to Use Harvester GUI
 ########################
 
-You can use Harvester GUI with the following code:
+To use Harvester GUI, let's create a Python script file, naming ``foo.py``, that contains the following code:
 
 .. code-block:: python
 
@@ -537,6 +537,14 @@ You can use Harvester GUI with the following code:
         h = Harvester()
         h.show()
         sys.exit(app.exec_())
+
+Then launch ``foo.py``:
+
+.. code-block:: python
+
+    $ python foo.py
+
+You will see Harvester GUI pops up.
 
 #############
 Harvester GUI

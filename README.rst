@@ -455,6 +455,8 @@ In this option, again, do not forget that you have to queue the buffer by yourse
 How to Use Harvester GUI
 ########################
 
+You can use Harvester GUIT with the following code:
+
 .. code-block:: python
 
     import sys

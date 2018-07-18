@@ -427,7 +427,7 @@ Or, on Linux or macOS, you can do the same invoking the following command; pleas
 
 .. code-block:: shell
 
-    ln –s path/to/source/genicam/bin/Linux64_x64 path/to/target/site-packages/genicam2
+    $ ln –s path/to/source/genicam/bin/Linux64_x64 path/to/target/site-packages/genicam2
 
 ************************************
 Remarks Regaring the Python Bindings

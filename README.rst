@@ -416,7 +416,7 @@ The Harvester project is planning to support distribution via PyPI but it's not 
 
 .. code-block:: shell
 
-    $ pip install genicam.harvester
+    $ pip install harvesters
 
 ###########################
 Instructions for Developers

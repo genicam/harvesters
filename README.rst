@@ -379,14 +379,13 @@ You can install Harvester via PyPI invoking the following command:
 
     $ pip install harvesters numpy
 
-Or you could clone Harvester first and manually install it using ``setup.py``.
+Or you could install the latest development version it using ``setup.py`` cloning Harvester from GitHub:
 
 .. code-block:: shell
 
-    $ git clone https://github.com/genicam/harvester.git
-    $ python setup.py install
+    $ git clone https://github.com/genicam/harvesters.git && cd harvesters && python setup.py install
 
-If you want to use Harvester GUI, then please install the following modules:
+If you want to use Harvester GUI, then please install the following modules in advance:
 
 .. code-block:: shell
 

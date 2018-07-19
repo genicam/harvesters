@@ -3,7 +3,7 @@
     :alt: The Harvesters
     :scale: 55 %
 
-    Pieter Bruegel the Elder, The Harvesters, 1565, oil on wood, © 2000–2018 The Metropolitan Museum of Art
+    Pieter Bruegel the Elder, The Harvesters, 1565, oil on wood, (c) 2000–2018 The Metropolitan Museum of Art
 
 .. contents:: Table of Contents
     :depth: 1
@@ -63,6 +63,10 @@ So far, Harvester has tested GenTL Producers and GenICam compliant devices from 
       - N/A
       - N/A
       - Tested
+    - - `Basler <https://www.baslerweb.com/>`_
+      - N/A
+      - N/A
+      - \-
     - - `Baumer Optronic <https://www.baumer.com/se/en/>`_
       - Tested
       - Tested
@@ -137,33 +141,19 @@ Terminology
 
 Before start talking about the detail, let's take a look at some important terminologies that frequently appear in this document. These terminologies are listed as follows:
 
-* **The GenApi-Python Binding**:
+* **The GenApi-Python Binding**: A Python module that communicates with the GenICam reference implementation.
 
-  | A Python module that communicates with the GenICam reference implementation.
+* **A GenTL Producer**: A library that has C interface and offers consumers a way to communicate with cameras over physical transport layer dependent technology hiding the detail from the consumer.
 
-* **A GenTL Producer**:
+* **The GenTL-Python Binding**: A Python module that communicates with GenTL Producers.
 
-  | A C/C++ library that offers consumers a way to communicate with cameras over physical transport layer dependent technology hiding the detail from the consumer.
+* **Harvester**: A Python module that consists of Harvester Core and Harvester GUI.
 
-* **The GenTL-Python Binding**:
+* **Harvester Core**: A part of Harvester that works as an image acquisition engine.
 
-  | A Python module that communicates with GenTL Producers.
+* **Harvester GUI**: A part of Harvester that works as a graphical user interface of Harvester Core.
 
-* **Harvester**:
-
-  | A Python module that consists of Harvester Core and Harvester GUI.
-
-* **Harvester Core**:
-
-  | A part of Harvester that works as an image acquisition engine.
-
-* **Harvester GUI**:
-
-  | A part of Harvester that works as a graphical user interface of Harvester Core.
-
-* **A GenICam compliant device**:
-
-  | It's typically a camera. Just involving the GenICam reference implementation, it offers consumers a way to dynamically configure/control the target devices.
+* **A GenICam compliant device**: It's typically a camera. Just involving the GenICam reference implementation, it offers consumers a way to dynamically configure/control the target devices.
 
 The following diagram shows the hierarchy and relationship of the relevant modules:
 

@@ -39,7 +39,7 @@ with open('README.rst', 'r',encoding='utf-8_sig') as fh:
     __doc__ = fh.read()
 
 name = 'harvesters'
-description = 'Image acquisition & data visualization with Python based on GenICam'
+description = 'Image acquisition & data visualization library with Python maintained by the official GenICam committee'
 
 setuptools.setup(
     author='The GenICam Committee',

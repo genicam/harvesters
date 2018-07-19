@@ -22,13 +22,14 @@
 import sys
 
 # Related third party imports
-import numpy as np
 from PyQt5.QtCore import QMutexLocker, QMutex, pyqtSignal
 from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QMainWindow, QAction, QComboBox, \
     QDesktopWidget, QFileDialog, QDialog, QShortcut, QApplication
 
 from genicam2.gentl import PAYLOADTYPE_INFO_IDS
+
+from scipy import ndimage
 
 # Local application/library specific imports
 from harvesters._private.core.buffer import Buffer
@@ -116,14 +117,13 @@ class _Rotate(Processor):
         #
         self._angle = angle
 
-    def process(self, input: Buffer):
+    def process(self, input_buffer: Buffer):
         #
-        #ndarray = ndimage.rotate(input.ndarray, self._angle)  # Import scipy.
-        ndarray = None
+        ndarray = ndimage.rotate(input_buffer.image.ndarray, self._angle)  # Import scipy.
         output = Buffer(
-            data_stream=input.data_stream,
-            gentl_buffer=input.gentl_buffer,
-            node_map=input.node_map,
+            data_stream=input_buffer.data_stream,
+            gentl_buffer=input_buffer.gentl_buffer,
+            node_map=input_buffer.node_map,
             image=ndarray
         )
         return output
@@ -147,6 +147,11 @@ class Harvester(QMainWindow):
         self._harvester_core.user_defined_processors.append(
             _ConvertNumpy1DToNumpy2D()
         )
+        """
+        self._harvester_core.user_defined_processors.append(
+            _Rotate(angle=30)
+        )
+        """
 
         #
         self._harvester_core.thread_image_acquisition = PyQtThread(

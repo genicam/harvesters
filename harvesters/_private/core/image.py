@@ -25,7 +25,7 @@ from genicam2.gentl import InvalidParameterException
 import numpy as np
 
 # Local application/library specific imports
-
+from harvesters._private.core.pfnc import symbolics
 
 class Image:
     def __init__(self, parent=None, ndarray: np.ndarray=None):
@@ -61,11 +61,8 @@ class Image:
         except InvalidParameterException:
             return self._parent.node_map.PixelFormat.value
         else:
-            return self._parent.node_map.PixelFormat.get_entry(
-                int(pixel_format_int)
-            ).symbolic
+            return symbolics[int(pixel_format_int)]
 
     @property
     def ndarray(self) -> np.ndarray:
         return self._ndarray
-

@@ -34,7 +34,6 @@ from genicam2.genapi import NodeMap
 from genicam2.genapi import EInterfaceType, EAccessMode, EVisibility
 
 # Local application/library specific imports
-from harvesters._private.core.thread_ import MutexLocker
 from harvesters._private.frontend.pyqt5.helper import get_system_font
 
 
@@ -183,9 +182,6 @@ class FeatureTreeModel(QAbstractItemModel):
         super().__init__()
 
         #
-        self._thread = thread
-
-        #
         self._root_item = TreeItem(('Feature Name', 'Value'))
         self._node_map = node_map
         if node_map:
@@ -318,13 +314,12 @@ class FeatureTreeModel(QAbstractItemModel):
 
 
 class FeatureEditDelegate(QStyledItemDelegate):
-    def __init__(self, proxy, thread=None, parent=None):
+    def __init__(self, proxy, parent=None):
         #
         super().__init__()
 
         #
         self._proxy = proxy
-        self._thread = thread
 
     def createEditor(self, parent: QWidget, QStyleOptionViewItem, proxy_index: QModelIndex):
 
@@ -396,27 +391,26 @@ class FeatureEditDelegate(QStyledItemDelegate):
 
     def setModelData(self, editor: QWidget, model: QAbstractItemModel, proxy_index: QModelIndex):
 
-        with MutexLocker(self._thread):
-            src_index = self._proxy.mapToSource(proxy_index)
-            tree_item = src_index.internalPointer()
-            feature = tree_item.own_data[0]
-            interface_type = feature.node.principal_interface_type
+        src_index = self._proxy.mapToSource(proxy_index)
+        tree_item = src_index.internalPointer()
+        feature = tree_item.own_data[0]
+        interface_type = feature.node.principal_interface_type
 
-            if interface_type == EInterfaceType.intfIInteger:
-                data = editor.value()
-                model.setData(proxy_index, data)
-            elif interface_type == EInterfaceType.intfIBoolean:
-                data = editor.currentText()
-                model.setData(proxy_index, data)
-            elif interface_type == EInterfaceType.intfIEnumeration:
-                data = editor.currentText()
-                model.setData(proxy_index, data)
-            elif interface_type == EInterfaceType.intfIString:
-                data = editor.text()
-                model.setData(proxy_index, data)
-            elif interface_type == EInterfaceType.intfIFloat:
-                data = editor.text()
-                model.setData(proxy_index, data)
+        if interface_type == EInterfaceType.intfIInteger:
+            data = editor.value()
+            model.setData(proxy_index, data)
+        elif interface_type == EInterfaceType.intfIBoolean:
+            data = editor.currentText()
+            model.setData(proxy_index, data)
+        elif interface_type == EInterfaceType.intfIEnumeration:
+            data = editor.currentText()
+            model.setData(proxy_index, data)
+        elif interface_type == EInterfaceType.intfIString:
+            data = editor.text()
+            model.setData(proxy_index, data)
+        elif interface_type == EInterfaceType.intfIFloat:
+            data = editor.text()
+            model.setData(proxy_index, data)
 
     def on_button_clicked(self, proxy_index: QModelIndex):
 

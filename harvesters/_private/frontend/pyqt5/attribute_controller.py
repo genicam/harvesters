@@ -30,7 +30,6 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QTreeView, \
 from genicam2.genapi import EVisibility
 
 # Local application/library specific imports
-from harvesters._private.core.thread_ import MutexLocker
 from harvesters._private.frontend.helper import compose_tooltip
 from harvesters._private.frontend.pyqt5.action import Action
 from harvesters._private.frontend.pyqt5.feature_tree import \
@@ -105,10 +104,7 @@ class AttributeController(QMainWindow):
         self._proxy.setDynamicSortFilter(False)
 
         #
-        self._delegate = FeatureEditDelegate(
-            proxy=self._proxy,
-            thread = self.parent().harvester_core.thread_image_acquisition
-        )
+        self._delegate = FeatureEditDelegate(proxy=self._proxy)
         self._view.setModel(self._proxy)
         self._view.setItemDelegate(self._delegate)
 
@@ -216,18 +212,16 @@ class AttributeController(QMainWindow):
         )
 
     def _invalidate_feature_tree_by_visibility(self):
-        with MutexLocker(self.parent().harvester_core.thread_image_acquisition):
-            visibility = self._visibility_dict[
-                self._combo_box_visibility.currentText()
-            ]
-            self._proxy.setVisibility(visibility)
-            self._view.expandAll()
+        visibility = self._visibility_dict[
+            self._combo_box_visibility.currentText()
+        ]
+        self._proxy.setVisibility(visibility)
+        self._view.expandAll()
 
     @pyqtSlot('QString')
     def _invalidate_feature_tree_by_keyword(self, keyword):
-        with MutexLocker(self.parent().harvester_core.thread_image_acquisition):
-            self._proxy.setKeyword(keyword)
-            self._view.expandAll()
+        self._proxy.setKeyword(keyword)
+        self._view.expandAll()
 
     @staticmethod
     def on_button_clicked_action(action):

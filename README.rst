@@ -1,10 +1,10 @@
 .. image:: https://img.shields.io/pypi/v/harvesters.svg
     :target: https://pypi.org/project/harvesters
 
-.. image:: https://img.shields.io/pypi/pyversions/harvesters.svg
-
 .. image:: https://readthedocs.org/projects/harvesters/badge/?version=latest
-   :target: https://harvesters.readthedocs.io/en/latest/?badge=latest
+    :target: https://harvesters.readthedocs.io/en/latest/?badge=latest
+
+.. image:: https://img.shields.io/pypi/pyversions/harvesters.svg
 
 .. figure:: https://user-images.githubusercontent.com/8652625/40595190-1e16e90e-626e-11e8-9dc7-207d691c6d6d.jpg
     :align: center

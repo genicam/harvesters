@@ -432,7 +432,7 @@ First, let's import Harvester:
 
 .. code-block:: python
 
-    import harvesters.core import Harvester
+    from harvesters.core import Harvester
 
 Then instantiate a Harvester object:
 

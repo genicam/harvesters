@@ -156,7 +156,7 @@ class Harvester:
 
         #
         if profile:
-            from _private.core.helper import Profiler
+            from harvesters._private.core.helper import Profiler
             self._profiler = Profiler()
         else:
             self._profiler = None

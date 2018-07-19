@@ -176,7 +176,7 @@ class Canvas(app.Canvas):
     def _update_texture(self):
         # Fetch a buffer.
         try:
-            with self._harvester_core.fetch_buffer() as buffer:
+            with self._harvester_core.fetch_buffer(timeout_ms=0.1) as buffer:
                 # Update the canvas size if needed.
                 self.set_rect(buffer.image.width, buffer.image.height)
 

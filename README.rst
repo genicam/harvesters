@@ -267,7 +267,7 @@ Harvester Core on IPython
 
 The following screenshot shows Harvester Core is running on IPython. Harvester Core returns the latest image data at the moment as a Numpy array every time its user call the ``get_image()`` method. Once you get an image you should be able to immediately start image processing. If you're running on Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
-.. image:: https://user-images.githubusercontent.com/8652625/43002223-f94af5d8-8c62-11e8-812e-b607a4e2854e.png
+.. image:: https://user-images.githubusercontent.com/8652625/43002764-e7d0d30c-8c64-11e8-9c83-bf1f3ae588fe.png
     :align: center
     :alt: Harvester on IPython
     :scale: 40 %
@@ -292,9 +292,9 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
 
     In [6]: h.connect_device(0)
 
-    In [7]: h.device.node_map.Width.value = 12
+    In [7]: h.device.node_map.Width.value = 8
 
-    In [8]: h.device.node_map.Height = 8
+    In [8]: h.device.node_map.Height.value = 8
 
     In [9]: h.device.node_map.PixelFormat.value = 'Mono8'
 
@@ -307,21 +307,19 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
         ...:     print('{0}'.format(b.image.ndarray.reshape(b.image.height, b.image.width)))
         ...:
     1D representation:
-    [165 166 167 168 169 170 171 172 173 174 175 176 166 167 168 169 170 171
-     172 173 174 175 176 177 167 168 169 170 171 172 173 174 175 176 177 178
-     168 169 170 171 172 173 174 175 176 177 178 179 169 170 171 172 173 174
-     175 176 177 178 179 180 170 171 172 173 174 175 176 177 178 179 180 181
-     171 172 173 174 175 176 177 178 179 180 181 182 172 173 174 175 176 177
-     178 179 180 181 182 183]
+    [239 240 241 242 243 244 245 246 240 241 242 243 244 245 246 247 241 242
+     243 244 245 246 247 248 242 243 244 245 246 247 248 249 243 244 245 246
+     247 248 249 250 244 245 246 247 248 249 250 251 245 246 247 248 249 250
+     251 252 246 247 248 249 250 251 252 253]
     2D representation:
-    [[165 166 167 168 169 170 171 172 173 174 175 176]
-     [166 167 168 169 170 171 172 173 174 175 176 177]
-     [167 168 169 170 171 172 173 174 175 176 177 178]
-     [168 169 170 171 172 173 174 175 176 177 178 179]
-     [169 170 171 172 173 174 175 176 177 178 179 180]
-     [170 171 172 173 174 175 176 177 178 179 180 181]
-     [171 172 173 174 175 176 177 178 179 180 181 182]
-     [172 173 174 175 176 177 178 179 180 181 182 183]]
+    [[239 240 241 242 243 244 245 246]
+     [240 241 242 243 244 245 246 247]
+     [241 242 243 244 245 246 247 248]
+     [242 243 244 245 246 247 248 249]
+     [243 244 245 246 247 248 249 250]
+     [244 245 246 247 248 249 250 251]
+     [245 246 247 248 249 250 251 252]
+     [246 247 248 249 250 251 252 253]]
 
     In [12]: h.stop_image_acquisition()
 

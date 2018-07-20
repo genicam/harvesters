@@ -267,7 +267,7 @@ Harvester Core on IPython
 
 The following screenshot shows Harvester Core is running on IPython. Harvester Core returns the latest image data at the moment as a Numpy array every time its user call the ``get_image()`` method. Once you get an image you should be able to immediately start image processing. If you're running on Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
-.. image:: https://user-images.githubusercontent.com/8652625/42949043-d9385fcc-8bab-11e8-844d-9ce64eb2b22d.png
+.. image:: https://user-images.githubusercontent.com/8652625/43002223-f94af5d8-8c62-11e8-812e-b607a4e2854e.png
     :align: center
     :alt: Harvester on IPython
     :scale: 40 %

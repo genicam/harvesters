@@ -324,16 +324,7 @@ class Harvester:
                     if pathlib.Path(
                             file_info.filename).suffix.lower() == '.xml':
                         #
-                        try:
-                            # device -> interface -> system
-                            encoding = self.device.parent.parent.char_encoding
-                        except InvalidParameterException as e:
-                            encoding = TL_CHAR_ENCODING_LIST.TL_CHAR_ENCODING_UTF8
-
-                        #
-                        content = file_content.read(file_info).decode(
-                            self._encodings[encoding]
-                        )
+                        content = file_content.read(file_info).decode('utf8')
                         break
 
             # Instantiate a GenICam node map object.

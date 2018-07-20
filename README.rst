@@ -833,8 +833,8 @@ Apart from anything else, we love its peaceful and friendly name. We hope you al
 External Links
 ##############
 
-* `GitHub <https://github.com/genicam/harvester>`_: The main repository
-* `PyPI <https://pypi.org/project/genicam.harvester/>`_: Package distribution
+* `GitHub <https://github.com/genicam/harvesters>`_: The main repository
+* `PyPI <https://pypi.org/project/harvesters/>`_: Package distribution
 * `Read the Docs <https://harvesters.readthedocs.io/en/latest/>`_: API reference, etc.
 
 #######

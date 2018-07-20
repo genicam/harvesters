@@ -270,3 +270,11 @@ symbolics = {
     0x02180102: 'YCbCr2020_422_12p',
     0x02180103: 'YCbCr2020_422_12p_CbYCrY',
 }
+
+mono_formats = ['Mono8', 'Mono10', 'Mono12', 'Mono16']
+rgb_formats = ['RGB8', 'RGB8Packed']
+rgba_formats = ['RGBa8']
+bayer_formats = ['BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8']
+
+uint8_formats = ['Mono8', 'RGB8', 'RGB8Packed', 'BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8']
+uint16_formats = ['Mono10', 'Mono12', 'Mono16']

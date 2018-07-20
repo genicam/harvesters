@@ -47,6 +47,8 @@ from harvesters._private.core.statistics import Statistics
 from harvesters._private.core.thread import PyThread
 from harvesters._private.core.thread_ import MutexLocker
 from harvesters.processor import Processor
+from harvesters._private.core.pfnc import symbolics
+from harvesters._private.core.pfnc import uint8_formats, uint16_formats
 
 
 class _ProcessorConvertPyBytesToNumpy1D(Processor):
@@ -57,11 +59,28 @@ class _ProcessorConvertPyBytesToNumpy1D(Processor):
         )
 
     def process(self, input_buffer: Buffer):
+        symbolic = None
+        try:
+            pixel_format_int = input_buffer.gentl_buffer.pixel_format
+        except InvalidParameterException:
+            pass
+        else:
+            symbolic = symbolics[int(pixel_format_int)]
+
+        if symbolic in uint8_formats:
+            dtype = 'uint8'
+        elif symbolic in uint16_formats:
+            dtype = 'uint16'
+        else:
+            dtype = 'uint8'
+
         output_buffer = Buffer(
             data_stream=input_buffer.data_stream,
             gentl_buffer=input_buffer.gentl_buffer,
             node_map=input_buffer.node_map,
-            image=np.frombuffer(input_buffer.gentl_buffer.raw_buffer, dtype='uint8')
+            image=np.frombuffer(
+                input_buffer.gentl_buffer.raw_buffer, dtype=dtype
+            )
         )
         return output_buffer
 

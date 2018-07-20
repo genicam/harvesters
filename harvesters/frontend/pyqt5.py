@@ -29,7 +29,7 @@ from PyQt5.QtWidgets import QMainWindow, QAction, QComboBox, \
 
 from genicam2.gentl import PAYLOADTYPE_INFO_IDS
 
-from scipy import ndimage
+#from scipy import ndimage
 
 # Local application/library specific imports
 from harvesters._private.core.buffer import Buffer

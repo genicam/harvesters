@@ -90,7 +90,7 @@ So far, Harvester has tested GenTL Producers and GenICam compliant devices from 
     - - `FLIR <https://www.flir.com>`_
       - N/A
       - N/A
-      - \-
+      - Tested
     - - `Gardasoft <http://www.gardasoft.com>`_
       - N/A
       - N/A

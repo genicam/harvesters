@@ -364,7 +364,7 @@ class Harvester:
             self._data_stream.open(self.device.data_stream_ids[0])
 
             #
-            num_required_buffers = self._min_num_buffers + self._num_extra_buffers
+            num_required_buffers = self._min_num_buffers
             try:
                 num_buffers = self._data_stream.buffer_announce_min
                 if num_buffers < num_required_buffers:
@@ -520,7 +520,7 @@ class Harvester:
                 # We've got a new image so now we can reuse the buffer that
                 # we had kept.
                 with MutexLocker(self.thread_image_acquisition):
-                    if len(self._fetched_buffers) > self._num_extra_buffers:
+                    if len(self._fetched_buffers) > 0:
                         # We have 2 buffers now so we queue the oldest buffer.
                         self.queue_buffer(self._fetched_buffers.pop(0))
                         # Then one buffer remains for our client.
@@ -551,7 +551,7 @@ class Harvester:
                 break
             else:
                 with MutexLocker(self.thread_image_acquisition):
-                    if self._fetched_buffers:
+                    if len(self._fetched_buffers) > 0:
                         buffer = self._fetched_buffers.pop(0)
 
         return buffer

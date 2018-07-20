@@ -552,7 +552,7 @@ class Harvester:
             else:
                 with MutexLocker(self.thread_image_acquisition):
                     if self._fetched_buffers:
-                        buffer = self._fetched_buffers.pop(-1)
+                        buffer = self._fetched_buffers.pop(0)
 
         return buffer
 

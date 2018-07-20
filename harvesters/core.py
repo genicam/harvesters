@@ -143,7 +143,7 @@ class Harvester:
         ]
 
         #
-        self._timeout_for_image_acquisition = 100  # ms
+        self._timeout_for_image_acquisition = 1  # ms
 
         #
         self._processors = []
@@ -495,7 +495,7 @@ class Harvester:
             else:
                 return
         except TimeoutException as e:
-            print(e)
+            pass
         else:
             #
             if not self.is_acquiring_images:

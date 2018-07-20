@@ -44,6 +44,8 @@ from harvesters._private.frontend.pyqt5.icon import Icon
 from harvesters._private.frontend.pyqt5.thread import PyQtThread
 from harvesters.core import Harvester as HarvesterCore
 from harvesters.processor import Processor
+from harvesters._private.core.pfnc import mono_formats, rgb_formats, \
+    rgba_formats, bayer_formats
 
 
 class _ProcessorPayloadTypeImage(Processor):
@@ -66,12 +68,6 @@ class _ProcessorPayloadTypeMultiPart(Processor):
 
 
 class _ConvertNumpy1DToNumpy2D(Processor):
-    #
-    _mono_formats = ['Mono8']
-    _rgb_formats = ['RGB8', 'RGB8Packed']
-    _rgba_formats = ['RGBa8']
-    _bayer_formats = ['BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8']
-
     def __init__(self):
         #
         super().__init__(
@@ -84,15 +80,15 @@ class _ConvertNumpy1DToNumpy2D(Processor):
         #
         ndarray = None
         try:
-            if symbolic in self._mono_formats or symbolic in self._bayer_formats:
+            if symbolic in mono_formats or symbolic in bayer_formats:
                 ndarray = input_buffer.image.ndarray.reshape(
                     input_buffer.image.height, input_buffer.image.width
                 )
-            elif symbolic in self._rgb_formats:
+            elif symbolic in rgb_formats:
                 ndarray = input_buffer.image.ndarray.reshape(
                     input_buffer.image.height, input_buffer.image.width, 3
                 )
-            elif symbolic in self._rgba_formats:
+            elif symbolic in rgba_formats:
                 ndarray = input_buffer.image.ndarray.reshape(
                     input_buffer.image.height, input_buffer.image.width, 4
                 )

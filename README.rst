@@ -274,11 +274,6 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
 
 .. code-block:: python
 
-    (genicam) kznr@Kazunaris-MacBook:~% ipython
-    Python 3.5.3 |Continuum Analytics, Inc.| (default, Mar  6 2017, 12:15:08)
-    Type 'copyright', 'credits' or 'license' for more information
-    IPython 6.3.1 -- An enhanced Interactive Python. Type '?' for help.
-
     In [1]: from harvesters.core import Harvester
 
     In [2]: h = Harvester()
@@ -297,32 +292,36 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
 
     In [6]: h.connect_device(0)
 
-    In [7]: h.device.node_map.Width.value = 16
+    In [7]: h.device.node_map.Width.value = 12
 
-    In [8]: h.device.node_map.Height.value = 8
+    In [8]: h.device.node_map.Height = 8
 
     In [9]: h.device.node_map.PixelFormat.value = 'Mono8'
 
     In [10]: h.start_image_acquisition()
 
     In [11]: with h.fetch_buffer() as b:
-        ...:     print('1D: {0}'.format(b.image.ndarray))
-        ...:     print('2D: {0}'.format(b.image.ndarray.reshape(b.image.height, b.image.width)))
+        ...:     print('1D representation:')
+        ...:     print('{0}'.format(b.image.ndarray))
+        ...:     print('2D representation:')
+        ...:     print('{0}'.format(b.image.ndarray.reshape(b.image.height, b.image.width)))
         ...:
-    1D: [ 6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21  7  8  9 10 11 12 13 14
-     15 16 17 18 19 20 21 22  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23
-      9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 10 11 12 13 14 15 16 17
-     18 19 20 21 22 23 24 25 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26
-     12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 13 14 15 16 17 18 19 20
-     21 22 23 24 25 26 27 28]
-    2D: [[ 6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21]
-     [ 7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22]
-     [ 8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23]
-     [ 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24]
-     [10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25]
-     [11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26]
-     [12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27]
-     [13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28]]
+    1D representation:
+    [165 166 167 168 169 170 171 172 173 174 175 176 166 167 168 169 170 171
+     172 173 174 175 176 177 167 168 169 170 171 172 173 174 175 176 177 178
+     168 169 170 171 172 173 174 175 176 177 178 179 169 170 171 172 173 174
+     175 176 177 178 179 180 170 171 172 173 174 175 176 177 178 179 180 181
+     171 172 173 174 175 176 177 178 179 180 181 182 172 173 174 175 176 177
+     178 179 180 181 182 183]
+    2D representation:
+    [[165 166 167 168 169 170 171 172 173 174 175 176]
+     [166 167 168 169 170 171 172 173 174 175 176 177]
+     [167 168 169 170 171 172 173 174 175 176 177 178]
+     [168 169 170 171 172 173 174 175 176 177 178 179]
+     [169 170 171 172 173 174 175 176 177 178 179 180]
+     [170 171 172 173 174 175 176 177 178 179 180 181]
+     [171 172 173 174 175 176 177 178 179 180 181 182]
+     [172 173 174 175 176 177 178 179 180 181 182 183]]
 
     In [12]: h.stop_image_acquisition()
 

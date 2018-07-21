@@ -34,7 +34,7 @@ You can freely use, modify, distribute Harvester under `Apache License-2.0 <http
 Currently, Harvester is being developed and maintained by the motivated volunteer contributors from all over the world.
 
 ################
-Asking Questions
+Asking questions
 ################
 
 We have prepared a chat room in Gitter. Please don't hesitate to drop your message when you get a question regarding Harvester!
@@ -193,8 +193,8 @@ You'll be able to download the these language binding runtime libraries from the
 
 If you don't have to visualize acquired images at high frame rate, the combination of Harvester Core and `Matplotlib <https://matplotlib.org>`_ might be ideal for that purpose.
 
-Harvester Core's Main Features
-==============================
+Tasks Harvester Core does for you
+=================================
 
 The main features of Harvester Core are listed as follows:
 
@@ -206,14 +206,29 @@ Note that the second item implies you can involve multiple types of transport la
 
 On the other hand, Harvester Core could be considered as a simplified version of the GenTL-Python Binding; actually Harvester Core hides it in its back and shows only intuitive interfaces to its clients. Harvester Core just offers you a relationship between you and a device. Nothing more. We say it again, just you and a device. If you need to manipulate more relevant GenTL modules or have to achieve something over a hardcore way, then you should directly work with the GenTL-Python Binding.
 
+Pixel formats that Harvester Core supports
+==========================================
+
+Currently Harvester Core supports the following pixel formats that are defined by the Pixel Format Naming Convention:
+
+* ``Mono8``
+* ``Mono10``
+* ``Mono12``
+* ``Mono16``
+* ``RGB8``
+* ``BayerRG8``
+* ``BayerGR8``
+* ``BayerBG8``
+* ``BayerGB8``
+
 *************
 Harvester GUI
 *************
 
 Harvester GUI works on the top of Harvester Core and offers you high-performance image data visualization on the fly. It involves VisPy for controlling OpenGL functionality and PyQt for providing GUI.
 
-Harvester GUI's Main Features
-=============================
+Tasks Harvester GUI does for you
+================================
 
 The main features of Harvester GUI are listed as follows:
 
@@ -224,14 +239,19 @@ The main features of Harvester GUI are listed as follows:
 
 Unlike Harvester Core, Harvester GUI limits the number of GenTL Producers to load just one. This is just a limitation to not make the GUI complicated. In general, the user should know which GenTL Producer should be loaded to control his target device. It's not necessary to load multiple GenTL Producers for this use case. However, this is just an idea in an early stage. We might support multiple loading on even Harvester GUI in the future.
 
-Supported Pixel Formats
-=======================
+Pixel formats that Harvester GUI supports
+=========================================
 
 Currently Harvester GUI supports the following pixel formats that are defined by the Pixel Format Naming Convention:
 
 * ``Mono8``
 * ``RGB8``
-* ``BayerRG8``, ``BayerGR8``, ``BayerBG8``, and ``BayerGB8`` (No demosaicing supported)
+* ``BayerRG8``
+* ``BayerGR8``
+* ``BayerBG8``
+* ``BayerGB8``
+
+Note that Harvester GUI has not yet supported demosaicing.
 
 ###########
 Screenshots
@@ -240,23 +260,23 @@ Screenshots
 In this section, we see some useful windows which Harvester offers you.
 
 ****************************
-Image Data Visualizer Window
+Image data visualizer window
 ****************************
 
 The image data visualizer window (below) offers you a visualization of the acquired images. In this screenshot, Harvester is acquiring a 4000 x 3000 pixel of RGB8 image at 30 fps; it means it's acquiring images at 8.6 Gbps. It's quite fast isn't it?
 
-.. image:: https://user-images.githubusercontent.com/8652625/41188277-e7735f90-6bf5-11e8-8642-9e8c97b51100.png
+.. image:: https://user-images.githubusercontent.com/8652625/43035346-c84fe404-8d28-11e8-815f-2df66cbbc6d0.png
     :align: center
     :alt: Image data visualizer
     :scale: 40 %
 
 ***************************
-Attribute Controller Window
+Attribute controller window
 ***************************
 
 The attribute controller window (below) offers you to manipulate GenICam feature nodes of the target device. Changing exposure time, triggering the target device for image acquisition, storing a set of camera configuration so-called User Set, etc, you can manually control the target device anytime when you want to. It supports visibility filter feature and regular expression feature. These features are useful in a case where you need to display only the features you are interested.
 
-.. image:: https://user-images.githubusercontent.com/8652625/41112507-25b7c1ac-6aba-11e8-86e1-0920e96bdcda.png
+.. image:: https://user-images.githubusercontent.com/8652625/43035351-d35a2936-8d28-11e8-83d5-7b6efa6e2ad8.png
     :align: center
     :alt: Attribute Controller
     :scale: 40 %
@@ -267,7 +287,7 @@ Harvester Core on IPython
 
 The following screenshot shows Harvester Core is running on IPython. Harvester Core returns the latest image data at the moment as a Numpy array every time its user call the ``get_image()`` method. Once you get an image you should be able to immediately start image processing. If you're running on Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
-.. image:: https://user-images.githubusercontent.com/8652625/43002764-e7d0d30c-8c64-11e8-9c83-bf1f3ae588fe.png
+.. image:: https://user-images.githubusercontent.com/8652625/43035359-e23fe062-8d28-11e8-898a-a18465f620e6.png
     :align: center
     :alt: Harvester on IPython
     :scale: 40 %
@@ -283,67 +303,64 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
     In [4]: h.update_device_info_list()
 
     In [5]: for i, info in enumerate(h.device_info_list):
-       ...:     print('{0}: {1}'.format(i, info.display_name))
+       ...:     print('{0}: {1}'.format(i, info))
        ...:
-    0: Test_Mono (SN0)
-    1: Test_Color (SN1)
-    2: Test_Mono (SN0)
-    3: Test_Color (SN1)
+    0: (vendor='EMVA_D', model='TLSimuMono', version='1.2.3', serial_number='SN_InterfaceA_0', user_defined_name='Center')
+    1: (vendor='EMVA_D', model='TLSimuColor', version='1.2.3', serial_number='SN_InterfaceA_1', user_defined_name='Center')
+    2: (vendor='EMVA_D', model='TLSimuMono', version='1.2.3', serial_number='SN_InterfaceB_0', user_defined_name='Center')
+    3: (vendor='EMVA_D', model='TLSimuColor', version='1.2.3', serial_number='SN_InterfaceB_1', user_defined_name='Center')
 
     In [6]: h.connect_device(0)
 
-    In [7]: h.device.node_map.Width.value = 8
+    In [7]: h.device.node_map.Width.value, h.device.node_map.Height.value = 8, 8
 
-    In [8]: h.device.node_map.Height.value = 8
+    In [8]: h.device.node_map.PixelFormat.value = 'Mono8'
 
-    In [9]: h.device.node_map.PixelFormat.value = 'Mono8'
+    In [9]: h.start_image_acquisition()
 
-    In [10]: h.start_image_acquisition()
-
-    In [11]: with h.fetch_buffer() as b:
-        ...:     print('1D representation:')
-        ...:     print('{0}'.format(b.image.ndarray))
-        ...:     print('2D representation:')
-        ...:     print('{0}'.format(b.image.ndarray.reshape(b.image.height, b.image.width)))
+    In [10]: with h.fetch_buffer() as b:
+        ...:     print('1D:\n{0}'.format(b.image.ndarray))
+        ...:     print('2D:\n{0}'.format(b.image.ndarray.reshape(b.image.height, b.image.width)))
         ...:
-    1D representation:
-    [239 240 241 242 243 244 245 246 240 241 242 243 244 245 246 247 241 242
-     243 244 245 246 247 248 242 243 244 245 246 247 248 249 243 244 245 246
-     247 248 249 250 244 245 246 247 248 249 250 251 245 246 247 248 249 250
-     251 252 246 247 248 249 250 251 252 253]
-    2D representation:
-    [[239 240 241 242 243 244 245 246]
-     [240 241 242 243 244 245 246 247]
-     [241 242 243 244 245 246 247 248]
-     [242 243 244 245 246 247 248 249]
-     [243 244 245 246 247 248 249 250]
-     [244 245 246 247 248 249 250 251]
-     [245 246 247 248 249 250 251 252]
-     [246 247 248 249 250 251 252 253]]
+    1D:
+    [189 190 191 192 193 194 195 196 190 191 192 193 194 195 196 197 191 192
+     193 194 195 196 197 198 192 193 194 195 196 197 198 199 193 194 195 196
+     197 198 199 200 194 195 196 197 198 199 200 201 195 196 197 198 199 200
+     201 202 196 197 198 199 200 201 202 203]
+    2D:
+    [[189 190 191 192 193 194 195 196]
+     [190 191 192 193 194 195 196 197]
+     [191 192 193 194 195 196 197 198]
+     [192 193 194 195 196 197 198 199]
+     [193 194 195 196 197 198 199 200]
+     [194 195 196 197 198 199 200 201]
+     [195 196 197 198 199 200 201 202]
+     [196 197 198 199 200 201 202 203]]
 
-    In [12]: h.stop_image_acquisition()
+    In [11]: h.stop_image_acquisition()
 
 ############
 Requirements
 ############
 
 *******************
-System Requirements
+System requirements
 *******************
 
 * Python 3.4 or higher
-* Officially certifiled GenTL Producers
+* Officially certified GenTL Producers
 * GenICam compliant machine vision cameras
 
 ***************************
-Supported Operating Systems
+Supported operating systems
 ***************************
 
 Harvester has been tested with the following operating systems.
 
-* macOS
-* Ubuntu
-* Windows
+* macOS 10.13
+* Ubuntu 14.04
+* Red Hat Enterprise Linux Workstation 7.4
+* Windows 7
 
 ############
 Installation
@@ -368,7 +385,8 @@ The first two items will be able to downloaded from the EMVA website in the futu
 Installing Harvester
 ********************
 
-You can install Harvester via PyPI invoking the following command:
+You can install Harvester via PyPI invoking the following command; note that
+the package name is ``harvesters`` but not ``harvester``:
 
 .. code-block:: shell
 
@@ -424,13 +442,13 @@ Or, on Linux or macOS, you can do the same invoking the following command; pleas
     $ ln –s path/to/source/genicam/bin/Linux64_x64 path/to/target/site-packages/genicam2
 
 ************************************
-Remarks Regaring the Python Bindings
+Remarks regaring the Python Bindings
 ************************************
 
 Please remind that you need to be careful when you choose a Python version (especially Anaconda Python, maybe?) because some distributions have different directory structure or linking symbols. It simply breaks the Python Bindings. We have started collecting some results from our experiences and have listed them in the "System Configuration Matrix" section in the ``README`` file. We hope it helps you to save your time.
 
 #########################
-How to Use Harvester Core
+How to use Harvester Core
 #########################
 
 First, let's import Harvester:
@@ -439,42 +457,64 @@ First, let's import Harvester:
 
     from harvesters.core import Harvester
 
-Then instantiate a Harvester object:
+Then instantiate a Harvester object; we're going to use ``h`` that stands for
+Harvester as its identifier but in a practival occasion, you may name it like just ``camera`` or ``face_detection_cam`` more specifically. In addition, note that Harvester can handle all GenICam compliant devices and it's not limited to cameras so you might have a case
+where you name the object like ``lighting_device`` for example:
 
 .. code-block:: python
 
     h = Harvester()
 
-And load a CTI file:
+And load a CTI file; laoding a CTI file, you can communicate with the GenTL
+Producer:
 
 .. code-block:: python
 
     h.add_cti_file('path/to/gentl_producer.cti')
 
-Note that you can add more CTI files. To add another CTI file, just repeat calling ``add_cti_file`` method passing the target CTI file. In contrary sense, you can remove a specific CTI file that you have added with the following code:
+Note that you can add more CTI files on a single Harvester Core object. To add another CTI file, just repeat calling ``add_cti_file`` method passing another target CTI file:
+
+.. code-block:: python
+
+    h.add_cti_file('path/to/another_gentl_producer.cti')
+
+And the following code will let you know the CTI files that have been loaded
+on the Harvester object:
+
+.. code-block:: python
+
+    h.cti_files
+
+In a contrary sense, you can remove a specific CTI file that you have added with the following code:
 
 .. code-block:: python
 
     h.remove_cti_file('path/to/gentl_producer.cti')
 
-And now we have to update the list of devices:
+And now yol have to update the list of devices; it fills up your device
+information list and you'll select a device to control from the list:
 
 .. code-block:: python
 
     h.update_device_info_list()
 
-The following code will list devices that you can access:
+The following code will let you know the devices that you can connect:
 
 .. code-block:: python
 
-    for i, info in enumerate(h.device_info_list):
-        print('{0}: {1}'.format(i, info.display_name))
+    h.device_info_list
 
-And you connect a device to the Harvester object:
+And you connect a device to the Harvester object
 
 .. code-block:: python
 
     h.connect_device(0)
+
+The following code doesn't work as of today but perhaps we may implement a way in the future to specify more unique information to select a device such as ``user_defined_name``:
+
+.. code-block:: python
+
+    h.connect_device(user_defined_name='face_detection_cam')
 
 The following code starts image acquisition:
 
@@ -482,14 +522,14 @@ The following code starts image acquisition:
 
     h.start_image_acquisition()
 
-To fetch a buffer that has been filled up with an image, you can have 2 options; the first option is to use the ``with`` statement:
+Once you started image acquistion, you should definitely want to get an image. An image is delivered to a buffer that has internally prepared in the Harvester Core object. To fetch a buffer that has been filled up with an image, you can have 2 options; the first option is to use the ``with`` statement:
 
 .. code-block:: python
 
     with h.fetch_buffer() as buffer:
         print(buffer.image.ndarray)
 
-Having that code, the fetched buffer, ``buffer``, is automatically queued once the code step out from the scop of the ``with`` statement. It's prevents to queue it by accident. The other option is to manually queue the fetched buffer by yourself:
+Having that code, the fetched buffer, ``buffer``, is automatically queued once the code step out from the scope of the ``with`` statement. It's prevents to queue it by accident. The other option is to manually queue the fetched buffer by yourself:
 
 .. code-block:: python
 
@@ -497,24 +537,24 @@ Having that code, the fetched buffer, ``buffer``, is automatically queued once t
     print(buffer.image.ndarray)
     h.queue_buffer(buffer)
 
-In this option, again, do not forget that you have to queue the buffer by yourself. If you forgot queueing it, then you'll lose a buffer that can be used for image acquisition.
+In this option, again, do not forget that you have to queue the buffer by yourself. If you forgot queueing it, then you'll lose a buffer that can be used for image acquisition. Everything is up to your design, so please choose an appropriate way for you.
 
-The following code stops image acquisition:
+Okay, then you would stop image acquisition with the following code:
 
 .. code-block:: python
 
     h.stop_image_acquisition()
 
-And the following code disconnects the device from Harvester:
+And the following code disconnects the connecting device from Harvester:
 
 .. code-block:: python
 
     h.disconnect_device()
 
-Now you can quit the program.
+Now you can quit the program!
 
 ########################
-How to Use Harvester GUI
+How to use Harvester GUI
 ########################
 
 To use Harvester GUI, let's create a Python script file, naming ``foo.py``, that contains the following code:
@@ -545,15 +585,15 @@ Harvester GUI
 #############
 
 *********************************************
-Harvester GUI :: Image Data Visualizer Window
+Harvester GUI :: Image data visualizer window
 *********************************************
 
-Image Data Visualizer Window :: Toolbar
+Image data visualizer window :: Toolbar
 =======================================
 
 Most of Harvester GUI's features can be used through its toolbox. In this section, we describe each button's functionality and how to use it. Regarding shortcut keys, replace ``Ctrl`` with ``Command`` on macOS.
 
-.. image:: https://user-images.githubusercontent.com/8652625/41112688-a693c3ac-6aba-11e8-849b-94d41c229049.png
+.. image:: https://user-images.githubusercontent.com/8652625/43035384-7d1109e0-8d29-11e8-9005-38b965a9680e.png
     :align: center
     :alt: Toolbar
     :scale: 40 %
@@ -568,15 +608,15 @@ Selecting a CTI file
 
 This button is used to select a GenTL Producer file to load. The shortcut key is ``Ctrl+o``.
 
-Updating GenTL information
---------------------------
+Updating the device information list
+------------------------------------
 
 .. image:: https://user-images.githubusercontent.com/8652625/40596091-9354283a-6273-11e8-8c6f-559db511339a.png
     :align: left
     :alt: Update
     :scale: 40 %
 
-This button is used to update GenTL information of the GenTL Producer that you are loading on Harvester. The shortcut key is ``Ctrl+u``. It might be useful when you newly connect a device to your system.
+This button is used to update the device information list; the list will be filled up with the devices that are handled by the GenTL Producer that you have loaded on Harvester GUI; sometime it might be empy if there's no device is available. The shortcut key is ``Ctrl+u``. It might be useful when you newly connect a device to your system.
 
 Selecting a GenICam compliant device
 ------------------------------------
@@ -653,12 +693,12 @@ Showing the about dialog
 
 This button is used to show the about dialog.
 
-Image Data Visualizer Window :: Canvas
+Image data visualizer window :: Canvas
 ======================================
 
 The canvas of Harvester GUI offers you not only image data visualization but also some intuitive object manipulations.
 
-.. image:: https://user-images.githubusercontent.com/8652625/40985884-f0513eb2-691f-11e8-8727-2a236aa0fe72.png
+.. image:: https://user-images.githubusercontent.com/8652625/43035349-cdd9f9a0-8d28-11e8-8152-0bc488450ef6.png
     :align: center
     :alt: Canvas
     :scale: 40 %
@@ -679,15 +719,15 @@ Changing the part being displayed
 If you're using a mouse, grab any point in the canvas and drag the pointer as if you're physically grabbing the image. The image will follow the pointer. If you are using a trackpad on a macOS, it might be useful if you assign the three finger slide for dragging.
 
 ********************************************
-Harvester GUI :: Attribute Controller Window
+Harvester GUI :: Attribute controller window
 ********************************************
 
 The attribute controller offers you an interface to each GenICam feature node that the the target device provides.
 
-Attribute Controller Window :: Toolbar
+Attribute controller window :: Toolbar
 ======================================
 
-.. image:: https://user-images.githubusercontent.com/8652625/41112521-2e3a778e-6aba-11e8-856b-818cdcd2ab08.png
+.. image:: https://user-images.githubusercontent.com/8652625/43035353-d64c96e2-8d28-11e8-8c68-0bc4ee866d28.png
     :align: center
     :alt: Toolbar
     :scale: 40 %
@@ -772,7 +812,7 @@ Acknowledgements
 ################
 
 *********************
-Open Source Resources
+Open source resources
 *********************
 
 Harvester Core uses the following open source libraries/resources:
@@ -827,7 +867,7 @@ Harvester's name was derived from the great Flemish painter, Pieter Bruegel the 
 Apart from anything else, we love its peaceful and friendly name. We hope you also like it ;-)
 
 ##############
-External Links
+External links
 ##############
 
 * `GitHub <https://github.com/genicam/harvesters>`_: The main repository
@@ -838,8 +878,8 @@ External Links
 Credits
 #######
 
-The initial idea about Harvester suddenly came up to Kazunari Kudo's head in the early April 2018 and he decided to bring the first prototype to the following International Vision Standards Meeting. During the Frankfurt International Vision Standards Meeting which was held in May 2018, people confirmed Harvester really worked using machine vision cameras provided by well-known machine vision camera manufacturers in the world. Having that fact, the attendees warmly welcomed Harvester.
+The initial idea about Harvester suddenly came up to a Japanese software engineer, Kazunari Kudo's head in the early April of year 2018 and he immediately decided to bring the first prototype to the International Vision Standards Meeting, IVSM in short, that was going to be held in Frankfurt am Main in the following early May. During the Frankfurt IVSM, interested engineers tried out Harvester and confirmed it really worked using commercial machine vision cameras provided by well-known machine vision camera manufacturers in the world. Having that fact, the attendees of the IVSM warmly welcomed Harvester.
 
-The following individuals have directly or indirectly contributed to the development activity of Harvester or encouraged the developers by their thoughtful warm words:
+The following individuals have directly or indirectly contributed to the development activity of Harvester or encouraged the developers by their thoughtful warm words; they are our respectable wonderful colleagues:
 
 Rod Barman, Stefan Battmer, David Beek, Jan Becvar, David Bernecker, Chris Beynon, Eric Bourbonnais, George Chamberlain, Thomas Detjen, Friedrich Dierks, Dana Diezemann, Emile Dodin, Reynold Dodson, Sascha Dorenbeck, Erik Eloff, Katie Ensign, Andreas Ertl, James Falconer, Werner Feith, Maciej Gara, Andreas Gau, Sebastien Gendreau, Francois Gobeil, Werner Goeman, Jean-Paul Goglio, Markus Grebing, Eric Gross, Ioannis Hadjicharalambous, Uwe Hagmaier, Tim Handschack, Christopher Hartmann, Reinhard Heister, Gerhard Helfrich, Jochem Herrmann, Heiko Hirschmueller, Tom Hopfner, David Hoese, Karsten Ingeman Christensen, Severi Jaaskelainen, Mattias Johannesson, Mark Jones, Mattias Josefsson, Martin Kersting, Stephan Kieneke, Tom Kirchner, Lutz Koschorreck, Frank Krehl, Maarten Kuijk, Max Larin, Ralf Lay, Min Liu, Sergey Loginonvskikh, Thomas Lueck, Alain Marchand, Rocco Matano, Masahide Matsubara, Stephane Maurice, Robert McCurrach, Mike Miethig, Thies Moeller, Roman Moie, Marcel Naggatz, Hartmut Nebelung, Damian Nesbitt, Quang Nhan Nguyen, Klaus-Henning Noffz, Neerav Patel, Jan Pech, Merlin Plock, Joerg Preckwinkel, Benjamin Pussacq, Dave Reaves, Thomas Reuter, Andreas Rittinger, Ryan Robe, Nicolas P. Rougier, Matthias Schaffland, Michael Schmidt, Jan Scholze, Martin Schwarzbauer, Rupert Stelz, Madhura Suresh, Chendra Hadi Suryanto, Timo Teifel, Albert Theuwissen, Laval Tremblay, Tim Vlaar, Silvio Voitzsch, Stefan Von Weihe, Frederik Voncken, Roman Wagner, Ansger Waschki, Anne Wendel, Jean-Michel Wintgens, Manfred Wuetschner, Jang Xu, Christoph Zierl, and Juraj Zopp

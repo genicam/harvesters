@@ -287,7 +287,7 @@ Harvester Core on IPython
 
 The following screenshot shows Harvester Core is running on IPython. Harvester Core returns the latest image data at the moment as a Numpy array every time its user call the ``get_image()`` method. Once you get an image you should be able to immediately start image processing. If you're running on Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
-.. image:: https://user-images.githubusercontent.com/8652625/43035359-e23fe062-8d28-11e8-898a-a18465f620e6.png
+.. image:: https://user-images.githubusercontent.com/8652625/43075587-3d9deeec-8ebc-11e8-9d0f-490d3bf359fd.png
     :align: center
     :alt: Harvester on IPython
     :scale: 40 %
@@ -318,24 +318,26 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
 
     In [9]: h.start_image_acquisition()
 
-    In [10]: with h.fetch_buffer() as b:
-        ...:     print('1D:\n{0}'.format(b.image.ndarray))
-        ...:     print('2D:\n{0}'.format(b.image.ndarray.reshape(b.image.height, b.image.width)))
+    In [10]: with h.fetch_buffer() as buffer:
+        ...:     _1d = buffer.image.ndarray
+        ...:     print('1D:\n{0}'.format(_1d))
+        ...:     _2d = _1d.reshape(buffer.image.height, buffer.image.width)
+        ...:     print('2D:\n{0}'.format(_2d))
         ...:
     1D:
-    [189 190 191 192 193 194 195 196 190 191 192 193 194 195 196 197 191 192
-     193 194 195 196 197 198 192 193 194 195 196 197 198 199 193 194 195 196
-     197 198 199 200 194 195 196 197 198 199 200 201 195 196 197 198 199 200
-     201 202 196 197 198 199 200 201 202 203]
+    [147 148 149 150 151 152 153 154 148 149 150 151 152 153 154 155 149 150
+     151 152 153 154 155 156 150 151 152 153 154 155 156 157 151 152 153 154
+     155 156 157 158 152 153 154 155 156 157 158 159 153 154 155 156 157 158
+     159 160 154 155 156 157 158 159 160 161]
     2D:
-    [[189 190 191 192 193 194 195 196]
-     [190 191 192 193 194 195 196 197]
-     [191 192 193 194 195 196 197 198]
-     [192 193 194 195 196 197 198 199]
-     [193 194 195 196 197 198 199 200]
-     [194 195 196 197 198 199 200 201]
-     [195 196 197 198 199 200 201 202]
-     [196 197 198 199 200 201 202 203]]
+    [[147 148 149 150 151 152 153 154]
+     [148 149 150 151 152 153 154 155]
+     [149 150 151 152 153 154 155 156]
+     [150 151 152 153 154 155 156 157]
+     [151 152 153 154 155 156 157 158]
+     [152 153 154 155 156 157 158 159]
+     [153 154 155 156 157 158 159 160]
+     [154 155 156 157 158 159 160 161]]
 
     In [11]: h.stop_image_acquisition()
 

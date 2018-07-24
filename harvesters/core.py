@@ -93,6 +93,15 @@ class Harvester:
     }
 
     def __init__(self, frontend=None, profile=False, min_num_buffers=16, parent=None):
+        """
+        Is a Python class that works as Harvester Core. You can image
+        acquisition related task through this class.
+
+        :param frontend:
+        :param profile:
+        :param min_num_buffers:
+        :param parent:
+        """
         #
         super().__init__()
 
@@ -270,6 +279,18 @@ class Harvester:
 
     def connect_device(self, item_id=0, id_info=None, model=None,
             serial_number=None, user_defined_name=None, vendor=None):
+        """
+        Connect the specified device to the Harvester object.
+
+        :param item_id:
+        :param id_info:
+        :param model:
+        :param serial_number:
+        :param user_defined_name:
+        :param vendor:
+
+        :return: None.
+        """
         #
         if self.device or self.device_info_list is None:
             # TODO: Throw an exception to tell clients that there's no
@@ -345,6 +366,12 @@ class Harvester:
                 self._profiler.print_diff()
 
     def disconnect_device(self):
+        """
+        Disconnect the device that has been connected to the Harvester
+        object.
+
+        :return: None.
+        """
         #
         if self.device:
             if self.device.is_open():
@@ -362,6 +389,11 @@ class Harvester:
             self._profiler.print_diff()
 
     def start_image_acquisition(self):
+        """
+        Starts image acquisition.
+
+        :return: None.
+        """
         if self.is_acquiring_images:
             # If it's pausing drawing images, just resume it and
             # immediately return this method.
@@ -549,6 +581,12 @@ class Harvester:
                     self.signal_stop_image_acquisition.emit()
 
     def fetch_buffer(self, timeout_ms=0):
+        """
+        Fetches the latest Buffer object and returns it.
+
+        :param timeout_ms: Set timeout value in ms.
+        :return: A Buffer object.
+        """
         if not self.is_acquiring_images:
             return None
 
@@ -567,6 +605,13 @@ class Harvester:
         return buffer
 
     def queue_buffer(self, buffer):
+        """
+        Queues the Buffer object.
+
+        :param buffer: Set a Buffer object to queue.
+
+        :return: None.
+        """
         if self._data_stream and buffer:
             self._data_stream.queue_buffer(
                 buffer.gentl_buffer
@@ -646,6 +691,11 @@ class Harvester:
             self._data_stream.queue_buffer(buffer)
 
     def stop_image_acquisition(self):
+        """
+        Stops image acquisition.
+
+        :return: None.
+        """
         if self.is_acquiring_images:
             #
             self._is_acquiring_images = False
@@ -699,14 +749,34 @@ class Harvester:
         self._current_pixel_format = self.device.node_map.PixelFormat.value
 
     def add_cti_file(self, file_path: str):
+        """
+        Adds a CTI file to work with to the CTI file list.
+
+        :param file_path: Set a file path to the target CTI file.
+
+        :return: None.
+        """
         if file_path not in self._cti_files:
             self._cti_files.append(file_path)
 
     def remove_cti_file(self, file_path: str):
+        """
+        Remove the specified CTI file from the CTI file list.
+
+        :param file_path: Set a file path to the target CTI file.
+
+        :return: None.
+        """
         if file_path in self._cti_files:
             self._cti_files.remove(file_path)
 
     def discard_cti_files(self):
+        """
+        Remove all CTI files in the CTI file list.
+
+        :return: None.
+        """
+
         self._cti_files = []
 
     def _open_gentl_producers(self):
@@ -731,6 +801,11 @@ class Harvester:
                 self._systems.append(system)
 
     def reset(self):
+        """
+        Initializes the Harvester object.
+
+        :return: None.
+        """
         self.discard_cti_files()
         self._release_gentl_producers()
 
@@ -806,6 +881,12 @@ class Harvester:
         self._has_acquired_1st_image = False
 
     def update_device_info_list(self):
+        """
+        Updates the device information list. You'll have to call this method
+        every time you added CTI files or plugged/unplugged devices.
+
+        :return: None.
+        """
         #
         self._release_gentl_producers()
 

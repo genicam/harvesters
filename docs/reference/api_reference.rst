@@ -5,7 +5,7 @@ API Reference
 Classes
 =======
 
-.. autoclass:: Harvester
+.. autoclass:: harvesters
   :members:
   :show-inheritance:
   :inherited-members:

@@ -86,12 +86,6 @@ class _ProcessorConvertPyBytesToNumpy1D(Processor):
 
 
 class Harvester:
-    #
-    _encodings = {
-        TL_CHAR_ENCODING_LIST.TL_CHAR_ENCODING_ASCII: 'ascii',
-        TL_CHAR_ENCODING_LIST.TL_CHAR_ENCODING_UTF8: 'utf8'
-    }
-
     def __init__(self, frontend=None, profile=False, min_num_buffers=16, parent=None):
         """
         Is a Python class that works as Harvester Core. You can image

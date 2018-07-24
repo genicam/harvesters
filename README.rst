@@ -11,7 +11,7 @@
     :alt: The Harvesters
     :scale: 55 %
 
-    Pieter Bruegel the Elder, The Harvesters, 1565, oil on wood, (c) 2000–2018 The Metropolitan Museum of Art
+    Pieter Bruegel the Elder, The Harvesters, 1565, (c) 2000–2018 The Metropolitan Museum of Art
 
 .. contents:: Table of Contents
     :depth: 1

@@ -2,6 +2,13 @@
 Harvester's Documentation
 #########################
 
+.. figure:: https://user-images.githubusercontent.com/8652625/40595190-1e16e90e-626e-11e8-9dc7-207d691c6d6d.jpg
+    :align: center
+    :alt: The Harvesters
+    :scale: 55 %
+
+    Pieter Bruegel the Elder, The Harvesters, 1565, oil on wood, (c) 2000–2018 The Metropolitan Museum of Art
+
 ***************
 About Harvester
 ***************

@@ -557,12 +557,13 @@ class Harvester:
                 # we had kept.
                 with MutexLocker(self.thread_image_acquisition):
                     if len(self._fetched_buffers) > 0:
-                        # We have 2 buffers now so we queue the oldest buffer.
+                        # We have a buffer now so we queue it; it's discarded
+                        # before being used.
                         self.queue_buffer(self._fetched_buffers.pop(0))
-                        # Then one buffer remains for our client.
 
                     if output_buffer.image.ndarray is not None:
                         # Append the recently fetched buffer.
+                        # Then one buffer remains for our client.
                         self._fetched_buffers.append(output_buffer)
 
             #

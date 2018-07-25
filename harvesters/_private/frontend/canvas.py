@@ -177,15 +177,15 @@ class Canvas(app.Canvas):
         # Fetch a buffer.
         try:
             with self._harvester_core.fetch_buffer(timeout_ms=0.1) as buffer:
-                # Update the canvas size if needed.
-                self.set_rect(buffer.image.width, buffer.image.height)
-
                 # Set the image as the texture of our canvas.
                 if not self._pause_drawing and buffer:
+                    # Update the canvas size if needed.
+                    self.set_rect(buffer.image.width, buffer.image.height)
                     self._program['texture'] = buffer.image.ndarray
 
                 # Draw the texture.
-                self._program.draw('triangle_strip')
+                self._draw()
+
         except AttributeError:
             # Harvester Core has not started image acquisition so
             # calling fetch_buffer() raises AttributeError because
@@ -200,7 +200,10 @@ class Canvas(app.Canvas):
             #     https://github.com/vispy/vispy/issues/1394
 
             # Draw the texture.
-            self._program.draw('triangle_strip')
+            self._draw()
+
+    def _draw(self):
+        self._program.draw('triangle_strip')
 
     def on_resize(self, event):
         self.apply_magnification()

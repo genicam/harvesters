@@ -25,6 +25,7 @@ Harvester is a friendly companion for people who those want to learn computer vi
 Technically speaking, Harvester is a Python library which is responsible for the following tasks:
 
 * Image acquisition
+* Device manipulation
 * Image data visualization (optional)
 
 Harvester consumes image acquisition libraries, so-called GenTL Producers. If you have an officially certified GenTL Producer and GenICam compliant machine vision cameras, then Harvester supply you the acquired image data as `numpy <http://www.numpy.org>`_ array to make your image processing task productive.
@@ -33,17 +34,33 @@ You can freely use, modify, distribute Harvester under `Apache License-2.0 <http
 
 Currently, Harvester is being developed and maintained by the motivated volunteer contributors from all over the world.
 
-################
+***************************
+Why is it called Harvester?
+***************************
+
+Harvester's name was derived from the great Flemish painter, Pieter Bruegel the Elder's painting so-called "The Harvesters". Harvesters harvest a crop every season that has been fully grown and the harvested crop is passed to the consumers. On the other hand, image acquisition libraries acquire images as their crop and the images are passed to the following processes. We found the similarity between them and decided to name our library Harvester.
+
+Apart from anything else, we love its peaceful and friendly name. We hope you also like it ;-)
+
+****************
 Asking questions
-################
+****************
 
 We have prepared a chat room in Gitter. Please don't hesitate to drop your message when you get a question regarding Harvester!
 
 https://gitter.im/genicam-harvester/chatroom
 
-#############
-Collaborators
-#############
+**************
+External links
+**************
+
+* `GitHub <https://github.com/genicam/harvesters>`_: This is the main repository of Harvester
+* `PyPI <https://pypi.org/project/harvesters/>`_: This is the package distribution page of Harvester which is located in PyPI
+* `Read the Docs <https://harvesters.readthedocs.io/en/latest/>`_: You can find the API reference of Harvester Core and Harvester GUI
+
+######################
+Friendly collaborators
+######################
 
 So far, Harvester has tested GenTL Producers and GenICam compliant devices from the following companies and they gave Harvester opportunities to improve its quality:
 
@@ -204,9 +221,9 @@ The following diagram shows the hierarchy and relationship of the relevant modul
     :alt: Module hierarchy
     :scale: 40 %
 
-########
-Features
-########
+###########################
+How does Harvester help us?
+###########################
 
 Harvester mainly consists of the following two Python modules:
 
@@ -383,7 +400,12 @@ Requirements
 System requirements
 *******************
 
+The following software modules are required to get Harvester working:
+
 * Python 3.4 or higher
+
+In addition, you will need the following items to let Harvester make something meaningful:
+
 * Officially certified GenTL Producers
 * GenICam compliant machine vision cameras
 
@@ -391,16 +413,16 @@ System requirements
 Supported operating systems
 ***************************
 
-Harvester has been tested with the following operating systems.
+Harvester has been tested with the following operating systems:
 
 * macOS 10.13
 * Ubuntu 14.04
 * Red Hat Enterprise Linux Workstation 7.4
 * Windows 7
 
-############
-Installation
-############
+####################
+Installing Harvester
+####################
 
 In this section, we will learn how to instruct procedures to get Harvester work.
 
@@ -483,9 +505,13 @@ Remarks regaring the Python Bindings
 
 Please remind that you need to be careful when you choose a Python version (especially Anaconda Python, maybe?) because some distributions have different directory structure or linking symbols. It simply breaks the Python Bindings. We have started collecting some results from our experiences and have listed them in the "System Configuration Matrix" section in the ``README`` file. We hope it helps you to save your time.
 
-#########################
-How to use Harvester Core
-#########################
+###############
+Using Harvester
+###############
+
+********************
+Using Harvester Core
+********************
 
 First, let's import Harvester:
 
@@ -589,9 +615,9 @@ And the following code disconnects the connecting device from Harvester:
 
 Now you can quit the program!
 
-########################
-How to use Harvester GUI
-########################
+*******************
+Using Harvester GUI
+*******************
 
 To use Harvester GUI, let's create a Python script file, naming ``foo.py``, that contains the following code:
 
@@ -837,12 +863,6 @@ Collapsing the feature node tree
 
 This button is used to collapse the feature node tree. The shortcut key is ``Ctrl+c``.
 
-##############
-Harvester Core
-##############
-
-TODO: Finish writing article.
-
 ################
 Acknowledgements
 ################
@@ -894,25 +914,9 @@ Harvester GUI uses the following open source libraries/resources:
 
   | https://icons8.com
 
-##############
-Why Harvester?
-##############
-
-Harvester's name was derived from the great Flemish painter, Pieter Bruegel the Elder's painting so-called "The Harvesters". Harvesters harvest a crop every season that has been fully grown and the harvested crop is passed to the consumers. On the other hand, image acquisition libraries acquire images as their crop and the images are passed to the following processes. We found the similarity between them and decided to name our library Harvester.
-
-Apart from anything else, we love its peaceful and friendly name. We hope you also like it ;-)
-
-##############
-External links
-##############
-
-* `GitHub <https://github.com/genicam/harvesters>`_: The main repository
-* `PyPI <https://pypi.org/project/harvesters/>`_: Package distribution
-* `Read the Docs <https://harvesters.readthedocs.io/en/latest/>`_: API reference, etc.
-
-#######
+*******
 Credits
-#######
+*******
 
 The initial idea about Harvester suddenly came up to a Japanese software engineer, Kazunari Kudo's head in the early April of year 2018 and he immediately decided to bring the first prototype to the International Vision Standards Meeting, IVSM in short, that was going to be held in Frankfurt am Main in the following early May. During the Frankfurt IVSM, interested engineers tried out Harvester and confirmed it really worked using commercial machine vision cameras provided by well-known machine vision camera manufacturers in the world. Having that fact, the attendees of the IVSM warmly welcomed Harvester.
 

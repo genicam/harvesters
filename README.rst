@@ -143,6 +143,40 @@ So far, Harvester has tested GenTL Producers and GenICam compliant devices from 
 
 Please don't hesitate to tell us if you have tested Harvester with your GenTL Producer or GenICam compliant device. We will add your company/organization name to the list.
 
+*************************
+Certified GenTL Producers
+*************************
+
+As of today, we have tested Harvester with the following GenTL Producers and it definitely is the shortest way to get one from the following list to get Harvester working with tangible machine vision cameras:
+
+.. list-table::
+    :header-rows: 1
+    :align: center
+
+    - - Company Name
+      - SDK Name
+      - Camera Manufacture Free
+    - - Baumer Optronic
+      - `Baumer GAPI SDK <https://www.baumer.com/ae/en/product-overview/image-processing-identification/software/baumer-gapi-sdk/c/14174>`_
+      - No
+    - - DAHENG VISION
+      - `MER Galaxy View <http://en.daheng-image.com/products_list/&pmcId=a1dda1e7-5d40-4538-9572-f4234be49c9c.html>`_
+      - No
+    - - JAI
+      - `JAI SDK <https://www.jai.com/support-software/jai-software>`_
+      - Yes
+    - - Matrix Vision
+      - `mvIMPACT_Acquire <http://static.matrix-vision.com/mvIMPACT_Acquire/>`_
+      - Yes
+    - - OMRON SENTECH
+      - `StCamUSBPack <https://sentech.co.jp/data/#cnt2nd>`_
+      - No
+    - - STEMMER IMAGING
+      - `Common Vision Blox <https://www.commonvisionblox.com/en/cvb-download/>`_
+      - Yes
+
+You might be able to directly download one at their website but please note that perhaps some of them could require you to register your information to get one. In addition, some GenTL Producers might block you to connect to other competitors' camera.
+
 ###########
 Terminology
 ###########

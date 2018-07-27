@@ -9,6 +9,9 @@
 *Even though we just wanted to research image processing algorithms, why did we have to change my image acquisition library every time I change the camera that I use for the research?
 - Anonymous*
 
+.. contents:: Table of Contents
+    :depth: 1
+
 ###############
 About Harvester
 ###############
@@ -24,9 +27,6 @@ Harvester consumes image acquisition libraries, so-called GenTL Producers. If yo
 You can freely use, modify, distribute Harvester under `Apache License-2.0 <https://www.apache.org/licenses/LICENSE-2.0>`_ without worrying about the use of your software: personal, internal or commercial.
 
 Currently, Harvester is being developed and maintained by the motivated volunteer contributors from all over the world.
-
-.. contents:: Table of Contents
-    :depth: 1
 
 ***************************
 Why is it called Harvester?

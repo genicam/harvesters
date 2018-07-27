@@ -8,7 +8,7 @@
 
 ----
 
-*Even though we just wanted to research image processing algorithms, why did we have to change my image acquisition library every time I change the camera that I use for the research?
+*Even though we just wanted to research image processing algorithms, why did we have to change our image acquisition library every time I change the camera that I use for the research?
 - Anonymous*
 
 ----

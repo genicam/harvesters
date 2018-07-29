@@ -2,15 +2,8 @@
 Harvester's Documentation
 #########################
 
-----
-
 *Even though we just wanted to research image processing algorithms, why did we have to change our image acquisition library every time we change the camera that we use for the research?
 - Anonymous*
-
-----
-
-.. contents:: Table of Contents
-    :depth: 1
 
 ***************
 About Harvester

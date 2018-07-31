@@ -6,6 +6,9 @@ Classes
 =======
 
 .. automodule:: harvesters
+  :members:
+  :show-inheritance:
+  :inherited-members:
 
 Exceptions
 ==========

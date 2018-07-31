@@ -25,7 +25,7 @@ from genicam2.gentl import InvalidParameterException
 import numpy as np
 
 # Local application/library specific imports
-from harvesters._private.core.pfnc import symbolics
+from harvesters.pfnc import symbolics
 
 class Image:
     def __init__(self, parent=None, ndarray: np.ndarray=None):

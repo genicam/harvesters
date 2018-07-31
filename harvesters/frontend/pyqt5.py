@@ -44,7 +44,7 @@ from harvesters._private.frontend.pyqt5.icon import Icon
 from harvesters._private.frontend.pyqt5.thread import PyQtThread
 from harvesters.core import Harvester as HarvesterCore
 from harvesters.processor import Processor
-from harvesters._private.core.pfnc import mono_formats, rgb_formats, \
+from harvesters.pfnc import mono_formats, rgb_formats, \
     rgba_formats, bayer_formats
 
 

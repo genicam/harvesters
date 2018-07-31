@@ -46,8 +46,8 @@ from harvesters._private.core.statistics import Statistics
 from harvesters._private.core.thread import PyThread
 from harvesters._private.core.thread_ import MutexLocker
 from harvesters.processor import Processor
-from harvesters._private.core.pfnc import symbolics
-from harvesters._private.core.pfnc import uint8_formats, uint16_formats
+from harvesters.pfnc import symbolics
+from harvesters.pfnc import uint8_formats, uint16_formats
 
 
 class _ProcessorConvertPyBytesToNumpy1D(Processor):

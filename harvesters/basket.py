@@ -24,7 +24,7 @@
 import numpy as np
 
 # Local application/library specific imports
-from harvesters._private.core.image import Image
+from harvesters.image import Image
 
 
 class Basket:

@@ -38,12 +38,12 @@ class Processor:
     def description(self):
         return self._description
 
-    def process(self, input_buffer):
-        output_buffer = None
+    def process(self, input):
+        output = None
 
         for p in self._processors:
-            output_buffer = p.process(input_buffer)
-            input_buffer = output_buffer
+            output = p.process(input)
+            input = output
 
-        return output_buffer
+        return output
 

@@ -32,7 +32,7 @@ from genicam2.gentl import PAYLOADTYPE_INFO_IDS
 #from scipy import ndimage
 
 # Local application/library specific imports
-from harvesters._private.core.buffer import Buffer
+from harvesters.basket import Basket
 from harvesters._private.frontend.canvas import Canvas
 from harvesters._private.frontend.helper import compose_tooltip
 from harvesters._private.frontend.pyqt5.about import About
@@ -73,32 +73,32 @@ class _ConvertNumpy1DToNumpy2D(Processor):
         super().__init__(
             description='Reshapes a Numpy 1D array into a Numpy 2D array')
 
-    def process(self, input_buffer: Buffer):
+    def process(self, input: Basket):
         #
-        symbolic = input_buffer.image.pixel_format
+        symbolic = input.image.pixel_format
 
         #
         ndarray = None
         try:
             if symbolic in mono_formats or symbolic in bayer_formats:
-                ndarray = input_buffer.image.ndarray.reshape(
-                    input_buffer.image.height, input_buffer.image.width
+                ndarray = input.image.ndarray.reshape(
+                    input.image.height, input.image.width
                 )
             elif symbolic in rgb_formats:
-                ndarray = input_buffer.image.ndarray.reshape(
-                    input_buffer.image.height, input_buffer.image.width, 3
+                ndarray = input.image.ndarray.reshape(
+                    input.image.height, input.image.width, 3
                 )
             elif symbolic in rgba_formats:
-                ndarray = input_buffer.image.ndarray.reshape(
-                    input_buffer.image.height, input_buffer.image.width, 4
+                ndarray = input.image.ndarray.reshape(
+                    input.image.height, input.image.width, 4
                 )
         except ValueError as e:
             print(e)
 
-        output_buffer = Buffer(
-            data_stream=input_buffer.data_stream,
-            gentl_buffer=input_buffer.gentl_buffer,
-            node_map=input_buffer.node_map,
+        output_buffer = Basket(
+            data_stream=input.data_stream,
+            gentl_buffer=input.gentl_buffer,
+            node_map=input.node_map,
             image=ndarray
         )
 
@@ -113,13 +113,13 @@ class _Rotate(Processor):
         #
         self._angle = angle
 
-    def process(self, input_buffer: Buffer):
+    def process(self, input: Basket):
         #
-        ndarray = ndimage.rotate(input_buffer.image.ndarray, self._angle)  # Import scipy.
-        output = Buffer(
-            data_stream=input_buffer.data_stream,
-            gentl_buffer=input_buffer.gentl_buffer,
-            node_map=input_buffer.node_map,
+        ndarray = ndimage.rotate(input.image.ndarray, self._angle)  # Import scipy.
+        output = Basket(
+            data_stream=input.data_stream,
+            gentl_buffer=input.gentl_buffer,
+            node_map=input.node_map,
             image=ndarray
         )
         return output

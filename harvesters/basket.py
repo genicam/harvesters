@@ -27,8 +27,15 @@ import numpy as np
 from harvesters._private.core.image import Image
 
 
-class Buffer:
+class Basket:
     def __init__(self, data_stream=None, gentl_buffer=None, node_map=None, image: np.ndarray=None):
+        """
+
+        :param data_stream:
+        :param gentl_buffer:
+        :param node_map:
+        :param image:
+        """
         #
         super().__init__()
 

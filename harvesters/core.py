@@ -40,7 +40,7 @@ from genicam2.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST
 
 # Local application/library specific imports
-from harvesters._private.core.buffer import Buffer
+from harvesters.basket import Basket
 from harvesters._private.core.port import ConcretePort
 from harvesters._private.core.statistics import Statistics
 from harvesters._private.core.thread import PyThread
@@ -57,10 +57,10 @@ class _ProcessorConvertPyBytesToNumpy1D(Processor):
             description='Converts a Python bytes object to a Numpy 1D array'
         )
 
-    def process(self, input_buffer: Buffer):
+    def process(self, input: Basket):
         symbolic = None
         try:
-            pixel_format_int = input_buffer.gentl_buffer.pixel_format
+            pixel_format_int = input.gentl_buffer.pixel_format
         except InvalidParameterException:
             pass
         else:
@@ -73,12 +73,12 @@ class _ProcessorConvertPyBytesToNumpy1D(Processor):
         else:
             dtype = 'uint8'
 
-        output_buffer = Buffer(
-            data_stream=input_buffer.data_stream,
-            gentl_buffer=input_buffer.gentl_buffer,
-            node_map=input_buffer.node_map,
+        output_buffer = Basket(
+            data_stream=input.data_stream,
+            gentl_buffer=input.gentl_buffer,
+            node_map=input.node_map,
             image=np.frombuffer(
-                input_buffer.gentl_buffer.raw_buffer, dtype=dtype
+                input.gentl_buffer.raw_buffer, dtype=dtype
             )
         )
         return output_buffer
@@ -572,7 +572,7 @@ class Harvester:
             self._update_statistics(gentl_buffer)
 
             # Put the buffer in the process flow.
-            input_buffer = Buffer(
+            input_buffer = Basket(
                 self._data_stream, gentl_buffer, self.device.node_map, None
             )
             output_buffer = None

@@ -32,7 +32,7 @@ from genicam2.gentl import PAYLOADTYPE_INFO_IDS
 #from scipy import ndimage
 
 # Local application/library specific imports
-from harvesters.basket import Basket
+from harvesters.buffer import Buffer
 from harvesters._private.frontend.canvas import Canvas
 from harvesters._private.frontend.helper import compose_tooltip
 from harvesters._private.frontend.pyqt5.about import About
@@ -73,7 +73,7 @@ class _ConvertNumpy1DToNumpy2D(Processor):
         super().__init__(
             description='Reshapes a Numpy 1D array into a Numpy 2D array')
 
-    def process(self, input: Basket):
+    def process(self, input: Buffer):
         #
         symbolic = input.image.pixel_format
 
@@ -95,7 +95,7 @@ class _ConvertNumpy1DToNumpy2D(Processor):
         except ValueError as e:
             print(e)
 
-        output_buffer = Basket(
+        output_buffer = Buffer(
             data_stream=input.data_stream,
             gentl_buffer=input.gentl_buffer,
             node_map=input.node_map,
@@ -113,10 +113,10 @@ class _Rotate(Processor):
         #
         self._angle = angle
 
-    def process(self, input: Basket):
+    def process(self, input: Buffer):
         #
         ndarray = ndimage.rotate(input.image.ndarray, self._angle)  # Import scipy.
-        output = Basket(
+        output = Buffer(
             data_stream=input.data_stream,
             gentl_buffer=input.gentl_buffer,
             node_map=input.node_map,

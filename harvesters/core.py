@@ -40,7 +40,7 @@ from genicam2.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST
 
 # Local application/library specific imports
-from harvesters.basket import Basket
+from harvesters.buffer import Buffer
 from harvesters._private.core.port import ConcretePort
 from harvesters._private.core.statistics import Statistics
 from harvesters._private.core.thread import PyThread
@@ -57,7 +57,7 @@ class _ProcessorConvertPyBytesToNumpy1D(Processor):
             description='Converts a Python bytes object to a Numpy 1D array'
         )
 
-    def process(self, input: Basket):
+    def process(self, input: Buffer):
         symbolic = None
         try:
             pixel_format_int = input.gentl_buffer.pixel_format
@@ -73,7 +73,7 @@ class _ProcessorConvertPyBytesToNumpy1D(Processor):
         else:
             dtype = 'uint8'
 
-        output_buffer = Basket(
+        output_buffer = Buffer(
             data_stream=input.data_stream,
             gentl_buffer=input.gentl_buffer,
             node_map=input.node_map,
@@ -117,7 +117,7 @@ class Harvester:
 
         #
         self._announced_buffers = []
-        self._fetched_buffers = []
+        self._fetched_buffer = []
 
         self._data_stream = None
         self._event_manager = None
@@ -572,7 +572,7 @@ class Harvester:
             self._update_statistics(gentl_buffer)
 
             # Put the buffer in the process flow.
-            input_buffer = Basket(
+            input_buffer = Buffer(
                 self._data_stream, gentl_buffer, self.device.node_map, None
             )
             output_buffer = None
@@ -585,15 +585,15 @@ class Harvester:
                 # We've got a new image so now we can reuse the buffer that
                 # we had kept.
                 with MutexLocker(self.thread_image_acquisition):
-                    if len(self._fetched_buffers) >= self._num_images_to_hold:
+                    if len(self._fetched_buffer) >= self._num_images_to_hold:
                         # We have a buffer now so we queue it; it's discarded
                         # before being used.
-                        self.queue_buffer(self._fetched_buffers.pop(0))
+                        self.queue_buffer(self._fetched_buffer.pop(0))
 
                     if output_buffer.image.ndarray is not None:
                         # Append the recently fetched buffer.
                         # Then one buffer remains for our client.
-                        self._fetched_buffers.append(output_buffer)
+                        self._fetched_buffer.append(output_buffer)
 
             #
             if self._num_images_to_acquire >= 1:
@@ -624,8 +624,8 @@ class Harvester:
                 break
             else:
                 with MutexLocker(self.thread_image_acquisition):
-                    if len(self._fetched_buffers) > 0:
-                        buffer = self._fetched_buffers.pop(0)
+                    if len(self._fetched_buffer) > 0:
+                        buffer = self._fetched_buffer.pop(0)
 
         return buffer
 
@@ -902,7 +902,7 @@ class Harvester:
         self._announced_buffers = revoked_buffers
 
     def _initialize_buffers(self):
-        self._fetched_buffers = []
+        self._fetched_buffer = []
         self._has_acquired_1st_image = False
 
     def update_device_info_list(self):

@@ -367,3 +367,5 @@ epub_publisher = 'EMVA'
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/3.4': None}
+
+autodoc_mock_imports = ['genicam2']

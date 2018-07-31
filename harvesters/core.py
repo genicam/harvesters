@@ -216,10 +216,21 @@ class Harvester:
 
     @property
     def cti_files(self):
+        """
+        Returns a list containing CTI file paths.
+
+        :type: bool
+        """
         return self._cti_files
 
     @property
     def is_acquiring_images(self):
+        """
+        Returns a truth value of the following proposition: The Harvester
+        object is acquiring images.
+
+        :type: bool
+        """
         return self._is_acquiring_images
 
     @property
@@ -287,7 +298,7 @@ class Harvester:
     def connect_device(self, item_id=0, id_info=None, model=None,
             serial_number=None, user_defined_name=None, vendor=None):
         """
-        Connect the specified device to the Harvester object.
+        Connects the specified device to the Harvester object.
 
         :param item_id:
         :param id_info:
@@ -374,7 +385,7 @@ class Harvester:
 
     def disconnect_device(self):
         """
-        Disconnect the device that has been connected to the Harvester
+        Disconnects the device that has been connected to the Harvester
         object.
 
         :return: None.
@@ -590,7 +601,7 @@ class Harvester:
 
     def fetch_buffer(self, timeout_ms=0):
         """
-        Fetches the latest Buffer object and returns it.
+        Fetches the oldest Buffer object and returns it.
 
         :param timeout_ms: Set timeout value in ms.
         :return: A Buffer object.
@@ -780,7 +791,7 @@ class Harvester:
 
     def discard_cti_files(self):
         """
-        Remove all CTI files in the CTI file list.
+        Removes all CTI files in the CTI file list.
 
         :return: None.
         """

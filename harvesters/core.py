@@ -177,6 +177,10 @@ class Harvester:
         self._commands = []
 
         #
+        self._num_images_to_hold_min = 1
+        self._num_images_to_hold = self._num_images_to_hold_min
+
+        #
         if profile:
             from harvesters._private.core.helper import Profiler
             self._profiler = Profiler()
@@ -265,6 +269,17 @@ class Harvester:
     @property
     def thread_statistics_measurement(self):
         return self._thread_statistics_measurement
+
+    @property
+    def num_images_to_hold(self):
+        return self._num_images_to_hold
+
+    @num_images_to_hold.setter
+    def num_images_to_hold(self, value):
+        if value >= self._num_images_to_hold_min:
+            self._num_images_to_hold = value
+        else:
+            self._num_images_to_hold = self._num_images_to_hold_min
 
     @thread_statistics_measurement.setter
     def thread_statistics_measurement(self, obj):
@@ -556,7 +571,7 @@ class Harvester:
                 # We've got a new image so now we can reuse the buffer that
                 # we had kept.
                 with MutexLocker(self.thread_image_acquisition):
-                    if len(self._fetched_buffers) > 0:
+                    if len(self._fetched_buffers) >= self._num_images_to_hold:
                         # We have a buffer now so we queue it; it's discarded
                         # before being used.
                         self.queue_buffer(self._fetched_buffers.pop(0))

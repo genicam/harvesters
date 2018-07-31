@@ -563,12 +563,15 @@ class ActionConnect(Action):
             self.parent().device_list.currentIndex()
         )
 
-        if self.parent().harvester_core.device.node_map:
-            self.parent()._widget_attribute_controller = \
-                AttributeController(
-                    self.parent().harvester_core.device.node_map,
-                    parent=self.parent()
-                )
+        try:
+            if self.parent().harvester_core.device.node_map:
+                self.parent()._widget_attribute_controller = \
+                    AttributeController(
+                        self.parent().harvester_core.device.node_map,
+                        parent=self.parent()
+                    )
+        except AttributeError:
+            pass
 
     def update(self):
         #

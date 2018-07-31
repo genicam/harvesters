@@ -5,6 +5,8 @@ API Reference
 Classes
 =======
 
+.. automodule:: harvesters
+
 .. autoclass:: harvesters.core.Harvester
   :members:
   :show-inheritance:

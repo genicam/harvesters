@@ -219,7 +219,7 @@ class Harvester:
         """
         Returns a list containing CTI file paths.
 
-        :type: bool
+        :type: list
         """
         return self._cti_files
 
@@ -235,6 +235,11 @@ class Harvester:
 
     @property
     def device_info_list(self):
+        """
+        Returns a list containing DeviceInfo objects.
+
+        :type: DeviceInfo
+        """
         return self._device_info_list
 
     @property
@@ -307,7 +312,7 @@ class Harvester:
         :param user_defined_name:
         :param vendor:
 
-        :return: None.
+        :type: None
         """
         #
         if self.device or self.device_info_list is None:
@@ -388,7 +393,7 @@ class Harvester:
         Disconnects the device that has been connected to the Harvester
         object.
 
-        :return: None.
+        :type: None
         """
         #
         if self.device:
@@ -410,7 +415,7 @@ class Harvester:
         """
         Starts image acquisition.
 
-        :return: None.
+        :type: None
         """
         if self.is_acquiring_images:
             # If it's pausing drawing images, just resume it and
@@ -604,6 +609,7 @@ class Harvester:
         Fetches the oldest Buffer object and returns it.
 
         :param timeout_ms: Set timeout value in ms.
+
         :return: A Buffer object.
         """
         if not self.is_acquiring_images:
@@ -629,7 +635,7 @@ class Harvester:
 
         :param buffer: Set a Buffer object to queue.
 
-        :return: None.
+        :type: None
         """
         if self._data_stream and buffer:
             self._data_stream.queue_buffer(
@@ -713,7 +719,7 @@ class Harvester:
         """
         Stops image acquisition.
 
-        :return: None.
+        :type: None
         """
         if self.is_acquiring_images:
             #
@@ -773,7 +779,7 @@ class Harvester:
 
         :param file_path: Set a file path to the target CTI file.
 
-        :return: None.
+        :type: None
         """
         if file_path not in self._cti_files:
             self._cti_files.append(file_path)
@@ -784,7 +790,7 @@ class Harvester:
 
         :param file_path: Set a file path to the target CTI file.
 
-        :return: None.
+        :type: None
         """
         if file_path in self._cti_files:
             self._cti_files.remove(file_path)
@@ -793,7 +799,7 @@ class Harvester:
         """
         Removes all CTI files in the CTI file list.
 
-        :return: None.
+        :type: None
         """
 
         self._cti_files = []
@@ -823,7 +829,7 @@ class Harvester:
         """
         Initializes the Harvester object.
 
-        :return: None.
+        :type: None
         """
         self.discard_cti_files()
         self._release_gentl_producers()
@@ -904,7 +910,7 @@ class Harvester:
         Updates the device information list. You'll have to call this method
         every time you added CTI files or plugged/unplugged devices.
 
-        :return: None.
+        :type: None
         """
         #
         self._release_gentl_producers()

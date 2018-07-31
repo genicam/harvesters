@@ -127,7 +127,6 @@ class Harvester:
 
         #
         self._min_num_buffers = min_num_buffers
-        self._num_extra_buffers = 1
 
         #
         self._has_revised_device_list = False

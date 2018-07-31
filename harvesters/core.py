@@ -37,8 +37,7 @@ from genicam2.gentl import TimeoutException, AccessDeniedException, \
     ResourceInUseException
 from genicam2.gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
 from genicam2.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
-    ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
-    TL_CHAR_ENCODING_LIST
+    ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST
 
 # Local application/library specific imports
 from harvesters._private.core.buffer import Buffer

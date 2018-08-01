@@ -610,7 +610,7 @@ class Harvester:
 
         :param timeout_ms: Set timeout value in ms.
 
-        :return: A Buffer object.
+        :return: A :class:`~harvesters.buffer.Buffer` object.
         """
         if not self.is_acquiring_images:
             return None
@@ -633,7 +633,7 @@ class Harvester:
         """
         Queues the :class:`~gentl.buffer.Buffer` object.
 
-        :param buffer: Set a Buffer object to queue.
+        :param buffer: Set a :class:`~harvesters.buffer.Buffer` object to queue.
 
         :return: None
         """

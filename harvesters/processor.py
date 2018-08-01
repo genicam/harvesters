@@ -28,7 +28,7 @@
 class Processor:
     def __init__(self, description):
         """
-        
+
         :param description:
         """
         #

@@ -217,7 +217,7 @@ class Harvester:
     @property
     def cti_files(self):
         """
-        Returns a list containing CTI file paths.
+        Returns a :class:`list` containing CTI file paths.
 
         :return: A list object containing str objects.
         """
@@ -236,9 +236,9 @@ class Harvester:
     @property
     def device_info_list(self):
         """
-        Returns a list containing DeviceInfo objects.
+        Returns a :class:`list` containing :class:`~genicam2.gentl.DeviceInfo` objects.
 
-        :return: A list object containing :class:`~gentl.DeviceInfo` objects
+        :return: A list object containing :class:`~genicam2.gentl.DeviceInfo` objects
         """
         return self._device_info_list
 
@@ -305,7 +305,7 @@ class Harvester:
         """
         Connects the specified device to the Harvester object.
 
-        :param index: Set an item index of the list of :class:`~gentl.DeviceInfo` objects.
+        :param index: Set an item index of the list of :class:`~genicam2.gentl.DeviceInfo` objects.
         :param id_info:
         :param model:
         :param serial_number:
@@ -631,7 +631,7 @@ class Harvester:
 
     def queue_buffer(self, buffer):
         """
-        Queues the :class:`~gentl.buffer.Buffer` object.
+        Queues the :class:`~harvesters.buffer.Buffer` object.
 
         :param buffer: Set a :class:`~harvesters.buffer.Buffer` object to queue.
 

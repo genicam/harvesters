@@ -95,14 +95,14 @@ class _ConvertNumpy1DToNumpy2D(ProcessorBase):
         except ValueError as e:
             print(e)
 
-        output_buffer = Buffer(
+        output = Buffer(
             data_stream=input.data_stream,
             gentl_buffer=input.gentl_buffer,
             node_map=input.node_map,
             image=ndarray
         )
 
-        return output_buffer
+        return output
 
 
 class _Rotate(ProcessorBase):

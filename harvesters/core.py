@@ -702,31 +702,18 @@ class Harvester:
             # object.
             self.device.node_map.connect(self._concrete_port, port.name)
 
+            # Create its Data Stream module and open it.
+            self._data_stream = self.device.create_data_stream()
+            self._data_stream.open(self.device.data_stream_ids[0])
+
+            # Create an Event Manager object for image acquisition.
+            event_token = self._data_stream.register_event(
+                EVENT_TYPE_LIST.EVENT_NEW_BUFFER
+            )
+            self._event_manager = EventManagerNewBuffer(event_token)
+
             if self._profiler:
                 self._profiler.print_diff()
-
-    def disconnect_device(self):
-        """
-        Disconnects the device that has been connected to the Harvester
-        object.
-
-        :return: None
-        """
-        #
-        if self.device:
-            if self.device.is_open():
-                self.stop_image_acquisition()
-                self.device.close()
-
-            if self.device.node_map:
-                self.device.node_map.disconnect()
-            self.device.node_map = None
-
-        self._device = None
-        self._concrete_port = None
-
-        if self._profiler:
-            self._profiler.print_diff()
 
     def start_image_acquisition(self):
         """
@@ -741,10 +728,6 @@ class Harvester:
                 if self._frontend.canvas.is_pausing:
                     self._frontend.canvas.resume_drawing()
         else:
-            #
-            self._data_stream = self.device.create_data_stream()
-            self._data_stream.open(self.device.data_stream_ids[0])
-
             #
             num_required_buffers = self._min_num_buffers
             try:
@@ -770,12 +753,6 @@ class Harvester:
                 buffer_tokens
             )
             self._queue_announced_buffers(self._announced_buffers)
-
-            #
-            event_token = self._data_stream.register_event(
-                EVENT_TYPE_LIST.EVENT_NEW_BUFFER
-            )
-            self._event_manager = EventManagerNewBuffer(event_token)
 
             # Reset the number of images to acquire.
             try:
@@ -880,25 +857,22 @@ class Harvester:
             pass
         else:
             #
-            if not self.is_acquiring_images:
-                return
-
             gentl_buffer = self._event_manager.buffer
 
             #
             self._update_statistics(gentl_buffer)
 
             # Put the buffer in the process flow.
-            input_buffer = Buffer(
+            input = Buffer(
                 self._data_stream, gentl_buffer, self.device.node_map, None
             )
-            output_buffer = None
+            output = None
 
             for p in self._processors:
-                output_buffer = p.process(input_buffer)
-                input_buffer = output_buffer
+                output = p.process(input)
+                input = output
 
-            if output_buffer:
+            if output:
                 # We've got a new image so now we can reuse the buffer that
                 # we had kept.
                 with MutexLocker(self.thread_image_acquisition):
@@ -907,10 +881,10 @@ class Harvester:
                         # before being used.
                         self.queue_buffer(self._fetched_buffer.pop(0))
 
-                    if output_buffer.image.ndarray is not None:
+                    if output.image.ndarray is not None:
                         # Append the recently fetched buffer.
                         # Then one buffer remains for our client.
-                        self._fetched_buffer.append(output_buffer)
+                        self._fetched_buffer.append(output)
 
             #
             if self._num_images_to_acquire >= 1:
@@ -1051,7 +1025,7 @@ class Harvester:
 
             with MutexLocker(self.thread_image_acquisition):
                 #
-                self._event_manager.flush_event_queue()
+                self.device.node_map.AcquisitionStop.execute()
 
                 # Stop image acquisition.
                 try:
@@ -1066,18 +1040,16 @@ class Harvester:
                 except TimeoutException as e:
                     print(e)
 
-                self.device.node_map.AcquisitionStop.execute()
-
                 # Flash the queue for image acquisition process.
                 self._data_stream.flush_buffer_queue(
                     ACQ_QUEUE_TYPE_LIST.ACQ_QUEUE_ALL_DISCARD
                 )
 
-                # Unregister the registered event.
-                self._event_manager.unregister_event()
+                #
+                self._event_manager.flush_event_queue()
 
                 #
-                self._release_data_stream()
+                self._release_buffers()
 
             #
             self._initialize_buffers()
@@ -1196,6 +1168,35 @@ class Harvester:
         if self.device_info_list is not None:
             self._device_info_list = []
 
+    def disconnect_device(self):
+        """
+        Disconnects the device that has been connected to the Harvester
+        object.
+
+        :return: None
+        """
+        #
+        if self.device:
+            #
+            self.stop_image_acquisition()
+            self._release_data_stream()
+
+            #
+            if self.device.is_open():
+                self.device.close()
+
+            #
+            if self.device.node_map:
+                self.device.node_map.disconnect()
+            self.device.node_map = None
+
+        self._device = None
+        self._concrete_port = None
+        self._event_manager = None
+
+        if self._profiler:
+            self._profiler.print_diff()
+
     def _release_data_stream(self):
         #
         self._release_buffers()
@@ -1207,16 +1208,11 @@ class Harvester:
 
         #
         self._data_stream = None
-        self._event_manager = None
 
     def _release_buffers(self):
-        #
-        revoked_buffers = []
-        if self._data_stream:
-            for i, buffer in enumerate(self._announced_buffers):
-                revoked_buffers.append(self._data_stream.revoke_buffer(buffer))
-
-        self._announced_buffers = revoked_buffers
+        for buffer in self._announced_buffers:
+            self._data_stream.revoke_buffer(buffer)
+        self._announced_buffers = []
 
     def _initialize_buffers(self):
         self._fetched_buffer = []

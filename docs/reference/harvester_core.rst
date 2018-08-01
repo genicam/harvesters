@@ -5,7 +5,7 @@ Harvester Core
 Classes
 =======
 
-.. automodule:: harvesters
+.. autoclass:: harvesters.buffer.Buffer
   :members:
   :show-inheritance:
   :inherited-members:

@@ -29,7 +29,7 @@ class ProcessorBase:
     def __init__(self, description):
         """
 
-        :param description:
+        :param description: Set description about this process.
         """
         #
         super().__init__()
@@ -40,9 +40,21 @@ class ProcessorBase:
 
     @property
     def description(self):
+        """
+
+        :return: A description about this process.
+
+        """
         return self._description
 
     def process(self, input):
+        """
+
+        :param input: Set an arbitrary object. It will be treated as the input
+        source of the sequence of processes.
+
+        :return: An arbitrary object as the output of the sequence of processes.
+        """
         output = None
 
         for p in self._processors:

@@ -45,12 +45,12 @@ from harvesters._private.core.port import ConcretePort
 from harvesters._private.core.statistics import Statistics
 from harvesters._private.core.thread import PyThread
 from harvesters._private.core.thread_ import MutexLocker
-from harvesters.processor import Processor
+from harvesters.processor import ProcessorBase
 from harvesters.pfnc import symbolics
 from harvesters.pfnc import uint8_formats, uint16_formats
 
 
-class _ProcessorConvertPyBytesToNumpy1D(Processor):
+class _ProcessorConvertPyBytesToNumpy1D(ProcessorBase):
     def __init__(self):
         #
         super().__init__(

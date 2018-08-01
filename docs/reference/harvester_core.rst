@@ -20,7 +20,7 @@ Classes
   :show-inheritance:
   :inherited-members:
 
-.. autoclass:: harvesters.processor.Processor
+.. autoclass:: harvesters.processor.ProcessorBase
   :members:
   :show-inheritance:
   :inherited-members:

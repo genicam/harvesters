@@ -43,12 +43,12 @@ from harvesters._private.frontend.pyqt5.helper import get_system_font
 from harvesters._private.frontend.pyqt5.icon import Icon
 from harvesters._private.frontend.pyqt5.thread import PyQtThread
 from harvesters.core import Harvester as HarvesterCore
-from harvesters.processor import Processor
+from harvesters.processor import ProcessorBase
 from harvesters.pfnc import mono_formats, rgb_formats, \
     rgba_formats, bayer_formats
 
 
-class _ProcessorPayloadTypeImage(Processor):
+class _ProcessorPayloadTypeImage(ProcessorBase):
     def __init__(self):
         #
         super().__init__(
@@ -59,7 +59,7 @@ class _ProcessorPayloadTypeImage(Processor):
         self._processors.append(_ConvertNumpy1DToNumpy2D())
 
 
-class _ProcessorPayloadTypeMultiPart(Processor):
+class _ProcessorPayloadTypeMultiPart(ProcessorBase):
     def __init__(self):
         #
         super().__init__(
@@ -67,7 +67,7 @@ class _ProcessorPayloadTypeMultiPart(Processor):
         )
 
 
-class _ConvertNumpy1DToNumpy2D(Processor):
+class _ConvertNumpy1DToNumpy2D(ProcessorBase):
     def __init__(self):
         #
         super().__init__(
@@ -105,7 +105,7 @@ class _ConvertNumpy1DToNumpy2D(Processor):
         return output_buffer
 
 
-class _Rotate(Processor):
+class _Rotate(ProcessorBase):
     def __init__(self, angle=0):
         #
         super().__init__(description='Rotates a Numpy 2D array')

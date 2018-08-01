@@ -25,7 +25,7 @@
 # Local application/library specific imports
 
 
-class Processor:
+class ProcessorBase:
     def __init__(self, description):
         """
 

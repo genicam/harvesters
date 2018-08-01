@@ -50,8 +50,7 @@ class ProcessorBase:
     def process(self, input):
         """
 
-        :param input: Set an arbitrary object. It will be treated as the input
-        source of the sequence of processes.
+        :param input: Set an arbitrary object. It will be treated as the input source of the sequence of processes.
 
         :return: An arbitrary object as the output of the sequence of processes.
         """

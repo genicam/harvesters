@@ -2,17 +2,7 @@
 API Reference
 *************
 
-Classes
-=======
+.. toctree::
+  :maxdepth: 2
 
-.. autoclass:: harvesters.core.Harvester
-  :members:
-  :show-inheritance:
-  :inherited-members:
-
-Exceptions
-==========
-
-
-Enumerations
-============
+  harvester_core

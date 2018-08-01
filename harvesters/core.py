@@ -219,7 +219,7 @@ class Harvester:
         """
         Returns a list containing CTI file paths.
 
-        :type: list
+        :return: A list object containing str objects.
         """
         return self._cti_files
 
@@ -238,7 +238,7 @@ class Harvester:
         """
         Returns a list containing DeviceInfo objects.
 
-        :rtype: DeviceInfo
+        :return: A list object containing DeviceInfo objects
         """
         return self._device_info_list
 

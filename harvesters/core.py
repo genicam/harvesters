@@ -73,7 +73,7 @@ class _ProcessorConvertPyBytesToNumpy1D(Processor):
         else:
             dtype = 'uint8'
 
-        output_buffer = Buffer(
+        output = Buffer(
             data_stream=input.data_stream,
             gentl_buffer=input.gentl_buffer,
             node_map=input.node_map,
@@ -81,7 +81,7 @@ class _ProcessorConvertPyBytesToNumpy1D(Processor):
                 input.gentl_buffer.raw_buffer, dtype=dtype
             )
         )
-        return output_buffer
+        return output
 
 
 class Harvester:

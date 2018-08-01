@@ -369,4 +369,4 @@ epub_publisher = 'EMVA'
 intersphinx_mapping = {'https://docs.python.org/3.4': None}
 
 # List up the module to be mocked.
-autodoc_mock_imports = ['genicam2', 'numpy']
+autodoc_mock_imports = ['genicam2']

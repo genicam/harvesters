@@ -5,7 +5,7 @@ Harvester Core
 Classes
 =======
 
-.. autoclass:: harvesters.buffer.Buffer
+.. autoclass:: harvesters.core.Buffer
   :members:
   :show-inheritance:
   :inherited-members:
@@ -15,12 +15,12 @@ Classes
   :show-inheritance:
   :inherited-members:
 
-.. autoclass:: harvesters.image.Image
+.. autoclass:: harvesters.core.Image
   :members:
   :show-inheritance:
   :inherited-members:
 
-.. autoclass:: harvesters.processor.ProcessorBase
+.. autoclass:: harvesters.core.ProcessorBase
   :members:
   :show-inheritance:
   :inherited-members:

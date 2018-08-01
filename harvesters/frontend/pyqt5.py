@@ -32,7 +32,7 @@ from genicam2.gentl import PAYLOADTYPE_INFO_IDS
 #from scipy import ndimage
 
 # Local application/library specific imports
-from harvesters.buffer import Buffer
+from harvesters.core import Buffer
 from harvesters._private.frontend.canvas import Canvas
 from harvesters._private.frontend.helper import compose_tooltip
 from harvesters._private.frontend.pyqt5.about import About
@@ -43,7 +43,7 @@ from harvesters._private.frontend.pyqt5.helper import get_system_font
 from harvesters._private.frontend.pyqt5.icon import Icon
 from harvesters._private.frontend.pyqt5.thread import PyQtThread
 from harvesters.core import Harvester as HarvesterCore
-from harvesters.processor import ProcessorBase
+from harvesters.core import ProcessorBase
 from harvesters.pfnc import mono_formats, rgb_formats, \
     rgba_formats, bayer_formats
 

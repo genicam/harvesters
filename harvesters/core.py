@@ -40,14 +40,139 @@ from genicam2.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST
 
 # Local application/library specific imports
-from harvesters.buffer import Buffer
 from harvesters._private.core.port import ConcretePort
 from harvesters._private.core.statistics import Statistics
 from harvesters._private.core.thread import PyThread
 from harvesters._private.core.thread_ import MutexLocker
-from harvesters.processor import ProcessorBase
 from harvesters.pfnc import symbolics
 from harvesters.pfnc import uint8_formats, uint16_formats
+
+
+class Image:
+    def __init__(self, parent=None, ndarray: np.ndarray=None):
+        """
+
+        :param parent:
+        :param ndarray:
+        """
+        #
+        super().__init__()
+
+        #
+        self._parent = parent
+        self._ndarray = ndarray
+
+    @property
+    def width(self) -> int:
+        try:
+            width = self._parent.gentl_buffer.width
+        except InvalidParameterException:
+            width = self._parent.node_map.Width.value
+
+        return width
+
+    @property
+    def height(self) -> int:
+        try:
+            height = self._parent.gentl_buffer.height
+        except InvalidParameterException:
+            height = self._parent.node_map.Height.value
+
+        return height
+
+    @property
+    def pixel_format(self) -> str:
+        try:
+            pixel_format_int = self._parent.gentl_buffer.pixel_format
+        except InvalidParameterException:
+            return self._parent.node_map.PixelFormat.value
+        else:
+            return symbolics[int(pixel_format_int)]
+
+    @property
+    def ndarray(self) -> np.ndarray:
+        return self._ndarray
+
+
+class Buffer:
+    def __init__(self, data_stream=None, gentl_buffer=None, node_map=None, image: np.ndarray=None):
+        """
+
+        :param data_stream:
+        :param gentl_buffer:
+        :param node_map:
+        :param image:
+        """
+        #
+        super().__init__()
+
+        #
+        self._data_stream = data_stream
+        self._gentl_buffer = gentl_buffer
+        self._node_map = node_map
+        self._image = Image(self, image)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # Queue the buffer when it goes outside of the scope.
+        if self._data_stream and self._gentl_buffer:
+            self._data_stream.queue_buffer(self._gentl_buffer)
+
+    @property
+    def image(self) -> Image:
+        return self._image
+
+    @property
+    def data_stream(self):
+        return self._data_stream
+
+    @property
+    def gentl_buffer(self):
+        return self._gentl_buffer
+
+    @property
+    def node_map(self):
+        return self._node_map
+
+
+class ProcessorBase:
+    def __init__(self, description):
+        """
+
+        :param description: Set description about this process.
+        """
+        #
+        super().__init__()
+
+        #
+        self._description = description
+        self._processors = []
+
+    @property
+    def description(self):
+        """
+
+        :return: A description about this process.
+
+        """
+        return self._description
+
+    def process(self, input):
+        """
+
+        :param input: Set an arbitrary object. It will be treated as the input source of the sequence of processes.
+
+        :return: An arbitrary object as the output of the sequence of processes.
+        """
+        output = None
+
+        for p in self._processors:
+            output = p.process(input)
+            input = output
+
+        return output
 
 
 class _ProcessorConvertPyBytesToNumpy1D(ProcessorBase):

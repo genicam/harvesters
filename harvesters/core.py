@@ -702,16 +702,6 @@ class Harvester:
             # object.
             self.device.node_map.connect(self._concrete_port, port.name)
 
-            # Create its Data Stream module and open it.
-            self._data_stream = self.device.create_data_stream()
-            self._data_stream.open(self.device.data_stream_ids[0])
-
-            # Create an Event Manager object for image acquisition.
-            event_token = self._data_stream.register_event(
-                EVENT_TYPE_LIST.EVENT_NEW_BUFFER
-            )
-            self._event_manager = EventManagerNewBuffer(event_token)
-
             if self._profiler:
                 self._profiler.print_diff()
 
@@ -728,6 +718,16 @@ class Harvester:
                 if self._frontend.canvas.is_pausing:
                     self._frontend.canvas.resume_drawing()
         else:
+            # Create its Data Stream module and open it.
+            self._data_stream = self.device.create_data_stream()
+            self._data_stream.open(self.device.data_stream_ids[0])
+
+            # Create an Event Manager object for image acquisition.
+            event_token = self._data_stream.register_event(
+                EVENT_TYPE_LIST.EVENT_NEW_BUFFER
+            )
+            self._event_manager = EventManagerNewBuffer(event_token)
+
             #
             num_required_buffers = self._min_num_buffers
             try:
@@ -1049,7 +1049,7 @@ class Harvester:
                 self._event_manager.flush_event_queue()
 
                 #
-                self._release_buffers()
+                self._release_data_stream()
 
             #
             self._initialize_buffers()

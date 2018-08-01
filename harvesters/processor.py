@@ -27,6 +27,10 @@
 
 class Processor:
     def __init__(self, description):
+        """
+        
+        :param description:
+        """
         #
         super().__init__()
 

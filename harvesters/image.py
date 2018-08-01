@@ -27,8 +27,14 @@ import numpy as np
 # Local application/library specific imports
 from harvesters.pfnc import symbolics
 
+
 class Image:
     def __init__(self, parent=None, ndarray: np.ndarray=None):
+        """
+
+        :param parent:
+        :param ndarray:
+        """
         #
         super().__init__()
 

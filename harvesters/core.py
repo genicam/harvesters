@@ -226,8 +226,8 @@ class Harvester:
     @property
     def is_acquiring_images(self):
         """
-        Returns a truth value of the following proposition: The Harvester
-        object is acquiring images.
+        Returns a truth value of the following proposition: The
+        :class:`~harvesters.core.Harvester` object is acquiring images.
 
         :rtype: bool
         """
@@ -238,7 +238,7 @@ class Harvester:
         """
         Returns a list containing DeviceInfo objects.
 
-        :return: A list object containing DeviceInfo objects
+        :return: A list object containing :class:`~gentl.DeviceInfo` objects
         """
         return self._device_info_list
 
@@ -300,12 +300,12 @@ class Harvester:
         self._thread_statistics_measurement = obj
         self._thread_statistics_measurement.worker = self._worker_acquisition_statistics
 
-    def connect_device(self, item_id=0, id_info=None, model=None,
-            serial_number=None, user_defined_name=None, vendor=None):
+    def connect_device(self, index=0, id_info=None, model=None,
+                       serial_number=None, user_defined_name=None, vendor=None):
         """
         Connects the specified device to the Harvester object.
 
-        :param item_id:
+        :param index: Set an item index of the list of :class:`~gentl.DeviceInfo` objects.
         :param id_info:
         :param model:
         :param serial_number:
@@ -322,7 +322,7 @@ class Harvester:
 
         # Instantiate a GenTL Device module.
         self._device = \
-            device=self.device_info_list[item_id].create_device()
+            device=self.device_info_list[index].create_device()
 
         # Then open it.
         try:
@@ -415,7 +415,7 @@ class Harvester:
         """
         Starts image acquisition.
 
-        :rtype: None
+        :return: None
         """
         if self.is_acquiring_images:
             # If it's pausing drawing images, just resume it and
@@ -606,7 +606,7 @@ class Harvester:
 
     def fetch_buffer(self, timeout_ms=0):
         """
-        Fetches the oldest Buffer object and returns it.
+        Fetches the oldest :class:`~harvesters.buffer.Buffer` object and returns it.
 
         :param timeout_ms: Set timeout value in ms.
 
@@ -631,7 +631,7 @@ class Harvester:
 
     def queue_buffer(self, buffer):
         """
-        Queues the Buffer object.
+        Queues the :class:`~gentl.buffer.Buffer` object.
 
         :param buffer: Set a Buffer object to queue.
 

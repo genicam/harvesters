@@ -25,6 +25,11 @@ Classes
   :show-inheritance:
   :inherited-members:
 
+.. autoclass:: harvesters.core.ThreadBase
+  :members:
+  :show-inheritance:
+  :inherited-members:
+
 Exceptions
 ==========
 

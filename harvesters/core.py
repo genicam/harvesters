@@ -22,7 +22,7 @@
 import io
 import datetime
 import pathlib
-from threading import Lock
+from threading import Lock, Thread
 import time
 import zipfile
 
@@ -42,10 +42,202 @@ from genicam2.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
 # Local application/library specific imports
 from harvesters._private.core.port import ConcretePort
 from harvesters._private.core.statistics import Statistics
-from harvesters._private.core.thread import PyThread
-from harvesters._private.core.thread_ import MutexLocker
 from harvesters.pfnc import symbolics
 from harvesters.pfnc import uint8_formats, uint16_formats
+
+
+class ThreadBase:
+    def __init__(self, mutex=None):
+        """
+
+        :param mutex:
+        """
+        #
+        super().__init__()
+
+        #
+        self._is_running = False
+        self._mutex = mutex
+
+    def start(self):
+        self._is_running = True
+        self._start()
+
+    def _start(self):
+        raise NotImplementedError
+
+    def stop(self):
+        raise NotImplementedError
+
+    def acquire(self):
+        raise NotImplementedError
+
+    def release(self):
+        raise NotImplementedError
+
+    @property
+    def is_running(self):
+        return self._is_running
+
+    @is_running.setter
+    def is_running(self, value):
+        self._is_running = value
+
+    @property
+    def worker(self):
+        raise NotImplementedError
+
+    @worker.setter
+    def worker(self, obj):
+        raise NotImplementedError
+
+    @property
+    def mutex(self):
+        raise NotImplementedError
+
+
+class MutexLocker:
+    def __init__(self, thread: ThreadBase=None):
+        """
+
+        :param thread:
+        """
+        #
+        super().__init__()
+
+        #
+        self._thread = thread
+        self._locked_mutex = None
+
+    def __enter__(self):
+        #
+        if self._thread is None:
+            return None
+
+        #
+        self._locked_mutex = self._thread.acquire()
+        return self._locked_mutex
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        #
+        if self._thread is None:
+            return
+
+        #
+        self._thread.release()
+
+
+class PyThread(ThreadBase):
+    def __init__(self, mutex=None, worker=None):
+        """
+        
+        :param mutex:
+        :param worker:
+        """
+        #
+        super().__init__(mutex=mutex)
+
+        #
+        self._thread = None
+        self._worker = worker
+
+    def _start(self):
+        # Create a Thread object. The object is not reusable.
+        self._thread = _PyThreadImpl(
+            base=self,
+            worker=self._worker
+        )
+
+        # Start running its worker method.
+        self._thread.start()
+
+    def stop(self):
+        #
+        if self._thread is None:
+            return
+
+        # Prepare to terminate the worker method.
+        self._thread.stop()
+
+        # Wait until the run methods is terminated.
+        self._thread.join()
+
+    def acquire(self):
+        #
+        if self._thread is None:
+            return None
+
+        #
+        return self._thread.acquire()
+
+    def release(self):
+        #
+        if self._thread is None:
+            return
+
+        #
+        self._thread.release()
+
+    @property
+    def worker(self):
+        #
+        if self._thread is None:
+            return None
+
+        #
+        return self._thread.worker
+
+    @worker.setter
+    def worker(self, obj):
+        #
+        if self._thread is None:
+            return
+
+        #
+        self._thread.worker = obj
+
+    @property
+    def mutex(self):
+        return self._mutex
+
+
+class _PyThreadImpl(Thread):
+    def __init__(self, base=None, worker=None):
+        #
+        super().__init__()
+
+        #
+        self._worker = worker
+        self._base = base
+
+    def stop(self):
+        with self._base.mutex:
+            self._base.is_running = False
+
+    def run(self):
+        """
+        Runs its worker method.
+
+        This method will be terminated once its parent's is_running
+        property turns False.
+        """
+        while self._base.is_running:
+            if self._worker:
+                self._worker()
+
+    def acquire(self):
+        return self._base.mutex.acquire()
+
+    def release(self):
+        self._base.mutex.release()
+
+    @property
+    def worker(self):
+        return self._worker
+
+    @worker.setter
+    def worker(self, obj):
+        self._worker = obj
 
 
 class Image:

@@ -622,17 +622,19 @@ class Harvester:
         self._thread_statistics_measurement = obj
         self._thread_statistics_measurement.worker = self._worker_acquisition_statistics
 
-    def connect_device(self, index=0, id_info=None, model=None,
-                       serial_number=None, user_defined_name=None, vendor=None):
+    def connect_device(self, list_index=0, unique_id=None, vendor=None,
+                       model=None, serial_number=None, version=None,
+                       user_defined_name=None):
         """
         Connects the specified device to the Harvester object.
 
-        :param index: Set an item index of the list of :class:`~genicam2.gentl.DeviceInfo` objects.
-        :param id_info:
+        :param list_index: Set an item index of the list of :class:`~genicam2.gentl.DeviceInfo` objects.
+        :param unique_id:
+        :param vendor:
         :param model:
         :param serial_number:
+        :param version:
         :param user_defined_name:
-        :param vendor:
 
         :return: None
         """
@@ -643,8 +645,7 @@ class Harvester:
             return
 
         # Instantiate a GenTL Device module.
-        self._device = \
-            device=self.device_info_list[index].create_device()
+        self._device = self.device_info_list[list_index].create_device()
 
         # Then open it.
         try:

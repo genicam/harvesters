@@ -402,7 +402,9 @@ class _ProcessorConvertPyBytesToNumpy1D(ProcessorBase):
 
 
 class Harvester:
-    def __init__(self, frontend=None, profile=False, min_num_buffers=3, parent=None):
+    def __init__(
+            self, frontend=None, profile=False, min_num_buffers=3, \
+            parent=None, setup_ds_at_dev_connection=False):
         """
         Is a Python class that works as Harvester Core. You can image
         acquisition related task through this class.
@@ -494,6 +496,9 @@ class Harvester:
         #
         self._num_images_to_hold_min = 1
         self._num_images_to_hold = self._num_images_to_hold_min
+
+        #
+        self._setup_ds_at_dev_connection = setup_ds_at_dev_connection
 
         #
         if profile:
@@ -702,8 +707,22 @@ class Harvester:
             # object.
             self.device.node_map.connect(self._concrete_port, port.name)
 
+            if self._setup_ds_at_dev_connection:
+                self._setup_ds_and_event_manager()
+
             if self._profiler:
                 self._profiler.print_diff()
+
+    def _setup_ds_and_event_manager(self):
+        #
+        self._data_stream = self.device.create_data_stream()
+        self._data_stream.open(self.device.data_stream_ids[0])
+
+        # Create an Event Manager object for image acquisition.
+        event_token = self._data_stream.register_event(
+            EVENT_TYPE_LIST.EVENT_NEW_BUFFER
+        )
+        self._event_manager = EventManagerNewBuffer(event_token)
 
     def start_image_acquisition(self):
         """
@@ -718,15 +737,8 @@ class Harvester:
                 if self._frontend.canvas.is_pausing:
                     self._frontend.canvas.resume_drawing()
         else:
-            # Create its Data Stream module and open it.
-            self._data_stream = self.device.create_data_stream()
-            self._data_stream.open(self.device.data_stream_ids[0])
-
-            # Create an Event Manager object for image acquisition.
-            event_token = self._data_stream.register_event(
-                EVENT_TYPE_LIST.EVENT_NEW_BUFFER
-            )
-            self._event_manager = EventManagerNewBuffer(event_token)
+            if not self._setup_ds_at_dev_connection:
+                self._setup_ds_and_event_manager()
 
             #
             num_required_buffers = self._min_num_buffers
@@ -1049,7 +1061,13 @@ class Harvester:
                 self._event_manager.flush_event_queue()
 
                 #
-                self._release_data_stream()
+                if self._setup_ds_at_dev_connection:
+                    # Release buffers but keep holding the Data Stream module.
+                    self._release_buffers()
+                else:
+                    # Release buffers and the Data Stream modules because they
+                    # will be created at the next image acquisition.
+                    self._release_data_stream()
 
             #
             self._initialize_buffers()

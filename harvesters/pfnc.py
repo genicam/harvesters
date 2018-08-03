@@ -277,4 +277,4 @@ rgba_formats = ['RGBa8']
 bayer_formats = ['BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8']
 
 uint8_formats = ['Mono8', 'RGB8', 'RGB8Packed', 'BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8']
-uint16_formats = ['Mono10', 'Mono12', 'Mono16']
+uint16_formats = ['Mono10', 'Mono12', 'Mono16', 'BayerGR16', 'BayerRG16', 'BayerGB16', 'BayerBG16']

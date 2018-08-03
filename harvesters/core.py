@@ -404,7 +404,7 @@ class _ProcessorConvertPyBytesToNumpy1D(ProcessorBase):
 class Harvester:
     def __init__(
             self, frontend=None, profile=False, min_num_buffers=3, \
-            parent=None, setup_ds_at_dev_connection=False):
+            parent=None, setup_ds_at_dev_connection=True):
         """
         Is a Python class that works as Harvester Core. You can image
         acquisition related task through this class.

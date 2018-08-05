@@ -79,15 +79,15 @@ class _ConvertNumpy1DToNumpy2D(ProcessorBase):
         ndarray = None
         try:
             if symbolic in mono_formats or symbolic in bayer_formats:
-                ndarray = input.image.ndarray.reshape(
+                ndarray = input.image.payload.reshape(
                     input.image.height, input.image.width
                 )
             elif symbolic in rgb_formats:
-                ndarray = input.image.ndarray.reshape(
+                ndarray = input.image.payload.reshape(
                     input.image.height, input.image.width, 3
                 )
             elif symbolic in rgba_formats:
-                ndarray = input.image.ndarray.reshape(
+                ndarray = input.image.payload.reshape(
                     input.image.height, input.image.width, 4
                 )
         except ValueError as e:
@@ -97,7 +97,7 @@ class _ConvertNumpy1DToNumpy2D(ProcessorBase):
             data_stream=input.data_stream,
             gentl_buffer=input.gentl_buffer,
             node_map=input.node_map,
-            image=ndarray
+            payload=ndarray
         )
 
         return output

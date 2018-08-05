@@ -241,18 +241,18 @@ class _PyThreadImpl(Thread):
 
 
 class Image:
-    def __init__(self, parent=None, ndarray: np.ndarray=None):
+    def __init__(self, parent=None, payload=None):
         """
 
         :param parent:
-        :param ndarray:
+        :param payload:
         """
         #
         super().__init__()
 
         #
         self._parent = parent
-        self._ndarray = ndarray
+        self._payload = payload
 
     @property
     def width(self) -> int:
@@ -282,18 +282,18 @@ class Image:
             return symbolics[int(pixel_format_int)]
 
     @property
-    def ndarray(self) -> np.ndarray:
-        return self._ndarray
+    def payload(self):
+        return self._payload
 
 
 class Buffer:
-    def __init__(self, data_stream=None, gentl_buffer=None, node_map=None, image: np.ndarray=None):
+    def __init__(self, data_stream=None, gentl_buffer=None, node_map=None, payload=None):
         """
 
         :param data_stream:
         :param gentl_buffer:
         :param node_map:
-        :param image:
+        :param payload:
         """
         #
         super().__init__()
@@ -302,7 +302,7 @@ class Buffer:
         self._data_stream = data_stream
         self._gentl_buffer = gentl_buffer
         self._node_map = node_map
-        self._image = Image(self, image)
+        self._image = Image(self, payload=payload)
 
     def __enter__(self):
         return self
@@ -394,7 +394,7 @@ class _ProcessorConvertPyBytesToNumpy1D(ProcessorBase):
             data_stream=input.data_stream,
             gentl_buffer=input.gentl_buffer,
             node_map=input.node_map,
-            image=np.frombuffer(
+            payload=np.frombuffer(
                 input.gentl_buffer.raw_buffer, dtype=dtype
             )
         )
@@ -403,7 +403,7 @@ class _ProcessorConvertPyBytesToNumpy1D(ProcessorBase):
 
 class ImageAcquisitionAgent:
     def __init__(
-            self, device=None, min_num_buffers=3,
+            self, data_type='numpy', min_num_buffers=3, device=None,
             setup_ds_at_dev_connection=True, frontend=None,
             profiler=None
     ):
@@ -435,9 +435,16 @@ class ImageAcquisitionAgent:
 
         #
         self._processors = []
-        self._system_defined_processors = [
-            _ProcessorConvertPyBytesToNumpy1D()
-        ]
+        self._system_defined_processors = []
+
+        if data_type == 'numpy':  # numpy.ndarray
+            self._system_defined_processors.append(
+                _ProcessorConvertPyBytesToNumpy1D()
+            )
+        elif data_type == 'bytes':  # Python built-in 'bytes'
+            pass
+
+        #
         self._user_defined_processors = []
 
         #
@@ -755,7 +762,7 @@ class ImageAcquisitionAgent:
                         # before being used.
                         self.queue_buffer(self._fetched_buffers.pop(0))
 
-                    if output.image.ndarray is not None:
+                    if output.image.payload is not None:
                         # Append the recently fetched buffer.
                         # Then one buffer remains for our client.
                         self._fetched_buffers.append(output)
@@ -1075,13 +1082,14 @@ class Harvester:
         self._has_revised_device_list = value
 
     def get_image_acquisition_agent(
-            self, list_index=0, unique_id=None, vendor=None,
-            model=None, serial_number=None, version=None,
+            self, list_index=0, data_type='numpy', unique_id=None,
+            vendor=None, model=None, serial_number=None, version=None,
             user_defined_name=None):
         """
         Connects the specified device to the Harvester object.
 
         :param list_index: Set an item index of the list of :class:`~genicam2.gentl.DeviceInfo` objects.
+        :param data_type: Set a data type that you want to have. The default is numpy's ndarray.
         :param unique_id:
         :param vendor:
         :param model:
@@ -1159,7 +1167,7 @@ class Harvester:
 
         # Create an ImageAcquisitionAgent object and return it.
         iaa = ImageAcquisitionAgent(
-            device=device, frontend=self._frontend
+            data_type=data_type, device=device, frontend=self._frontend
         )
 
         if self._profiler:

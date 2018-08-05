@@ -189,7 +189,7 @@ class Canvas(app.Canvas):
                 if not self._pause_drawing and buffer:
                     # Update the canvas size if needed.
                     self.set_rect(buffer.image.width, buffer.image.height)
-                    self._program['texture'] = buffer.image.ndarray
+                    self._program['texture'] = buffer.image.payload
 
                 # Draw the texture.
                 self._draw()

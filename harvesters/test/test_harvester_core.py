@@ -34,8 +34,8 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             buffer.image.width,
             buffer.image.height,
             buffer.image.pixel_format,
-            len(buffer.image.ndarray),
-            buffer.image.ndarray
+            len(buffer.image.payload),
+            buffer.image.payload
         ))
 
     def test_basic_usage(self):
@@ -54,7 +54,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         with iaa.fetch_buffer() as buffer:
             self.print_buffer(buffer)
             # Reshape it.
-            _1d = buffer.image.ndarray
+            _1d = buffer.image.payload
             _2d = _1d.reshape(
                 buffer.gentl_buffer.height, buffer.gentl_buffer.width
             )

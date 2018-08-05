@@ -1082,9 +1082,10 @@ class Harvester:
         self._has_revised_device_list = value
 
     def get_image_acquisition_agent(
-            self, list_index=0, data_type='numpy', unique_id=None,
-            vendor=None, model=None, serial_number=None, version=None,
-            user_defined_name=None):
+            self, list_index=None, data_type='numpy', unique_id=None,
+            vendor=None, model=None, tl_type=None, user_defined_name=None,
+            serial_number=None, version=None,
+        ):
         """
         Connects the specified device to the Harvester object.
 
@@ -1093,9 +1094,10 @@ class Harvester:
         :param unique_id:
         :param vendor:
         :param model:
+        :param tl_type:
+        :param user_defined_name:
         :param serial_number:
         :param version:
-        :param user_defined_name:
 
         :return: None
         """
@@ -1106,7 +1108,42 @@ class Harvester:
             return
 
         # Instantiate a GenTL Device module.
-        device = self.device_info_list[list_index].create_device()
+        if list_index is not None:
+            device = self.device_info_list[list_index].create_device()
+        else:
+            keys = [
+                'unique_id', 'vendor', 'model', 'tl_type',
+                'user_defined_name', 'serial_number', 'version',
+            ]
+
+            candidates = self.device_info_list
+
+            for key in keys:
+                key_value = eval(key)
+                if key_value:
+                    for item in self.device_info_list:
+                        try:
+                            if key_value != eval('item.' + key):
+                                candidates.remove(item)
+                        except (AttributeError, NotAvailableException):
+                            # The candidate doesn't support the information.
+                            pass
+
+            num_candidates = len(candidates)
+            if num_candidates > 1:
+                raise ValueError(
+                    'You have two or more candidates. '
+                    'You have to pass keys so that '
+                    'a single candidate is specified.'
+                )
+            elif num_candidates == 0:
+                raise ValueError(
+                    'You have no candidate. '
+                    'You have to pass keys so that '
+                    'a single candidate is specified.'
+                )
+            else:
+                device = candidates[0].create_device()
 
         # Then open it.
         device.open(

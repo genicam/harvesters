@@ -25,23 +25,30 @@ from PyQt5.QtWidgets import QAction
 
 # Local application/library specific imports
 from harvesters._private.core.subject import Subject
+from harvesters._private.frontend.pyqt5.icon import Icon
 
 
 class Action(QAction, Subject):
-    def __init__(self, icon, title, parent=None, checkable=False):
+    def __init__(
+            self, icon=None, title=None, parent=None, checkable=False,
+            action=None, is_enabled=None
+    ):
         #
-        super().__init__(icon, title, parent)
+        super().__init__(Icon(icon), title, parent)
 
         #
         self._dialog = None
         self._observers = []
+        self._action = action
+        self._is_enabled = is_enabled
 
         #
         self.setCheckable(checkable)
 
     def execute(self):
         # Execute everything it's responsible for.
-        self._execute()
+        if self._action:
+            self._action()
 
         # Update itself.
         self.update()
@@ -49,5 +56,11 @@ class Action(QAction, Subject):
         # Update its observers.
         self.update_observers()
 
-    def _execute(self):
-        raise NotImplementedError
+    def update(self):
+        if self._is_enabled:
+            self.setEnabled(self._is_enabled())
+        self._update()
+
+    def _update(self):
+        pass
+

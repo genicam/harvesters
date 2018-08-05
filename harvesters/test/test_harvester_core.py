@@ -30,48 +30,114 @@ from harvesters.test.base_harvester import TestHarvesterCoreBase
 class TestHarvesterCore(TestHarvesterCoreBase):
     @staticmethod
     def print_buffer(buffer):
-        print('W: {0} x H: {1}, {2}\n{3}'.format(
+        print('W: {0} x H: {1}, {2}, {3} elements\n{4}'.format(
             buffer.image.width,
             buffer.image.height,
             buffer.image.pixel_format,
+            len(buffer.image.ndarray),
             buffer.image.ndarray
         ))
 
-    def test_harvester_core(self):
+    def test_basic_usage(self):
+        # Prepare an image acquisition agent for device #0.
+        iaa = self._harvester.get_image_acquisition_agent(0)
+
+        # Set up the device.
+        iaa.device.node_map.Width.value = 12
+        iaa.device.node_map.Height.value = 8
+        iaa.device.node_map.PixelFormat.value = 'Mono8'
+
+        # Start image acquisition.
+        iaa.start_image_acquisition()
+
+        # Fetch a buffer that is filled with image data.
+        with iaa.fetch_buffer() as buffer:
+            self.print_buffer(buffer)
+            # Reshape it.
+            _1d = buffer.image.ndarray
+            _2d = _1d.reshape(
+                buffer.gentl_buffer.height, buffer.gentl_buffer.width
+            )
+            print(_2d)
+
+        # Stop image acquisition.
+        iaa.stop_image_acquisition()
+
+        # Discard the image acquisition agent.
+        iaa.close()
+
+    def test_multiple_iaas(self):
+        num_devices = len(self._harvester.device_info_list)
+        self._test_image_acquisition_agents(num_iaas=num_devices)
+
+    def _test_image_acquisition_agents(self, num_iaas=1):
+        #
+        print('Number of devices: {0}'.format(num_iaas))
+
+        #
+        iaas = []  # Image Acquisition Agents
+
+        #
+        for list_index in range(num_iaas):
+            iaas.append(
+                self._harvester.get_image_acquisition_agent(
+                    list_index=list_index
+                )
+            )
+
         #
         for i in range(10):
-            print('---> {0}: started'.format(i))
-            self._harvester.start_image_acquisition()
-            j = 0
+            #
+            print('---> Round {0}: Set up'.format(i))
+            for index, iaa in enumerate(iaas):
+                iaa.start_image_acquisition()
+                print(
+                    'Device #{0} has started image acquisition.'.format(index)
+                )
+
+            k = 0
+
             # Run it as fast as possible.
             frames = 10
-            while j < frames:
-                if j % 2 == 0:
-                    # Option 1: This way is secure and preferred.
-                    try:
-                        # We know we've started image acquisition but this
-                        # try-except block is demonstrating a case where
-                        # a client called fetch_buffer method even though
-                        # he'd forgotten to start image acquisition.
-                        with self._harvester.fetch_buffer() as buffer:
-                            self.print_buffer(buffer)
-                    except AttributeError:
-                        # Harvester Core has not started image acquisition so
-                        # calling fetch_buffer() raises AttributeError because
-                        # None object is used for the with statement.
-                        pass
-                else:
-                    # Option 2: You can manually do the same job but not
-                    # recommended because you might forget to queue the
-                    # buffer.
-                    buffer = self._harvester.fetch_buffer()
-                    self.print_buffer(buffer)
-                    self._harvester.queue_buffer(buffer)
+
+            while k < frames:
+                for iaa in iaas:
+                    if k % 2 == 0:
+                        # Option 1: This way is secure and preferred.
+                        try:
+                            # We know we've started image acquisition but this
+                            # try-except block is demonstrating a case where
+                            # a client called fetch_buffer method even though
+                            # he'd forgotten to start image acquisition.
+                            with iaa.fetch_buffer() as buffer:
+                                self.print_buffer(buffer)
+                        except AttributeError:
+                            # Harvester Core has not started image acquisition
+                            # so calling fetch_buffer() raises AttributeError
+                            # because None object is used for the with
+                            # statement.
+                            pass
+                    else:
+                        # Option 2: You can manually do the same job but not
+                        # recommended because you might forget to queue the
+                        # buffer.
+                        buffer = iaa.fetch_buffer()
+                        self.print_buffer(buffer)
+                        iaa.queue_buffer(buffer)
 
                 #
-                j += 1
-            self._harvester.stop_image_acquisition()
-            print('    <--- {0}: stopped'.format(i))
+                k += 1
+
+            #
+            print('<--- Round {0}: Tear down'.format(i))
+            for index, iaa in enumerate(iaas):
+                iaa.stop_image_acquisition()
+                print(
+                    'Device #{0} has stopped image acquisition.'.format(index)
+                )
+
+        for iaa in iaas:
+            iaa.close()
 
 
 if __name__ == '__main__':

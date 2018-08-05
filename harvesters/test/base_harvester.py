@@ -42,6 +42,9 @@ class TestHarvesterCoreBase(unittest.TestCase):
         #
         super().__init__(*args, **kwargs)
 
+        #
+        self._iaa = None
+
     def setUp(self):
         #
         super().setUp()
@@ -50,7 +53,6 @@ class TestHarvesterCoreBase(unittest.TestCase):
         self._harvester = Harvester()
         self._harvester.add_cti_file(self._path + self._filename)
         self._harvester.update_device_info_list()
-        self._harvester.connect_device(0)
 
     def tearDown(self):
         #

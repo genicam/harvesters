@@ -29,8 +29,6 @@ from PyQt5.QtWidgets import QMainWindow, QAction, QComboBox, \
 
 from genicam2.gentl import PAYLOADTYPE_INFO_IDS
 
-#from scipy import ndimage
-
 # Local application/library specific imports
 from harvesters.core import Buffer
 from harvesters._private.frontend.canvas import Canvas
@@ -105,26 +103,6 @@ class _ConvertNumpy1DToNumpy2D(ProcessorBase):
         return output
 
 
-class _Rotate(ProcessorBase):
-    def __init__(self, angle=0):
-        #
-        super().__init__(description='Rotates a Numpy 2D array')
-
-        #
-        self._angle = angle
-
-    def process(self, input: Buffer):
-        #
-        ndarray = ndimage.rotate(input.image.ndarray, self._angle)  # Import scipy.
-        output = Buffer(
-            data_stream=input.data_stream,
-            gentl_buffer=input.gentl_buffer,
-            node_map=input.node_map,
-            image=ndarray
-        )
-        return output
-
-
 class Harvester(QMainWindow):
     #
     _signal_update_statistics = pyqtSignal(str)
@@ -136,28 +114,12 @@ class Harvester(QMainWindow):
 
         #
         self._mutex = QMutex()
+        self._harvester_core = HarvesterCore(
+            frontend=self, profile=False, parent=self
+        )
+        self._iaa = None  # Image Acquisition Agent
 
-        #
-        self._harvester_core = HarvesterCore(frontend=self, profile=False, parent=self)
-        self._harvester_core.user_defined_processors.clear()
-        self._harvester_core.user_defined_processors.append(
-            _ConvertNumpy1DToNumpy2D()
-        )
-        """
-        self._harvester_core.user_defined_processors.append(
-            _Rotate(angle=30)
-        )
-        """
-
-        #
-        self._harvester_core.thread_image_acquisition = PyQtThread(
-            parent=self, mutex=self._mutex
-        )
-        self._harvester_core.thread_statistics_measurement = PyQtThread(
-            parent=self, mutex=self._mutex
-        )
-
-        self._widget_canvas = Canvas(harvester_core=self._harvester_core)
+        self._widget_canvas = Canvas()
         self._widget_canvas.set_shaders()  # Pass custom shares if needed.
         self._widget_canvas.create_native()
         self._widget_canvas.native.setParent(self)
@@ -177,11 +139,7 @@ class Harvester(QMainWindow):
 
         #
         self._signal_update_statistics.connect(self.update_statistics)
-        self._harvester_core.updated_statistics = self._signal_update_statistics
-
-        #
         self._signal_stop_image_acquisition.connect(self._stop_image_acquisition)
-        self._harvester_core.signal_stop_image_acquisition = self._signal_stop_image_acquisition
 
         #
         self._initialize_widgets()
@@ -285,7 +243,9 @@ class Harvester(QMainWindow):
 
         #
         button_select_file = ActionSelectFile(
-            Icon('open_file.png'), 'Select file', self
+            icon='open_file.png', title='Select file', parent=self,
+            action=self.action_on_select_file,
+            is_enabled=self.is_enabled_on_select_file
         )
         shortcut_key = 'Ctrl+o'
         button_select_file.setToolTip(
@@ -297,7 +257,9 @@ class Harvester(QMainWindow):
 
         #
         button_update = ActionUpdateList(
-            Icon('update.png'), 'Update device list', self
+            icon='update.png', title='Update device list', parent=self,
+            action=self.action_on_update_list,
+            is_enabled=self.is_enabled_on_update_list
         )
         shortcut_key = 'Ctrl+u'
         button_update.setToolTip(
@@ -309,7 +271,9 @@ class Harvester(QMainWindow):
 
         #
         button_connect = ActionConnect(
-            Icon('connect.png'), 'Connect', self
+            icon='connect.png', title='Connect', parent=self,
+            action=self.action_on_connect,
+            is_enabled=self.is_enabled_on_connect
         )
         shortcut_key = 'Ctrl+c'
         button_connect.setToolTip(
@@ -324,7 +288,9 @@ class Harvester(QMainWindow):
 
         #
         button_disconnect = ActionDisconnect(
-            Icon('disconnect.png'), 'Disconnect', self
+            icon='disconnect.png', title='Disconnect', parent=self,
+            action=self.action_on_disconnect,
+            is_enabled=self.is_enabled_on_disconnect
         )
         shortcut_key = 'Ctrl+d'
         button_disconnect.setToolTip(
@@ -339,7 +305,9 @@ class Harvester(QMainWindow):
 
         #
         button_start_acquisition = ActionStartImageAcquisition(
-            Icon('start_acquisition.png'), 'Start Acquisition', self
+            icon='start_acquisition.png', title='Start Acquisition', parent=self,
+            action=self.action_on_start_image_acquisition,
+            is_enabled=self.is_enabled_on_start_image_acquisition
         )
         shortcut_key = 'Ctrl+j'
         button_start_acquisition.setToolTip(
@@ -351,7 +319,9 @@ class Harvester(QMainWindow):
 
         #
         button_toggle_drawing = ActionToggleDrawing(
-            Icon('pause.png'), 'Pause/Resume Drawing', self
+            icon='pause.png', title='Pause/Resume Drawing', parent=self,
+            action=self.action_on_toggle_drawing,
+            is_enabled=self.is_enabled_on_toggle_drawing
         )
         shortcut_key = 'Ctrl+k'
         button_toggle_drawing.setToolTip(
@@ -363,7 +333,9 @@ class Harvester(QMainWindow):
 
         #
         button_stop_acquisition = ActionStopImageAcquisition(
-            Icon('stop_acquisition.png'), 'Stop Acquisition', self
+            icon='stop_acquisition.png', title='Stop Acquisition', parent=self,
+            action=self.action_on_stop_image_acquisition,
+            is_enabled=self.is_enabled_on_stop_image_acquisition
         )
         shortcut_key = 'Ctrl+l'
         button_stop_acquisition.setToolTip(
@@ -375,8 +347,10 @@ class Harvester(QMainWindow):
         self._action_stop_image_acquisition = button_stop_acquisition
 
         #
-        button_dev_attribute = ActionShowDevAttribute(
-            Icon('device_attribute.png'), 'Device Attribute', self
+        button_dev_attribute = ActionShowAttributeController(
+            icon='device_attribute.png', title='Device Attribute', parent=self,
+            action=self.action_on_show_attribute_controller,
+            is_enabled=self.is_enabled_on_show_attribute_controller
         )
         shortcut_key = 'Ctrl+a'
         button_dev_attribute.setToolTip(
@@ -389,7 +363,8 @@ class Harvester(QMainWindow):
         #
         self._widget_about = About(self)
         button_about = ActionShowAbout(
-            Icon('about.png'), 'About', self
+            icon='about.png', title='About', parent=self,
+            action=self.action_on_show_about
         )
         button_about.setToolTip(
             compose_tooltip('Show information about Harvester')
@@ -502,15 +477,69 @@ class Harvester(QMainWindow):
     def action_stop_image_acquisition(self):
         return self._action_stop_image_acquisition
 
+    @property
+    def iaa(self):
+        return self._iaa
 
-class ActionSelectFile(Action):
-    def __init__(self, icon, title, parent=None):
+    @iaa.setter
+    def iaa(self, value):
+        self._iaa = value
+
+    def action_on_connect(self):
         #
-        super().__init__(icon, title, parent)
+        self.iaa = self.harvester_core.get_image_acquisition_agent(
+            self.device_list.currentIndex()
+        )
 
-    def _execute(self):
+        #
+        self.iaa.user_defined_processors.clear()
+        self.iaa.user_defined_processors.append(
+            _ConvertNumpy1DToNumpy2D()
+        )
+
+        #
+        self.iaa.thread_image_acquisition = PyQtThread(
+            parent=self, mutex=self.mutex
+        )
+        self.iaa.thread_statistics_measurement = PyQtThread(
+            parent=self, mutex=self.mutex
+        )
+
+        self.iaa.updated_statistics = self._signal_update_statistics
+        self.iaa.signal_stop_image_acquisition = self._signal_stop_image_acquisition
+
+        try:
+            if self.iaa.device.node_map:
+                self._widget_attribute_controller = \
+                    AttributeController(
+                        self.iaa.device.node_map,
+                        parent=self
+                    )
+        except AttributeError:
+            pass
+
+        #
+        self.canvas.iaa = self.iaa
+
+    def is_enabled_on_connect(self):
+        enable = False
+        if self.cti_files:
+            if self.harvester_core.device_info_list:
+                if self.iaa is None:
+                    enable = True
+        return enable
+
+    def action_on_disconnect(self):
+        if self.attribute_controller:
+            if self.attribute_controller.isVisible():
+                self.attribute_controller.close()
+
+        if self.iaa:
+            self.iaa.feature_tree_model = None
+
+    def action_on_select_file(self):
         # Show a dialog and update the CTI file list.
-        dialog = QFileDialog(self.parent())
+        dialog = QFileDialog(self)
         dialog.setWindowTitle('Select a CTI file to load')
         dialog.setNameFilter('CTI files (*.cti)')
         dialog.setFileMode(QFileDialog.ExistingFile)
@@ -520,185 +549,202 @@ class ActionSelectFile(Action):
             file_path = dialog.selectedFiles()[0]
 
             #
-            self.parent().harvester_core.reset()
+            self.harvester_core.reset()
 
             # Update the path to the target GenTL Producer.
-            self.parent().harvester_core.add_cti_file(file_path)
+            self.harvester_core.add_cti_file(file_path)
             print(file_path)
 
             # Update the device list.
-            self.parent().harvester_core.update_device_info_list()
+            self.harvester_core.update_device_info_list()
 
-    def update(self):
+    def is_enabled_on_select_file(self):
         enable = False
-        if self.parent().harvester_core.device is None:
+        if self.iaa is None:
             enable = True
-        self.setEnabled(enable)
+        return enable
+
+    def action_on_update_list(self):
+        self.harvester_core.update_device_info_list()
+
+    def is_enabled_on_update_list(self):
+        enable = False
+        if self.cti_files:
+            if self.iaa is None:
+                enable = True
+        return enable
+
+    def action_on_disconnect(self):
+        # Discard the image acquisition agent.
+        self.iaa.close()
+        self.iaa = None
+
+        # Close attribute dialog if it's been opened.
+        # Close attribute dialog if it's been opened.
+        if self.attribute_controller:
+            if self.attribute_controller.isVisible():
+                self.attribute_controller.close()
+
+        if self.iaa:
+            self.iaa.close()
+            self.iaa = None
+
+    def is_enabled_on_disconnect(self):
+        enable = False
+        if self.cti_files:
+            if self.iaa:
+                enable = True
+        return enable
+
+    def action_on_start_image_acquisition(self):
+        self.iaa.start_image_acquisition()
+
+    def is_enabled_on_start_image_acquisition(self):
+        enable = False
+        if self.cti_files:
+            if self.iaa:
+                if not self.iaa.is_acquiring_images or \
+                        self.canvas.is_pausing:
+                    enable = True
+        return enable
+
+    def action_on_stop_image_acquisition(self):
+        self.iaa.stop_image_acquisition()
+        self.canvas.pause_drawing(False)
+
+    def is_enabled_on_stop_image_acquisition(self):
+        enable = False
+        if self.cti_files:
+            if self.iaa:
+                if self.iaa.is_acquiring_images:
+                    enable = True
+        return enable
+
+    def action_on_show_attribute_controller(self):
+        with QMutexLocker(self.mutex):
+            if self.iaa and self.attribute_controller.isHidden():
+                self.attribute_controller.show()
+                self.attribute_controller.expand_all()
+
+    def is_enabled_on_show_attribute_controller(self):
+        enable = False
+        if self.cti_files:
+            if self.iaa is not None:
+                enable = True
+        return enable
+
+    def action_on_toggle_drawing(self):
+        self.canvas.toggle_drawing()
+
+    def is_enabled_on_toggle_drawing(self):
+        enable = False
+        if self.cti_files:
+            if self.iaa:
+                if self.iaa.is_acquiring_images:
+                    enable = True
+        return enable
+
+    def action_on_show_about(self):
+        self.about.setModal(False)
+        self.about.show()
+
+
+class ActionSelectFile(Action):
+    def __init__(
+            self, icon=None, title=None, parent=None, action=None, is_enabled=None
+    ):
+        #
+        super().__init__(
+            icon=icon, title=title, parent=parent, action=action, is_enabled=is_enabled
+        )
 
 
 class ActionUpdateList(Action):
-    def __init__(self, icon, title, parent=None):
+    def __init__(
+            self, icon=None, title=None, parent=None, action=None, is_enabled=None
+    ):
         #
-        super().__init__(icon, title, parent=parent)
-
-    def _execute(self):
-        self.parent().harvester_core.update_device_info_list()
-
-    def update(self):
-        enable = False
-        if self.parent().cti_files:
-            if self.parent().harvester_core.device is None:
-                enable = True
-        self.setEnabled(enable)
+        super().__init__(
+            icon=icon, title=title, parent=parent, action=action, is_enabled=is_enabled
+        )
 
 
 class ActionConnect(Action):
-    def __init__(self, icon, title, parent=None):
+    def __init__(
+            self, icon=None, title=None, parent=None, action=None, is_enabled=None
+    ):
         #
-        super().__init__(icon, title, parent=parent)
-
-    def _execute(self):
-        # connect the selected device to Harvest.
-        self.parent().harvester_core.connect_device(
-            self.parent().device_list.currentIndex()
+        super().__init__(
+            icon=icon, title=title, parent=parent, action=action, is_enabled=is_enabled
         )
-
-        try:
-            if self.parent().harvester_core.device.node_map:
-                self.parent()._widget_attribute_controller = \
-                    AttributeController(
-                        self.parent().harvester_core.device.node_map,
-                        parent=self.parent()
-                    )
-        except AttributeError:
-            pass
-
-    def update(self):
-        #
-        enable = False
-        if self.parent().cti_files:
-            if self.parent().harvester_core.device_info_list and \
-                    self.parent().harvester_core.device is None:
-                enable = True
-        self.setEnabled(enable)
 
 
 class ActionDisconnect(Action):
-    def __init__(self, icon, title, parent=None):
+    def __init__(
+            self, icon=None, title=None, parent=None, action=None, is_enabled=None
+    ):
         #
-        super().__init__(icon, title, parent=parent)
-
-    def _execute(self):
-        # Disconnect the device from Harvest.
-        self.parent().harvester_core.disconnect_device()
-
-    def update(self):
-        # Close attribute dialog if it's been opened.
-        if self.parent().attribute_controller:
-            if self.parent().attribute_controller.isVisible():
-                self.parent().attribute_controller.close()
-
-        if self.parent().harvester_core.device is None:
-            self.parent().harvester_core._feature_tree_model = None
-
-        #
-        enable = False
-        if self.parent().cti_files:
-            if self.parent().harvester_core.device:
-                enable = True
-        self.setEnabled(enable)
+        super().__init__(
+            icon=icon, title=title, parent=parent, action=action, is_enabled=is_enabled
+        )
 
 
 class ActionStartImageAcquisition(Action):
-    def __init__(self, icon, title, parent=None):
+    def __init__(
+            self, icon=None, title=None, parent=None, action=None, is_enabled=None
+    ):
         #
-        super().__init__(icon, title, parent=parent)
-
-    def _execute(self):
-        self.parent().harvester_core.start_image_acquisition()
-
-    def update(self):
-        enable = False
-        if self.parent().cti_files:
-            if self.parent().harvester_core.device:
-                if not self.parent().harvester_core.is_acquiring_images or \
-                        self.parent().canvas.is_pausing:
-                    enable = True
-        self.setEnabled(enable)
+        super().__init__(
+            icon=icon, title=title, parent=parent, action=action, is_enabled=is_enabled
+        )
 
 
 class ActionToggleDrawing(Action):
-    def __init__(self, icon, title, parent=None):
+    def __init__(
+            self, icon=None, title=None, parent=None, action=None, is_enabled=None
+    ):
         #
-        super().__init__(icon, title, parent=parent, checkable=True)
+        super().__init__(
+            icon=icon, title=title, parent=parent, action=action, is_enabled=is_enabled
+        )
 
-    def _execute(self):
-        self.parent().canvas.toggle_drawing()
-
-    def update(self):
-        enable = False
-        if self.parent().cti_files:
-            if self.parent().harvester_core.device:
-                if self.parent().harvester_core.is_acquiring_images:
-                    enable = True
-        self.setEnabled(enable)
+    def _update(self):
         #
         checked = True if self.parent().canvas.is_pausing else False
         self.setChecked(checked)
 
 
 class ActionStopImageAcquisition(Action):
-    def __init__(self, icon, title, parent=None):
+    def __init__(
+            self, icon=None, title=None, parent=None, action=None, is_enabled=None
+    ):
         #
-        super().__init__(icon, title, parent=parent)
-
-    def _execute(self):
-        self.parent().harvester_core.stop_image_acquisition()
-        self.parent().canvas.pause_drawing(False)
-
-    def update(self):
-        enable = False
-        if self.parent().cti_files:
-            if self.parent().harvester_core.device:
-                if self.parent().harvester_core.is_acquiring_images:
-                    enable = True
-        self.setEnabled(enable)
+        super().__init__(
+            icon=icon, title=title, parent=parent, action=action, is_enabled=is_enabled
+        )
 
 
-class ActionShowDevAttribute(Action):
-    def __init__(self, icon, title, parent=None):
+class ActionShowAttributeController(Action):
+    def __init__(
+            self, icon=None, title=None, parent=None, action=None, is_enabled=None
+    ):
         #
-        super().__init__(icon, title, parent=parent)
-
-    def _execute(self):
-        with QMutexLocker(self.parent().mutex):
-            if self.parent().attribute_controller.isHidden():
-                self.parent().attribute_controller.show()
-                self.parent().attribute_controller.expand_all()
-
-    def update(self):
-        enable = False
-        if self.parent().cti_files:
-            if self.parent().harvester_core.device is not None:
-                enable = True
-        self.setEnabled(enable)
+        super().__init__(
+            icon=icon, title=title, parent=parent, action=action, is_enabled=is_enabled
+        )
 
 
 class ActionShowAbout(Action):
-    def __init__(self, icon, title, parent=None):
+    def __init__(
+            self, icon=None, title=None, parent=None, action=None, is_enabled=None
+    ):
         #
-        super().__init__(icon, title, parent=parent)
+        super().__init__(
+            icon=icon, title=title, parent=parent, action=action, is_enabled=is_enabled
+        )
 
         #
-        self._dialog = parent.about
         self._is_model = False
-
-    def _execute(self):
-        self._dialog.setModal(False)
-        self._dialog.show()
-
-    def update(self):
-        pass
 
 
 if __name__ == '__main__':

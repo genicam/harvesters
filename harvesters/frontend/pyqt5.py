@@ -488,7 +488,8 @@ class Harvester(QMainWindow):
     def action_on_connect(self):
         #
         self.iaa = self.harvester_core.get_image_acquisition_agent(
-            self.device_list.currentIndex()
+            self.device_list.currentIndex(),
+            data_type='numpy'  # This is just for demonstaration; it's not necessasry here because the default value is 'numpy'.
         )
 
         #

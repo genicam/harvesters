@@ -1081,7 +1081,7 @@ class Harvester:
     def has_revised_device_info_list(self, value):
         self._has_revised_device_list = value
 
-    def get_image_acquisition_agent(
+    def get_agent(
             self, list_index=None, data_type='numpy', unique_id=None,
             vendor=None, model=None, tl_type=None, user_defined_name=None,
             serial_number=None, version=None,

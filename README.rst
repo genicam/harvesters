@@ -347,7 +347,7 @@ Harvester Core on IPython
 
 The following screenshot shows Harvester Core is running on IPython. Harvester Core returns the latest image data at the moment as a Numpy array every time its user call the ``get_image()`` method. Once you get an image you should be able to immediately start image processing. If you're running on Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
-.. image:: https://user-images.githubusercontent.com/8652625/43719808-b67ec4ae-99c9-11e8-8956-9dc2a4fc708b.png
+.. image:: https://user-images.githubusercontent.com/8652625/43723968-e5de32a2-99d3-11e8-91c2-fd276920cbbb.png
     :align: center
     :alt: Harvester on IPython
     :scale: 40 %
@@ -369,7 +369,7 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
      (unique_id='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_0', version='1.2.3'),
      (unique_id='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_1', version='1.2.3')]
 
-    In [6]: mono_a = h.get_image_acquisition_agent(0)
+    In [6]: mono_a = h.get_agent(0)
 
     In [7]: mono_a.device.node_map.Width.value, mono_a.device.node_map.Height.value = 12, 8
 
@@ -383,20 +383,18 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
         ...:     _2d = _1d.reshape(buffer.gentl_buffer.height, buffer.gentl_buffer.width)
         ...:     print(_2d)
         ...:
-    [240 241 242 243 244 245 246 247 248 249 250 251 241 242 243 244 245 246
-     247 248 249 250 251 252 242 243 244 245 246 247 248 249 250 251 252 253
-     243 244 245 246 247 248 249 250 251 252 253 254 244 245 246 247 248 249
-     250 251 252 253 254 255 245 246 247 248 249 250 251 252 253 254 255   0
-     246 247 248 249 250 251 252 253 254 255   0   1 247 248 249 250 251 252
-     253 254 255   0   1   2]
-    [[240 241 242 243 244 245 246 247 248 249 250 251]
-     [241 242 243 244 245 246 247 248 249 250 251 252]
-     [242 243 244 245 246 247 248 249 250 251 252 253]
-     [243 244 245 246 247 248 249 250 251 252 253 254]
-     [244 245 246 247 248 249 250 251 252 253 254 255]
-     [245 246 247 248 249 250 251 252 253 254 255   0]
-     [246 247 248 249 250 251 252 253 254 255   0   1]
-     [247 248 249 250 251 252 253 254 255   0   1   2]]
+    [57 58 59 60 61 62 63 64 65 66 67 68 58 59 60 61 62 63 64 65 66 67 68 69
+     59 60 61 62 63 64 65 66 67 68 69 70 60 61 62 63 64 65 66 67 68 69 70 71
+     61 62 63 64 65 66 67 68 69 70 71 72 62 63 64 65 66 67 68 69 70 71 72 73
+     63 64 65 66 67 68 69 70 71 72 73 74 64 65 66 67 68 69 70 71 72 73 74 75]
+    [[57 58 59 60 61 62 63 64 65 66 67 68]
+     [58 59 60 61 62 63 64 65 66 67 68 69]
+     [59 60 61 62 63 64 65 66 67 68 69 70]
+     [60 61 62 63 64 65 66 67 68 69 70 71]
+     [61 62 63 64 65 66 67 68 69 70 71 72]
+     [62 63 64 65 66 67 68 69 70 71 72 73]
+     [63 64 65 66 67 68 69 70 71 72 73 74]
+     [64 65 66 67 68 69 70 71 72 73 74 75]]
 
     In [11]: mono_a.stop_image_acquisition()
 
@@ -586,21 +584,23 @@ And you create an image acquisition agent object specifying a target device. The
 
 .. code-block:: python
 
-    iaa = h.get_image_acquisition_agent(0)
+    iaa = h.get_agent(0)
 
 Or equivalently:
 
 .. code-block:: python
 
-    iaa = h.get_image_acquisition_agent(list_index=0)
+    iaa = h.get_agent(list_index=0)
 
 You can connect the same device passing more unique information to the method such as:
 
 .. code-block:: python
 
-    iaa = h.get_image_acquisition_agent(serial_number='SN_InterfaceA_0')
+    iaa = h.get_agent(serial_number='SN_InterfaceA_0')
 
-We named the agent object ``iaa`` in the above example but in a practical occasion, you may name it like just ``camera`` or ``mono_a`` more specifically. In addition, note that the image acquisition agent can handle all GenICam compliant devices and it's not limited to cameras so you might have a case where you name the object like ``lighting_device`` for example.
+We named the agent object ``iaa`` in the above example but in a practical occasion, you may name it like just ``camera`` or ``mono_a`` more specifically even though those entities don't acquire images but they transfer images that will be acquired.
+
+On the other hand, note that the agent object can handle all GenICam compliant devices and it's not limited to cameras so you might have a case where you name the object like ``lighting_device`` for example.
 
 Anyway, then now we start image acquisition:
 

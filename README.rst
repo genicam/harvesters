@@ -276,6 +276,10 @@ Currently Harvester Core supports the following pixel formats that are defined b
 * ``BayerGR8``
 * ``BayerBG8``
 * ``BayerGB8``
+* ``BayerRG16``
+* ``BayerGR16``
+* ``BayerBG16``
+* ``BayerGB16``
 
 *************
 Harvester GUI
@@ -343,7 +347,7 @@ Harvester Core on IPython
 
 The following screenshot shows Harvester Core is running on IPython. Harvester Core returns the latest image data at the moment as a Numpy array every time its user call the ``get_image()`` method. Once you get an image you should be able to immediately start image processing. If you're running on Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
-.. image:: https://user-images.githubusercontent.com/8652625/43075587-3d9deeec-8ebc-11e8-9d0f-490d3bf359fd.png
+.. image:: https://user-images.githubusercontent.com/8652625/43719808-b67ec4ae-99c9-11e8-8956-9dc2a4fc708b.png
     :align: center
     :alt: Harvester on IPython
     :scale: 40 %
@@ -358,44 +362,43 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
 
     In [4]: h.update_device_info_list()
 
-    In [5]: for i, info in enumerate(h.device_info_list):
-       ...:     print('{0}: {1}'.format(i, info))
-       ...:
-    0: (vendor='EMVA_D', model='TLSimuMono', version='1.2.3', serial_number='SN_InterfaceA_0', user_defined_name='Center')
-    1: (vendor='EMVA_D', model='TLSimuColor', version='1.2.3', serial_number='SN_InterfaceA_1', user_defined_name='Center')
-    2: (vendor='EMVA_D', model='TLSimuMono', version='1.2.3', serial_number='SN_InterfaceB_0', user_defined_name='Center')
-    3: (vendor='EMVA_D', model='TLSimuColor', version='1.2.3', serial_number='SN_InterfaceB_1', user_defined_name='Center')
+    In [5]: h.device_info_list
+    Out[5]:
+    [(unique_id='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceA_0', version='1.2.3'),
+     (unique_id='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceA_1', version='1.2.3'),
+     (unique_id='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_0', version='1.2.3'),
+     (unique_id='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_1', version='1.2.3')]
 
-    In [6]: h.connect_device(0)
+    In [6]: mono_a = h.get_image_acquisition_agent(0)
 
-    In [7]: h.device.node_map.Width.value, h.device.node_map.Height.value = 8, 8
+    In [7]: mono_a.device.node_map.Width.value, mono_a.device.node_map.Height.value = 12, 8
 
-    In [8]: h.device.node_map.PixelFormat.value = 'Mono8'
+    In [8]: mono_a.device.node_map.PixelFormat.value = 'Mono8'
 
-    In [9]: h.start_image_acquisition()
+    In [9]: mono_a.start_image_acquisition()
 
-    In [10]: with h.fetch_buffer() as buffer:
-        ...:     _1d = buffer.image.ndarray
-        ...:     print('1D:\n{0}'.format(_1d))
-        ...:     _2d = _1d.reshape(buffer.image.height, buffer.image.width)
-        ...:     print('2D:\n{0}'.format(_2d))
+    In [10]: with mono_a.fetch_buffer() as buffer:
+        ...:     _1d = buffer.image.payload
+        ...:     print(_1d)
+        ...:     _2d = _1d.reshape(buffer.gentl_buffer.height, buffer.gentl_buffer.width)
+        ...:     print(_2d)
         ...:
-    1D:
-    [147 148 149 150 151 152 153 154 148 149 150 151 152 153 154 155 149 150
-     151 152 153 154 155 156 150 151 152 153 154 155 156 157 151 152 153 154
-     155 156 157 158 152 153 154 155 156 157 158 159 153 154 155 156 157 158
-     159 160 154 155 156 157 158 159 160 161]
-    2D:
-    [[147 148 149 150 151 152 153 154]
-     [148 149 150 151 152 153 154 155]
-     [149 150 151 152 153 154 155 156]
-     [150 151 152 153 154 155 156 157]
-     [151 152 153 154 155 156 157 158]
-     [152 153 154 155 156 157 158 159]
-     [153 154 155 156 157 158 159 160]
-     [154 155 156 157 158 159 160 161]]
+    [240 241 242 243 244 245 246 247 248 249 250 251 241 242 243 244 245 246
+     247 248 249 250 251 252 242 243 244 245 246 247 248 249 250 251 252 253
+     243 244 245 246 247 248 249 250 251 252 253 254 244 245 246 247 248 249
+     250 251 252 253 254 255 245 246 247 248 249 250 251 252 253 254 255   0
+     246 247 248 249 250 251 252 253 254 255   0   1 247 248 249 250 251 252
+     253 254 255   0   1   2]
+    [[240 241 242 243 244 245 246 247 248 249 250 251]
+     [241 242 243 244 245 246 247 248 249 250 251 252]
+     [242 243 244 245 246 247 248 249 250 251 252 253]
+     [243 244 245 246 247 248 249 250 251 252 253 254]
+     [244 245 246 247 248 249 250 251 252 253 254 255]
+     [245 246 247 248 249 250 251 252 253 254 255   0]
+     [246 247 248 249 250 251 252 253 254 255   0   1]
+     [247 248 249 250 251 252 253 254 255   0   1   2]]
 
-    In [11]: h.stop_image_acquisition()
+    In [11]: mono_a.stop_image_acquisition()
 
 ############
 Requirements
@@ -525,14 +528,13 @@ First, let's import Harvester:
     from harvesters.core import Harvester
 
 Then instantiate a Harvester object; we're going to use ``h`` that stands for
-Harvester as its identifier but in a practival occasion, you may name it like just ``camera`` or ``face_detection_cam`` more specifically. In addition, note that Harvester can handle all GenICam compliant devices and it's not limited to cameras so you might have a case
-where you name the object like ``lighting_device`` for example:
+Harvester as its identifier.
 
 .. code-block:: python
 
     h = Harvester()
 
-And load a CTI file; laoding a CTI file, you can communicate with the GenTL
+And load a CTI file; loading a CTI file, you can communicate with the GenTL
 Producer:
 
 .. code-block:: python
@@ -565,44 +567,61 @@ information list and you'll select a device to control from the list:
 
     h.update_device_info_list()
 
-The following code will let you know the devices that you can connect:
+The following code will let you know the devices that you can control:
 
 .. code-block:: python
 
     h.device_info_list
 
-And you connect a device to the Harvester object
+Our friendly GenTL Producer, so called TLSimu, gives you the following information:
 
 .. code-block:: python
 
-    h.connect_device(0)
+    [(unique_id='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceA_0', version='1.2.3'),
+     (unique_id='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceA_1', version='1.2.3'),
+     (unique_id='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_0', version='1.2.3'),
+     (unique_id='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_1', version='1.2.3')]
 
-The following code doesn't work as of today but perhaps we may implement a way in the future to specify more unique information to select a device such as ``user_defined_name``:
-
-.. code-block:: python
-
-    h.connect_device(user_defined_name='face_detection_cam')
-
-The following code starts image acquisition:
+And you create an image acquisition agent object specifying a target device. The image acquisition agent does image acquisition task for you. In the following example it's trying to create an agent object of the first device in the device information list:
 
 .. code-block:: python
 
-    h.start_image_acquisition()
+    iaa = h.get_image_acquisition_agent(0)
 
-Once you started image acquistion, you should definitely want to get an image. An image is delivered to a buffer that has internally prepared in the Harvester Core object. To fetch a buffer that has been filled up with an image, you can have 2 options; the first option is to use the ``with`` statement:
+Or equivalently:
 
 .. code-block:: python
 
-    with h.fetch_buffer() as buffer:
-        print(buffer.image.ndarray)
+    iaa = h.get_image_acquisition_agent(list_index=0)
+
+You can connect the same device passing more unique information to the method such as:
+
+.. code-block:: python
+
+    iaa = h.get_image_acquisition_agent(serial_number='SN_InterfaceA_0')
+
+We named the agent object ``iaa`` in the above example but in a practical occasion, you may name it like just ``camera`` or ``mono_a`` more specifically. In addition, note that the image acquisition agent can handle all GenICam compliant devices and it's not limited to cameras so you might have a case where you name the object like ``lighting_device`` for example.
+
+Anyway, then now we start image acquisition:
+
+.. code-block:: python
+
+    iaa.start_image_acquisition()
+
+Once you started image acquisition, you should definitely want to get an image. An image is delivered to a buffer that has internally prepared in the Harvester Core object. To fetch a buffer that has been filled up with an image, you can have 2 options; the first option is to use the ``with`` statement:
+
+.. code-block:: python
+
+    with iaa.fetch_buffer() as buffer:
+        print(buffer.image.payload)
 
 Having that code, the fetched buffer, ``buffer``, is automatically queued once the code step out from the scope of the ``with`` statement. It's prevents to queue it by accident. The other option is to manually queue the fetched buffer by yourself:
 
 .. code-block:: python
 
-    buffer = h.fetch_buffer()
-    print(buffer.image.ndarray)
-    h.queue_buffer(buffer)
+    buffer = iaa.fetch_buffer()
+    print(buffer.image.payload)
+    iaa.queue_buffer(buffer)
 
 In this option, again, do not forget that you have to queue the buffer by yourself. If you forgot queueing it, then you'll lose a buffer that can be used for image acquisition. Everything is up to your design, so please choose an appropriate way for you.
 
@@ -610,13 +629,13 @@ Okay, then you would stop image acquisition with the following code:
 
 .. code-block:: python
 
-    h.stop_image_acquisition()
+    iaa.stop_image_acquisition()
 
-And the following code disconnects the connecting device from Harvester:
+And the following code disconnects the connecting device from the image acquisition agent:
 
 .. code-block:: python
 
-    h.disconnect_device()
+    iaa.close()
 
 Now you can quit the program!
 

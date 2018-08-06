@@ -83,6 +83,8 @@ class TestHarvesterCore(TestHarvesterCoreBase):
                 self._harvester.get_image_acquisition_agent(
                     list_index=list_index
                 )
+                # Or you could simply do the same thing as follows:
+                # self._harvester.get_image_acquisition_agent(list_index)
             )
 
         #
@@ -138,6 +140,30 @@ class TestHarvesterCore(TestHarvesterCoreBase):
 
         for iaa in iaas:
             iaa.close()
+
+    def test_controlling_a_specific_camera(self):
+        # The basic usage.
+        iaa = self._harvester.get_image_acquisition_agent(0)
+        iaa.close()
+
+        # The basic usage but it explicitly uses the parameter name.
+        iaa = self._harvester.get_image_acquisition_agent(
+            list_index=0
+        )
+        iaa.close()
+
+        # The key can't specify a unique device so it raises an exception.
+        with self.assertRaises(ValueError):
+            self._harvester.get_image_acquisition_agent(
+                vendor='EMVA_D'
+            )
+
+        # The key specifies a unique device.
+        print(self._harvester.device_info_list)
+        iaa = self._harvester.get_image_acquisition_agent(
+            serial_number='SN_InterfaceA_0'
+        )
+        iaa.close()
 
 
 if __name__ == '__main__':

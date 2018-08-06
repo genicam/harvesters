@@ -1121,25 +1121,30 @@ class Harvester:
             for key in keys:
                 key_value = eval(key)
                 if key_value:
-                    for item in self.device_info_list:
+                    items_to_be_removed = []
+                    # Find out the times to be removed from the candidates.
+                    for item in candidates:
                         try:
                             if key_value != eval('item.' + key):
-                                candidates.remove(item)
+                                items_to_be_removed.append(item)
                         except (AttributeError, NotAvailableException):
                             # The candidate doesn't support the information.
                             pass
+                    # Remove irrelevant items from the candidates.
+                    for item in items_to_be_removed:
+                        candidates.remove(item)
 
             num_candidates = len(candidates)
             if num_candidates > 1:
                 raise ValueError(
                     'You have two or more candidates. '
-                    'You have to pass keys so that '
+                    'You have to pass one or more keys so that '
                     'a single candidate is specified.'
                 )
             elif num_candidates == 0:
                 raise ValueError(
                     'You have no candidate. '
-                    'You have to pass keys so that '
+                    'You have to pass one or more keys so that '
                     'a single candidate is specified.'
                 )
             else:

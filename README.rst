@@ -473,7 +473,7 @@ If you want to use Harvester GUI, then please install the following modules in a
 Installing the Python Bindings
 ******************************
 
-Harvester requires the GenApi-Python Binding and the GenTL-Python Binding. As of July 2018, it's not officially distributed yet by EMVA. Having that fact, the only way to get those is building them by yourself.
+Harvester requires the GenApi-Python Binding and the GenTL-Python Binding. As of July 2018, it's not officially distributed yet by EMVA; so we are working so hard to make it by the end of year 2018. Having that fact, as of today, the only way to get those is building them by yourself.
 
 The source code can be downloaded from the following URL using Subversion:
 

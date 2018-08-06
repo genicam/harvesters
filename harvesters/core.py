@@ -241,18 +241,18 @@ class _PyThreadImpl(Thread):
 
 
 class Image:
-    def __init__(self, parent=None, ndarray: np.ndarray=None):
+    def __init__(self, parent=None, payload=None):
         """
 
         :param parent:
-        :param ndarray:
+        :param payload:
         """
         #
         super().__init__()
 
         #
         self._parent = parent
-        self._ndarray = ndarray
+        self._payload = payload
 
     @property
     def width(self) -> int:
@@ -282,18 +282,18 @@ class Image:
             return symbolics[int(pixel_format_int)]
 
     @property
-    def ndarray(self) -> np.ndarray:
-        return self._ndarray
+    def payload(self):
+        return self._payload
 
 
 class Buffer:
-    def __init__(self, data_stream=None, gentl_buffer=None, node_map=None, image: np.ndarray=None):
+    def __init__(self, data_stream=None, gentl_buffer=None, node_map=None, payload=None):
         """
 
         :param data_stream:
         :param gentl_buffer:
         :param node_map:
-        :param image:
+        :param payload:
         """
         #
         super().__init__()
@@ -302,7 +302,7 @@ class Buffer:
         self._data_stream = data_stream
         self._gentl_buffer = gentl_buffer
         self._node_map = node_map
-        self._image = Image(self, image)
+        self._image = Image(self, payload=payload)
 
     def __enter__(self):
         return self
@@ -394,62 +394,28 @@ class _ProcessorConvertPyBytesToNumpy1D(ProcessorBase):
             data_stream=input.data_stream,
             gentl_buffer=input.gentl_buffer,
             node_map=input.node_map,
-            image=np.frombuffer(
+            payload=np.frombuffer(
                 input.gentl_buffer.raw_buffer, dtype=dtype
             )
         )
         return output
 
 
-class Harvester:
+class ImageAcquisitionAgent:
     def __init__(
-            self, frontend=None, profile=False, min_num_buffers=3, \
-            parent=None, setup_ds_at_dev_connection=True):
-        """
-        Is a Python class that works as Harvester Core. You can image
-        acquisition related task through this class.
-
-        :param frontend:
-        :param profile:
-        :param min_num_buffers:
-        :param parent:
-        """
+            self, data_type='numpy', min_num_buffers=3, device=None,
+            setup_ds_at_dev_connection=True, frontend=None,
+            profiler=None
+    ):
         #
         super().__init__()
 
         #
-        self._parent = parent
+        self._device = device
 
         #
         self._frontend = frontend
-
-        #
-        self._is_acquiring_images = False
-
-        #
-        self._cti_files = []
-        self._producers = []
-        self._systems = []
-        self._interfaces = []
-        self._device_info_list = []
-        self._concrete_port = None
-
-        #
-        self._announced_buffers = []
-        self._fetched_buffer = []
-
-        self._data_stream = None
-        self._event_manager = None
-
-        self._device = None
-
-        #
-        self._min_num_buffers = min_num_buffers
-
-        #
-        self._has_revised_device_list = False
-        self._timeout_for_update = 1000  # ms
-        self._has_acquired_1st_image = False
+        self._profiler = profiler
 
         #
         self._mutex = Lock()
@@ -463,15 +429,33 @@ class Harvester:
         )
 
         #
-        self._feature_tree_model = None
-
-        #
         self._current_width = 0
         self._current_height = 0
         self._current_pixel_format = ''
 
-        self._updated_statistics = None
-        self._signal_stop_image_acquisition = None
+        #
+        self._processors = []
+        self._system_defined_processors = []
+
+        if data_type == 'numpy':  # numpy.ndarray
+            self._system_defined_processors.append(
+                _ProcessorConvertPyBytesToNumpy1D()
+            )
+        elif data_type == 'bytes':  # Python built-in 'bytes'
+            pass
+
+        #
+        self._user_defined_processors = []
+
+        #
+        self._num_images_to_hold_min = 1
+        self._num_images_to_hold = self._num_images_to_hold_min
+
+        #
+        self._num_images_to_acquire = -1
+
+        #
+        self._timeout_for_image_acquisition = 1  # ms
 
         #
         self._statistics_update_cycle = 1  # s
@@ -482,68 +466,45 @@ class Harvester:
         ]
 
         #
-        self._timeout_for_image_acquisition = 1  # ms
+        self._announced_buffers = []
+        self._fetched_buffers = []
+
+        self._data_stream = None
+        self._event_manager = None
 
         #
-        self._processors = []
-        self._system_defined_processors = [_ProcessorConvertPyBytesToNumpy1D()]
-        self._user_defined_processors = []
+        self._has_acquired_1st_image = False
 
         #
-        self._num_images_to_acquire = -1
-        self._commands = []
-
-        #
-        self._num_images_to_hold_min = 1
-        self._num_images_to_hold = self._num_images_to_hold_min
+        self._updated_statistics = None
+        self._signal_stop_image_acquisition = None
 
         #
         self._setup_ds_at_dev_connection = setup_ds_at_dev_connection
 
         #
-        if profile:
-            from harvesters._private.core.helper import Profiler
-            self._profiler = Profiler()
-        else:
-            self._profiler = None
+        self._is_acquiring_images = False
 
-        if self._profiler:
-            self._profiler.print_diff()
+        #
+        self._min_num_buffers = min_num_buffers
+
+        self._feature_tree_model = None
+
+        if self._setup_ds_at_dev_connection:
+            self._setup_ds_and_event_manager()
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.reset()
+        self.__del__()
 
-    @property
-    def updated_statistics(self):
-        return self._updated_statistics
-
-    @updated_statistics.setter
-    def updated_statistics(self, obj):
-        self._updated_statistics = obj
-
-    @property
-    def signal_stop_image_acquisition(self):
-        return self._signal_stop_image_acquisition
-
-    @signal_stop_image_acquisition.setter
-    def signal_stop_image_acquisition(self, obj):
-        self._signal_stop_image_acquisition = obj
+    def __del__(self):
+        self.close()
 
     @property
     def device(self):
         return self._device
-
-    @property
-    def cti_files(self):
-        """
-        Returns a :class:`list` containing CTI file paths.
-
-        :return: A list object containing str objects.
-        """
-        return self._cti_files
 
     @property
     def is_acquiring_images(self):
@@ -556,21 +517,12 @@ class Harvester:
         return self._is_acquiring_images
 
     @property
-    def device_info_list(self):
-        """
-        Returns a :class:`list` containing :class:`~genicam2.gentl.DeviceInfo` objects.
+    def updated_statistics(self):
+        return self._updated_statistics
 
-        :return: A list object containing :class:`~genicam2.gentl.DeviceInfo` objects
-        """
-        return self._device_info_list
-
-    @property
-    def timeout_for_update(self):
-        return self._timeout_for_update
-
-    @timeout_for_update.setter
-    def timeout_for_update(self, ms):
-        self._timeout_for_update = ms
+    @updated_statistics.setter
+    def updated_statistics(self, obj):
+        self._updated_statistics = obj
 
     @property
     def timeout_for_image_acquisition(self):
@@ -586,12 +538,15 @@ class Harvester:
         return self._user_defined_processors
 
     @property
-    def has_revised_device_info_list(self):
-        return self._has_revised_device_list
+    def num_images_to_hold(self):
+        return self._num_images_to_hold
 
-    @has_revised_device_info_list.setter
-    def has_revised_device_info_list(self, value):
-        self._has_revised_device_list = value
+    @num_images_to_hold.setter
+    def num_images_to_hold(self, value):
+        if value >= self._num_images_to_hold_min:
+            self._num_images_to_hold = value
+        else:
+            self._num_images_to_hold = self._num_images_to_hold_min
 
     @property
     def thread_image_acquisition(self):
@@ -606,113 +561,26 @@ class Harvester:
     def thread_statistics_measurement(self):
         return self._thread_statistics_measurement
 
-    @property
-    def num_images_to_hold(self):
-        return self._num_images_to_hold
-
-    @num_images_to_hold.setter
-    def num_images_to_hold(self, value):
-        if value >= self._num_images_to_hold_min:
-            self._num_images_to_hold = value
-        else:
-            self._num_images_to_hold = self._num_images_to_hold_min
-
     @thread_statistics_measurement.setter
     def thread_statistics_measurement(self, obj):
         self._thread_statistics_measurement = obj
         self._thread_statistics_measurement.worker = self._worker_acquisition_statistics
 
-    def connect_device(self, list_index=0, unique_id=None, vendor=None,
-                       model=None, serial_number=None, version=None,
-                       user_defined_name=None):
-        """
-        Connects the specified device to the Harvester object.
+    @property
+    def signal_stop_image_acquisition(self):
+        return self._signal_stop_image_acquisition
 
-        :param list_index: Set an item index of the list of :class:`~genicam2.gentl.DeviceInfo` objects.
-        :param unique_id:
-        :param vendor:
-        :param model:
-        :param serial_number:
-        :param version:
-        :param user_defined_name:
+    @property
+    def feature_tree_model(self):
+        return self._feature_tree_model
 
-        :return: None
-        """
-        #
-        if self.device or self.device_info_list is None:
-            # TODO: Throw an exception to tell clients that there's no
-            # device to connect.
-            return
+    @feature_tree_model.setter
+    def feature_tree_model(self, value):
+        self._feature_tree_model = value
 
-        # Instantiate a GenTL Device module.
-        self._device = self.device_info_list[list_index].create_device()
-
-        # Then open it.
-        try:
-            self.device.open(
-                DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
-            )
-        except AccessDeniedException as e:
-            print(e)
-            self.disconnect_device()
-        else:
-            # And get an alias of its GenTL Port module.
-            port = self.device.remote_port
-
-            # Inquire it's URL information.
-            # TODO: Consider a case where len(url_info_list) > 1.
-            url = port.url_info_list[0].url
-
-            # And parse the URL.
-            location, others = url.split(':', 1)
-            file_name, address, size = others.split(';')
-            address = int(address, 16)
-
-            # It may specify the schema version.
-            delimiter = '?'
-            if delimiter in size:
-                size, _ = size.split(delimiter)
-            size = int(size, 16)
-
-            # Now we get the file content.
-            content = port.read(address, size)
-
-            # But wait, we have to check if it's a zip file or not.
-            content = content[1]
-            file_content = io.BytesIO(content)
-
-            # Let's check the reality.
-            if zipfile.is_zipfile(file_content):
-                # Yes, that's a zip file.
-                file_content = zipfile.ZipFile(file_content, 'r')
-
-                # Extract the file content from the zip file.
-                for file_info in file_content.infolist():
-                    if pathlib.Path(
-                            file_info.filename).suffix.lower() == '.xml':
-                        #
-                        content = file_content.read(file_info).decode('utf8')
-                        break
-
-            # Instantiate a GenICam node map object.
-            self.device.node_map = NodeMap()
-
-            # Then load the XML file content on the node map object.
-            self.device.node_map.load_xml_from_string(content)
-
-            # Instantiate a concrete port object of the remote device's
-            # port.
-            self._concrete_port = ConcretePort(self.device.remote_port)
-
-            # And finally connect the concrete port on the node map
-            # object.
-            self.device.node_map.connect(self._concrete_port, port.name)
-
-            if self._setup_ds_at_dev_connection:
-                self._setup_ds_and_event_manager()
-
-            if self._profiler:
-                self._profiler.print_diff()
+    @signal_stop_image_acquisition.setter
+    def signal_stop_image_acquisition(self, obj):
+        self._signal_stop_image_acquisition = obj
 
     def _setup_ds_and_event_manager(self):
         #
@@ -775,7 +643,7 @@ class Harvester:
                 elif acq_mode == 'SingleFrame':
                     num_images_to_acquire = 1
                 elif acq_mode == 'MultiFrame':
-                    num_images_to_acquire = self.node_map.AcquisitionFrameCount.value
+                    num_images_to_acquire = self.device.node_map.AcquisitionFrameCount.value
                 else:
                     num_images_to_acquire = -1
             except LogicalErrorException:
@@ -785,7 +653,7 @@ class Harvester:
             self._num_images_to_acquire = num_images_to_acquire
 
             # Update the sequence of image processors.
-            self._processors = []
+            self._processors.clear()
 
             for p in self._system_defined_processors:
                 self._processors.append(p)
@@ -889,15 +757,15 @@ class Harvester:
                 # We've got a new image so now we can reuse the buffer that
                 # we had kept.
                 with MutexLocker(self.thread_image_acquisition):
-                    if len(self._fetched_buffer) >= self._num_images_to_hold:
+                    if len(self._fetched_buffers) >= self._num_images_to_hold:
                         # We have a buffer now so we queue it; it's discarded
                         # before being used.
-                        self.queue_buffer(self._fetched_buffer.pop(0))
+                        self.queue_buffer(self._fetched_buffers.pop(0))
 
-                    if output.image.ndarray is not None:
+                    if output.image.payload is not None:
                         # Append the recently fetched buffer.
                         # Then one buffer remains for our client.
-                        self._fetched_buffer.append(output)
+                        self._fetched_buffers.append(output)
 
             #
             if self._num_images_to_acquire >= 1:
@@ -928,8 +796,8 @@ class Harvester:
                 break
             else:
                 with MutexLocker(self.thread_image_acquisition):
-                    if len(self._fetched_buffer) > 0:
-                        buffer = self._fetched_buffer.pop(0)
+                    if len(self._fetched_buffers) > 0:
+                        buffer = self._fetched_buffers.pop(0)
 
         return buffer
 
@@ -1081,6 +949,274 @@ class Harvester:
         self._current_height = self.device.node_map.Height.value
         self._current_pixel_format = self.device.node_map.PixelFormat.value
 
+    def close(self):
+        """
+        Releases all external resources. Please don't forget to call this method if you create an ImageAcquisitionAgent object without using the with method.
+
+        :return: None
+        """
+        #
+        if self.device:
+            #
+            self.stop_image_acquisition()
+            self._release_data_stream()
+
+            #
+            if self.device.node_map:
+                self.device.node_map.disconnect()
+
+            #
+            if self.device.is_open():
+                self.device.close()
+
+        self._device = None
+        self._event_manager = None
+
+        if self._profiler:
+            self._profiler.print_diff()
+
+    def _release_data_stream(self):
+        #
+        self._release_buffers()
+
+        #
+        if self._data_stream:
+            if self._data_stream.is_open():
+                self._data_stream.close()
+
+        #
+        self._data_stream = None
+
+    def _release_buffers(self):
+        for buffer in self._announced_buffers:
+            self._data_stream.revoke_buffer(buffer)
+        self._announced_buffers.clear()
+
+    def _initialize_buffers(self):
+        self._fetched_buffers.clear()
+        self._has_acquired_1st_image = False
+
+
+class Harvester:
+    def __init__(
+            self, frontend=None, profile=False, parent=None
+    ):
+        """
+        Is a Python class that works as Harvester Core. You can image
+        acquisition related task through this class.
+
+        :param frontend:
+        :param profile:
+        :param min_num_buffers:
+        :param parent:
+        """
+        #
+        super().__init__()
+
+        #
+        self._parent = parent
+        self._frontend = frontend
+
+        #
+        self._cti_files = []
+        self._producers = []
+        self._systems = []
+        self._interfaces = []
+        self._device_info_list = []
+
+        #
+        self._has_revised_device_list = False
+        self._timeout_for_update = 1000  # ms
+
+        #
+        if profile:
+            from harvesters._private.core.helper import Profiler
+            self._profiler = Profiler()
+        else:
+            self._profiler = None
+
+        if self._profiler:
+            self._profiler.print_diff()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.__del__()
+
+    def __del__(self):
+        self.reset()
+
+    @property
+    def cti_files(self):
+        """
+        Returns a :class:`list` containing CTI file paths.
+
+        :return: A list object containing str objects.
+        """
+        return self._cti_files
+
+    @property
+    def device_info_list(self):
+        """
+        Returns a :class:`list` containing :class:`~genicam2.gentl.DeviceInfo` objects.
+
+        :return: A list object containing :class:`~genicam2.gentl.DeviceInfo` objects
+        """
+        return self._device_info_list
+
+    @property
+    def timeout_for_update(self):
+        return self._timeout_for_update
+
+    @timeout_for_update.setter
+    def timeout_for_update(self, ms):
+        self._timeout_for_update = ms
+
+    @property
+    def has_revised_device_info_list(self):
+        return self._has_revised_device_list
+
+    @has_revised_device_info_list.setter
+    def has_revised_device_info_list(self, value):
+        self._has_revised_device_list = value
+
+    def get_image_acquisition_agent(
+            self, list_index=None, data_type='numpy', unique_id=None,
+            vendor=None, model=None, tl_type=None, user_defined_name=None,
+            serial_number=None, version=None,
+        ):
+        """
+        Connects the specified device to the Harvester object.
+
+        :param list_index: Set an item index of the list of :class:`~genicam2.gentl.DeviceInfo` objects.
+        :param data_type: Set a data type that you want to have. The default is numpy's ndarray.
+        :param unique_id:
+        :param vendor:
+        :param model:
+        :param tl_type:
+        :param user_defined_name:
+        :param serial_number:
+        :param version:
+
+        :return: None
+        """
+        #
+        if self.device_info_list is None:
+            # TODO: Throw an exception to tell clients that there's no
+            # device to connect.
+            return
+
+        # Instantiate a GenTL Device module.
+        if list_index is not None:
+            device = self.device_info_list[list_index].create_device()
+        else:
+            keys = [
+                'unique_id', 'vendor', 'model', 'tl_type',
+                'user_defined_name', 'serial_number', 'version',
+            ]
+
+            candidates = self.device_info_list
+
+            for key in keys:
+                key_value = eval(key)
+                if key_value:
+                    items_to_be_removed = []
+                    # Find out the times to be removed from the candidates.
+                    for item in candidates:
+                        try:
+                            if key_value != eval('item.' + key):
+                                items_to_be_removed.append(item)
+                        except (AttributeError, NotAvailableException):
+                            # The candidate doesn't support the information.
+                            pass
+                    # Remove irrelevant items from the candidates.
+                    for item in items_to_be_removed:
+                        candidates.remove(item)
+
+            num_candidates = len(candidates)
+            if num_candidates > 1:
+                raise ValueError(
+                    'You have two or more candidates. '
+                    'You have to pass one or more keys so that '
+                    'a single candidate is specified.'
+                )
+            elif num_candidates == 0:
+                raise ValueError(
+                    'You have no candidate. '
+                    'You have to pass one or more keys so that '
+                    'a single candidate is specified.'
+                )
+            else:
+                device = candidates[0].create_device()
+
+        # Then open it.
+        device.open(
+            DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
+        )
+
+        # And get an alias of its GenTL Port module.
+        remote_port = device.remote_port
+
+        # Inquire it's URL information.
+        # TODO: Consider a case where len(url_info_list) > 1.
+        url = remote_port.url_info_list[0].url
+
+        # And parse the URL.
+        location, others = url.split(':', 1)
+        file_name, address, size = others.split(';')
+        address = int(address, 16)
+
+        # It may specify the schema version.
+        delimiter = '?'
+        if delimiter in size:
+            size, _ = size.split(delimiter)
+        size = int(size, 16)
+
+        # Now we get the file content.
+        content = remote_port.read(address, size)
+
+        # But wait, we have to check if it's a zip file or not.
+        content = content[1]
+        file_content = io.BytesIO(content)
+
+        # Let's check the reality.
+        if zipfile.is_zipfile(file_content):
+            # Yes, that's a zip file.
+            file_content = zipfile.ZipFile(file_content, 'r')
+
+            # Extract the file content from the zip file.
+            for file_info in file_content.infolist():
+                if pathlib.Path(
+                        file_info.filename).suffix.lower() == '.xml':
+                    #
+                    content = file_content.read(file_info).decode('utf8')
+                    break
+
+        # Instantiate a GenICam node map object.
+        device.node_map = NodeMap()
+
+        # Then load the XML file content on the node map object.
+        device.node_map.load_xml_from_string(content)
+
+        # Instantiate a concrete port object of the remote device's
+        # port.
+        concrete_port = ConcretePort(remote_port)
+
+        # And finally connect the concrete port on the node map
+        # object.
+        device.node_map.connect(concrete_port, remote_port.name)
+
+        # Create an ImageAcquisitionAgent object and return it.
+        iaa = ImageAcquisitionAgent(
+            data_type=data_type, device=device, frontend=self._frontend
+        )
+
+        if self._profiler:
+            self._profiler.print_diff()
+
+        return iaa
+
     def add_cti_file(self, file_path: str):
         """
         Adds a CTI file to work with to the CTI file list.
@@ -1110,7 +1246,7 @@ class Harvester:
         :return: None
         """
 
-        self._cti_files = []
+        self._cti_files.clear()
 
     def _open_gentl_producers(self):
         #
@@ -1152,7 +1288,7 @@ class Harvester:
                 producer.close()
 
         #
-        self._producers = []
+        self._producers.clear()
 
     def _release_systems(self):
         #
@@ -1164,7 +1300,7 @@ class Harvester:
                 system.close()
 
         #
-        self._systems = []
+        self._systems.clear()
 
     def _release_interfaces(self):
         #
@@ -1177,65 +1313,12 @@ class Harvester:
                     iface.close()
 
         #
-        self._interfaces = []
+        self._interfaces.clear()
 
     def _release_device_info_list(self):
         #
-        self.disconnect_device()
-
-        #
         if self.device_info_list is not None:
-            self._device_info_list = []
-
-    def disconnect_device(self):
-        """
-        Disconnects the device that has been connected to the Harvester
-        object.
-
-        :return: None
-        """
-        #
-        if self.device:
-            #
-            self.stop_image_acquisition()
-            self._release_data_stream()
-
-            #
-            if self.device.is_open():
-                self.device.close()
-
-            #
-            if self.device.node_map:
-                self.device.node_map.disconnect()
-            self.device.node_map = None
-
-        self._device = None
-        self._concrete_port = None
-        self._event_manager = None
-
-        if self._profiler:
-            self._profiler.print_diff()
-
-    def _release_data_stream(self):
-        #
-        self._release_buffers()
-
-        #
-        if self._data_stream:
-            if self._data_stream.is_open():
-                self._data_stream.close()
-
-        #
-        self._data_stream = None
-
-    def _release_buffers(self):
-        for buffer in self._announced_buffers:
-            self._data_stream.revoke_buffer(buffer)
-        self._announced_buffers = []
-
-    def _initialize_buffers(self):
-        self._fetched_buffer = []
-        self._has_acquired_1st_image = False
+            self._device_info_list.clear()
 
     def update_device_info_list(self):
         """

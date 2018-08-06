@@ -20,6 +20,11 @@ Classes
   :show-inheritance:
   :inherited-members:
 
+.. autoclass:: harvesters.core.ImageAcquisitionAgent
+  :members:
+  :show-inheritance:
+  :inherited-members:
+
 .. autoclass:: harvesters.core.ProcessorBase
   :members:
   :show-inheritance:

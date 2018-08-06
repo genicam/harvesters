@@ -49,27 +49,19 @@ https://github.com/bgr/PyQt5_modeltest
 
 
 class ActionExpandAll(Action):
-    def __init__(self, icon, title, parent=None):
+    def __init__(self, icon=None, title=None, parent=None, action=None):
         #
-        super().__init__(icon, title, parent=parent)
-
-    def _execute(self):
-        self.parent().expand_all()
-
-    def update(self):
-        pass
+        super().__init__(
+            icon=icon, title=title, parent=parent, action=action
+        )
 
 
 class ActionCollapseAll(Action):
-    def __init__(self, icon, title, parent=None):
+    def __init__(self, icon=None, title=None, parent=None, action=None):
         #
-        super().__init__(icon, title, parent=parent)
-
-    def _execute(self):
-        self.parent().collapse_all()
-
-    def update(self):
-        pass
+        super().__init__(
+            icon=icon, title=title, parent=parent, action=action
+        )
 
 
 class AttributeController(QMainWindow):
@@ -95,7 +87,7 @@ class AttributeController(QMainWindow):
         self._node_map = node_map
         self._model = FeatureTreeModel(
             node_map=self._node_map,
-            thread=self.parent().harvester_core.thread_image_acquisition,
+            thread=self.parent().iaa.thread_image_acquisition,
         )
 
         #
@@ -163,7 +155,8 @@ class AttributeController(QMainWindow):
 
         #
         button_expand_all = ActionExpandAll(
-            Icon('expand.png'), 'Expand All', self
+            icon='expand.png', title='Expand All', parent=self,
+            action=self.action_on_expand_all
         )
         shortcut_key = 'Ctrl+e'
         button_expand_all.setToolTip(
@@ -174,7 +167,8 @@ class AttributeController(QMainWindow):
 
         #
         button_collapse_all = ActionCollapseAll(
-            Icon('collapse.png'), 'Collapse All', self
+            icon='collapse.png', title='Collapse All', parent=self,
+            action=self.action_on_collapse_all
         )
         shortcut_key = 'Ctrl+c'
         button_collapse_all.setToolTip(
@@ -236,6 +230,12 @@ class AttributeController(QMainWindow):
     def resize_column_width(self):
         for i in range(self._model.columnCount()):
             self._view.resizeColumnToContents(i)
+
+    def action_on_expand_all(self):
+        self.expand_all()
+
+    def action_on_collapse_all(self):
+        self.collapse_all()
 
 
 if __name__ == '__main__':

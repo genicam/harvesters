@@ -271,10 +271,64 @@ symbolics = {
     0x02180103: 'YCbCr2020_422_12p_CbYCrY',
 }
 
-mono_formats = ['Mono8', 'Mono10', 'Mono12', 'Mono16']
-rgb_formats = ['RGB8', 'RGB8Packed']
-rgba_formats = ['RGBa8']
-bayer_formats = ['BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8', 'BayerGR16', 'BayerRG16', 'BayerGB16', 'BayerBG16']
+mono_formats = ['Mono8', 'Mono10', 'Mono12', 'Mono14', 'Mono16']
 
-uint8_formats = ['Mono8', 'RGB8', 'RGB8Packed', 'BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8']
-uint16_formats = ['Mono10', 'Mono12', 'Mono16', 'BayerGR16', 'BayerRG16', 'BayerGB16', 'BayerBG16']
+rgb_formats = [
+    'RGB8', 'RGB10', 'RGB12', 'RGB14', 'RGB16',
+    'RGBa8','RGBa10', 'RGBa12','RGBa16',
+    'RGB8Packed'
+]
+
+rgba_formats = ['RGBa8', 'RGBa10', 'RGBa12', 'RGBa14', 'RGBa16']
+
+bayer_formats = [
+    'BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8',
+    'BayerGR12', 'BayerGB12', 'BayerRG12', 'BayerBG12',
+    'BayerGR10', 'BayerGB10', 'BayerRG10', 'BayerBG10',
+    'BayerGR16', 'BayerRG16', 'BayerGB16', 'BayerBG16',
+]
+
+uint8_formats = [
+    'Mono8',
+    'RGB8', 'RGB8Packed', 'RGBa8',
+    'BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8',
+]
+
+uint16_formats = [
+    'Mono10', 'Mono12', 'Mono14', 'Mono16',
+    'RGB10', 'RGB12', 'RGB14', 'RGB16',
+    'RGBa10', 'RGBa12', 'RGBa14', 'RGBa16',
+    'BayerGR10', 'BayerGB10', 'BayerRG10', 'BayerBG10',
+    'BayerGR12', 'BayerGB12', 'BayerRG12', 'BayerBG12',
+    'BayerGR16', 'BayerRG16', 'BayerGB16', 'BayerBG16',
+]
+
+component_8bit_formats = [
+    'Mono8',
+    'RGB8', 'RGBa8',
+    'BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8'
+]
+
+component_10bit_formats = [
+    'Mono10',
+    'RGB10', 'RGBa10',
+    'BayerGR10', 'BayerGB10', 'BayerRG10', 'BayerBG10',
+]
+
+component_12bit_formats = [
+    'Mono12',
+    'RGB12', 'RGBa12',
+    'BayerGR12', 'BayerGB12', 'BayerRG12', 'BayerBG12',
+]
+
+component_14bit_formats = [
+    'Mono14',
+    'RGB14', 'RGBa14',
+]
+
+component_16bit_formats = [
+    'Mono16',
+    'RGB16', 'RGBa16',
+    'BayerGR16', 'BayerRG16', 'BayerGB16', 'BayerBG16',
+]
+

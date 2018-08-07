@@ -30,7 +30,8 @@ from vispy.util.transforms import ortho
 
 # Local application/library specific imports
 from harvesters._private.core.helper.system import is_running_on_macos
-
+from harvesters.pfnc import component_8bit_formats, component_10bit_formats, \
+    component_12bit_formats, component_14bit_formats, component_16bit_formats
 
 class Canvas(app.Canvas):
     def __init__(
@@ -189,7 +190,28 @@ class Canvas(app.Canvas):
                 if not self._pause_drawing and bm:
                     # Update the canvas size if needed.
                     self.set_rect(bm.image.width, bm.image.height)
-                    self._program['texture'] = bm.image.payload
+
+                    #
+                    update = True
+                    power = 0
+
+                    #
+                    pixel_format = bm.image.pixel_format
+                    if pixel_format in component_8bit_formats:
+                        pass
+                    elif pixel_format in component_10bit_formats:
+                        power = 1
+                    elif pixel_format in component_12bit_formats:
+                        power = 2
+                    elif pixel_format in component_14bit_formats:
+                        power = 3
+                    elif pixel_format in component_14bit_formats:
+                        power = 4
+                    else:
+                        update = False
+
+                    if update:
+                        self._program['texture'] = bm.image.payload // (2 ** power)
 
                 # Draw the texture.
                 self._draw()

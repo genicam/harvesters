@@ -5,7 +5,7 @@ Harvester Core
 Classes
 =======
 
-.. autoclass:: harvesters.core.Buffer
+.. autoclass:: harvesters.core.BufferManager
   :members:
   :show-inheritance:
   :inherited-members:
@@ -20,7 +20,7 @@ Classes
   :show-inheritance:
   :inherited-members:
 
-.. autoclass:: harvesters.core.ImageAcquisitionAgent
+.. autoclass:: harvesters.core.ImageAcquisitionManager
   :members:
   :show-inheritance:
   :inherited-members:

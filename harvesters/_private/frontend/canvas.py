@@ -35,7 +35,7 @@ from harvesters._private.core.helper.system import is_running_on_macos
 class Canvas(app.Canvas):
     def __init__(
             self,
-            device=None,
+            image_acquisition_manager=None,
             width=640, height=480,
             fps=50.,
             background_color='gray',
@@ -79,7 +79,7 @@ class Canvas(app.Canvas):
         """
 
         #
-        self._device = device
+        self._iaa = image_acquisition_manager
 
         #
         app.Canvas.__init__(
@@ -118,11 +118,11 @@ class Canvas(app.Canvas):
 
     @property
     def iaa(self):
-        return self._device
+        return self._iaa
 
     @iaa.setter
     def iaa(self, value):
-        self._device = value
+        self._iaa = value
 
     def set_shaders(self, vertex_shader=None, fragment_shader=None):
         #
@@ -184,7 +184,7 @@ class Canvas(app.Canvas):
     def _update_texture(self):
         # Fetch a buffer.
         try:
-            with self._device.fetch_buffer_manager(timeout_ms=0.1) as bm:
+            with self._iaa.fetch_buffer_manager(timeout_ms=0.1) as bm:
                 # Set the image as the texture of our canvas.
                 if not self._pause_drawing and bm:
                     # Update the canvas size if needed.

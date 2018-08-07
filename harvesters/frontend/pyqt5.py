@@ -576,19 +576,16 @@ class Harvester(QMainWindow):
         return enable
 
     def action_on_disconnect(self):
-        # Discard the image acquisition manager.
-        self.iam.close()
-        self.iam = None
-
         # Close attribute dialog if it's been opened.
         # Close attribute dialog if it's been opened.
         if self.attribute_controller:
             if self.attribute_controller.isVisible():
                 self.attribute_controller.close()
 
+        # Discard the image acquisition manager.
         if self.iam:
             self.iam.close()
-            self.iam = None
+            self._iam = None
 
     def is_enabled_on_disconnect(self):
         enable = False

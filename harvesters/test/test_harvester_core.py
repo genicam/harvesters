@@ -84,7 +84,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         # Stop image acquisition.
         iam.stop_image_acquisition()
 
-    def test_multiple_iaas(self):
+    def test_multiple_image_acquisition_managers(self):
         num_devices = len(self._harvester.device_info_list)
         self._test_image_acquisition_managers(num_iaas=num_devices)
 

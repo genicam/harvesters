@@ -420,16 +420,29 @@ class ImageAcquisitionManager:
 
         #
         self._device = device
+        self._device.node_map = _get_port_connected_node_map(
+            self.device.remote_port
+        )  # Remote device's node map
+        self._device.local_node_map = _get_port_connected_node_map(
+            self.device.local_port
+        )  # Local device's node map
 
-        # Connect its remote port to the node map.
-        self.device.node_map = _get_port_connected_node_map(
-            self._device.remote_port
+        #
+        self._interface = self._device.parent
+        self._interface.local_node_map = _get_port_connected_node_map(
+            self._interface.port
         )
 
         #
-        self._data_stream = None
+        self._system = self._interface.parent
+        self._system.local_node_map = _get_port_connected_node_map(
+            self._system.port
+        )
+
+        #
+        self._data_streams = []
+        self._event_managers = []
         self._setup_ds_and_event_manager()
-        self._event_manager = None
 
         #
         self._frontend = frontend
@@ -516,6 +529,14 @@ class ImageAcquisitionManager:
         return self._device
 
     @property
+    def interface(self):
+        return self._interface
+
+    @property
+    def system(self):
+        return self._system
+
+    @property
     def is_acquiring_images(self):
         """
         Returns a truth value of the following proposition: The
@@ -593,14 +614,20 @@ class ImageAcquisitionManager:
 
     def _setup_ds_and_event_manager(self):
         #
-        self._data_stream = self.device.create_data_stream()
-        self._data_stream.open(self.device.data_stream_ids[0])
+        for i, stream_id in enumerate(self._device.data_stream_ids):
+            data_stream = self._device.create_data_stream()
+            data_stream.open(stream_id)
+            data_stream.local_node_map = _get_port_connected_node_map(
+                data_stream.port
+            )
 
-        # Create an Event Manager object for image acquisition.
-        event_token = self._data_stream.register_event(
-            EVENT_TYPE_LIST.EVENT_NEW_BUFFER
-        )
-        self._event_manager = EventManagerNewBuffer(event_token)
+            # Create an Event Manager object for image acquisition.
+            event_token = data_stream.register_event(
+                EVENT_TYPE_LIST.EVENT_NEW_BUFFER
+            )
+
+            self._event_managers.append(EventManagerNewBuffer(event_token))
+            self._data_streams.append(data_stream)
 
     def start_image_acquisition(self):
         """
@@ -618,14 +645,14 @@ class ImageAcquisitionManager:
             #
             num_required_buffers = self._min_num_buffers
             try:
-                num_buffers = self._data_stream.buffer_announce_min
+                num_buffers = self._data_streams[0].buffer_announce_min
                 if num_buffers < num_required_buffers:
                     num_buffers = num_required_buffers
             except InvalidParameterException as e:
                 num_buffers = num_required_buffers
 
-            if self._data_stream.defines_payload_size():
-                buffer_size = self._data_stream.payload_size
+            if self._data_streams[0].defines_payload_size():
+                buffer_size = self._data_streams[0].payload_size
             else:
                 buffer_size = self.device.node_map.PayloadSize.value
 
@@ -668,7 +695,7 @@ class ImageAcquisitionManager:
                 self._processors.append(p)
 
             # Start image acquisition.
-            self._data_stream.start_acquisition(
+            self._data_streams[0].start_acquisition(
                 ACQ_START_FLAGS_LIST.ACQ_START_FLAGS_DEFAULT,
                 self._num_images_to_acquire
             )
@@ -735,7 +762,7 @@ class ImageAcquisitionManager:
         try:
             if self.is_acquiring_images:
                 time.sleep(0.001)
-                self._event_manager.update_event_data(
+                self._event_managers[0].update_event_data(
                     self._timeout_for_image_acquisition
                 )
             else:
@@ -744,14 +771,14 @@ class ImageAcquisitionManager:
             pass
         else:
             #
-            buffer = self._event_manager.buffer
+            buffer = self._event_managers[0].buffer
 
             #
             self._update_statistics(buffer)
 
             # Put the buffer in the process flow.
             input = BufferManager(
-                data_stream=self._data_stream,
+                data_stream=self._data_streams[0],
                 buffer=buffer,
                 node_map=self.device.node_map,
                 image_payload=None
@@ -818,8 +845,8 @@ class ImageAcquisitionManager:
 
         :return: None
         """
-        if self._data_stream and buffer_manager:
-            self._data_stream.queue_buffer(
+        if self._data_streams[0] and buffer_manager:
+            self._data_streams[0].queue_buffer(
                 buffer_manager.buffer
             )
 
@@ -884,7 +911,7 @@ class ImageAcquisitionManager:
         # Iterate announcing buffers in the Buffer Tokens.
         for token in _buffer_tokens:
             # Get an announced buffer.
-            announced_buffer = self._data_stream.announce_buffer(token)
+            announced_buffer = self._data_streams[0].announce_buffer(token)
 
             # And append it to the list.
             announced_buffers.append(announced_buffer)
@@ -894,7 +921,7 @@ class ImageAcquisitionManager:
 
     def _queue_announced_buffers(self, buffers):
         for buffer in buffers:
-            self._data_stream.queue_buffer(buffer)
+            self._data_streams[0].queue_buffer(buffer)
 
     def stop_image_acquisition(self):
         """
@@ -919,7 +946,7 @@ class ImageAcquisitionManager:
 
                 # Stop image acquisition.
                 try:
-                    self._data_stream.stop_acquisition(
+                    self._data_streams[0].stop_acquisition(
                         ACQ_STOP_FLAGS_LIST.ACQ_STOP_FLAGS_KILL
                     )
                 except ResourceInUseException:
@@ -931,12 +958,12 @@ class ImageAcquisitionManager:
                     print(e)
 
                 # Flash the queue for image acquisition process.
-                self._data_stream.flush_buffer_queue(
+                self._data_streams[0].flush_buffer_queue(
                     ACQ_QUEUE_TYPE_LIST.ACQ_QUEUE_ALL_DISCARD
                 )
 
                 #
-                self._event_manager.flush_event_queue()
+                self._event_managers[0].flush_event_queue()
 
                 #
                 # Release buffers but keep holding the Data Stream module.
@@ -965,37 +992,39 @@ class ImageAcquisitionManager:
         if self.device:
             #
             self.stop_image_acquisition()
-            self._release_data_stream()
+            self._release_data_streams()
 
             #
             if self.device.node_map:
                 self.device.node_map.disconnect()
 
             #
-            if self.device.is_open():
-                self.device.close()
+            if self._device.is_open():
+                self._device.close()
 
         self._device = None
-        self._event_manager = None
+        self._event_managers.clear()
 
         if self._profiler:
             self._profiler.print_diff()
 
-    def _release_data_stream(self):
+    def _release_data_streams(self):
         #
         self._release_buffers()
 
         #
-        if self._data_stream:
-            if self._data_stream.is_open():
-                self._data_stream.close()
+        for ds in self._data_streams:
+            if ds and ds.is_open():
+                ds.close()
 
         #
-        self._data_stream = None
+        self._data_streams.clear()
 
     def _release_buffers(self):
-        for buffer in self._announced_buffers:
-            self._data_stream.revoke_buffer(buffer)
+        for ds in self._data_streams:
+            if ds and ds.is_open():
+                for buffer in self._announced_buffers:
+                    ds.revoke_buffer(buffer)
         self._announced_buffers.clear()
 
     def _initialize_buffers(self):
@@ -1214,9 +1243,12 @@ class Harvester:
                 device = candidates[0].create_device()
 
         # Then open it.
-        device.open(
-            DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
-        )
+        try:
+            device.open(
+                DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
+            )
+        except AccessDeniedException:
+            return None
 
         # Create an image acquisition manager object and return it.
         iaa = ImageAcquisitionManager(

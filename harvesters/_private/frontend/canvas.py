@@ -200,13 +200,13 @@ class Canvas(app.Canvas):
                     if pixel_format in component_8bit_formats:
                         pass
                     elif pixel_format in component_10bit_formats:
-                        power = 1
-                    elif pixel_format in component_12bit_formats:
                         power = 2
-                    elif pixel_format in component_14bit_formats:
-                        power = 3
-                    elif pixel_format in component_14bit_formats:
+                    elif pixel_format in component_12bit_formats:
                         power = 4
+                    elif pixel_format in component_14bit_formats:
+                        power = 6
+                    elif pixel_format in component_14bit_formats:
+                        power = 8
                     else:
                         update = False
 

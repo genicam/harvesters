@@ -240,60 +240,14 @@ class _PyThreadImpl(Thread):
         self._worker = obj
 
 
-class Image:
-    def __init__(self, parent=None, image_payload=None):
-        """
-
-        :param parent:
-        :param image_payload:
-        """
-        #
-        super().__init__()
-
-        #
-        self._parent = parent
-        self._payload = image_payload
-
-    @property
-    def width(self) -> int:
-        try:
-            width = self._parent.buffer.width
-        except InvalidParameterException:
-            width = self._parent.node_map.Width.value
-
-        return width
-
-    @property
-    def height(self) -> int:
-        try:
-            height = self._parent.buffer.height
-        except InvalidParameterException:
-            height = self._parent.node_map.Height.value
-
-        return height
-
-    @property
-    def pixel_format(self) -> str:
-        try:
-            pixel_format_int = self._parent.buffer.pixel_format
-        except InvalidParameterException:
-            return self._parent.node_map.PixelFormat.value
-        else:
-            return symbolics[int(pixel_format_int)]
-
-    @property
-    def payload(self):
-        return self._payload
-
-
 class BufferManager:
-    def __init__(self, data_stream=None, buffer=None, node_map=None, image_payload=None):
+    def __init__(self, data_stream=None, buffer=None, node_map=None, payload=None):
         """
 
         :param data_stream:
         :param buffer:
         :param node_map:
-        :param image_payload:
+        :param payload:
         """
         #
         super().__init__()
@@ -302,7 +256,8 @@ class BufferManager:
         self._data_stream = data_stream
         self._buffer = buffer
         self._node_map = node_map
-        self._image = Image(self, image_payload=image_payload)
+        self._payload = payload
+        self._pixel_format = symbolics[int(self.buffer.pixel_format)]
 
     def __enter__(self):
         return self
@@ -314,16 +269,12 @@ class BufferManager:
 
     def __repr__(self):
         return 'W: {0} x H: {1}, {2}, {3} elements\n{4}'.format(
-            self.image.width,
-            self.image.height,
-            self.image.pixel_format,
-            len(self.image.payload),
-            self.image.payload
+            self.buffer.width,
+            self.buffer.height,
+            self.pixel_format,
+            len(self.payload),
+            self.payload
         )
-
-    @property
-    def image(self) -> Image:
-        return self._image
 
     @property
     def data_stream(self):
@@ -336,6 +287,14 @@ class BufferManager:
     @property
     def node_map(self):
         return self._node_map
+
+    @property
+    def payload(self):
+        return self._payload
+
+    @property
+    def pixel_format(self):
+        return self._pixel_format
 
 
 class ProcessorBase:
@@ -403,7 +362,7 @@ class _ProcessorConvertPyBytesToNumpy1D(ProcessorBase):
             data_stream=input.data_stream,
             buffer=input.buffer,
             node_map=input.node_map,
-            image_payload=np.frombuffer(
+            payload=np.frombuffer(
                 input.buffer.raw_buffer, dtype=dtype
             )
         )
@@ -781,7 +740,7 @@ class ImageAcquisitionManager:
                 data_stream=self._data_streams[0],
                 buffer=buffer,
                 node_map=self.device.node_map,
-                image_payload=None
+                payload=None
             )
             output = None
 
@@ -798,7 +757,7 @@ class ImageAcquisitionManager:
                         # before being used.
                         self.queue_buffer(self._fetched_buffer_managers.pop(0))
 
-                    if output.image.payload is not None:
+                    if output.payload is not None:
                         # Append the recently fetched buffer.
                         # Then one buffer remains for our client.
                         self._fetched_buffer_managers.append(output)

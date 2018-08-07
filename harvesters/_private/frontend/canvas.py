@@ -189,14 +189,14 @@ class Canvas(app.Canvas):
                 # Set the image as the texture of our canvas.
                 if not self._pause_drawing and bm:
                     # Update the canvas size if needed.
-                    self.set_rect(bm.image.width, bm.image.height)
+                    self.set_rect(bm.buffer.width, bm.buffer.height)
 
                     #
                     update = True
                     power = 0
 
                     #
-                    pixel_format = bm.image.pixel_format
+                    pixel_format = bm.pixel_format
                     if pixel_format in component_8bit_formats:
                         pass
                     elif pixel_format in component_10bit_formats:
@@ -211,7 +211,7 @@ class Canvas(app.Canvas):
                         update = False
 
                     if update:
-                        self._program['texture'] = bm.image.payload // (2 ** power)
+                        self._program['texture'] = bm.payload // (2 ** power)
 
                 # Draw the texture.
                 self._draw()

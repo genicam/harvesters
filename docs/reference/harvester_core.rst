@@ -15,11 +15,6 @@ Classes
   :show-inheritance:
   :inherited-members:
 
-.. autoclass:: harvesters.core.Image
-  :members:
-  :show-inheritance:
-  :inherited-members:
-
 .. autoclass:: harvesters.core.ImageAcquisitionManager
   :members:
   :show-inheritance:

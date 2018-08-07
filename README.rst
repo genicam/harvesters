@@ -347,7 +347,7 @@ Harvester Core on IPython
 
 The following screenshot shows Harvester Core is running on IPython. Harvester Core returns the latest image data at the moment as a Numpy array every time its user call the ``get_image()`` method. Once you get an image you should be able to immediately start image processing. If you're running on Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
-.. image:: https://user-images.githubusercontent.com/8652625/43775610-475a5452-9a88-11e8-85cb-32c49a2d3ab1.png
+.. image:: https://user-images.githubusercontent.com/8652625/43785578-9a936d34-9aa1-11e8-8daa-fc1f7fce9734.png
     :align: center
     :alt: Harvester on IPython
     :scale: 40 %
@@ -371,32 +371,29 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
 
     In [6]: iam = h.open_image_acquisition_manager(0)
 
-    In [7]: iam.device.node_map.Width.value, iam.device.node_map.Height.value = 12, 8
+    In [7]: iam.device.node_map.Width.value, iam.device.node_map.Height.value = 8, 8
 
     In [8]: iam.device.node_map.PixelFormat.value = 'Mono8'
 
     In [9]: iam.start_image_acquisition()
 
     In [10]: with iam.fetch_buffer_manager() as bm:
-        ...:     _1d = bm.image.payload
+        ...:     _1d = bm.payload
         ...:     print(_1d)
         ...:     _2d = _1d.reshape(bm.buffer.height, bm.buffer.width)
         ...:     print(_2d)
         ...:
-    [193 194 195 196 197 198 199 200 201 202 203 204 194 195 196 197 198 199
-     200 201 202 203 204 205 195 196 197 198 199 200 201 202 203 204 205 206
-     196 197 198 199 200 201 202 203 204 205 206 207 197 198 199 200 201 202
-     203 204 205 206 207 208 198 199 200 201 202 203 204 205 206 207 208 209
-     199 200 201 202 203 204 205 206 207 208 209 210 200 201 202 203 204 205
-     206 207 208 209 210 211]
-    [[193 194 195 196 197 198 199 200 201 202 203 204]
-     [194 195 196 197 198 199 200 201 202 203 204 205]
-     [195 196 197 198 199 200 201 202 203 204 205 206]
-     [196 197 198 199 200 201 202 203 204 205 206 207]
-     [197 198 199 200 201 202 203 204 205 206 207 208]
-     [198 199 200 201 202 203 204 205 206 207 208 209]
-     [199 200 201 202 203 204 205 206 207 208 209 210]
-     [200 201 202 203 204 205 206 207 208 209 210 211]]
+    [14 15 16 17 18 19 20 21 15 16 17 18 19 20 21 22 16 17 18 19 20 21 22 23
+     17 18 19 20 21 22 23 24 18 19 20 21 22 23 24 25 19 20 21 22 23 24 25 26
+     20 21 22 23 24 25 26 27 21 22 23 24 25 26 27 28]
+    [[14 15 16 17 18 19 20 21]
+     [15 16 17 18 19 20 21 22]
+     [16 17 18 19 20 21 22 23]
+     [17 18 19 20 21 22 23 24]
+     [18 19 20 21 22 23 24 25]
+     [19 20 21 22 23 24 25 26]
+     [20 21 22 23 24 25 26 27]
+     [21 22 23 24 25 26 27 28]]
 
     In [11]: iam.stop_image_acquisition()
 
@@ -614,15 +611,15 @@ Once you started image acquisition, you should definitely want to get an image. 
 
 .. code-block:: python
 
-    with iam.fetch_buffer_manager_manager() as bm:
-        print(bm.image.payload)
+    with iam.fetch_buffer_manager() as bm:
+        print(bm.payload)
 
 Having that code, the fetched buffer is automatically queued once the code step out from the scope of the ``with`` statement. It's prevents you to forget queueing it by accident. The other option is to manually queue the fetched buffer by yourself:
 
 .. code-block:: python
 
-    bm = iam.fetch_buffer_manager_manager()
-    print(bm.image.payload)
+    bm = iam.fetch_buffer_manager()
+    print(bm.payload)
     iam.queue_buffer(bm)
 
 In this option, again, do not forget that you have to queue the buffer by yourself. If you forgot queueing it, then you'll lose a buffer that could be used for image acquisition. Everything is up to your design, so please choose an appropriate way for you.

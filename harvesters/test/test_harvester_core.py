@@ -75,7 +75,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         with iam.fetch_buffer_manager() as bm:
             print(bm)
             # Reshape it.
-            _1d = bm.image.payload
+            _1d = bm.payload
             _2d = _1d.reshape(
                 bm.buffer.height, bm.buffer.width
             )

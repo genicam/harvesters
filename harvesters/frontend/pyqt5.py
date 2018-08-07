@@ -73,22 +73,22 @@ class _ConvertNumpy1DToNumpy2D(ProcessorBase):
 
     def process(self, input: BufferManager):
         #
-        symbolic = input.image.pixel_format
+        symbolic = input.pixel_format
 
         #
         ndarray = None
         try:
             if symbolic in mono_formats or symbolic in bayer_formats:
-                ndarray = input.image.payload.reshape(
-                    input.image.height, input.image.width
+                ndarray = input.payload.reshape(
+                    input.buffer.height, input.buffer.width
                 )
             elif symbolic in rgb_formats:
-                ndarray = input.image.payload.reshape(
-                    input.image.height, input.image.width, 3
+                ndarray = input.buffer.payload.reshape(
+                    input.buffer.height, input.buffer.width, 3
                 )
             elif symbolic in rgba_formats:
-                ndarray = input.image.payload.reshape(
-                    input.image.height, input.image.width, 4
+                ndarray = input.buffer.payload.reshape(
+                    input.buffer.height, input.buffer.width, 4
                 )
         except ValueError as e:
             print(e)
@@ -97,7 +97,7 @@ class _ConvertNumpy1DToNumpy2D(ProcessorBase):
             data_stream=input.data_stream,
             buffer=input.buffer,
             node_map=input.node_map,
-            image_payload=ndarray
+            payload=ndarray
         )
 
         return output

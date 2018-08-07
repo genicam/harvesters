@@ -241,23 +241,23 @@ class _PyThreadImpl(Thread):
 
 
 class Image:
-    def __init__(self, parent=None, payload=None):
+    def __init__(self, parent=None, image_payload=None):
         """
 
         :param parent:
-        :param payload:
+        :param image_payload:
         """
         #
         super().__init__()
 
         #
         self._parent = parent
-        self._payload = payload
+        self._payload = image_payload
 
     @property
     def width(self) -> int:
         try:
-            width = self._parent.gentl_buffer.width
+            width = self._parent.buffer.width
         except InvalidParameterException:
             width = self._parent.node_map.Width.value
 
@@ -266,7 +266,7 @@ class Image:
     @property
     def height(self) -> int:
         try:
-            height = self._parent.gentl_buffer.height
+            height = self._parent.buffer.height
         except InvalidParameterException:
             height = self._parent.node_map.Height.value
 
@@ -275,7 +275,7 @@ class Image:
     @property
     def pixel_format(self) -> str:
         try:
-            pixel_format_int = self._parent.gentl_buffer.pixel_format
+            pixel_format_int = self._parent.buffer.pixel_format
         except InvalidParameterException:
             return self._parent.node_map.PixelFormat.value
         else:
@@ -286,31 +286,40 @@ class Image:
         return self._payload
 
 
-class Buffer:
-    def __init__(self, data_stream=None, gentl_buffer=None, node_map=None, payload=None):
+class BufferManager:
+    def __init__(self, data_stream=None, buffer=None, node_map=None, image_payload=None):
         """
 
         :param data_stream:
-        :param gentl_buffer:
+        :param buffer:
         :param node_map:
-        :param payload:
+        :param image_payload:
         """
         #
         super().__init__()
 
         #
         self._data_stream = data_stream
-        self._gentl_buffer = gentl_buffer
+        self._buffer = buffer
         self._node_map = node_map
-        self._image = Image(self, payload=payload)
+        self._image = Image(self, image_payload=image_payload)
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # Queue the buffer when it goes outside of the scope.
-        if self._data_stream and self._gentl_buffer:
-            self._data_stream.queue_buffer(self._gentl_buffer)
+        if self._data_stream and self._buffer:
+            self._data_stream.queue_buffer(self._buffer)
+
+    def __repr__(self):
+        return 'W: {0} x H: {1}, {2}, {3} elements\n{4}'.format(
+            self.image.width,
+            self.image.height,
+            self.image.pixel_format,
+            len(self.image.payload),
+            self.image.payload
+        )
 
     @property
     def image(self) -> Image:
@@ -321,8 +330,8 @@ class Buffer:
         return self._data_stream
 
     @property
-    def gentl_buffer(self):
-        return self._gentl_buffer
+    def buffer(self):
+        return self._buffer
 
     @property
     def node_map(self):
@@ -374,10 +383,10 @@ class _ProcessorConvertPyBytesToNumpy1D(ProcessorBase):
             description='Converts a Python bytes object to a Numpy 1D array'
         )
 
-    def process(self, input: Buffer):
+    def process(self, input: BufferManager):
         symbolic = None
         try:
-            pixel_format_int = input.gentl_buffer.pixel_format
+            pixel_format_int = input.buffer.pixel_format
         except InvalidParameterException:
             pass
         else:
@@ -390,12 +399,12 @@ class _ProcessorConvertPyBytesToNumpy1D(ProcessorBase):
         else:
             dtype = 'uint8'
 
-        output = Buffer(
+        output = BufferManager(
             data_stream=input.data_stream,
-            gentl_buffer=input.gentl_buffer,
+            buffer=input.buffer,
             node_map=input.node_map,
-            payload=np.frombuffer(
-                input.gentl_buffer.raw_buffer, dtype=dtype
+            image_payload=np.frombuffer(
+                input.buffer.raw_buffer, dtype=dtype
             )
         )
         return output
@@ -467,7 +476,7 @@ class ImageAcquisitionAgent:
 
         #
         self._announced_buffers = []
-        self._fetched_buffers = []
+        self._fetched_buffer_managers = []
 
         self._data_stream = None
         self._event_manager = None
@@ -738,14 +747,17 @@ class ImageAcquisitionAgent:
             pass
         else:
             #
-            gentl_buffer = self._event_manager.buffer
+            buffer = self._event_manager.buffer
 
             #
-            self._update_statistics(gentl_buffer)
+            self._update_statistics(buffer)
 
             # Put the buffer in the process flow.
-            input = Buffer(
-                self._data_stream, gentl_buffer, self.device.node_map, None
+            input = BufferManager(
+                data_stream=self._data_stream,
+                buffer=buffer,
+                node_map=self.device.node_map,
+                image_payload=None
             )
             output = None
 
@@ -757,15 +769,15 @@ class ImageAcquisitionAgent:
                 # We've got a new image so now we can reuse the buffer that
                 # we had kept.
                 with MutexLocker(self.thread_image_acquisition):
-                    if len(self._fetched_buffers) >= self._num_images_to_hold:
+                    if len(self._fetched_buffer_managers) >= self._num_images_to_hold:
                         # We have a buffer now so we queue it; it's discarded
                         # before being used.
-                        self.queue_buffer(self._fetched_buffers.pop(0))
+                        self.queue_buffer(self._fetched_buffer_managers.pop(0))
 
                     if output.image.payload is not None:
                         # Append the recently fetched buffer.
                         # Then one buffer remains for our client.
-                        self._fetched_buffers.append(output)
+                        self._fetched_buffer_managers.append(output)
 
             #
             if self._num_images_to_acquire >= 1:
@@ -776,7 +788,7 @@ class ImageAcquisitionAgent:
                 if self.signal_stop_image_acquisition:
                     self.signal_stop_image_acquisition.emit()
 
-    def fetch_buffer(self, timeout_ms=0):
+    def fetch_buffer_manager(self, timeout_ms=0):
         """
         Fetches the oldest :class:`~harvesters.buffer.Buffer` object and returns it.
 
@@ -788,30 +800,30 @@ class ImageAcquisitionAgent:
             return None
 
         watch_timeout = True if timeout_ms > 0 else False
-        buffer = None
+        bm = None
         base = time.time()
 
-        while buffer is None:
+        while bm is None:
             if watch_timeout and (time.time() - base) > timeout_ms:
                 break
             else:
                 with MutexLocker(self.thread_image_acquisition):
-                    if len(self._fetched_buffers) > 0:
-                        buffer = self._fetched_buffers.pop(0)
+                    if len(self._fetched_buffer_managers) > 0:
+                        bm = self._fetched_buffer_managers.pop(0)
 
-        return buffer
+        return bm
 
-    def queue_buffer(self, buffer):
+    def queue_buffer(self, buffer_manager: BufferManager):
         """
-        Queues the :class:`~harvesters.buffer.Buffer` object.
+        Queues a buffer for the image acquisition.
 
-        :param buffer: Set a :class:`~harvesters.buffer.Buffer` object to queue.
+        :param buffer_manager: Set a :class:`~harvesters.core.BufferManager` object that is holding a buffer to queue.
 
         :return: None
         """
-        if self._data_stream and buffer:
+        if self._data_stream and buffer_manager:
             self._data_stream.queue_buffer(
-                buffer.gentl_buffer
+                buffer_manager.buffer
             )
 
     def _update_statistics(self, gentl_buffer):
@@ -993,7 +1005,7 @@ class ImageAcquisitionAgent:
         self._announced_buffers.clear()
 
     def _initialize_buffers(self):
-        self._fetched_buffers.clear()
+        self._fetched_buffer_managers.clear()
         self._has_acquired_1st_image = False
 
 

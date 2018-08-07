@@ -30,7 +30,7 @@ from PyQt5.QtWidgets import QMainWindow, QAction, QComboBox, \
 from genicam2.gentl import PAYLOADTYPE_INFO_IDS
 
 # Local application/library specific imports
-from harvesters.core import Buffer
+from harvesters.core import BufferManager
 from harvesters._private.frontend.canvas import Canvas
 from harvesters._private.frontend.helper import compose_tooltip
 from harvesters._private.frontend.pyqt5.about import About
@@ -71,7 +71,7 @@ class _ConvertNumpy1DToNumpy2D(ProcessorBase):
         super().__init__(
             description='Reshapes a Numpy 1D array into a Numpy 2D array')
 
-    def process(self, input: Buffer):
+    def process(self, input: BufferManager):
         #
         symbolic = input.image.pixel_format
 
@@ -93,11 +93,11 @@ class _ConvertNumpy1DToNumpy2D(ProcessorBase):
         except ValueError as e:
             print(e)
 
-        output = Buffer(
+        output = BufferManager(
             data_stream=input.data_stream,
-            gentl_buffer=input.gentl_buffer,
+            buffer=input.buffer,
             node_map=input.node_map,
-            payload=ndarray
+            image_payload=ndarray
         )
 
         return output

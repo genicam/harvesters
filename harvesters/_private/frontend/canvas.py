@@ -184,12 +184,12 @@ class Canvas(app.Canvas):
     def _update_texture(self):
         # Fetch a buffer.
         try:
-            with self._device.fetch_buffer(timeout_ms=0.1) as buffer:
+            with self._device.fetch_buffer_manager(timeout_ms=0.1) as bm:
                 # Set the image as the texture of our canvas.
-                if not self._pause_drawing and buffer:
+                if not self._pause_drawing and bm:
                     # Update the canvas size if needed.
-                    self.set_rect(buffer.image.width, buffer.image.height)
-                    self._program['texture'] = buffer.image.payload
+                    self.set_rect(bm.image.width, bm.image.height)
+                    self._program['texture'] = bm.image.payload
 
                 # Draw the texture.
                 self._draw()

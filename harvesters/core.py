@@ -410,7 +410,7 @@ class _ProcessorConvertPyBytesToNumpy1D(ProcessorBase):
         return output
 
 
-class ImageAcquisitionAgent:
+class ImageAcquisitionManager:
     def __init__(
             self, data_type='numpy', min_num_buffers=3, device=None,
             setup_ds_at_dev_connection=True, frontend=None,
@@ -963,9 +963,11 @@ class ImageAcquisitionAgent:
 
     def close(self):
         """
-        Releases all external resources. Please don't forget to call this method if you create an ImageAcquisitionAgent object without using the with method.
+        Releases all external resources including the controlling device.
 
         :return: None
+
+        Please don't forget to call this method if you create an image acquisition manager without using the with method.
         """
         #
         if self.device:
@@ -1093,13 +1095,13 @@ class Harvester:
     def has_revised_device_info_list(self, value):
         self._has_revised_device_list = value
 
-    def get_agent(
+    def open_image_acquisition_manager(
             self, list_index=None, data_type='numpy', unique_id=None,
             vendor=None, model=None, tl_type=None, user_defined_name=None,
             serial_number=None, version=None,
         ):
         """
-        Connects the specified device to the Harvester object.
+        Opens an image acquisition manager for the specified device and return it.
 
         :param list_index: Set an item index of the list of :class:`~genicam2.gentl.DeviceInfo` objects.
         :param data_type: Set a data type that you want to have. The default is numpy's ndarray.
@@ -1112,6 +1114,9 @@ class Harvester:
         :param version:
 
         :return: None
+
+        Note that you have to close it when you are ready to release the device that you have been controlled. As long as you hold it, the controlled device will be not available from other clients.
+
         """
         #
         if self.device_info_list is None:
@@ -1219,8 +1224,8 @@ class Harvester:
         # object.
         device.node_map.connect(concrete_port, remote_port.name)
 
-        # Create an ImageAcquisitionAgent object and return it.
-        iaa = ImageAcquisitionAgent(
+        # Create an image acquisition manager object and return it.
+        iaa = ImageAcquisitionManager(
             data_type=data_type, device=device, frontend=self._frontend
         )
 

@@ -369,18 +369,18 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
      (unique_id='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_0', version='1.2.3'),
      (unique_id='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_1', version='1.2.3')]
 
-    In [6]: mono_a = h.get_agent(0)
+    In [6]: mono_cam = h.open_image_acquisition_manager(0)
 
-    In [7]: mono_a.device.node_map.Width.value, mono_a.device.node_map.Height.value = 12, 8
+    In [7]: mono_cam.device.node_map.Width.value, mono_cam.device.node_map.Height.value = 12, 8
 
-    In [8]: mono_a.device.node_map.PixelFormat.value = 'Mono8'
+    In [8]: mono_cam.device.node_map.PixelFormat.value = 'Mono8'
 
-    In [9]: mono_a.start_image_acquisition()
+    In [9]: mono_cam.start_image_acquisition()
 
-    In [10]: with mono_a.fetch_buffer() as buffer:
-        ...:     _1d = buffer.image.payload
+    In [10]: with mono_cam.fetch_buffer_manager() as bm:
+        ...:     _1d = bm.image.payload
         ...:     print(_1d)
-        ...:     _2d = _1d.reshape(buffer.gentl_buffer.height, buffer.gentl_buffer.width)
+        ...:     _2d = _1d.reshape(bm.buffer.height, bm.buffer.width)
         ...:     print(_2d)
         ...:
     [57 58 59 60 61 62 63 64 65 66 67 68 58 59 60 61 62 63 64 65 66 67 68 69
@@ -396,7 +396,7 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
      [63 64 65 66 67 68 69 70 71 72 73 74]
      [64 65 66 67 68 69 70 71 72 73 74 75]]
 
-    In [11]: mono_a.stop_image_acquisition()
+    In [11]: mono_cam.stop_image_acquisition()
 
 ############
 Requirements
@@ -539,7 +539,7 @@ Producer:
 
     h.add_cti_file('path/to/gentl_producer.cti')
 
-Note that you can add more CTI files on a single Harvester Core object. To add another CTI file, just repeat calling ``add_cti_file`` method passing another target CTI file:
+Note that you can add **one or more CTI files** on a single Harvester Core object. To add another CTI file, just repeat calling ``add_cti_file`` method passing another target CTI file:
 
 .. code-block:: python
 
@@ -580,64 +580,69 @@ Our friendly GenTL Producer, so called TLSimu, gives you the following informati
      (unique_id='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_0', version='1.2.3'),
      (unique_id='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_1', version='1.2.3')]
 
-And you create an image acquisition agent object specifying a target device. The image acquisition agent does image acquisition task for you. In the following example it's trying to create an agent object of the first device in the device information list:
+And you create an image acquisition manager object specifying a target device. The image acquisition manager does the image acquisition task for you. In the following example it's trying to create an manager object of the first candidate device in the device information list:
 
 .. code-block:: python
 
-    iaa = h.get_agent(0)
+    iam = h.open_image_acquisition_manager(0)
 
 Or equivalently:
 
 .. code-block:: python
 
-    iaa = h.get_agent(list_index=0)
+    iam = h.open_image_acquisition_manager(list_index=0)
 
 You can connect the same device passing more unique information to the method such as:
 
 .. code-block:: python
 
-    iaa = h.get_agent(serial_number='SN_InterfaceA_0')
+    mono_a = h.open_image_acquisition_manager(serial_number='SN_InterfaceA_0')
 
-We named the agent object ``iaa`` in the above example but in a practical occasion, you may name it like just ``camera`` or ``mono_a`` more specifically even though those entities don't acquire images but they transfer images that will be acquired.
-
-On the other hand, note that the agent object can handle all GenICam compliant devices and it's not limited to cameras so you might have a case where you name the object like ``lighting_device`` for example.
+We named the manager object ``iam`` in the above example but in a practical occasion, you may name it like just ``camera``, ``mono_cam``, or ``face_detection_cam`` more specifically even though those entities don't acquire images by themselves but they transfer images that will be acquired by their image acquisition manager.
 
 Anyway, then now we start image acquisition:
 
 .. code-block:: python
 
-    iaa.start_image_acquisition()
+    iam.start_image_acquisition()
 
-Once you started image acquisition, you should definitely want to get an image. An image is delivered to a buffer that has internally prepared in the Harvester Core object. To fetch a buffer that has been filled up with an image, you can have 2 options; the first option is to use the ``with`` statement:
-
-.. code-block:: python
-
-    with iaa.fetch_buffer() as buffer:
-        print(buffer.image.payload)
-
-Having that code, the fetched buffer, ``buffer``, is automatically queued once the code step out from the scope of the ``with`` statement. It's prevents to queue it by accident. The other option is to manually queue the fetched buffer by yourself:
+Once you started image acquisition, you should definitely want to get an image. An image is delivered to a buffer manager object. To fetch a buffer that has been filled up with an image, you can have 2 options; the first option is to use the ``with`` statement:
 
 .. code-block:: python
 
-    buffer = iaa.fetch_buffer()
-    print(buffer.image.payload)
-    iaa.queue_buffer(buffer)
+    with iam.fetch_buffer_manager_manager() as bm:
+        print(bm.image.payload)
 
-In this option, again, do not forget that you have to queue the buffer by yourself. If you forgot queueing it, then you'll lose a buffer that can be used for image acquisition. Everything is up to your design, so please choose an appropriate way for you.
+Having that code, the fetched buffer is automatically queued once the code step out from the scope of the ``with`` statement. It's prevents you to forget queueing it by accident. The other option is to manually queue the fetched buffer by yourself:
+
+.. code-block:: python
+
+    bm = iam.fetch_buffer_manager_manager()
+    print(bm.image.payload)
+    iam.queue_buffer(bm)
+
+In this option, again, do not forget that you have to queue the buffer by yourself. If you forgot queueing it, then you'll lose a buffer that could be used for image acquisition. Everything is up to your design, so please choose an appropriate way for you.
 
 Okay, then you would stop image acquisition with the following code:
 
 .. code-block:: python
 
-    iaa.stop_image_acquisition()
+    iam.stop_image_acquisition()
 
-And the following code disconnects the connecting device from the image acquisition agent:
+And the following code disconnects the connecting device from the image acquisition manager:
 
 .. code-block:: python
 
-    iaa.close()
+    iam.close()
 
-Now you can quit the program!
+Now you can quit the program! Please not that the image acquisition manager also supports the ``with`` statement. So you may write program as follows:
+
+.. code-block:: python
+
+    with h.open_image_acquisition_manager(0) as iam:
+        # Work, work, and work with iam.
+
+    # iam automatically calls the close method.
 
 *******************
 Using Harvester GUI
@@ -650,7 +655,6 @@ To use Harvester GUI, let's create a Python script file, naming ``foo.py``, that
     import sys
     from PyQt5.QtWidgets import QApplication
     from harvesters.frontend.pyqt5 import Harvester
-
 
     if __name__ == '__main__':
         app = QApplication(sys.argv)

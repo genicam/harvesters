@@ -25,24 +25,53 @@ import unittest
 
 # Local application/library specific imports
 from harvesters.test.base_harvester import TestHarvesterCoreBase
+from harvesters.core import ImageAcquisitionManager
 
 
 class TestHarvesterCore(TestHarvesterCoreBase):
 
-    def test_basic_usage(self):
-        # Prepare an image acquisition agent for device #0.
-        iaa = self._harvester.get_agent(0)
+    def test_basic_usage_1(self):
+        """
+        We walk through a basic usage and manually close the image
+        acquisition manager.
 
+        :return: None.
+        """
+
+        # Prepare an image acquisition manager for device #0.
+        iam = self._harvester.open_image_acquisition_manager(0)
+
+        # Acquire images.
+        self._basic_usage(iam)
+
+        # Discard the image acquisition manager.
+        iam.close()
+
+    def test_basic_usage_2(self):
+        """
+        We walk through a basic usage and omit manually closing the image
+        acquisition manager using the with statement.
+
+        :return: None.
+        """
+
+        # Prepare an image acquisition manager for device #0.
+        with self._harvester.open_image_acquisition_manager(0) as iam:
+
+            # Acquire images.
+            self._basic_usage(iam)
+
+    def _basic_usage(self, iam: ImageAcquisitionManager):
         # Set up the device.
-        iaa.device.node_map.Width.value = 12
-        iaa.device.node_map.Height.value = 8
-        iaa.device.node_map.PixelFormat.value = 'Mono8'
+        iam.device.node_map.Width.value = 12
+        iam.device.node_map.Height.value = 8
+        iam.device.node_map.PixelFormat.value = 'Mono8'
 
         # Start image acquisition.
-        iaa.start_image_acquisition()
+        iam.start_image_acquisition()
 
         # Fetch a buffer that is filled with image data.
-        with iaa.fetch_buffer_manager() as bm:
+        with iam.fetch_buffer_manager() as bm:
             print(bm)
             # Reshape it.
             _1d = bm.image.payload
@@ -52,38 +81,35 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             print(_2d)
 
         # Stop image acquisition.
-        iaa.stop_image_acquisition()
-
-        # Discard the image acquisition agent.
-        iaa.close()
+        iam.stop_image_acquisition()
 
     def test_multiple_iaas(self):
         num_devices = len(self._harvester.device_info_list)
-        self._test_image_acquisition_agents(num_iaas=num_devices)
+        self._test_image_acquisition_managers(num_iaas=num_devices)
 
-    def _test_image_acquisition_agents(self, num_iaas=1):
+    def _test_image_acquisition_managers(self, num_iaas=1):
         #
         print('Number of devices: {0}'.format(num_iaas))
 
         #
-        iaas = []  # Image Acquisition Agents
+        iams = []  # Image Acquisition Managers
 
         #
         for list_index in range(num_iaas):
-            iaas.append(
-                self._harvester.get_agent(
+            iams.append(
+                self._harvester.open_image_acquisition_manager(
                     list_index=list_index
                 )
                 # Or you could simply do the same thing as follows:
-                # self._harvester.get_agent(list_index)
+                # self._harvester.open_image_acquisition_manager(list_index)
             )
 
         #
         for i in range(10):
             #
             print('---> Round {0}: Set up'.format(i))
-            for index, iaa in enumerate(iaas):
-                iaa.start_image_acquisition()
+            for index, iam in enumerate(iams):
+                iam.start_image_acquisition()
                 print(
                     'Device #{0} has started image acquisition.'.format(index)
                 )
@@ -94,7 +120,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             frames = 10
 
             while k < frames:
-                for iaa in iaas:
+                for iam in iams:
                     if k % 2 == 0:
                         # Option 1: This way is secure and preferred.
                         try:
@@ -102,7 +128,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
                             # try-except block is demonstrating a case where
                             # a client called fetch_buffer method even though
                             # he'd forgotten to start image acquisition.
-                            with iaa.fetch_buffer_manager() as bm:
+                            with iam.fetch_buffer_manager() as bm:
                                 print(bm)
                         except AttributeError:
                             # Harvester Core has not started image acquisition
@@ -114,47 +140,47 @@ class TestHarvesterCore(TestHarvesterCoreBase):
                         # Option 2: You can manually do the same job but not
                         # recommended because you might forget to queue the
                         # buffer.
-                        bm = iaa.fetch_buffer_manager()
+                        bm = iam.fetch_buffer_manager()
                         print(bm)
-                        iaa.queue_buffer(bm)
+                        iam.queue_buffer(bm)
 
                 #
                 k += 1
 
             #
             print('<--- Round {0}: Tear down'.format(i))
-            for index, iaa in enumerate(iaas):
-                iaa.stop_image_acquisition()
+            for index, iam in enumerate(iams):
+                iam.stop_image_acquisition()
                 print(
                     'Device #{0} has stopped image acquisition.'.format(index)
                 )
 
-        for iaa in iaas:
-            iaa.close()
+        for iam in iams:
+            iam.close()
 
     def test_controlling_a_specific_camera(self):
         # The basic usage.
-        iaa = self._harvester.get_agent(0)
-        iaa.close()
+        iam = self._harvester.open_image_acquisition_manager(0)
+        iam.close()
 
         # The basic usage but it explicitly uses the parameter name.
-        iaa = self._harvester.get_agent(
+        iam = self._harvester.open_image_acquisition_manager(
             list_index=0
         )
-        iaa.close()
+        iam.close()
 
         # The key can't specify a unique device so it raises an exception.
         with self.assertRaises(ValueError):
-            self._harvester.get_agent(
+            self._harvester.open_image_acquisition_manager(
                 vendor='EMVA_D'
             )
 
         # The key specifies a unique device.
         print(self._harvester.device_info_list)
-        iaa = self._harvester.get_agent(
+        iam = self._harvester.open_image_acquisition_manager(
             serial_number='SN_InterfaceA_0'
         )
-        iaa.close()
+        iam.close()
 
 
 if __name__ == '__main__':

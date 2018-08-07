@@ -61,7 +61,8 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             # Acquire images.
             self._basic_usage(iam)
 
-    def _basic_usage(self, iam: ImageAcquisitionManager):
+    @staticmethod
+    def _basic_usage(iam: ImageAcquisitionManager):
         # Set up the device.
         iam.device.node_map.Width.value = 12
         iam.device.node_map.Height.value = 8

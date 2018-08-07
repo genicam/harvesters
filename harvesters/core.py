@@ -413,14 +413,23 @@ class _ProcessorConvertPyBytesToNumpy1D(ProcessorBase):
 class ImageAcquisitionManager:
     def __init__(
             self, data_type='numpy', min_num_buffers=3, device=None,
-            setup_ds_at_dev_connection=True, frontend=None,
-            profiler=None
+            frontend=None, profiler=None
     ):
         #
         super().__init__()
 
         #
         self._device = device
+
+        # Connect its remote port to the node map.
+        self.device.node_map = _get_port_connected_node_map(
+            self._device.remote_port
+        )
+
+        #
+        self._data_stream = None
+        self._setup_ds_and_event_manager()
+        self._event_manager = None
 
         #
         self._frontend = frontend
@@ -478,9 +487,6 @@ class ImageAcquisitionManager:
         self._announced_buffers = []
         self._fetched_buffer_managers = []
 
-        self._data_stream = None
-        self._event_manager = None
-
         #
         self._has_acquired_1st_image = False
 
@@ -489,18 +495,12 @@ class ImageAcquisitionManager:
         self._signal_stop_image_acquisition = None
 
         #
-        self._setup_ds_at_dev_connection = setup_ds_at_dev_connection
-
-        #
         self._is_acquiring_images = False
 
         #
         self._min_num_buffers = min_num_buffers
 
         self._feature_tree_model = None
-
-        if self._setup_ds_at_dev_connection:
-            self._setup_ds_and_event_manager()
 
     def __enter__(self):
         return self
@@ -615,9 +615,6 @@ class ImageAcquisitionManager:
                 if self._frontend.canvas.is_pausing:
                     self._frontend.canvas.resume_drawing()
         else:
-            if not self._setup_ds_at_dev_connection:
-                self._setup_ds_and_event_manager()
-
             #
             num_required_buffers = self._min_num_buffers
             try:
@@ -942,13 +939,8 @@ class ImageAcquisitionManager:
                 self._event_manager.flush_event_queue()
 
                 #
-                if self._setup_ds_at_dev_connection:
-                    # Release buffers but keep holding the Data Stream module.
-                    self._release_buffers()
-                else:
-                    # Release buffers and the Data Stream modules because they
-                    # will be created at the next image acquisition.
-                    self._release_data_stream()
+                # Release buffers but keep holding the Data Stream module.
+                self._release_buffers()
 
             #
             self._initialize_buffers()
@@ -1009,6 +1001,60 @@ class ImageAcquisitionManager:
     def _initialize_buffers(self):
         self._fetched_buffer_managers.clear()
         self._has_acquired_1st_image = False
+
+
+def _get_port_connected_node_map(port=None):
+    # Inquire it's URL information.
+    # TODO: Consider a case where len(url_info_list) > 1.
+    url = port.url_info_list[0].url
+
+    # And parse the URL.
+    location, others = url.split(':', 1)
+    file_name, address, size = others.split(';')
+    address = int(address, 16)
+
+    # It may specify the schema version.
+    delimiter = '?'
+    if delimiter in size:
+        size, _ = size.split(delimiter)
+    size = int(size, 16)
+
+    # Now we get the file content.
+    content = port.read(address, size)
+
+    # But wait, we have to check if it's a zip file or not.
+    content = content[1]
+    file_content = io.BytesIO(content)
+
+    # Let's check the reality.
+    if zipfile.is_zipfile(file_content):
+        # Yes, that's a zip file.
+        file_content = zipfile.ZipFile(file_content, 'r')
+
+        # Extract the file content from the zip file.
+        for file_info in file_content.infolist():
+            if pathlib.Path(
+                    file_info.filename).suffix.lower() == '.xml':
+                #
+                content = file_content.read(file_info).decode('utf8')
+                break
+
+    # Instantiate a GenICam node map object.
+    node_map = NodeMap()
+
+    # Then load the XML file content on the node map object.
+    node_map.load_xml_from_string(content)
+
+    # Instantiate a concrete port object of the remote device's
+    # port.
+    concrete_port = ConcretePort(port)
+
+    # And finally connect the concrete port on the node map
+    # object.
+    node_map.connect(concrete_port, port.name)
+
+    # Then return the node mpa.
+    return node_map
 
 
 class Harvester:
@@ -1171,58 +1217,6 @@ class Harvester:
         device.open(
             DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
         )
-
-        # And get an alias of its GenTL Port module.
-        remote_port = device.remote_port
-
-        # Inquire it's URL information.
-        # TODO: Consider a case where len(url_info_list) > 1.
-        url = remote_port.url_info_list[0].url
-
-        # And parse the URL.
-        location, others = url.split(':', 1)
-        file_name, address, size = others.split(';')
-        address = int(address, 16)
-
-        # It may specify the schema version.
-        delimiter = '?'
-        if delimiter in size:
-            size, _ = size.split(delimiter)
-        size = int(size, 16)
-
-        # Now we get the file content.
-        content = remote_port.read(address, size)
-
-        # But wait, we have to check if it's a zip file or not.
-        content = content[1]
-        file_content = io.BytesIO(content)
-
-        # Let's check the reality.
-        if zipfile.is_zipfile(file_content):
-            # Yes, that's a zip file.
-            file_content = zipfile.ZipFile(file_content, 'r')
-
-            # Extract the file content from the zip file.
-            for file_info in file_content.infolist():
-                if pathlib.Path(
-                        file_info.filename).suffix.lower() == '.xml':
-                    #
-                    content = file_content.read(file_info).decode('utf8')
-                    break
-
-        # Instantiate a GenICam node map object.
-        device.node_map = NodeMap()
-
-        # Then load the XML file content on the node map object.
-        device.node_map.load_xml_from_string(content)
-
-        # Instantiate a concrete port object of the remote device's
-        # port.
-        concrete_port = ConcretePort(remote_port)
-
-        # And finally connect the concrete port on the node map
-        # object.
-        device.node_map.connect(concrete_port, remote_port.name)
 
         # Create an image acquisition manager object and return it.
         iaa = ImageAcquisitionManager(

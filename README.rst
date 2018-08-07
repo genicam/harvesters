@@ -347,7 +347,7 @@ Harvester Core on IPython
 
 The following screenshot shows Harvester Core is running on IPython. Harvester Core returns the latest image data at the moment as a Numpy array every time its user call the ``get_image()`` method. Once you get an image you should be able to immediately start image processing. If you're running on Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
-.. image:: https://user-images.githubusercontent.com/8652625/43723968-e5de32a2-99d3-11e8-91c2-fd276920cbbb.png
+.. image:: https://user-images.githubusercontent.com/8652625/43775610-475a5452-9a88-11e8-85cb-32c49a2d3ab1.png
     :align: center
     :alt: Harvester on IPython
     :scale: 40 %
@@ -369,34 +369,38 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
      (unique_id='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_0', version='1.2.3'),
      (unique_id='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_1', version='1.2.3')]
 
-    In [6]: mono_cam = h.open_image_acquisition_manager(0)
+    In [6]: iam = h.open_image_acquisition_manager(0)
 
-    In [7]: mono_cam.device.node_map.Width.value, mono_cam.device.node_map.Height.value = 12, 8
+    In [7]: iam.device.node_map.Width.value, iam.device.node_map.Height.value = 12, 8
 
-    In [8]: mono_cam.device.node_map.PixelFormat.value = 'Mono8'
+    In [8]: iam.device.node_map.PixelFormat.value = 'Mono8'
 
-    In [9]: mono_cam.start_image_acquisition()
+    In [9]: iam.start_image_acquisition()
 
-    In [10]: with mono_cam.fetch_buffer_manager() as bm:
+    In [10]: with iam.fetch_buffer_manager() as bm:
         ...:     _1d = bm.image.payload
         ...:     print(_1d)
         ...:     _2d = _1d.reshape(bm.buffer.height, bm.buffer.width)
         ...:     print(_2d)
         ...:
-    [57 58 59 60 61 62 63 64 65 66 67 68 58 59 60 61 62 63 64 65 66 67 68 69
-     59 60 61 62 63 64 65 66 67 68 69 70 60 61 62 63 64 65 66 67 68 69 70 71
-     61 62 63 64 65 66 67 68 69 70 71 72 62 63 64 65 66 67 68 69 70 71 72 73
-     63 64 65 66 67 68 69 70 71 72 73 74 64 65 66 67 68 69 70 71 72 73 74 75]
-    [[57 58 59 60 61 62 63 64 65 66 67 68]
-     [58 59 60 61 62 63 64 65 66 67 68 69]
-     [59 60 61 62 63 64 65 66 67 68 69 70]
-     [60 61 62 63 64 65 66 67 68 69 70 71]
-     [61 62 63 64 65 66 67 68 69 70 71 72]
-     [62 63 64 65 66 67 68 69 70 71 72 73]
-     [63 64 65 66 67 68 69 70 71 72 73 74]
-     [64 65 66 67 68 69 70 71 72 73 74 75]]
+    [193 194 195 196 197 198 199 200 201 202 203 204 194 195 196 197 198 199
+     200 201 202 203 204 205 195 196 197 198 199 200 201 202 203 204 205 206
+     196 197 198 199 200 201 202 203 204 205 206 207 197 198 199 200 201 202
+     203 204 205 206 207 208 198 199 200 201 202 203 204 205 206 207 208 209
+     199 200 201 202 203 204 205 206 207 208 209 210 200 201 202 203 204 205
+     206 207 208 209 210 211]
+    [[193 194 195 196 197 198 199 200 201 202 203 204]
+     [194 195 196 197 198 199 200 201 202 203 204 205]
+     [195 196 197 198 199 200 201 202 203 204 205 206]
+     [196 197 198 199 200 201 202 203 204 205 206 207]
+     [197 198 199 200 201 202 203 204 205 206 207 208]
+     [198 199 200 201 202 203 204 205 206 207 208 209]
+     [199 200 201 202 203 204 205 206 207 208 209 210]
+     [200 201 202 203 204 205 206 207 208 209 210 211]]
 
-    In [11]: mono_cam.stop_image_acquisition()
+    In [11]: iam.stop_image_acquisition()
+
+    In [12]: iam.close()
 
 ############
 Requirements

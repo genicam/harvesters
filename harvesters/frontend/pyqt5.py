@@ -83,11 +83,11 @@ class _ConvertNumpy1DToNumpy2D(ProcessorBase):
                     input.buffer.height, input.buffer.width
                 )
             elif symbolic in rgb_formats:
-                ndarray = input.buffer.payload.reshape(
+                ndarray = input.payload.reshape(
                     input.buffer.height, input.buffer.width, 3
                 )
             elif symbolic in rgba_formats:
-                ndarray = input.buffer.payload.reshape(
+                ndarray = input.payload.reshape(
                     input.buffer.height, input.buffer.width, 4
                 )
         except ValueError as e:

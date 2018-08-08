@@ -481,7 +481,7 @@ class ImageAcquisitionManager:
         self.__del__()
 
     def __del__(self):
-        self.close()
+        self.destroy()
 
     @property
     def device(self):
@@ -939,7 +939,7 @@ class ImageAcquisitionManager:
         self._current_height = self.device.node_map.Height.value
         self._current_pixel_format = self.device.node_map.PixelFormat.value
 
-    def close(self):
+    def destroy(self):
         """
         Releases all external resources including the controlling device.
 
@@ -1133,7 +1133,7 @@ class Harvester:
     def has_revised_device_info_list(self, value):
         self._has_revised_device_list = value
 
-    def open_image_acquisition_manager(
+    def create_image_acquisition_manager(
             self, list_index=None, data_type='numpy', unique_id=None,
             vendor=None, model=None, tl_type=None, user_defined_name=None,
             serial_number=None, version=None,
@@ -1245,7 +1245,7 @@ class Harvester:
         if file_path in self._cti_files:
             self._cti_files.remove(file_path)
 
-    def discard_cti_files(self):
+    def remove_cti_files(self):
         """
         Removes all CTI files in the CTI file list.
 
@@ -1281,7 +1281,7 @@ class Harvester:
 
         :return: None
         """
-        self.discard_cti_files()
+        self.remove_cti_files()
         self._release_gentl_producers()
 
     def _release_gentl_producers(self):

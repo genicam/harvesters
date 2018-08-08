@@ -487,7 +487,7 @@ class Harvester(QMainWindow):
 
     def action_on_connect(self):
         #
-        self._iam = self.harvester_core.open_image_acquisition_manager(
+        self._iam = self.harvester_core.create_image_acquisition_manager(
             self.device_list.currentIndex(),
             data_type='numpy'  # This is just for demonstaration; it's not necessasry here because the default value is 'numpy'.
         )
@@ -588,7 +588,7 @@ class Harvester(QMainWindow):
 
         # Discard the image acquisition manager.
         if self.iam:
-            self.iam.close()
+            self.iam.destroy()
             self._iam = None
 
     def is_enabled_on_disconnect(self):

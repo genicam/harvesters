@@ -39,13 +39,13 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         """
 
         # Prepare an image acquisition manager for device #0.
-        iam = self._harvester.open_image_acquisition_manager(0)
+        iam = self._harvester.create_image_acquisition_manager(0)
 
         # Acquire images.
         self._basic_usage(iam)
 
         # Discard the image acquisition manager.
-        iam.close()
+        iam.destroy()
 
     def test_basic_usage_2(self):
         """
@@ -56,7 +56,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         """
 
         # Prepare an image acquisition manager for device #0.
-        with self._harvester.open_image_acquisition_manager(0) as iam:
+        with self._harvester.create_image_acquisition_manager(0) as iam:
 
             # Acquire images.
             self._basic_usage(iam)
@@ -98,7 +98,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         #
         for list_index in range(num_iaas):
             iams.append(
-                self._harvester.open_image_acquisition_manager(
+                self._harvester.create_image_acquisition_manager(
                     list_index=list_index
                 )
                 # Or you could simply do the same thing as follows:
@@ -157,31 +157,31 @@ class TestHarvesterCore(TestHarvesterCoreBase):
                 )
 
         for iam in iams:
-            iam.close()
+            iam.destroy()
 
     def test_controlling_a_specific_camera(self):
         # The basic usage.
-        iam = self._harvester.open_image_acquisition_manager(0)
-        iam.close()
+        iam = self._harvester.create_image_acquisition_manager(0)
+        iam.destroy()
 
         # The basic usage but it explicitly uses the parameter name.
-        iam = self._harvester.open_image_acquisition_manager(
+        iam = self._harvester.create_image_acquisition_manager(
             list_index=0
         )
-        iam.close()
+        iam.destroy()
 
         # The key can't specify a unique device so it raises an exception.
         with self.assertRaises(ValueError):
-            self._harvester.open_image_acquisition_manager(
+            self._harvester.create_image_acquisition_manager(
                 vendor='EMVA_D'
             )
 
         # The key specifies a unique device.
         print(self._harvester.device_info_list)
-        iam = self._harvester.open_image_acquisition_manager(
+        iam = self._harvester.create_image_acquisition_manager(
             serial_number='SN_InterfaceA_0'
         )
-        iam.close()
+        iam.destroy()
 
 
 if __name__ == '__main__':

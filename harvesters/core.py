@@ -1206,7 +1206,7 @@ class Harvester:
             device.open(
                 DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
             )
-        except AccessDeniedException:
+        except (AccessDeniedException, ResourceInUseException):
             return None
 
         # Create an image acquisition manager object and return it.

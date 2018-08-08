@@ -492,6 +492,10 @@ class Harvester(QMainWindow):
             data_type='numpy'  # This is just for demonstaration; it's not necessasry here because the default value is 'numpy'.
         )
 
+        if not self._iam:
+            # The device is not available.
+            return
+
         #
         self.iam.user_defined_processors.clear()
         self.iam.user_defined_processors.append(

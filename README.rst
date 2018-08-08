@@ -347,7 +347,7 @@ Harvester Core on IPython
 
 The following screenshot shows Harvester Core is running on IPython. Harvester Core returns the latest image data at the moment as a Numpy array every time its user call the ``get_image()`` method. Once you get an image you should be able to immediately start image processing. If you're running on Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
-.. image:: https://user-images.githubusercontent.com/8652625/43785578-9a936d34-9aa1-11e8-8daa-fc1f7fce9734.png
+.. image:: https://user-images.githubusercontent.com/8652625/43829448-e9842742-9b39-11e8-9083-aa4f7236c210.png
     :align: center
     :alt: Harvester on IPython
     :scale: 40 %
@@ -369,7 +369,7 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
      (unique_id='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_0', version='1.2.3'),
      (unique_id='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_1', version='1.2.3')]
 
-    In [6]: iam = h.open_image_acquisition_manager(0)
+    In [6]: iam = h.create_image_acquisition_manager(0)
 
     In [7]: iam.device.node_map.Width.value, iam.device.node_map.Height.value = 8, 8
 
@@ -383,21 +383,22 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
         ...:     _2d = _1d.reshape(bm.buffer.height, bm.buffer.width)
         ...:     print(_2d)
         ...:
-    [14 15 16 17 18 19 20 21 15 16 17 18 19 20 21 22 16 17 18 19 20 21 22 23
-     17 18 19 20 21 22 23 24 18 19 20 21 22 23 24 25 19 20 21 22 23 24 25 26
-     20 21 22 23 24 25 26 27 21 22 23 24 25 26 27 28]
-    [[14 15 16 17 18 19 20 21]
-     [15 16 17 18 19 20 21 22]
-     [16 17 18 19 20 21 22 23]
-     [17 18 19 20 21 22 23 24]
-     [18 19 20 21 22 23 24 25]
-     [19 20 21 22 23 24 25 26]
-     [20 21 22 23 24 25 26 27]
-     [21 22 23 24 25 26 27 28]]
+    [101 102 103 104 105 106 107 108 102 103 104 105 106 107 108 109 103 104
+     105 106 107 108 109 110 104 105 106 107 108 109 110 111 105 106 107 108
+     109 110 111 112 106 107 108 109 110 111 112 113 107 108 109 110 111 112
+     113 114 108 109 110 111 112 113 114 115]
+    [[101 102 103 104 105 106 107 108]
+     [102 103 104 105 106 107 108 109]
+     [103 104 105 106 107 108 109 110]
+     [104 105 106 107 108 109 110 111]
+     [105 106 107 108 109 110 111 112]
+     [106 107 108 109 110 111 112 113]
+     [107 108 109 110 111 112 113 114]
+     [108 109 110 111 112 113 114 115]]
 
     In [11]: iam.stop_image_acquisition()
 
-    In [12]: iam.close()
+    In [12]: iam.destroy()
 
 ############
 Requirements
@@ -585,19 +586,19 @@ And you create an image acquisition manager object specifying a target device. T
 
 .. code-block:: python
 
-    iam = h.open_image_acquisition_manager(0)
+    iam = h.create_image_acquisition_manager(0)
 
 Or equivalently:
 
 .. code-block:: python
 
-    iam = h.open_image_acquisition_manager(list_index=0)
+    iam = h.create_image_acquisition_manager(list_index=0)
 
 You can connect the same device passing more unique information to the method such as:
 
 .. code-block:: python
 
-    mono_a = h.open_image_acquisition_manager(serial_number='SN_InterfaceA_0')
+    mono_a = h.create_image_acquisition_manager(serial_number='SN_InterfaceA_0')
 
 We named the manager object ``iam`` in the above example but in a practical occasion, you may name it like just ``camera``, ``mono_cam``, or ``face_detection_cam`` more specifically even though those entities don't acquire images by themselves but they transfer images that will be acquired by their image acquisition manager.
 
@@ -630,20 +631,20 @@ Okay, then you would stop image acquisition with the following code:
 
     iam.stop_image_acquisition()
 
-And the following code disconnects the connecting device from the image acquisition manager:
+And the following code disconnects the connecting device from the image acquisition manager; you'll have to create an image acquisition manager object again when you have to work with a device:
 
 .. code-block:: python
 
-    iam.close()
+    iam.destroy()
 
 Now you can quit the program! Please not that the image acquisition manager also supports the ``with`` statement. So you may write program as follows:
 
 .. code-block:: python
 
     with h.open_image_acquisition_manager(0) as iam:
-        # Work, work, and work with iam.
+        # Work, work, and work with the iam object.
 
-    # iam automatically calls the close method.
+    # the iam object will automatically call the destroy method.
 
 *******************
 Using Harvester GUI

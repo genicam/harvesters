@@ -53,6 +53,8 @@ class TestHarvesterCoreBase(unittest.TestCase):
         self._harvester = Harvester()
         self._harvester.add_cti_file(self._path + self._filename)
         self._harvester.update_device_info_list()
+        self._iam = None
+        self._thread = None
 
     def tearDown(self):
         #
@@ -60,6 +62,26 @@ class TestHarvesterCoreBase(unittest.TestCase):
 
         #
         super().tearDown()
+
+    @property
+    def harvester(self):
+        return self._harvester
+
+    @property
+    def iam(self):
+        return self._iam
+
+    @iam.setter
+    def iam(self, value):
+        self._iam = value
+
+    @property
+    def general_purpose_thread(self):
+        return self._thread
+
+    @general_purpose_thread.setter
+    def general_purpose_thread(self, value):
+        self._thread = value
 
 
 if __name__ == '__main__':

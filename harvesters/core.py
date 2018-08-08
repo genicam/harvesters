@@ -371,7 +371,7 @@ class _ProcessorConvertPyBytesToNumpy1D(ProcessorBase):
 
 class ImageAcquisitionManager:
     def __init__(
-            self, data_type='numpy', min_num_buffers=3, device=None,
+            self, data_type='numpy', min_num_buffers=16, device=None,
             frontend=None, profiler=None
     ):
         #

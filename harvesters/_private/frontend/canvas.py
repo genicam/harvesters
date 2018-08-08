@@ -200,21 +200,21 @@ class Canvas(app.Canvas):
                     if pixel_format in component_8bit_formats:
                         payload = bm.payload
                     else:
-                        if pixel_format in component_16bit_formats:
-                            payload = bm.payload
+                        if pixel_format in component_10bit_formats:
+                            power = 2
+                        elif pixel_format in component_12bit_formats:
+                            power = 4
+                        elif pixel_format in component_14bit_formats:
+                            power = 6
+                        elif pixel_format in component_16bit_formats:
+                            power = 8
                         else:
-                            if pixel_format in component_10bit_formats:
-                                power = 2
-                            elif pixel_format in component_12bit_formats:
-                                power = 4
-                            elif pixel_format in component_14bit_formats:
-                                power = 6
-                            else:
-                                update = False
+                            update = False
 
-                            if update:
-                                payload = bm.payload / (2 ** power)
+                        if update:
+                            payload = bm.payload / (2 ** power)
 
+                        # Explicitly cast the payload to an uint8 array.
                         payload = payload.astype(np.uint8)
 
                     if update:

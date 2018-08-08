@@ -982,8 +982,12 @@ class ImageAcquisitionManager:
     def _release_buffers(self):
         for ds in self._data_streams:
             if ds and ds.is_open():
+                #
                 for buffer in self._announced_buffers:
                     ds.revoke_buffer(buffer)
+                self._announced_buffers.clear()
+
+        self._fetched_buffer_managers.clear()
         self._announced_buffers.clear()
 
     def _initialize_buffers(self):

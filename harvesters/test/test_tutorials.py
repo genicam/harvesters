@@ -52,11 +52,11 @@ class TestTutorials(TestHarvesterCoreBase):
                 # function though...
                 print(bm)
 
-                # Set up your equipment for the next image acquisition.
-                self.setup_equipment_and_trigger_camera()
-
                 # TODO: Work with the image you got.
                 # self.do_something(bm)
+
+                # Set up your equipment for the next image acquisition.
+                self.setup_equipment_and_trigger_camera()
 
             num_images_to_acquire += 1
 

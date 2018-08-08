@@ -198,20 +198,27 @@ class Canvas(app.Canvas):
                     #
                     pixel_format = bm.pixel_format
                     if pixel_format in component_8bit_formats:
-                        pass
-                    elif pixel_format in component_10bit_formats:
-                        power = 2
-                    elif pixel_format in component_12bit_formats:
-                        power = 4
-                    elif pixel_format in component_14bit_formats:
-                        power = 6
-                    elif pixel_format in component_14bit_formats:
-                        power = 8
+                        payload = bm.payload
                     else:
-                        update = False
+                        if pixel_format in component_16bit_formats:
+                            payload = bm.payload
+                        else:
+                            if pixel_format in component_10bit_formats:
+                                power = 2
+                            elif pixel_format in component_12bit_formats:
+                                power = 4
+                            elif pixel_format in component_14bit_formats:
+                                power = 6
+                            else:
+                                update = False
+
+                            if update:
+                                payload = bm.payload / (2 ** power)
+
+                        payload = payload.astype(np.uint8)
 
                     if update:
-                        self._program['texture'] = bm.payload // (2 ** power)
+                        self._program['texture'] = payload
 
                 # Draw the texture.
                 self._draw()

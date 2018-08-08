@@ -275,7 +275,7 @@ mono_formats = ['Mono8', 'Mono10', 'Mono12', 'Mono14', 'Mono16']
 
 rgb_formats = [
     'RGB8', 'RGB10', 'RGB12', 'RGB14', 'RGB16',
-    'RGBa8','RGBa10', 'RGBa12','RGBa16',
+    'RGBa8', 'RGBa10', 'RGBa12', 'RGBa16',
     'RGB8Packed'
 ]
 

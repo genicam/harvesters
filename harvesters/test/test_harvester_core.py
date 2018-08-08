@@ -39,7 +39,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         """
 
         # Prepare an image acquisition manager for device #0.
-        iam = self._harvester.create_image_acquisition_manager(0)
+        iam = self.harvester.create_image_acquisition_manager(0)
 
         # Acquire images.
         self._basic_usage(iam)
@@ -56,7 +56,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         """
 
         # Prepare an image acquisition manager for device #0.
-        with self._harvester.create_image_acquisition_manager(0) as iam:
+        with self.harvester.create_image_acquisition_manager(0) as iam:
 
             # Acquire images.
             self._basic_usage(iam)
@@ -85,28 +85,28 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         iam.stop_image_acquisition()
 
     def test_multiple_image_acquisition_managers(self):
-        num_devices = len(self._harvester.device_info_list)
-        self._test_image_acquisition_managers(num_iaas=num_devices)
+        num_devices = len(self.harvester.device_info_list)
+        self._test_image_acquisition_managers(num_iams=num_devices)
 
-    def _test_image_acquisition_managers(self, num_iaas=1):
+    def _test_image_acquisition_managers(self, num_iams=1):
         #
-        print('Number of devices: {0}'.format(num_iaas))
+        print('Number of devices: {0}'.format(num_iams))
 
         #
         iams = []  # Image Acquisition Managers
 
         #
-        for list_index in range(num_iaas):
+        for list_index in range(num_iams):
             iams.append(
-                self._harvester.create_image_acquisition_manager(
+                self.harvester.create_image_acquisition_manager(
                     list_index=list_index
                 )
                 # Or you could simply do the same thing as follows:
-                # self._harvester.open_image_acquisition_manager(list_index)
+                # self.harvester.open_image_acquisition_manager(list_index)
             )
 
         #
-        for i in range(10):
+        for i in range(5):
             #
             print('---> Round {0}: Set up'.format(i))
             for index, iam in enumerate(iams):
@@ -161,24 +161,24 @@ class TestHarvesterCore(TestHarvesterCoreBase):
 
     def test_controlling_a_specific_camera(self):
         # The basic usage.
-        iam = self._harvester.create_image_acquisition_manager(0)
+        iam = self.harvester.create_image_acquisition_manager(0)
         iam.destroy()
 
         # The basic usage but it explicitly uses the parameter name.
-        iam = self._harvester.create_image_acquisition_manager(
+        iam = self.harvester.create_image_acquisition_manager(
             list_index=0
         )
         iam.destroy()
 
         # The key can't specify a unique device so it raises an exception.
         with self.assertRaises(ValueError):
-            self._harvester.create_image_acquisition_manager(
+            self.harvester.create_image_acquisition_manager(
                 vendor='EMVA_D'
             )
 
         # The key specifies a unique device.
-        print(self._harvester.device_info_list)
-        iam = self._harvester.create_image_acquisition_manager(
+        print(self.harvester.device_info_list)
+        iam = self.harvester.create_image_acquisition_manager(
             serial_number='SN_InterfaceA_0'
         )
         iam.destroy()

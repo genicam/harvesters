@@ -43,7 +43,9 @@ class TestHarvesterCoreBase(unittest.TestCase):
         super().__init__(*args, **kwargs)
 
         #
-        self._iaa = None
+        self._harvester = None
+        self._iam = None
+        self._thread = None
 
     def setUp(self):
         #
@@ -57,6 +59,10 @@ class TestHarvesterCoreBase(unittest.TestCase):
         self._thread = None
 
     def tearDown(self):
+        #
+        if self.iam:
+            self.iam.destroy()
+
         #
         self._harvester.reset()
 

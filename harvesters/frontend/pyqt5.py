@@ -707,7 +707,8 @@ class ActionToggleDrawing(Action):
     ):
         #
         super().__init__(
-            icon=icon, title=title, parent=parent, action=action, is_enabled=is_enabled
+            icon=icon, title=title, parent=parent, action=action, is_enabled=is_enabled,
+            checkable=True
         )
 
     def _update(self):

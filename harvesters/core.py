@@ -1134,7 +1134,7 @@ class Harvester:
         self._has_revised_device_list = value
 
     def create_image_acquisition_manager(
-            self, list_index=None, data_type='numpy', unique_id=None,
+            self, list_index=None, data_type='numpy', id_=None,
             vendor=None, model=None, tl_type=None, user_defined_name=None,
             serial_number=None, version=None,
         ):
@@ -1143,7 +1143,7 @@ class Harvester:
 
         :param list_index: Set an item index of the list of :class:`~genicam2.gentl.DeviceInfo` objects.
         :param data_type: Set a data type that you want to have. The default is numpy's ndarray.
-        :param unique_id:
+        :param id_:
         :param vendor:
         :param model:
         :param tl_type:
@@ -1167,7 +1167,7 @@ class Harvester:
             device = self.device_info_list[list_index].create_device()
         else:
             keys = [
-                'unique_id', 'vendor', 'model', 'tl_type',
+                'id_', 'vendor', 'model', 'tl_type',
                 'user_defined_name', 'serial_number', 'version',
             ]
 

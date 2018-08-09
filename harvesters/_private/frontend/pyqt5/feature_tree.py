@@ -168,7 +168,7 @@ class FeatureTreeModel(QAbstractItemModel):
     #
     _editables = [EAccessMode.RW, EAccessMode.WO]
 
-    def __init__(self, parent=None, node_map: NodeMap=None, thread=None):
+    def __init__(self, parent=None, node_map: NodeMap=None):
         """
         REMARKS: QAbstractItemModel might impact the performance and could
         slow Harvester. As far as we've confirmed, QAbstractItemModel calls

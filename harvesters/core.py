@@ -472,8 +472,6 @@ class ImageAcquisitionManager:
         #
         self._min_num_buffers = min_num_buffers
 
-        self._feature_tree_model = None
-
     def __enter__(self):
         return self
 
@@ -558,14 +556,6 @@ class ImageAcquisitionManager:
     @property
     def signal_stop_image_acquisition(self):
         return self._signal_stop_image_acquisition
-
-    @property
-    def feature_tree_model(self):
-        return self._feature_tree_model
-
-    @feature_tree_model.setter
-    def feature_tree_model(self, value):
-        self._feature_tree_model = value
 
     @signal_stop_image_acquisition.setter
     def signal_stop_image_acquisition(self, obj):

@@ -539,9 +539,6 @@ class Harvester(QMainWindow):
             if self.attribute_controller.isVisible():
                 self.attribute_controller.close()
 
-        if self.iam:
-            self.iam.feature_tree_model = None
-
     def action_on_select_file(self):
         # Show a dialog and update the CTI file list.
         dialog = QFileDialog(self)

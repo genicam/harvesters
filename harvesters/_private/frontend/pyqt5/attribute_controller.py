@@ -87,7 +87,6 @@ class AttributeController(QMainWindow):
         self._node_map = node_map
         self._model = FeatureTreeModel(
             node_map=self._node_map,
-            thread=self.parent().iam.thread_image_acquisition,
         )
 
         #

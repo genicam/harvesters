@@ -192,8 +192,9 @@ class Canvas(app.Canvas):
                 # Set the image as the texture of our canvas.
                 if not self._pause_drawing and buffer:
                     # Update the canvas size if needed.
-                    width, height = buffer.payload.width, buffer.payload.height
-                    self.set_rect(width, height)
+                    self.set_rect(
+                        buffer.payload.width, buffer.payload.height
+                    )
 
                     #
                     update = True

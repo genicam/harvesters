@@ -42,7 +42,7 @@ from harvesters._private.frontend.pyqt5.helper import get_system_font
 from harvesters._private.frontend.pyqt5.icon import Icon
 from harvesters._private.frontend.pyqt5.thread import PyQtThread
 from harvesters.core import Harvester as HarvesterCore
-from harvesters.core import ProcessorBase, PayloadBase
+from harvesters.core import ProcessorBase, Buffer
 from harvesters.pfnc import mono_formats, rgb_formats, \
     rgba_formats, bayer_formats
 
@@ -72,7 +72,7 @@ class _ConvertNumpy1DToNumpy2D(ProcessorBase):
         super().__init__(
             description='Reshapes a Numpy 1D array into a Numpy 2D array')
 
-    def process(self, input_: PayloadBase):
+    def process(self, input_: Buffer):
         #
         symbolic = input_.payload.pixel_format
 
@@ -80,11 +80,17 @@ class _ConvertNumpy1DToNumpy2D(ProcessorBase):
         width, height = input_.payload.width, input_.payload.height
         try:
             if symbolic in mono_formats or symbolic in bayer_formats:
-                input_.payload.content = input_.payload.content.reshape(height, width)
+                input_.payload.content = input_.payload.content.reshape(
+                    height, width
+                )
             elif symbolic in rgb_formats:
-                input_.payload.content = input_.payload.content.reshape(height, width, 3)
+                input_.payload.content = input_.payload.content.reshape(
+                    height, width, 3
+                )
             elif symbolic in rgba_formats:
-                input_.payload.content = input_.payload.content.reshape(height, width, 4)
+                input_.payload.content = input_.payload.content.reshape(
+                    height, width, 4
+                )
             else:
                 pass
         except ValueError:

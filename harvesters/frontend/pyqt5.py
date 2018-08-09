@@ -28,9 +28,10 @@ from PyQt5.QtWidgets import QMainWindow, QAction, QComboBox, \
     QDesktopWidget, QFileDialog, QDialog, QShortcut, QApplication
 
 from genicam2.gentl import PAYLOADTYPE_INFO_IDS
+from genicam2.gentl import InvalidParameterException
 
 # Local application/library specific imports
-from harvesters.core import BufferManager
+from harvesters.core import Buffer
 from harvesters._private.frontend.canvas import Canvas
 from harvesters._private.frontend.helper import compose_tooltip
 from harvesters._private.frontend.pyqt5.about import About
@@ -41,7 +42,7 @@ from harvesters._private.frontend.pyqt5.helper import get_system_font
 from harvesters._private.frontend.pyqt5.icon import Icon
 from harvesters._private.frontend.pyqt5.thread import PyQtThread
 from harvesters.core import Harvester as HarvesterCore
-from harvesters.core import ProcessorBase
+from harvesters.core import ProcessorBase, PayloadBase
 from harvesters.pfnc import mono_formats, rgb_formats, \
     rgba_formats, bayer_formats
 
@@ -71,36 +72,25 @@ class _ConvertNumpy1DToNumpy2D(ProcessorBase):
         super().__init__(
             description='Reshapes a Numpy 1D array into a Numpy 2D array')
 
-    def process(self, input: BufferManager):
+    def process(self, input_: PayloadBase):
         #
-        symbolic = input.pixel_format
+        symbolic = input_.payload.pixel_format
 
         #
-        ndarray = None
+        width, height = input_.payload.width, input_.payload.height
         try:
             if symbolic in mono_formats or symbolic in bayer_formats:
-                ndarray = input.payload.reshape(
-                    input.buffer.height, input.buffer.width
-                )
+                input_.payload.content = input_.payload.content.reshape(height, width)
             elif symbolic in rgb_formats:
-                ndarray = input.payload.reshape(
-                    input.buffer.height, input.buffer.width, 3
-                )
+                input_.payload.content = input_.payload.content.reshape(height, width, 3)
             elif symbolic in rgba_formats:
-                ndarray = input.payload.reshape(
-                    input.buffer.height, input.buffer.width, 4
-                )
-        except ValueError as e:
-            print(e)
+                input_.payload.content = input_.payload.content.reshape(height, width, 4)
+            else:
+                pass
+        except ValueError:
+            pass
 
-        output = BufferManager(
-            data_stream=input.data_stream,
-            buffer=input.buffer,
-            node_map=input.node_map,
-            payload=ndarray
-        )
-
-        return output
+        return input_
 
 
 class Harvester(QMainWindow):
@@ -524,7 +514,7 @@ class Harvester(QMainWindow):
             pass
 
         #
-        self.canvas.iaa = self.iam
+        self.canvas.iam = self.iam
 
     def is_enabled_on_connect(self):
         enable = False

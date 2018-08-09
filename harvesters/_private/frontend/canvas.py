@@ -23,10 +23,13 @@
 # Related third party imports
 
 import numpy as np
+
 from vispy import gloo
 from vispy import app
 from vispy.gloo import Program
 from vispy.util.transforms import ortho
+
+from genicam2.gentl import InvalidParameterException
 
 # Local application/library specific imports
 from harvesters._private.core.helper.system import is_running_on_macos
@@ -80,7 +83,7 @@ class Canvas(app.Canvas):
         """
 
         #
-        self._iaa = image_acquisition_manager
+        self._iam = image_acquisition_manager
 
         #
         app.Canvas.__init__(
@@ -118,12 +121,12 @@ class Canvas(app.Canvas):
         self._timer = app.Timer(1./fps, connect=self.update, start=True)
 
     @property
-    def iaa(self):
-        return self._iaa
+    def iam(self):
+        return self._iam
 
-    @iaa.setter
-    def iaa(self, value):
-        self._iaa = value
+    @iam.setter
+    def iam(self, value):
+        self._iam = value
 
     def set_shaders(self, vertex_shader=None, fragment_shader=None):
         #
@@ -185,40 +188,40 @@ class Canvas(app.Canvas):
     def _update_texture(self):
         # Fetch a buffer.
         try:
-            with self._iaa.fetch_buffer_manager(timeout_ms=0.1) as bm:
+            with self.iam.fetch_buffer(timeout_ms=0.1) as buffer:
                 # Set the image as the texture of our canvas.
-                if not self._pause_drawing and bm:
+                if not self._pause_drawing and buffer:
                     # Update the canvas size if needed.
-                    self.set_rect(bm.buffer.width, bm.buffer.height)
+                    width, height = buffer.payload.width, buffer.payload.height
+                    self.set_rect(width, height)
 
                     #
                     update = True
-                    power = 0
+                    exponent = 0
 
                     #
-                    pixel_format = bm.pixel_format
+                    pixel_format = buffer.payload.pixel_format
                     if pixel_format in component_8bit_formats:
-                        payload = bm.payload
+                        pass
+                    elif pixel_format in component_10bit_formats:
+                        exponent = 2
+                    elif pixel_format in component_12bit_formats:
+                        exponent = 4
+                    elif pixel_format in component_14bit_formats:
+                        exponent = 6
+                    elif pixel_format in component_16bit_formats:
+                        exponent = 8
                     else:
-                        if pixel_format in component_10bit_formats:
-                            power = 2
-                        elif pixel_format in component_12bit_formats:
-                            power = 4
-                        elif pixel_format in component_14bit_formats:
-                            power = 6
-                        elif pixel_format in component_16bit_formats:
-                            power = 8
-                        else:
-                            update = False
-
-                        if update:
-                            payload = bm.payload / (2 ** power)
-
-                        # Explicitly cast the payload to an uint8 array.
-                        payload = payload.astype(np.uint8)
+                        update = False
 
                     if update:
-                        self._program['texture'] = payload
+                        # Convert each data to an 8bit.
+                        content = buffer.payload.content / (2 ** exponent)
+
+                        # Then cast each array elemtn to an uint8.
+                        content = content.astype(np.uint8)
+
+                        self._program['texture'] = content
 
                 # Draw the texture.
                 self._draw()

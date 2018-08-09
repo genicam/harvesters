@@ -47,13 +47,13 @@ class TestTutorials(TestHarvesterCoreBase):
 
         while num_images_to_acquire < 100:
             #
-            with self.iam.fetch_buffer_manager() as bm:
+            with self.iam.fetch_buffer() as buffer:
                 # I know we should use a logger instead of the print
                 # function though...
-                print(bm)
+                print(buffer)
 
                 # TODO: Work with the image you got.
-                # self.do_something(bm)
+                # self.do_something(buffer)
 
                 # Set up your equipment for the next image acquisition.
                 self.setup_equipment_and_trigger_camera()

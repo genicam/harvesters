@@ -72,12 +72,12 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         iam.start_image_acquisition()
 
         # Fetch a buffer that is filled with image data.
-        with iam.fetch_buffer_manager() as bm:
-            print(bm)
+        with iam.fetch_buffer() as buffer:
+            print(buffer)
             # Reshape it.
-            _1d = bm.payload
+            _1d = buffer.payload.content
             _2d = _1d.reshape(
-                bm.buffer.height, bm.buffer.width
+                buffer.payload.height, buffer.payload.width
             )
             print(_2d)
 
@@ -129,8 +129,8 @@ class TestHarvesterCore(TestHarvesterCoreBase):
                             # try-except block is demonstrating a case where
                             # a client called fetch_buffer method even though
                             # he'd forgotten to start image acquisition.
-                            with iam.fetch_buffer_manager() as bm:
-                                print(bm)
+                            with iam.fetch_buffer() as buffer:
+                                print(buffer)
                         except AttributeError:
                             # Harvester Core has not started image acquisition
                             # so calling fetch_buffer() raises AttributeError
@@ -141,9 +141,9 @@ class TestHarvesterCore(TestHarvesterCoreBase):
                         # Option 2: You can manually do the same job but not
                         # recommended because you might forget to queue the
                         # buffer.
-                        bm = iam.fetch_buffer_manager()
-                        print(bm)
-                        iam.queue_buffer(bm)
+                        buffer = iam.fetch_buffer()
+                        print(buffer)
+                        buffer.queue()
 
                 #
                 k += 1

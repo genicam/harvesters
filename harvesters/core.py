@@ -522,7 +522,7 @@ class PayloadFile(PayloadBase):
         )
 
 
-class PayloadChunkData(PayloadBase):
+class PayloadChunkData(PayloadImage):
     def __init__(self, buffer=None, data_stream=None, node_map=None, content=None):
         #
         super().__init__(

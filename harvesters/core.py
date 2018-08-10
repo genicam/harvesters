@@ -272,6 +272,46 @@ class Buffer:
         return self._buffer.timestamp_ns
 
     @property
+    def timestamp(self):
+        timestamp = 0
+        try:
+            timestamp = self._buffer.timestamp_ns
+        except (InvalidParameterException, NotImplementedException):
+            try:
+                _ = self.timestamp_frequency
+            except InvalidParameterException:
+                pass
+            else:
+                try:
+                    timestamp = self._buffer.timestamp
+                except InvalidParameterException:
+                    timestamp = 0
+
+        return timestamp
+
+    @property
+    def timestamp_frequency(self):
+        #
+        frequency = 1000000000  # Hz
+
+        try:
+            _ = self._buffer.timestamp_ns
+        except (InvalidParameterException, NotImplementedException):
+            try:
+                frequency = self._data_stream.parent.timestamp_frequency
+            except (InvalidParameterException, NotAvailableException):
+                try:
+                    frequency = self._node_map.GevTimestampTickFrequency.value
+                except LogicalErrorException:
+                    pass
+
+        return frequency
+
+    @property
+    def payload_type(self):
+        return self._buffer.payload_type
+
+    @property
     def payload(self):
         return self._payload
 
@@ -996,31 +1036,13 @@ class ImageAcquisitionManager:
         buffer.queue()
     """
 
-    def _update_statistics(self, payload):
-        #
-        frequency = 1000000000.  # Hz
-        try:
-            timestamp = payload._buffer.timestamp_ns
-        except (InvalidParameterException, NotImplementedException, NotAvailableException):
-            try:
-                # The unit is device/implementation dependent.
-                timestamp = payload.buffer.timestamp
-            except (NotImplementedException, NotAvailableException):
-                timestamp = 0  # Not available
-            else:
-                try:
-                    frequency = self.device.timestamp_frequency
-                except (InvalidParameterException, NotImplementedException,
-                        NotAvailableException):
-                    try:
-                        frequency = self.device.node_map.GevTimestampTickFrequency.value
-                    except LogicalErrorException:
-                        pass
-
+    def _update_statistics(self, buffer):
         #
         for statistics in self._statistics_list:
             statistics.increment_num_images()
-            statistics.set_timestamp(timestamp, frequency)
+            statistics.set_timestamp(
+                buffer.timestamp, buffer.timestamp_frequency
+            )
 
     @staticmethod
     def _create_raw_buffers(num_buffers, size):

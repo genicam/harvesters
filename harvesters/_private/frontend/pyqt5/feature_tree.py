@@ -302,7 +302,7 @@ class FeatureTreeModel(QAbstractItemModel):
                     if value:
                         feature.execute()
                 elif interface_type == EInterfaceType.intfIBoolean:
-                    feature.value = True if value.lower == 'true' else False
+                    feature.value = True if value.lower() == 'true' else False
                 elif interface_type == EInterfaceType.intfIFloat:
                     feature.value = float(value)
                 else:

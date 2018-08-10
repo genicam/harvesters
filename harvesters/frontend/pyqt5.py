@@ -31,7 +31,6 @@ from genicam2.gentl import PAYLOADTYPE_INFO_IDS
 from genicam2.gentl import InvalidParameterException
 
 # Local application/library specific imports
-from harvesters.core import Buffer
 from harvesters._private.frontend.canvas import Canvas
 from harvesters._private.frontend.helper import compose_tooltip
 from harvesters._private.frontend.pyqt5.about import About

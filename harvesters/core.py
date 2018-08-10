@@ -438,9 +438,6 @@ class PayloadBase:
     def content(self, value):
         self._content = value
 
-    def _queue(self):
-        self._data_stream.queue_buffer(self._buffer)
-
 
 class PayloadUnknown(PayloadBase):
     def __init__(self, buffer=None, data_stream=None, node_map=None, content=None):

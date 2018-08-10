@@ -80,15 +80,18 @@ class _ConvertNumpy1DToNumpy2D(ProcessorBase):
         width, height = input_.payload.width, input_.payload.height
         try:
             if symbolic in mono_formats or symbolic in bayer_formats:
-                input_.payload.content = input_.payload.content.reshape(
+                part = input_.payload.content[0:(width * height)]
+                input_.payload.content = part.reshape(
                     height, width
                 )
             elif symbolic in rgb_formats:
-                input_.payload.content = input_.payload.content.reshape(
+                part = input_.payload.content[0:(width * height * 3)]
+                input_.payload.content = part.reshape(
                     height, width, 3
                 )
             elif symbolic in rgba_formats:
-                input_.payload.content = input_.payload.content.reshape(
+                part = input_.payload.content[0:(width * height * 4)]
+                input_.payload.content = part.reshape(
                     height, width, 4
                 )
             else:

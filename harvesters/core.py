@@ -276,7 +276,8 @@ class Buffer:
         timestamp = 0
         try:
             timestamp = self._buffer.timestamp_ns
-        except (InvalidParameterException, NotImplementedException):
+        except (InvalidParameterException, NotImplementedException,
+                NotAvailableException):
             try:
                 _ = self.timestamp_frequency
             except InvalidParameterException:
@@ -284,7 +285,7 @@ class Buffer:
             else:
                 try:
                     timestamp = self._buffer.timestamp
-                except InvalidParameterException:
+                except (InvalidParameterException, NotAvailableException):
                     timestamp = 0
 
         return timestamp
@@ -296,7 +297,8 @@ class Buffer:
 
         try:
             _ = self._buffer.timestamp_ns
-        except (InvalidParameterException, NotImplementedException):
+        except (InvalidParameterException, NotImplementedException,
+                NotAvailableException):
             try:
                 frequency = self._data_stream.parent.timestamp_frequency
             except (InvalidParameterException, NotAvailableException):

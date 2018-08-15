@@ -327,6 +327,7 @@ class Component2D(ComponentBase):
         #
         if self._part:
             count = self._part.data_size
+            count //= component_per_bytes
             data_offset = self._part.data_offset
         else:
             count = self.width * self.height
@@ -336,7 +337,7 @@ class Component2D(ComponentBase):
         # Convert the Python's built-in bytes array to a Numpy array.
         self._data = np.frombuffer(
             self._buffer.raw_buffer,
-            count=count // component_per_bytes,
+            count=count,
             dtype=dtype,
             offset=data_offset
         )

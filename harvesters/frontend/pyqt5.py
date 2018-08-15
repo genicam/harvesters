@@ -19,6 +19,7 @@
 
 
 # Standard library imports
+import os
 import sys
 
 # Related third party imports
@@ -56,8 +57,10 @@ class Harvester(QMainWindow):
 
         #
         self._mutex = QMutex()
+
+        profile = True if 'HARVESTER_PROFILE' in os.environ else False
         self._harvester_core = HarvesterCore(
-            frontend=self, profile=False, parent=self
+            frontend=self, profile=profile, parent=self
         )
         self._iam = None  # Image Acquisition Manager
 

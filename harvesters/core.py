@@ -697,6 +697,7 @@ class ImageAcquisitionManager:
         #
         self._data_streams = []
         self._event_managers = []
+        self._setup_ds_and_event_manager()
 
         #
         self._frontend = frontend
@@ -868,9 +869,6 @@ class ImageAcquisitionManager:
                 if self._frontend.canvas.is_pausing:
                     self._frontend.canvas.resume_drawing()
         else:
-            #
-            self._setup_ds_and_event_manager()
-
             #
             num_required_buffers = self._min_num_buffers
             try:
@@ -1153,7 +1151,7 @@ class ImageAcquisitionManager:
                 self._event_managers[0].flush_event_queue()
 
                 #
-                self._release_data_streams()
+                self._release_buffers()
 
             #
             self._has_acquired_1st_image = False

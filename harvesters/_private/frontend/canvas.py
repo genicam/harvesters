@@ -193,7 +193,8 @@ class Canvas(app.Canvas):
                 if not self._pause_drawing and buffer:
                     # Update the canvas size if needed.
                     self.set_rect(
-                        buffer.payload.width, buffer.payload.height
+                        buffer.payload.components[0].width,
+                        buffer.payload.components[0].height
                     )
 
                     #
@@ -201,7 +202,7 @@ class Canvas(app.Canvas):
                     exponent = 0
 
                     #
-                    pixel_format = buffer.payload.pixel_format
+                    pixel_format = buffer.payload.components[0].data_format
                     if pixel_format in component_8bit_formats:
                         pass
                     elif pixel_format in component_10bit_formats:
@@ -217,7 +218,7 @@ class Canvas(app.Canvas):
 
                     if update:
                         # Convert each data to an 8bit.
-                        content = buffer.payload.content / (2 ** exponent)
+                        content = buffer.payload.components[0].data / (2 ** exponent)
 
                         # Then cast each array elemtn to an uint8.
                         content = content.astype(np.uint8)

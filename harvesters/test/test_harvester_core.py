@@ -64,8 +64,8 @@ class TestHarvesterCore(TestHarvesterCoreBase):
     @staticmethod
     def _basic_usage(iam: ImageAcquisitionManager):
         # Set up the device.
-        iam.device.node_map.Width.value = 12
-        iam.device.node_map.Height.value = 8
+        iam.device.node_map.Width.value = 4000
+        iam.device.node_map.Height.value = 3000
         iam.device.node_map.PixelFormat.value = 'Mono8'
 
         # Start image acquisition.
@@ -73,13 +73,8 @@ class TestHarvesterCore(TestHarvesterCoreBase):
 
         # Fetch a buffer that is filled with image data.
         with iam.fetch_buffer() as buffer:
-            print(buffer)
             # Reshape it.
-            _1d = buffer.payload.content
-            _2d = _1d.reshape(
-                buffer.payload.height, buffer.payload.width
-            )
-            print(_2d)
+            print(buffer)
 
         # Stop image acquisition.
         iam.stop_image_acquisition()
@@ -106,7 +101,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             )
 
         #
-        for i in range(5):
+        for i in range(10):
             #
             print('---> Round {0}: Set up'.format(i))
             for index, iam in enumerate(iams):

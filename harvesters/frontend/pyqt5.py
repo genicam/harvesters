@@ -41,64 +41,8 @@ from harvesters._private.frontend.pyqt5.helper import get_system_font
 from harvesters._private.frontend.pyqt5.icon import Icon
 from harvesters._private.frontend.pyqt5.thread import PyQtThread
 from harvesters.core import Harvester as HarvesterCore
-from harvesters.core import ProcessorBase, Buffer
 from harvesters.pfnc import mono_formats, rgb_formats, \
     rgba_formats, bayer_formats
-
-
-class _ProcessorPayloadTypeImage(ProcessorBase):
-    def __init__(self):
-        #
-        super().__init__(
-            description='Processes a PAYLOAD_TYPE_IMAGE buffer'
-        )
-
-        #
-        self._processors.append(_ConvertNumpy1DToNumpy2D())
-
-
-class _ProcessorPayloadTypeMultiPart(ProcessorBase):
-    def __init__(self):
-        #
-        super().__init__(
-            description='Processes a PAYLOAD_TYPE_MULTI_PART buffer'
-        )
-
-
-class _ConvertNumpy1DToNumpy2D(ProcessorBase):
-    def __init__(self):
-        #
-        super().__init__(
-            description='Reshapes a Numpy 1D array into a Numpy 2D array')
-
-    def process(self, input_: Buffer):
-        #
-        symbolic = input_.payload.pixel_format
-
-        #
-        width, height = input_.payload.width, input_.payload.height
-        try:
-            if symbolic in mono_formats or symbolic in bayer_formats:
-                part = input_.payload.content[0:(width * height)]
-                input_.payload.content = part.reshape(
-                    height, width
-                )
-            elif symbolic in rgb_formats:
-                part = input_.payload.content[0:(width * height * 3)]
-                input_.payload.content = part.reshape(
-                    height, width, 3
-                )
-            elif symbolic in rgba_formats:
-                part = input_.payload.content[0:(width * height * 4)]
-                input_.payload.content = part.reshape(
-                    height, width, 4
-                )
-            else:
-                pass
-        except ValueError:
-            pass
-
-        return input_
 
 
 class Harvester(QMainWindow):
@@ -194,16 +138,6 @@ class Harvester(QMainWindow):
     @property
     def mutex(self):
         return self._mutex
-
-    @staticmethod
-    def _get_default_processor(gentl_buffer):
-        processor = None
-        payload_type = gentl_buffer.payload_type
-        if payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE:
-            processor = _ProcessorPayloadTypeImage()
-        elif payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART:
-            processor = _ProcessorPayloadTypeMultiPart()
-        return processor
 
     def _initialize_widgets(self):
         #
@@ -486,19 +420,12 @@ class Harvester(QMainWindow):
     def action_on_connect(self):
         #
         self._iam = self.harvester_core.create_image_acquisition_manager(
-            self.device_list.currentIndex(),
-            data_type='numpy'  # This is just for demonstaration; it's not necessasry here because the default value is 'numpy'.
+            self.device_list.currentIndex()
         )
 
         if not self._iam:
             # The device is not available.
             return
-
-        #
-        self.iam.user_defined_processors.clear()
-        self.iam.user_defined_processors.append(
-            _ConvertNumpy1DToNumpy2D()
-        )
 
         #
         self.iam.thread_image_acquisition = PyQtThread(
@@ -536,6 +463,12 @@ class Harvester(QMainWindow):
         if self.attribute_controller:
             if self.attribute_controller.isVisible():
                 self.attribute_controller.close()
+                self._widget_attribute_controller = None
+
+            # Discard the image acquisition manager.
+            if self.iam:
+                self.iam.destroy()
+                self._iam = None
 
     def action_on_select_file(self):
         # Show a dialog and update the CTI file list.
@@ -573,18 +506,6 @@ class Harvester(QMainWindow):
             if self.iam is None:
                 enable = True
         return enable
-
-    def action_on_disconnect(self):
-        # Close attribute dialog if it's been opened.
-        # Close attribute dialog if it's been opened.
-        if self.attribute_controller:
-            if self.attribute_controller.isVisible():
-                self.attribute_controller.close()
-
-        # Discard the image acquisition manager.
-        if self.iam:
-            self.iam.destroy()
-            self._iam = None
 
     def is_enabled_on_disconnect(self):
         enable = False

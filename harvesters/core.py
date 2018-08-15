@@ -44,7 +44,11 @@ from genicam2.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
 from harvesters._private.core.port import ConcretePort
 from harvesters._private.core.statistics import Statistics
 from harvesters.pfnc import symbolics
-from harvesters.pfnc import uint8_formats, uint16_formats
+from harvesters.pfnc import uint8_formats, uint16_formats, uint32_formats, \
+    float32_formats
+from harvesters.pfnc import component_1d_formats, component_2d_formats
+from harvesters.pfnc import mono_formats, rgb_formats, \
+    rgba_formats, bayer_formats
 
 
 class ThreadBase:
@@ -241,6 +245,196 @@ class _PyThreadImpl(Thread):
         self._worker = obj
 
 
+class ComponentBase:
+    def __init__(self, buffer=None):
+        #
+        assert buffer
+
+        #
+        super().__init__()
+
+        #
+        self._buffer = buffer
+        self._data = None
+
+    @property
+    def data_format(self):
+        return self._buffer.data_format
+
+    @property
+    def data_format_namespace(self):
+        return self._buffer.data_format
+
+    @property
+    def source_id(self):
+        return self._buffer.source_id
+
+    @property
+    def data(self):
+        return self._data
+
+
+class ComponentRaw(ComponentBase):
+    def __init__(self):
+        #
+        super().__init__()
+
+
+class Component1D(ComponentBase):
+    #
+    def __init__(self, buffer=None, part=None):
+        #
+        super().__init__(buffer=buffer)
+
+
+class Component2D(ComponentBase):
+    def __init__(self, buffer=None, part=None, node_map=None):
+        #
+        assert node_map
+        assert buffer
+
+        #
+        super().__init__(buffer=buffer)
+
+        #
+        self._part = part
+        self._node_map = node_map
+        self._data = None
+
+        # Identify the data type.
+        symbolic = self.data_format
+
+        if symbolic in uint16_formats:
+            dtype = 'uint16'
+            component_per_bytes = 2
+        elif symbolic in uint32_formats:
+            dtype = 'uint32'
+            component_per_bytes = 4
+        elif symbolic in float32_formats:
+            dtype = 'float32'
+            component_per_bytes = 4
+        else:
+            dtype = 'uint8'
+            component_per_bytes = 1
+
+        if symbolic in rgb_formats:
+            num_pixel_components = 3
+        elif symbolic in rgba_formats:
+            num_pixel_components = 4
+        else:
+            num_pixel_components = 1
+
+        #
+        if self._part:
+            count = self._part.data_size
+            data_offset = self._part.data_offset
+        else:
+            count = self.width * self.height
+            count *= num_pixel_components
+            data_offset = 0
+
+        # Convert the Python's built-in bytes array to a Numpy array.
+        self._data = np.frombuffer(
+            self._buffer.raw_buffer,
+            count=count // component_per_bytes,
+            dtype=dtype,
+            offset=data_offset
+        )
+
+        #
+        self._data = self._data.reshape(
+            self.height, self.width, num_pixel_components
+        )
+
+    @property
+    def width(self):
+        try:
+            if self._part:
+                value = self._part.width
+            else:
+                value = self._buffer.width
+        except InvalidParameterException:
+            value = self._node_map.Width.value
+        return value
+
+    @property
+    def height(self):
+        try:
+            if self._part:
+                value = self._part.height
+            else:
+                value = self._buffer.height
+        except InvalidParameterException:
+            value = self._node_map.Height.value
+        return value
+
+    @property
+    def data_format(self):
+        try:
+            if self._part:
+                value = self._part.data_format
+            else:
+                value = self._buffer.pixel_format
+        except InvalidParameterException:
+            value = self._node_map.PixelFormat.value
+        return symbolics[value]
+
+    @property
+    def delivered_image_height(self):
+        try:
+            if self._part:
+                value = self._part.delivered_image_height
+            else:
+                value = self._buffer.delivered_image_height
+        except InvalidParameterException:
+            value = 0
+        return value
+
+    @property
+    def x_offset(self):  # TODO: Check the naming convention.
+        try:
+            if self._part:
+                value = self._part.x_offset
+            else:
+                value = self._buffer.offset_x
+        except InvalidParameterException:
+            value = self._node_map.OffsetX.value
+        return value
+
+    @property
+    def y_offset(self):
+        try:
+            if self._part:
+                value = self._part.y_offset
+            else:
+                value = self._buffer.offset_y
+        except InvalidParameterException:
+            value = self._node_map.OffsetY.value
+        return value
+
+    @property
+    def x_padding(self):
+        try:
+            if self._part:
+                value = self._part.x_padding
+            else:
+                value = self._buffer.padding_x
+        except InvalidParameterException:
+            value = 0
+        return value
+
+    @property
+    def y_padding(self):
+        try:
+            if self._part:
+                value = self._part.y_padding
+            else:
+                value = self._buffer.padding_y
+        except InvalidParameterException:
+            value = 0
+        return value
+
+
 class Buffer:
     def __init__(self, buffer=None, data_stream=None, node_map=None):
         #
@@ -253,7 +447,6 @@ class Buffer:
 
         self._payload = self._build_payload(
             buffer=buffer,
-            data_stream=data_stream,
             node_map=node_map
         )
 
@@ -261,7 +454,6 @@ class Buffer:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # Queue the buffer when it goes outside of the scope.
         self.queue()
 
     def __repr__(self):
@@ -321,303 +513,161 @@ class Buffer:
         self._data_stream.queue_buffer(self._buffer)
 
     @staticmethod
-    def _build_payload(buffer=None, data_stream=None, node_map=None):
+    def _build_payload(buffer=None, node_map=None):
         #
         assert buffer
-        assert data_stream
         assert node_map
 
         #
         if buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_UNKNOWN:
-            payload = PayloadUnknown(
-                buffer=buffer, data_stream=data_stream, node_map=node_map
-            )
+            payload = PayloadUnknown(buffer=buffer)
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE:
-            payload = PayloadImage(
-                buffer=buffer, data_stream=data_stream, node_map=node_map
-            )
+            payload = PayloadImage(buffer=buffer, node_map=node_map)
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_RAW_DATA:
-            payload = PayloadRawData(
-                buffer=buffer, data_stream=data_stream, node_map=node_map
-            )
+            payload = PayloadRawData(buffer=buffer)
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_FILE:
-            payload = PayloadFile(
-                buffer=buffer, data_stream=data_stream, node_map=node_map
-            )
+            payload = PayloadFile(buffer=buffer)
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_DATA:
-            payload = PayloadChunkData(
-                buffer=buffer, data_stream=data_stream, node_map=node_map
-            )
+            payload = PayloadChunkData(buffer=buffer)
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG:
-            payload = PayloadJPEG(
-                buffer=buffer, data_stream=data_stream, node_map=node_map
-            )
+            payload = PayloadJPEG(buffer=buffer)
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG2000:
-            payload = PayloadJPEG2000(
-                buffer=buffer, data_stream=data_stream, node_map=node_map
-            )
+            payload = PayloadJPEG2000(buffer=buffer)
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_H264:
-            payload = PayloadH264(
-                buffer=buffer, data_stream=data_stream, node_map=node_map
-            )
+            payload = PayloadH264(buffer=buffer)
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_ONLY:
-            payload = PayloadChunkOnly(
-                buffer=buffer, data_stream=data_stream, node_map=node_map
-            )
+            payload = PayloadChunkOnly(buffer=buffer)
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART:
-            payload = PayloadMultiPart(
-                buffer=buffer, data_stream=data_stream, node_map=node_map
-            )
+            payload = PayloadMultiPart(buffer=buffer, node_map=node_map)
         else:
             payload = None
 
         return payload
 
 
-class ProcessorBase:
-    def __init__(self, description):
-        """
-
-        :param description: Set description about this process.
-        """
-        #
-        super().__init__()
-
-        #
-        self._description = description
-        self._processors = []
-
-    @property
-    def description(self):
-        """
-
-        :return: A description about this process.
-
-        """
-        return self._description
-
-    def process(self, input):
-        """
-
-        :param input: Set an arbitrary object. It will be treated as the input source of the sequence of processes.
-
-        :return: An arbitrary object as the output of the sequence of processes.
-        """
-        output = None
-
-        for p in self._processors:
-            output = p.process(input)
-            input = output
-
-        return output
-
-
 class PayloadBase:
-    def __init__(self, buffer=None, data_stream=None, node_map=None, content=None):
+    def __init__(self, buffer=None):
         #
         super().__init__()
 
         self._buffer = buffer
-        self._data_stream = data_stream
-        self._node_map = node_map
-
-        if content:
-            self._content = content
-        else:
-            self._content = buffer.raw_buffer
+        self._components = []
 
     @property
     def payload_type(self):
         return self._buffer.payload_type
 
-    @property
-    def content(self):
-        return self._content
+    @staticmethod
+    def _build_component(buffer=None, part=None, node_map=None):
+        #
+        if part:
+            data_format = part.data_format
+        else:
+            data_format = buffer.pixel_format
 
-    @content.setter
-    def content(self, value):
-        self._content = value
+        #
+        symbolic = symbolics[data_format]
+        if symbolic in component_1d_formats:
+            return Component1D(buffer=buffer, part=part)
+        if symbolic in component_2d_formats:
+            return Component2D(buffer=buffer, part=part, node_map=node_map)
+
+        return None
+
+    @property
+    def components(self):
+        return self._components
 
 
 class PayloadUnknown(PayloadBase):
-    def __init__(self, buffer=None, data_stream=None, node_map=None, content=None):
+    def __init__(self, buffer=None):
         #
-        super().__init__(
-            buffer=buffer,
-            data_stream=data_stream,
-            node_map=node_map,
-            content=content
-        )
+        super().__init__(buffer=buffer)
 
 
 class PayloadImage(PayloadBase):
-    def __init__(self, buffer=None, data_stream=None, node_map=None, content=None):
+    def __init__(self, buffer=None, node_map=None):
         #
-        super().__init__(
-            buffer=buffer,
-            data_stream=data_stream,
-            node_map=node_map,
-            content=content
+        super().__init__(buffer=buffer)
+
+        # Build data components.
+        self._components.append(
+            self._build_component(
+                buffer=buffer, node_map=node_map
+            )
         )
 
     def __repr__(self):
         return 'W: {0} x H: {1}, {2}, {3} elements, {4}'.format(
-            self.width,
-            self.height,
-            self.pixel_format,
-            len(self.content),
-            self.content
+            self.components[0].width,
+            self.components[0].height,
+            self.components[0].data_format,
+            len(self.components[0].data),
+            self.components[0].data
         )
-
-    @property
-    def width(self):
-        #
-        try:
-            value = self._buffer.width
-        except InvalidParameterException:
-            value = self._node_map.Width.value
-
-        return value
-
-    @property
-    def height(self):
-        #
-        try:
-            value = self._buffer.height
-        except InvalidParameterException:
-            value = self._node_map.Height.value
-
-        return value
-
-    @property
-    def pixel_format(self):
-        #
-        try:
-            value = self._buffer.pixel_format
-        except InvalidParameterException:
-            value = self._node_map.PixelFormat.value
-
-        return symbolics[int(value)]
 
 
 class PayloadRawData(PayloadBase):
-    def __init__(self, buffer=None, data_stream=None, node_map=None, content=None):
+    def __init__(self, buffer=None):
         #
-        super().__init__(
-            buffer=buffer,
-            data_stream=data_stream,
-            node_map=node_map,
-            content=content
-        )
+        super().__init__(buffer=buffer)
 
 
 class PayloadFile(PayloadBase):
-    def __init__(self, buffer=None, data_stream=None, node_map=None, content=None):
+    def __init__(self, buffer=None):
         #
-        super().__init__(
-            buffer=buffer,
-            data_stream=data_stream,
-            node_map=node_map,
-            content=content
-        )
+        super().__init__(buffer=buffer)
 
 
 class PayloadChunkData(PayloadImage):
-    def __init__(self, buffer=None, data_stream=None, node_map=None, content=None):
+    def __init__(self, buffer=None):
         #
-        super().__init__(
-            buffer=buffer,
-            data_stream=data_stream,
-            node_map=node_map,
-            content=content
-        )
+        super().__init__(buffer=buffer)
 
 
 class PayloadJPEG(PayloadBase):
-    def __init__(self, buffer=None, data_stream=None, node_map=None, content=None):
+    def __init__(self, buffer=None):
         #
-        super().__init__(
-            buffer=buffer,
-            data_stream=data_stream,
-            node_map=node_map,
-            content=content
-        )
+        super().__init__(buffer=buffer)
 
 
 class PayloadJPEG2000(PayloadBase):
-    def __init__(self, buffer=None, data_stream=None, node_map=None, content=None):
+    def __init__(self, buffer=None):
         #
-        super().__init__(
-            buffer=buffer,
-            data_stream=data_stream,
-            node_map=node_map,
-            content=content
-        )
+        super().__init__(buffer=buffer)
 
 
 class PayloadH264(PayloadBase):
-    def __init__(self, buffer=None, data_stream=None, node_map=None, content=None):
+    def __init__(self, buffer=None):
         #
-        super().__init__(
-            buffer=buffer,
-            data_stream=data_stream,
-            node_map=node_map,
-            content=content
-        )
+        super().__init__(buffer=buffer)
 
 
 class PayloadChunkOnly(PayloadBase):
-    def __init__(self, buffer=None, data_stream=None, node_map=None, content=None):
+    def __init__(self, buffer=None):
         #
-        super().__init__(
-            buffer=buffer,
-            data_stream=data_stream,
-            node_map=node_map,
-            content=content
-        )
+        super().__init__(buffer=buffer)
 
 
 class PayloadMultiPart(PayloadBase):
-    def __init__(self, buffer=None, data_stream=None, node_map=None, content=None):
+    def __init__(self, buffer=None, node_map=None):
         #
-        super().__init__(
-            buffer=buffer,
-            data_stream=data_stream,
-            node_map=node_map,
-            content=content
-        )
+        super().__init__(buffer=buffer)
 
-
-class _ProcessorConvertPyBytesToNumpy1D(ProcessorBase):
-    def __init__(self):
-        #
-        super().__init__(
-            description='Converts a Python bytes object to a Numpy 1D array'
-        )
-
-    def process(self, input_: Buffer):
-        #
-        symbolic = input_.payload.pixel_format
-
-        #
-        if symbolic in uint8_formats:
-            dtype = 'uint8'
-        elif symbolic in uint16_formats:
-            dtype = 'uint16'
-        else:
-            dtype = 'uint8'
-
-        # Convert the Python's built-in bytes array to a Numpy array.
-        input_.payload.content = np.frombuffer(
-            input_.payload.content, dtype=dtype
-        )
-
-        return input_
+        # Build data components.
+        # We know the buffer consists of a set of "part" that is
+        # defined by the GenTL standard.
+        for i, part in enumerate(self._buffer.parts):
+            self._components.append(
+                self._build_component(
+                    buffer=buffer, part=part, node_map=node_map
+                )
+            )
 
 
 class ImageAcquisitionManager:
     def __init__(
-            self, data_type='numpy', min_num_buffers=16, device=None,
+            self, min_num_buffers=16, device=None,
             frontend=None, profiler=None
     ):
         #
@@ -647,7 +697,6 @@ class ImageAcquisitionManager:
         #
         self._data_streams = []
         self._event_managers = []
-        self._setup_ds_and_event_manager()
 
         #
         self._frontend = frontend
@@ -668,20 +717,6 @@ class ImageAcquisitionManager:
         self._current_width = 0
         self._current_height = 0
         self._current_pixel_format = ''
-
-        #
-        self._processors = []
-        self._system_defined_processors = []
-
-        if data_type == 'numpy':  # numpy.ndarray
-            self._system_defined_processors.append(
-                _ProcessorConvertPyBytesToNumpy1D()
-            )
-        elif data_type == 'bytes':  # Python built-in 'bytes'
-            pass
-
-        #
-        self._user_defined_processors = []
 
         #
         self._num_images_to_hold_min = 1
@@ -767,10 +802,6 @@ class ImageAcquisitionManager:
             self._timeout_for_image_acquisition = ms
 
     @property
-    def user_defined_processors(self):
-        return self._user_defined_processors
-
-    @property
     def num_images_to_hold(self):
         return self._num_images_to_hold
 
@@ -838,6 +869,9 @@ class ImageAcquisitionManager:
                     self._frontend.canvas.resume_drawing()
         else:
             #
+            self._setup_ds_and_event_manager()
+
+            #
             num_required_buffers = self._min_num_buffers
             try:
                 num_buffers = self._data_streams[0].buffer_announce_min
@@ -880,15 +914,6 @@ class ImageAcquisitionManager:
 
             self._num_images_to_acquire = num_images_to_acquire
 
-            # Update the sequence of image processors.
-            self._processors.clear()
-
-            for p in self._system_defined_processors:
-                self._processors.append(p)
-
-            for p in self.user_defined_processors:
-                self._processors.append(p)
-
             # Start image acquisition.
             self._data_streams[0].start_acquisition(
                 ACQ_START_FLAGS_LIST.ACQ_START_FLAGS_DEFAULT,
@@ -909,6 +934,9 @@ class ImageAcquisitionManager:
 
             #
             self.device.node_map.AcquisitionStart.execute()
+
+        if self._profiler:
+            self._profiler.print_diff()
 
     def _worker_acquisition_statistics(self):
         if not self.is_acquiring_images:
@@ -954,6 +982,7 @@ class ImageAcquisitionManager:
             self._statistics_latest.reset()
 
     def _worker_image_acquisition(self):
+
         try:
             if self.is_acquiring_images:
                 time.sleep(0.001)
@@ -965,34 +994,32 @@ class ImageAcquisitionManager:
         except TimeoutException:
             pass
         else:
-            # Put the buffer in the process flow.
-            input_ = Buffer(
+            #
+            buffer = Buffer(
                 buffer=self._event_managers[0].buffer,
                 data_stream=self._data_streams[0],
                 node_map=self.device.node_map
             )
-            output = None
 
             #
-            self._update_statistics(input_)
+            self._update_statistics(buffer)
 
-            for p in self._processors:
-                output = p.process(input_)
-                input_ = output
-
-            if output:
+            if buffer:
                 # We've got a new image so now we can reuse the buffer that
                 # we had kept.
                 with MutexLocker(self.thread_image_acquisition):
+
+                    if not self._is_acquiring_images:
+                        return
+
                     if len(self._fetched_buffers) >= self._num_images_to_hold:
                         # We have a buffer now so we queue it; it's discarded
                         # before being used.
                         self._fetched_buffers.pop(0).queue()
 
-                    if output.payload is not None:
-                        # Append the recently fetched buffer.
-                        # Then one buffer remains for our client.
-                        self._fetched_buffers.append(output)
+                    # Append the recently fetched buffer.
+                    # Then one buffer remains for our client.
+                    self._fetched_buffers.append(buffer)
 
             #
             if self._num_images_to_acquire >= 1:
@@ -1027,13 +1054,6 @@ class ImageAcquisitionManager:
                         buffer = self._fetched_buffers.pop(0)
 
         return buffer
-
-    """
-    @staticmethod
-    def _queue_buffer(buffer: Buffer):
-        #
-        buffer.queue()
-    """
 
     def _update_statistics(self, buffer):
         #
@@ -1133,14 +1153,16 @@ class ImageAcquisitionManager:
                 self._event_managers[0].flush_event_queue()
 
                 #
-                # Release buffers but keep holding the Data Stream module.
-                self._release_buffers()
+                self._release_data_streams()
 
             #
-            self._initialize_buffers()
+            self._has_acquired_1st_image = False
 
             for statistics in self._statistics_list:
                 statistics.reset()
+
+        if self._profiler:
+            self._profiler.print_diff()
 
     def reset_statistics(self):
         self._current_width = self.device.node_map.Width.value
@@ -1159,7 +1181,6 @@ class ImageAcquisitionManager:
         if self.device:
             #
             self.stop_image_acquisition()
-            self._release_data_streams()
 
             #
             if self.device.node_map:
@@ -1170,7 +1191,6 @@ class ImageAcquisitionManager:
                 self._device.close()
 
         self._device = None
-        self._event_managers.clear()
 
         if self._profiler:
             self._profiler.print_diff()
@@ -1186,21 +1206,17 @@ class ImageAcquisitionManager:
 
         #
         self._data_streams.clear()
+        self._event_managers.clear()
 
     def _release_buffers(self):
         for ds in self._data_streams:
-            if ds and ds.is_open():
+            if ds.is_open():
                 #
                 for buffer in self._announced_buffers:
-                    ds.revoke_buffer(buffer)
-                self._announced_buffers.clear()
+                    _ = ds.revoke_buffer(buffer)
 
         self._fetched_buffers.clear()
         self._announced_buffers.clear()
-
-    def _initialize_buffers(self):
-        self._fetched_buffers.clear()
-        self._has_acquired_1st_image = False
 
 
 def _get_port_connected_node_map(port=None):
@@ -1290,7 +1306,7 @@ class Harvester:
 
         #
         if profile:
-            from harvesters._private.core.helper import Profiler
+            from harvesters._private.core.helper.profiler import Profiler
             self._profiler = Profiler()
         else:
             self._profiler = None
@@ -1342,7 +1358,7 @@ class Harvester:
         self._has_revised_device_list = value
 
     def create_image_acquisition_manager(
-            self, list_index=None, data_type='numpy', id_=None,
+            self, list_index=None, id_=None,
             vendor=None, model=None, tl_type=None, user_defined_name=None,
             serial_number=None, version=None,
         ):
@@ -1350,7 +1366,6 @@ class Harvester:
         Opens an image acquisition manager for the specified device and return it.
 
         :param list_index: Set an item index of the list of :class:`~genicam2.gentl.DeviceInfo` objects.
-        :param data_type: Set a data type that you want to have. The default is numpy's ndarray.
         :param id_:
         :param vendor:
         :param model:
@@ -1423,7 +1438,7 @@ class Harvester:
 
         # Create an image acquisition manager object and return it.
         iaa = ImageAcquisitionManager(
-            data_type=data_type, device=device, frontend=self._frontend
+            device=device, frontend=self._frontend, profiler=self._profiler
         )
 
         if self._profiler:
@@ -1491,6 +1506,9 @@ class Harvester:
         """
         self.remove_cti_files()
         self._release_gentl_producers()
+
+        if self._profiler:
+            self._profiler.print_diff()
 
     def _release_gentl_producers(self):
         #

@@ -218,7 +218,11 @@ class Canvas(app.Canvas):
 
                     if update:
                         # Convert each data to an 8bit.
-                        content = buffer.payload.components[0].data / (2 ** exponent)
+                        content = buffer.payload.components[0].data
+                        if exponent > 1:
+                            # The following code may affect to the rendering
+                            # performance.
+                            content /= (content / (2 ** exponent))
 
                         # Then cast each array elemtn to an uint8.
                         content = content.astype(np.uint8)

@@ -272,6 +272,7 @@ Currently Harvester Core supports the following pixel formats that are defined b
 * ``Mono12``
 * ``Mono16``
 * ``RGB8``
+* ``RGBa8``
 * ``BayerRG8``
 * ``BayerGR8``
 * ``BayerBG8``
@@ -305,11 +306,19 @@ Pixel formats that Harvester GUI supports
 Currently Harvester GUI supports the following pixel formats that are defined by the Pixel Format Naming Convention:
 
 * ``Mono8``
+* ``Mono10``
+* ``Mono12``
+* ``Mono16``
 * ``RGB8``
+* ``RGBa8``
 * ``BayerRG8``
 * ``BayerGR8``
 * ``BayerBG8``
 * ``BayerGB8``
+* ``BayerRG16``
+* ``BayerGR16``
+* ``BayerBG16``
+* ``BayerGB16``
 
 Note that Harvester GUI has not yet supported demosaicing.
 

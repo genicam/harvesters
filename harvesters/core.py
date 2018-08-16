@@ -343,9 +343,14 @@ class Component2D(ComponentBase):
         )
 
         #
-        self._data = self._data.reshape(
-            self.height, self.width, num_pixel_components
-        )
+        if num_pixel_components > 1:
+            self._data = self._data.reshape(
+                self.height, self.width, num_pixel_components
+            )
+        else:
+            self._data = self._data.reshape(
+                self.height, self.width
+            )
 
     @property
     def width(self):

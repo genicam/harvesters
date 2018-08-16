@@ -456,7 +456,7 @@ the package name is ``harvesters`` but not ``harvester``:
 
 .. code-block:: shell
 
-    $ pip install harvesters numpy
+    $ pip install harvesters
 
 Or you could install the latest development version it using ``setup.py`` cloning Harvester from GitHub:
 

@@ -275,17 +275,19 @@ mono_formats = ['Mono8', 'Mono10', 'Mono12', 'Mono14', 'Mono16']
 
 rgb_formats = [
     'RGB8', 'RGB10', 'RGB12', 'RGB14', 'RGB16',
-    'RGBa8', 'RGBa10', 'RGBa12', 'RGBa16',
     'RGB8Packed'
 ]
 
-rgba_formats = ['RGBa8', 'RGBa10', 'RGBa12', 'RGBa14', 'RGBa16']
+rgba_formats = [
+    'RGBa8', 'RGBa10', 'RGBa12', 'RGBa14', 'RGBa16'
+]
 
 bayer_formats = [
     'BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8',
     'BayerGR12', 'BayerGB12', 'BayerRG12', 'BayerBG12',
     'BayerGR10', 'BayerGB10', 'BayerRG10', 'BayerBG10',
     'BayerGR16', 'BayerRG16', 'BayerGB16', 'BayerBG16',
+    'BayerGR32', 'BayerRG32', 'BayerGB32', 'BayerBG32',
 ]
 
 uint8_formats = [
@@ -301,6 +303,14 @@ uint16_formats = [
     'BayerGR10', 'BayerGB10', 'BayerRG10', 'BayerBG10',
     'BayerGR12', 'BayerGB12', 'BayerRG12', 'BayerBG12',
     'BayerGR16', 'BayerRG16', 'BayerGB16', 'BayerBG16',
+]
+
+uint32_formats = [
+    'Mono32',
+]
+
+float32_formats = [
+    'Coord3D_A32f', 'Coord3D_B32f', 'Coord3D_C32f',
 ]
 
 component_8bit_formats = [
@@ -332,3 +342,23 @@ component_16bit_formats = [
     'BayerGR16', 'BayerRG16', 'BayerGB16', 'BayerBG16',
 ]
 
+component_1d_formats = [
+    'Confidence1',
+    'Confidence1p',
+    'Confidence8',
+    'Confidence16',
+    'Confidence32f',
+]
+
+component_2d_formats = [
+    'Mono8', 'Mono10', 'Mono12', 'Mono14', 'Mono16',
+    'RGB8', 'RGB10', 'RGB12', 'RGB14', 'RGB16',
+    'RGBa8', 'RGBa10', 'RGBa12', 'RGBa14', 'RGBa16',
+    'BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8',
+    'BayerGR10', 'BayerGB10', 'BayerRG10', 'BayerBG10',
+    'BayerGR12', 'BayerGB12', 'BayerRG12', 'BayerBG12',
+    'BayerGR16', 'BayerRG16', 'BayerGB16', 'BayerBG16',
+    'Coord3D_A32f',
+    'Coord3D_B32f',
+    'Coord3D_C32f',
+]

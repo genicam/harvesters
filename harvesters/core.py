@@ -37,13 +37,18 @@ from genicam2.gentl import TimeoutException, AccessDeniedException, \
     ResourceInUseException
 from genicam2.gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
 from genicam2.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
-    ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST
+    ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
+    PAYLOADTYPE_INFO_IDS
 
 # Local application/library specific imports
 from harvesters._private.core.port import ConcretePort
 from harvesters._private.core.statistics import Statistics
 from harvesters.pfnc import symbolics
-from harvesters.pfnc import uint8_formats, uint16_formats
+from harvesters.pfnc import uint8_formats, uint16_formats, uint32_formats, \
+    float32_formats
+from harvesters.pfnc import component_1d_formats, component_2d_formats
+from harvesters.pfnc import mono_formats, rgb_formats, \
+    rgba_formats, bayer_formats
 
 
 class ThreadBase:
@@ -240,138 +245,435 @@ class _PyThreadImpl(Thread):
         self._worker = obj
 
 
-class BufferManager:
-    def __init__(self, data_stream=None, buffer=None, node_map=None, payload=None):
-        """
+class ComponentBase:
+    def __init__(self, buffer=None):
+        #
+        assert buffer
 
-        :param data_stream:
-        :param buffer:
-        :param node_map:
-        :param payload:
-        """
         #
         super().__init__()
 
         #
-        self._data_stream = data_stream
         self._buffer = buffer
+        self._data = None
+
+    @property
+    def data_format(self):
+        return self._buffer.data_format
+
+    @property
+    def data_format_namespace(self):
+        return self._buffer.data_format
+
+    @property
+    def source_id(self):
+        return self._buffer.source_id
+
+    @property
+    def data(self):
+        return self._data
+
+
+class ComponentRaw(ComponentBase):
+    def __init__(self):
+        #
+        super().__init__()
+
+
+class Component1D(ComponentBase):
+    #
+    def __init__(self, buffer=None, part=None):
+        #
+        super().__init__(buffer=buffer)
+
+
+class Component2D(ComponentBase):
+    def __init__(self, buffer=None, part=None, node_map=None):
+        #
+        assert node_map
+        assert buffer
+
+        #
+        super().__init__(buffer=buffer)
+
+        #
+        self._part = part
         self._node_map = node_map
-        self._payload = payload
-        self._pixel_format = symbolics[int(self.buffer.pixel_format)]
+        self._data = None
+
+        # Identify the data type.
+        symbolic = self.data_format
+
+        if symbolic in uint16_formats:
+            dtype = 'uint16'
+            component_per_bytes = 2
+        elif symbolic in uint32_formats:
+            dtype = 'uint32'
+            component_per_bytes = 4
+        elif symbolic in float32_formats:
+            dtype = 'float32'
+            component_per_bytes = 4
+        else:
+            dtype = 'uint8'
+            component_per_bytes = 1
+
+        if symbolic in rgb_formats:
+            num_pixel_components = 3
+        elif symbolic in rgba_formats:
+            num_pixel_components = 4
+        else:
+            num_pixel_components = 1
+
+        #
+        if self._part:
+            count = self._part.data_size
+            count //= component_per_bytes
+            data_offset = self._part.data_offset
+        else:
+            count = self.width * self.height
+            count *= num_pixel_components
+            data_offset = 0
+
+        # Convert the Python's built-in bytes array to a Numpy array.
+        self._data = np.frombuffer(
+            self._buffer.raw_buffer,
+            count=count,
+            dtype=dtype,
+            offset=data_offset
+        )
+
+        #
+        if num_pixel_components > 1:
+            self._data = self._data.reshape(
+                self.height, self.width, num_pixel_components
+            )
+        else:
+            self._data = self._data.reshape(
+                self.height, self.width
+            )
+
+    @property
+    def width(self):
+        try:
+            if self._part:
+                value = self._part.width
+            else:
+                value = self._buffer.width
+        except InvalidParameterException:
+            value = self._node_map.Width.value
+        return value
+
+    @property
+    def height(self):
+        try:
+            if self._part:
+                value = self._part.height
+            else:
+                value = self._buffer.height
+        except InvalidParameterException:
+            value = self._node_map.Height.value
+        return value
+
+    @property
+    def data_format(self):
+        try:
+            if self._part:
+                value = self._part.data_format
+            else:
+                value = self._buffer.pixel_format
+        except InvalidParameterException:
+            value = self._node_map.PixelFormat.value
+        return symbolics[value]
+
+    @property
+    def delivered_image_height(self):
+        try:
+            if self._part:
+                value = self._part.delivered_image_height
+            else:
+                value = self._buffer.delivered_image_height
+        except InvalidParameterException:
+            value = 0
+        return value
+
+    @property
+    def x_offset(self):  # TODO: Check the naming convention.
+        try:
+            if self._part:
+                value = self._part.x_offset
+            else:
+                value = self._buffer.offset_x
+        except InvalidParameterException:
+            value = self._node_map.OffsetX.value
+        return value
+
+    @property
+    def y_offset(self):
+        try:
+            if self._part:
+                value = self._part.y_offset
+            else:
+                value = self._buffer.offset_y
+        except InvalidParameterException:
+            value = self._node_map.OffsetY.value
+        return value
+
+    @property
+    def x_padding(self):
+        try:
+            if self._part:
+                value = self._part.x_padding
+            else:
+                value = self._buffer.padding_x
+        except InvalidParameterException:
+            value = 0
+        return value
+
+    @property
+    def y_padding(self):
+        try:
+            if self._part:
+                value = self._part.y_padding
+            else:
+                value = self._buffer.padding_y
+        except InvalidParameterException:
+            value = 0
+        return value
+
+
+class Buffer:
+    def __init__(self, buffer=None, data_stream=None, node_map=None):
+        #
+        super().__init__()
+
+        #
+        self._buffer = buffer
+        self._data_stream = data_stream
+        self._node_map = node_map
+
+        self._payload = self._build_payload(
+            buffer=buffer,
+            node_map=node_map
+        )
 
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # Queue the buffer when it goes outside of the scope.
-        if self._data_stream and self._buffer:
-            self._data_stream.queue_buffer(self._buffer)
+        self.queue()
 
     def __repr__(self):
-        return 'W: {0} x H: {1}, {2}, {3} elements\n{4}'.format(
-            self.buffer.width,
-            self.buffer.height,
-            self.pixel_format,
-            len(self.payload),
-            self.payload
-        )
+        return self.payload.__repr__()
 
     @property
-    def data_stream(self):
-        return self._data_stream
+    def timestamp_ns(self):
+        return self._buffer.timestamp_ns
 
     @property
-    def buffer(self):
-        return self._buffer
+    def timestamp(self):
+        timestamp = 0
+        try:
+            timestamp = self._buffer.timestamp_ns
+        except (InvalidParameterException, NotImplementedException,
+                NotAvailableException):
+            try:
+                _ = self.timestamp_frequency
+            except InvalidParameterException:
+                pass
+            else:
+                try:
+                    timestamp = self._buffer.timestamp
+                except (InvalidParameterException, NotAvailableException):
+                    timestamp = 0
+
+        return timestamp
 
     @property
-    def node_map(self):
-        return self._node_map
+    def timestamp_frequency(self):
+        #
+        frequency = 1000000000  # Hz
+
+        try:
+            _ = self._buffer.timestamp_ns
+        except (InvalidParameterException, NotImplementedException,
+                NotAvailableException):
+            try:
+                frequency = self._data_stream.parent.timestamp_frequency
+            except (InvalidParameterException, NotAvailableException):
+                try:
+                    frequency = self._node_map.GevTimestampTickFrequency.value
+                except LogicalErrorException:
+                    pass
+
+        return frequency
+
+    @property
+    def payload_type(self):
+        return self._buffer.payload_type
 
     @property
     def payload(self):
         return self._payload
 
-    @property
-    def pixel_format(self):
-        return self._pixel_format
+    def queue(self):
+        self._data_stream.queue_buffer(self._buffer)
+
+    @staticmethod
+    def _build_payload(buffer=None, node_map=None):
+        #
+        assert buffer
+        assert node_map
+
+        #
+        if buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_UNKNOWN:
+            payload = PayloadUnknown(buffer=buffer)
+        elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE:
+            payload = PayloadImage(buffer=buffer, node_map=node_map)
+        elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_RAW_DATA:
+            payload = PayloadRawData(buffer=buffer)
+        elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_FILE:
+            payload = PayloadFile(buffer=buffer)
+        elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_DATA:
+            payload = PayloadChunkData(buffer=buffer)
+        elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG:
+            payload = PayloadJPEG(buffer=buffer)
+        elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG2000:
+            payload = PayloadJPEG2000(buffer=buffer)
+        elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_H264:
+            payload = PayloadH264(buffer=buffer)
+        elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_ONLY:
+            payload = PayloadChunkOnly(buffer=buffer)
+        elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART:
+            payload = PayloadMultiPart(buffer=buffer, node_map=node_map)
+        else:
+            payload = None
+
+        return payload
 
 
-class ProcessorBase:
-    def __init__(self, description):
-        """
-
-        :param description: Set description about this process.
-        """
+class PayloadBase:
+    def __init__(self, buffer=None):
         #
         super().__init__()
 
-        #
-        self._description = description
-        self._processors = []
+        self._buffer = buffer
+        self._components = []
 
     @property
-    def description(self):
-        """
+    def payload_type(self):
+        return self._buffer.payload_type
 
-        :return: A description about this process.
-
-        """
-        return self._description
-
-    def process(self, input):
-        """
-
-        :param input: Set an arbitrary object. It will be treated as the input source of the sequence of processes.
-
-        :return: An arbitrary object as the output of the sequence of processes.
-        """
-        output = None
-
-        for p in self._processors:
-            output = p.process(input)
-            input = output
-
-        return output
-
-
-class _ProcessorConvertPyBytesToNumpy1D(ProcessorBase):
-    def __init__(self):
+    @staticmethod
+    def _build_component(buffer=None, part=None, node_map=None):
         #
-        super().__init__(
-            description='Converts a Python bytes object to a Numpy 1D array'
-        )
-
-    def process(self, input: BufferManager):
-        symbolic = None
-        try:
-            pixel_format_int = input.buffer.pixel_format
-        except InvalidParameterException:
-            pass
+        if part:
+            data_format = part.data_format
         else:
-            symbolic = symbolics[int(pixel_format_int)]
+            data_format = buffer.pixel_format
 
-        if symbolic in uint8_formats:
-            dtype = 'uint8'
-        elif symbolic in uint16_formats:
-            dtype = 'uint16'
-        else:
-            dtype = 'uint8'
+        #
+        symbolic = symbolics[data_format]
+        if symbolic in component_1d_formats:
+            return Component1D(buffer=buffer, part=part)
+        if symbolic in component_2d_formats:
+            return Component2D(buffer=buffer, part=part, node_map=node_map)
 
-        output = BufferManager(
-            data_stream=input.data_stream,
-            buffer=input.buffer,
-            node_map=input.node_map,
-            payload=np.frombuffer(
-                input.buffer.raw_buffer, dtype=dtype
+        return None
+
+    @property
+    def components(self):
+        return self._components
+
+
+class PayloadUnknown(PayloadBase):
+    def __init__(self, buffer=None):
+        #
+        super().__init__(buffer=buffer)
+
+
+class PayloadImage(PayloadBase):
+    def __init__(self, buffer=None, node_map=None):
+        #
+        super().__init__(buffer=buffer)
+
+        # Build data components.
+        self._components.append(
+            self._build_component(
+                buffer=buffer, node_map=node_map
             )
         )
-        return output
+
+    def __repr__(self):
+        return 'W: {0} x H: {1}, {2}, {3} elements, {4}'.format(
+            self.components[0].width,
+            self.components[0].height,
+            self.components[0].data_format,
+            len(self.components[0].data),
+            self.components[0].data
+        )
+
+
+class PayloadRawData(PayloadBase):
+    def __init__(self, buffer=None):
+        #
+        super().__init__(buffer=buffer)
+
+
+class PayloadFile(PayloadBase):
+    def __init__(self, buffer=None):
+        #
+        super().__init__(buffer=buffer)
+
+
+class PayloadChunkData(PayloadImage):
+    def __init__(self, buffer=None):
+        #
+        super().__init__(buffer=buffer)
+
+
+class PayloadJPEG(PayloadBase):
+    def __init__(self, buffer=None):
+        #
+        super().__init__(buffer=buffer)
+
+
+class PayloadJPEG2000(PayloadBase):
+    def __init__(self, buffer=None):
+        #
+        super().__init__(buffer=buffer)
+
+
+class PayloadH264(PayloadBase):
+    def __init__(self, buffer=None):
+        #
+        super().__init__(buffer=buffer)
+
+
+class PayloadChunkOnly(PayloadBase):
+    def __init__(self, buffer=None):
+        #
+        super().__init__(buffer=buffer)
+
+
+class PayloadMultiPart(PayloadBase):
+    def __init__(self, buffer=None, node_map=None):
+        #
+        super().__init__(buffer=buffer)
+
+        # Build data components.
+        # We know the buffer consists of a set of "part" that is
+        # defined by the GenTL standard.
+        for i, part in enumerate(self._buffer.parts):
+            self._components.append(
+                self._build_component(
+                    buffer=buffer, part=part, node_map=node_map
+                )
+            )
 
 
 class ImageAcquisitionManager:
     def __init__(
-            self, data_type='numpy', min_num_buffers=16, device=None,
+            self, min_num_buffers=16, device=None,
             frontend=None, profiler=None
     ):
         #
@@ -424,20 +726,6 @@ class ImageAcquisitionManager:
         self._current_pixel_format = ''
 
         #
-        self._processors = []
-        self._system_defined_processors = []
-
-        if data_type == 'numpy':  # numpy.ndarray
-            self._system_defined_processors.append(
-                _ProcessorConvertPyBytesToNumpy1D()
-            )
-        elif data_type == 'bytes':  # Python built-in 'bytes'
-            pass
-
-        #
-        self._user_defined_processors = []
-
-        #
         self._num_images_to_hold_min = 1
         self._num_images_to_hold = self._num_images_to_hold_min
 
@@ -457,7 +745,7 @@ class ImageAcquisitionManager:
 
         #
         self._announced_buffers = []
-        self._fetched_buffer_managers = []
+        self._fetched_buffers = []
 
         #
         self._has_acquired_1st_image = False
@@ -519,10 +807,6 @@ class ImageAcquisitionManager:
     def timeout_for_image_acquisition(self, ms):
         with MutexLocker(self.thread_image_acquisition):
             self._timeout_for_image_acquisition = ms
-
-    @property
-    def user_defined_processors(self):
-        return self._user_defined_processors
 
     @property
     def num_images_to_hold(self):
@@ -634,15 +918,6 @@ class ImageAcquisitionManager:
 
             self._num_images_to_acquire = num_images_to_acquire
 
-            # Update the sequence of image processors.
-            self._processors.clear()
-
-            for p in self._system_defined_processors:
-                self._processors.append(p)
-
-            for p in self.user_defined_processors:
-                self._processors.append(p)
-
             # Start image acquisition.
             self._data_streams[0].start_acquisition(
                 ACQ_START_FLAGS_LIST.ACQ_START_FLAGS_DEFAULT,
@@ -663,6 +938,9 @@ class ImageAcquisitionManager:
 
             #
             self.device.node_map.AcquisitionStart.execute()
+
+        if self._profiler:
+            self._profiler.print_diff()
 
     def _worker_acquisition_statistics(self):
         if not self.is_acquiring_images:
@@ -708,6 +986,7 @@ class ImageAcquisitionManager:
             self._statistics_latest.reset()
 
     def _worker_image_acquisition(self):
+
         try:
             if self.is_acquiring_images:
                 time.sleep(0.001)
@@ -716,41 +995,35 @@ class ImageAcquisitionManager:
                 )
             else:
                 return
-        except TimeoutException as e:
+        except TimeoutException:
             pass
         else:
             #
-            buffer = self._event_managers[0].buffer
+            buffer = Buffer(
+                buffer=self._event_managers[0].buffer,
+                data_stream=self._data_streams[0],
+                node_map=self.device.node_map
+            )
 
             #
             self._update_statistics(buffer)
 
-            # Put the buffer in the process flow.
-            input = BufferManager(
-                data_stream=self._data_streams[0],
-                buffer=buffer,
-                node_map=self.device.node_map,
-                payload=None
-            )
-            output = None
-
-            for p in self._processors:
-                output = p.process(input)
-                input = output
-
-            if output:
+            if buffer:
                 # We've got a new image so now we can reuse the buffer that
                 # we had kept.
                 with MutexLocker(self.thread_image_acquisition):
-                    if len(self._fetched_buffer_managers) >= self._num_images_to_hold:
+
+                    if not self._is_acquiring_images:
+                        return
+
+                    if len(self._fetched_buffers) >= self._num_images_to_hold:
                         # We have a buffer now so we queue it; it's discarded
                         # before being used.
-                        self.queue_buffer(self._fetched_buffer_managers.pop(0))
+                        self._fetched_buffers.pop(0).queue()
 
-                    if output.payload is not None:
-                        # Append the recently fetched buffer.
-                        # Then one buffer remains for our client.
-                        self._fetched_buffer_managers.append(output)
+                    # Append the recently fetched buffer.
+                    # Then one buffer remains for our client.
+                    self._fetched_buffers.append(buffer)
 
             #
             if self._num_images_to_acquire >= 1:
@@ -761,7 +1034,7 @@ class ImageAcquisitionManager:
                 if self.signal_stop_image_acquisition:
                     self.signal_stop_image_acquisition.emit()
 
-    def fetch_buffer_manager(self, timeout_ms=0):
+    def fetch_buffer(self, timeout_ms=0):
         """
         Fetches the oldest :class:`~harvesters.buffer.Buffer` object and returns it.
 
@@ -773,57 +1046,26 @@ class ImageAcquisitionManager:
             return None
 
         watch_timeout = True if timeout_ms > 0 else False
-        bm = None
+        buffer= None
         base = time.time()
 
-        while bm is None:
+        while buffer is None:
             if watch_timeout and (time.time() - base) > timeout_ms:
                 break
             else:
                 with MutexLocker(self.thread_image_acquisition):
-                    if len(self._fetched_buffer_managers) > 0:
-                        bm = self._fetched_buffer_managers.pop(0)
+                    if len(self._fetched_buffers) > 0:
+                        buffer = self._fetched_buffers.pop(0)
 
-        return bm
+        return buffer
 
-    def queue_buffer(self, buffer_manager: BufferManager):
-        """
-        Queues a buffer for the image acquisition.
-
-        :param buffer_manager: Set a :class:`~harvesters.core.BufferManager` object that is holding a buffer to queue.
-
-        :return: None
-        """
-        if self._data_streams[0] and buffer_manager:
-            self._data_streams[0].queue_buffer(
-                buffer_manager.buffer
-            )
-
-    def _update_statistics(self, gentl_buffer):
-        #
-        frequency = 1000000000.  # Hz
-        try:
-            timestamp = gentl_buffer.timestamp_ns
-        except (InvalidParameterException, NotImplementedException, NotAvailableException):
-            try:
-                # The unit is device/implementation dependent.
-                timestamp = gentl_buffer.timestamp
-            except (NotImplementedException, NotAvailableException):
-                timestamp = 0  # Not available
-            else:
-                try:
-                    frequency = self.device.timestamp_frequency
-                except (InvalidParameterException, NotImplementedException,
-                        NotAvailableException):
-                    try:
-                        frequency = self.device.node_map.GevTimestampTickFrequency.value
-                    except LogicalErrorException:
-                        pass
-
+    def _update_statistics(self, buffer):
         #
         for statistics in self._statistics_list:
             statistics.increment_num_images()
-            statistics.set_timestamp(timestamp, frequency)
+            statistics.set_timestamp(
+                buffer.timestamp, buffer.timestamp_frequency
+            )
 
     @staticmethod
     def _create_raw_buffers(num_buffers, size):
@@ -915,14 +1157,16 @@ class ImageAcquisitionManager:
                 self._event_managers[0].flush_event_queue()
 
                 #
-                # Release buffers but keep holding the Data Stream module.
                 self._release_buffers()
 
             #
-            self._initialize_buffers()
+            self._has_acquired_1st_image = False
 
             for statistics in self._statistics_list:
                 statistics.reset()
+
+        if self._profiler:
+            self._profiler.print_diff()
 
     def reset_statistics(self):
         self._current_width = self.device.node_map.Width.value
@@ -941,7 +1185,6 @@ class ImageAcquisitionManager:
         if self.device:
             #
             self.stop_image_acquisition()
-            self._release_data_streams()
 
             #
             if self.device.node_map:
@@ -952,7 +1195,6 @@ class ImageAcquisitionManager:
                 self._device.close()
 
         self._device = None
-        self._event_managers.clear()
 
         if self._profiler:
             self._profiler.print_diff()
@@ -968,21 +1210,17 @@ class ImageAcquisitionManager:
 
         #
         self._data_streams.clear()
+        self._event_managers.clear()
 
     def _release_buffers(self):
         for ds in self._data_streams:
-            if ds and ds.is_open():
+            if ds.is_open():
                 #
                 for buffer in self._announced_buffers:
-                    ds.revoke_buffer(buffer)
-                self._announced_buffers.clear()
+                    _ = ds.revoke_buffer(buffer)
 
-        self._fetched_buffer_managers.clear()
+        self._fetched_buffers.clear()
         self._announced_buffers.clear()
-
-    def _initialize_buffers(self):
-        self._fetched_buffer_managers.clear()
-        self._has_acquired_1st_image = False
 
 
 def _get_port_connected_node_map(port=None):
@@ -1072,7 +1310,7 @@ class Harvester:
 
         #
         if profile:
-            from harvesters._private.core.helper import Profiler
+            from harvesters._private.core.helper.profiler import Profiler
             self._profiler = Profiler()
         else:
             self._profiler = None
@@ -1124,7 +1362,7 @@ class Harvester:
         self._has_revised_device_list = value
 
     def create_image_acquisition_manager(
-            self, list_index=None, data_type='numpy', id_=None,
+            self, list_index=None, id_=None,
             vendor=None, model=None, tl_type=None, user_defined_name=None,
             serial_number=None, version=None,
         ):
@@ -1132,7 +1370,6 @@ class Harvester:
         Opens an image acquisition manager for the specified device and return it.
 
         :param list_index: Set an item index of the list of :class:`~genicam2.gentl.DeviceInfo` objects.
-        :param data_type: Set a data type that you want to have. The default is numpy's ndarray.
         :param id_:
         :param vendor:
         :param model:
@@ -1205,7 +1442,7 @@ class Harvester:
 
         # Create an image acquisition manager object and return it.
         iaa = ImageAcquisitionManager(
-            data_type=data_type, device=device, frontend=self._frontend
+            device=device, frontend=self._frontend, profiler=self._profiler
         )
 
         if self._profiler:
@@ -1273,6 +1510,9 @@ class Harvester:
         """
         self.remove_cti_files()
         self._release_gentl_producers()
+
+        if self._profiler:
+            self._profiler.print_diff()
 
     def _release_gentl_producers(self):
         #

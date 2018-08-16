@@ -64,22 +64,17 @@ class TestHarvesterCore(TestHarvesterCoreBase):
     @staticmethod
     def _basic_usage(iam: ImageAcquisitionManager):
         # Set up the device.
-        iam.device.node_map.Width.value = 12
-        iam.device.node_map.Height.value = 8
+        iam.device.node_map.Width.value = 4000
+        iam.device.node_map.Height.value = 3000
         iam.device.node_map.PixelFormat.value = 'Mono8'
 
         # Start image acquisition.
         iam.start_image_acquisition()
 
         # Fetch a buffer that is filled with image data.
-        with iam.fetch_buffer_manager() as bm:
-            print(bm)
+        with iam.fetch_buffer() as buffer:
             # Reshape it.
-            _1d = bm.payload
-            _2d = _1d.reshape(
-                bm.buffer.height, bm.buffer.width
-            )
-            print(_2d)
+            print(buffer)
 
         # Stop image acquisition.
         iam.stop_image_acquisition()
@@ -106,7 +101,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             )
 
         #
-        for i in range(5):
+        for i in range(10):
             #
             print('---> Round {0}: Set up'.format(i))
             for index, iam in enumerate(iams):
@@ -129,8 +124,8 @@ class TestHarvesterCore(TestHarvesterCoreBase):
                             # try-except block is demonstrating a case where
                             # a client called fetch_buffer method even though
                             # he'd forgotten to start image acquisition.
-                            with iam.fetch_buffer_manager() as bm:
-                                print(bm)
+                            with iam.fetch_buffer() as buffer:
+                                print(buffer)
                         except AttributeError:
                             # Harvester Core has not started image acquisition
                             # so calling fetch_buffer() raises AttributeError
@@ -141,9 +136,9 @@ class TestHarvesterCore(TestHarvesterCoreBase):
                         # Option 2: You can manually do the same job but not
                         # recommended because you might forget to queue the
                         # buffer.
-                        bm = iam.fetch_buffer_manager()
-                        print(bm)
-                        iam.queue_buffer(bm)
+                        buffer = iam.fetch_buffer()
+                        print(buffer)
+                        buffer.queue()
 
                 #
                 k += 1

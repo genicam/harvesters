@@ -608,7 +608,7 @@ class PayloadImage(PayloadBase):
             self.components[0].width,
             self.components[0].height,
             self.components[0].data_format,
-            len(self.components[0].data),
+            self.components[0].data.size,
             self.components[0].data
         )
 

@@ -347,7 +347,7 @@ Harvester Core on IPython
 
 The following screenshot shows Harvester Core is running on IPython. Harvester Core returns the latest image data at the moment as a Numpy array every time its user call the ``get_image()`` method. Once you get an image you should be able to immediately start image processing. If you're running on Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
-.. image:: https://user-images.githubusercontent.com/8652625/43829448-e9842742-9b39-11e8-9083-aa4f7236c210.png
+.. image:: https://user-images.githubusercontent.com/8652625/44210625-f52d6680-a1a1-11e8-909c-b799997f2dd4.png
     :align: center
     :alt: Harvester on IPython
     :scale: 40 %
@@ -364,10 +364,10 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
 
     In [5]: h.device_info_list
     Out[5]:
-    [(unique_id='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceA_0', version='1.2.3'),
-     (unique_id='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceA_1', version='1.2.3'),
-     (unique_id='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_0', version='1.2.3'),
-     (unique_id='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_1', version='1.2.3')]
+    [(id_='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceA_0', version='1.2.3'),
+     (id_='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceA_1', version='1.2.3'),
+     (id_='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_0', version='1.2.3'),
+     (id_='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_1', version='1.2.3')]
 
     In [6]: iam = h.create_image_acquisition_manager(0)
 
@@ -377,24 +377,17 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
 
     In [9]: iam.start_image_acquisition()
 
-    In [10]: with iam.fetch_buffer_manager() as bm:
-        ...:     _1d = bm.payload
-        ...:     print(_1d)
-        ...:     _2d = _1d.reshape(bm.buffer.height, bm.buffer.width)
-        ...:     print(_2d)
+    In [10]: with iam.fetch_buffer() as buffer:
+        ...:     print(buffer.payload.components[0].data)
         ...:
-    [101 102 103 104 105 106 107 108 102 103 104 105 106 107 108 109 103 104
-     105 106 107 108 109 110 104 105 106 107 108 109 110 111 105 106 107 108
-     109 110 111 112 106 107 108 109 110 111 112 113 107 108 109 110 111 112
-     113 114 108 109 110 111 112 113 114 115]
-    [[101 102 103 104 105 106 107 108]
-     [102 103 104 105 106 107 108 109]
-     [103 104 105 106 107 108 109 110]
-     [104 105 106 107 108 109 110 111]
-     [105 106 107 108 109 110 111 112]
-     [106 107 108 109 110 111 112 113]
-     [107 108 109 110 111 112 113 114]
-     [108 109 110 111 112 113 114 115]]
+    [[77 78 79 80 81 82 83 84]
+     [78 79 80 81 82 83 84 85]
+     [79 80 81 82 83 84 85 86]
+     [80 81 82 83 84 85 86 87]
+     [81 82 83 84 85 86 87 88]
+     [82 83 84 85 86 87 88 89]
+     [83 84 85 86 87 88 89 90]
+     [84 85 86 87 88 89 90 91]]
 
     In [11]: iam.stop_image_acquisition()
 

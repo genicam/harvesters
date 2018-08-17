@@ -286,6 +286,12 @@ class Component1D(ComponentBase):
         #
         super().__init__(buffer=buffer)
 
+    def __repr__(self):
+        return '{0} elements,\n{1}'.format(
+            self.data.size,
+            self.data
+        )
+
 
 class Component2D(ComponentBase):
     def __init__(self, buffer=None, part=None, node_map=None):
@@ -351,6 +357,15 @@ class Component2D(ComponentBase):
             self._data = self._data.reshape(
                 self.height, self.width
             )
+
+    def __repr__(self):
+        return '{0} x {1}, {2}, {3} elements,\n{4}'.format(
+            self.width,
+            self.height,
+            self.data_format,
+            self.data.size,
+            self.data
+        )
 
     @property
     def width(self):
@@ -463,7 +478,7 @@ class Buffer:
         self.queue()
 
     def __repr__(self):
-        return self.payload.__repr__()
+        return '{0}'.format(self.payload.__repr__())
 
     @property
     def timestamp_ns(self):
@@ -604,13 +619,7 @@ class PayloadImage(PayloadBase):
         )
 
     def __repr__(self):
-        return 'W: {0} x H: {1}, {2}, {3} elements,\n{4}'.format(
-            self.components[0].width,
-            self.components[0].height,
-            self.components[0].data_format,
-            self.components[0].data.size,
-            self.components[0].data
-        )
+        return '{0}'.format(self.components[0].__repr__())
 
 
 class PayloadRawData(PayloadBase):
@@ -669,6 +678,13 @@ class PayloadMultiPart(PayloadBase):
                     buffer=buffer, part=part, node_map=node_map
                 )
             )
+
+    def __repr__(self):
+        ret = ''
+        for i, c in enumerate(self.components):
+            ret += 'Component #{0}: {1}\n'.format(i, c.__repr__())
+        ret = ret[:-1]
+        return ret
 
 
 class ImageAcquisitionManager:

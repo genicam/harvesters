@@ -604,7 +604,7 @@ class PayloadImage(PayloadBase):
         )
 
     def __repr__(self):
-        return 'W: {0} x H: {1}, {2}, {3} elements, {4}'.format(
+        return 'W: {0} x H: {1}, {2}, {3} elements,\n{4}'.format(
             self.components[0].width,
             self.components[0].height,
             self.components[0].data_format,

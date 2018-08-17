@@ -63,11 +63,6 @@ class TestHarvesterCore(TestHarvesterCoreBase):
 
     @staticmethod
     def _basic_usage(iam: ImageAcquisitionManager):
-        # Set up the device.
-        iam.device.node_map.Width.value = 4000
-        iam.device.node_map.Height.value = 3000
-        iam.device.node_map.PixelFormat.value = 'Mono8'
-
         # Start image acquisition.
         iam.start_image_acquisition()
 
@@ -101,7 +96,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             )
 
         #
-        for i in range(10):
+        for i in range(3):
             #
             print('---> Round {0}: Set up'.format(i))
             for index, iam in enumerate(iams):
@@ -155,6 +150,9 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             iam.destroy()
 
     def test_controlling_a_specific_camera(self):
+        if 'TLSimu.cti' not in self._cti_file:
+            return
+
         # The basic usage.
         iam = self.harvester.create_image_acquisition_manager(0)
         iam.destroy()

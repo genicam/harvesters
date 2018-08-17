@@ -19,6 +19,7 @@
 
 
 # Standard library imports
+import os
 import sys
 import unittest
 
@@ -30,13 +31,16 @@ from harvesters._private.core.helper.system import is_running_on_windows
 
 
 class TestHarvesterCoreBase(unittest.TestCase):
-    _path = 'C:/Users/z1533tel/dev/genicam/bin/Win64_x64/' \
-        if is_running_on_windows() else \
-        '/Users/kznr/dev/genicam/bin/Maci64_x64/'
+    name = 'HARVESTER_TEST_TARGET'
+    if name in os.environ:
+        _cti_file = os.getenv(name)
+    else:
+        if is_running_on_windows():
+            _cti_file = 'c:/users/z1533tel/dev/genicam/bin/win64_x64/TLSimu.cti'
+        else:
+            _cti_file = '/Users/kznr/dev/genicam/bin/Maci64_x64/TLSimu.cti'
 
-    _filename = 'TLSimu.cti'
-
-    sys.path.append(_path)
+    sys.path.append(_cti_file)
 
     def __init__(self, *args, **kwargs):
         #
@@ -53,7 +57,7 @@ class TestHarvesterCoreBase(unittest.TestCase):
 
         #
         self._harvester = Harvester()
-        self._harvester.add_cti_file(self._path + self._filename)
+        self._harvester.add_cti_file(self._cti_file)
         self._harvester.update_device_info_list()
         self._iam = None
         self._thread = None

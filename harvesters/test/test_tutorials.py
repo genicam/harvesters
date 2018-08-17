@@ -30,6 +30,9 @@ from harvesters.test.base_harvester import TestHarvesterCoreBase
 class TestTutorials(TestHarvesterCoreBase):
 
     def test_severis_usage(self):
+        if 'TLSimu.cti' not in self._cti_file:
+            return
+
         # Connect to the first camera in the list.
         self.iam = self.harvester.create_image_acquisition_manager(0)
 

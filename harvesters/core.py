@@ -52,8 +52,12 @@ from harvesters.pfnc import mono_formats, rgb_formats, \
 
 
 class ThreadBase:
+    """
+    TODO:
+    """
     def __init__(self, mutex=None):
         """
+        TODO: __init__
 
         :param mutex:
         """
@@ -246,7 +250,14 @@ class _PyThreadImpl(Thread):
 
 
 class ComponentBase:
+    """
+    TODO:
+    """
     def __init__(self, buffer=None):
+        """
+        TODO: __init__
+        :param buffer:
+        """
         #
         assert buffer
 
@@ -259,18 +270,34 @@ class ComponentBase:
 
     @property
     def data_format(self):
+        """
+        TODO:
+        :return:
+        """
         return self._buffer.data_format
 
     @property
     def data_format_namespace(self):
+        """
+        TODO:
+        :return:
+        """
         return self._buffer.data_format
 
     @property
     def source_id(self):
+        """
+        TODO:
+        :return:
+        """
         return self._buffer.source_id
 
     @property
     def data(self):
+        """
+        TODO:
+        :return:
+        """
         return self._data
 
 
@@ -281,8 +308,16 @@ class ComponentRaw(ComponentBase):
 
 
 class Component1D(ComponentBase):
+    """
+    TODO:
+    """
     #
     def __init__(self, buffer=None, part=None):
+        """
+        TODO: __init__
+        :param buffer:
+        :param part:
+        """
         #
         super().__init__(buffer=buffer)
 
@@ -294,7 +329,16 @@ class Component1D(ComponentBase):
 
 
 class Component2D(ComponentBase):
+    """
+    TODO:
+    """
     def __init__(self, buffer=None, part=None, node_map=None):
+        """
+        TODO: __init__
+        :param buffer:
+        :param part:
+        :param node_map:
+        """
         #
         assert node_map
         assert buffer
@@ -369,6 +413,10 @@ class Component2D(ComponentBase):
 
     @property
     def width(self):
+        """
+        TODO:
+        :return:
+        """
         try:
             if self._part:
                 value = self._part.width
@@ -380,6 +428,10 @@ class Component2D(ComponentBase):
 
     @property
     def height(self):
+        """
+        TODO:
+        :return:
+        """
         try:
             if self._part:
                 value = self._part.height
@@ -391,6 +443,10 @@ class Component2D(ComponentBase):
 
     @property
     def data_format(self):
+        """
+        TODO:
+        :return:
+        """
         try:
             if self._part:
                 value = self._part.data_format
@@ -402,6 +458,10 @@ class Component2D(ComponentBase):
 
     @property
     def delivered_image_height(self):
+        """
+        TODO:
+        :return:
+        """
         try:
             if self._part:
                 value = self._part.delivered_image_height
@@ -413,6 +473,10 @@ class Component2D(ComponentBase):
 
     @property
     def x_offset(self):  # TODO: Check the naming convention.
+        """
+        TODO:
+        :return:
+        """
         try:
             if self._part:
                 value = self._part.x_offset
@@ -424,6 +488,10 @@ class Component2D(ComponentBase):
 
     @property
     def y_offset(self):
+        """
+        TODO:
+        :return:
+        """
         try:
             if self._part:
                 value = self._part.y_offset
@@ -435,6 +503,10 @@ class Component2D(ComponentBase):
 
     @property
     def x_padding(self):
+        """
+        TODO:
+        :return:
+        """
         try:
             if self._part:
                 value = self._part.x_padding
@@ -446,6 +518,10 @@ class Component2D(ComponentBase):
 
     @property
     def y_padding(self):
+        """
+        TODO:
+        :return:
+        """
         try:
             if self._part:
                 value = self._part.y_padding
@@ -457,7 +533,16 @@ class Component2D(ComponentBase):
 
 
 class Buffer:
+    """
+    TODO:
+    """
     def __init__(self, buffer=None, data_stream=None, node_map=None):
+        """
+        TODO: __init__
+        :param buffer:
+        :param data_stream:
+        :param node_map:
+        """
         #
         super().__init__()
 
@@ -482,10 +567,18 @@ class Buffer:
 
     @property
     def timestamp_ns(self):
+        """
+        TODO:
+        :return:
+        """
         return self._buffer.timestamp_ns
 
     @property
     def timestamp(self):
+        """
+        TODO:
+        :return:
+        """
         timestamp = 0
         try:
             timestamp = self._buffer.timestamp_ns
@@ -505,6 +598,10 @@ class Buffer:
 
     @property
     def timestamp_frequency(self):
+        """
+        TODO:
+        :return:
+        """
         #
         frequency = 1000000000  # Hz
 
@@ -524,13 +621,25 @@ class Buffer:
 
     @property
     def payload_type(self):
+        """
+        TODO:
+        :return:
+        """
         return self._buffer.payload_type
 
     @property
     def payload(self):
+        """
+        TODO:
+        :return:
+        """
         return self._payload
 
     def queue(self):
+        """
+        Queues the buffer to prepare for the upcoming image acquisition.
+        :return:
+        """
         self._data_stream.queue_buffer(self._buffer)
 
     @staticmethod
@@ -567,7 +676,14 @@ class Buffer:
 
 
 class PayloadBase:
+    """
+    TODO:
+    """
     def __init__(self, buffer=None):
+        """
+        TODO: __init__
+        :param buffer:
+        """
         #
         super().__init__()
 
@@ -576,6 +692,10 @@ class PayloadBase:
 
     @property
     def payload_type(self):
+        """
+        TODO:
+        :return:
+        """
         return self._buffer.payload_type
 
     @staticmethod
@@ -597,6 +717,10 @@ class PayloadBase:
 
     @property
     def components(self):
+        """
+        TODO:
+        :return:
+        """
         return self._components
 
 
@@ -665,7 +789,15 @@ class PayloadChunkOnly(PayloadBase):
 
 
 class PayloadMultiPart(PayloadBase):
+    """
+    TODO:
+    """
     def __init__(self, buffer=None, node_map=None):
+        """
+        TODO: __init__
+        :param buffer:
+        :param node_map:
+        """
         #
         super().__init__(buffer=buffer)
 
@@ -688,10 +820,20 @@ class PayloadMultiPart(PayloadBase):
 
 
 class ImageAcquisitionManager:
+    """
+    TODO:
+    """
     def __init__(
             self, min_num_buffers=16, device=None,
             frontend=None, profiler=None
     ):
+        """
+        TODO: __init__
+        :param min_num_buffers:
+        :param device:
+        :param frontend:
+        :param profiler:
+        """
         #
         super().__init__()
 
@@ -787,14 +929,26 @@ class ImageAcquisitionManager:
 
     @property
     def device(self):
+        """
+        TODO:
+        :return:
+        """
         return self._device
 
     @property
     def interface(self):
+        """
+        TODO:
+        :return:
+        """
         return self._interface
 
     @property
     def system(self):
+        """
+        TODO:
+        :return:
+        """
         return self._system
 
     @property

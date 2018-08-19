@@ -1060,7 +1060,6 @@ class ImageAcquisitionManager:
                         num_buffers = num_required_buffers
                 except InvalidParameterException as e:
                     num_buffers = num_required_buffers
-                    num_buffers = num_required_buffers
 
                 if data_stream.defines_payload_size():
                     buffer_size = data_stream.payload_size

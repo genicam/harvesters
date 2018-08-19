@@ -690,7 +690,7 @@ class PayloadMultiPart(PayloadBase):
 class ImageAcquisitionManager:
     def __init__(
             self, min_num_buffers=16, device=None,
-            frontend=None, profiler=None
+            frontend=None, create_ds_at_connection=True, profiler=None
     ):
         #
         super().__init__()
@@ -718,8 +718,11 @@ class ImageAcquisitionManager:
 
         #
         self._data_streams = []
-        self._event_managers = []
-        self._setup_ds_and_event_manager()
+        self._event_new_buffer_managers = []
+
+        self._create_ds_at_connection = create_ds_at_connection
+        if self._create_ds_at_connection:
+            self._setup_data_streams()
 
         #
         self._frontend = frontend
@@ -861,7 +864,7 @@ class ImageAcquisitionManager:
     def signal_stop_image_acquisition(self, obj):
         self._signal_stop_image_acquisition = obj
 
-    def _setup_ds_and_event_manager(self):
+    def _setup_data_streams(self):
         #
         for i, stream_id in enumerate(self._device.data_stream_ids):
             data_stream = self._device.create_data_stream()
@@ -875,7 +878,7 @@ class ImageAcquisitionManager:
                 EVENT_TYPE_LIST.EVENT_NEW_BUFFER
             )
 
-            self._event_managers.append(EventManagerNewBuffer(event_token))
+            self._event_new_buffer_managers.append(EventManagerNewBuffer(event_token))
             self._data_streams.append(data_stream)
 
     def start_image_acquisition(self):
@@ -891,6 +894,9 @@ class ImageAcquisitionManager:
                 if self._frontend.canvas.is_pausing:
                     self._frontend.canvas.resume_drawing()
         else:
+            if not self._create_ds_at_connection:
+                self._setup_data_streams()
+
             #
             num_required_buffers = self._min_num_buffers
             try:
@@ -934,17 +940,19 @@ class ImageAcquisitionManager:
 
             self._num_images_to_acquire = num_images_to_acquire
 
-            # Start image acquisition.
-            self._data_streams[0].start_acquisition(
-                ACQ_START_FLAGS_LIST.ACQ_START_FLAGS_DEFAULT,
-                self._num_images_to_acquire
-            )
-
-            #
-            self._is_acquiring_images = True
-
             #
             self.reset_statistics()
+
+            # Start image acquisition.
+            self._is_acquiring_images = True
+
+            for data_stream in self._data_streams:
+                data_stream.start_acquisition(
+                    ACQ_START_FLAGS_LIST.ACQ_START_FLAGS_DEFAULT,
+                    self._num_images_to_acquire
+                )
+
+            #
             if self.thread_statistics_measurement:
                 self.thread_statistics_measurement.start()
 
@@ -1006,7 +1014,7 @@ class ImageAcquisitionManager:
         try:
             if self.is_acquiring_images:
                 time.sleep(0.001)
-                self._event_managers[0].update_event_data(
+                self._event_new_buffer_managers[0].update_event_data(
                     self._timeout_for_image_acquisition
                 )
             else:
@@ -1016,7 +1024,7 @@ class ImageAcquisitionManager:
         else:
             #
             buffer = Buffer(
-                buffer=self._event_managers[0].buffer,
+                buffer=self._event_new_buffer_managers[0].buffer,
                 data_stream=self._data_streams[0],
                 node_map=self.device.node_map
             )
@@ -1151,29 +1159,32 @@ class ImageAcquisitionManager:
                 #
                 self.device.node_map.AcquisitionStop.execute()
 
-                # Stop image acquisition.
-                try:
-                    self._data_streams[0].stop_acquisition(
-                        ACQ_STOP_FLAGS_LIST.ACQ_STOP_FLAGS_KILL
+                for data_stream in self._data_streams:
+                    # Stop image acquisition.
+                    try:
+                        data_stream.stop_acquisition(
+                            ACQ_STOP_FLAGS_LIST.ACQ_STOP_FLAGS_KILL
+                        )
+                    except ResourceInUseException:
+                        # Device throw RESOURCE_IN_USE exception
+                        # if the acquisition has already terminated or
+                        # it has not been started.
+                        pass
+                    except TimeoutException as e:
+                        print(e)
+
+                    # Flash the queue for image acquisition process.
+                    data_stream.flush_buffer_queue(
+                        ACQ_QUEUE_TYPE_LIST.ACQ_QUEUE_ALL_DISCARD
                     )
-                except ResourceInUseException:
-                    # Device throw RESOURCE_IN_USE exception
-                    # if the acquisition has already terminated or
-                    # it has not been started.
-                    pass
-                except TimeoutException as e:
-                    print(e)
 
-                # Flash the queue for image acquisition process.
-                self._data_streams[0].flush_buffer_queue(
-                    ACQ_QUEUE_TYPE_LIST.ACQ_QUEUE_ALL_DISCARD
-                )
+                for event_manager in self._event_new_buffer_managers:
+                    event_manager.flush_event_queue()
 
-                #
-                self._event_managers[0].flush_event_queue()
-
-                #
-                self._release_buffers()
+                if self._create_ds_at_connection:
+                    self._release_buffers()
+                else:
+                    self._release_data_streams()
 
             #
             self._has_acquired_1st_image = False
@@ -1203,6 +1214,9 @@ class ImageAcquisitionManager:
             self.stop_image_acquisition()
 
             #
+            self._release_data_streams()
+
+            #
             if self.device.node_map:
                 self.device.node_map.disconnect()
 
@@ -1220,20 +1234,20 @@ class ImageAcquisitionManager:
         self._release_buffers()
 
         #
-        for ds in self._data_streams:
-            if ds and ds.is_open():
-                ds.close()
+        for data_stream in self._data_streams:
+            if data_stream and data_stream.is_open():
+                data_stream.close()
 
         #
         self._data_streams.clear()
-        self._event_managers.clear()
+        self._event_new_buffer_managers.clear()
 
     def _release_buffers(self):
-        for ds in self._data_streams:
-            if ds.is_open():
+        for data_stream in self._data_streams:
+            if data_stream.is_open():
                 #
                 for buffer in self._announced_buffers:
-                    _ = ds.revoke_buffer(buffer)
+                    _ = data_stream.revoke_buffer(buffer)
 
         self._fetched_buffers.clear()
         self._announced_buffers.clear()

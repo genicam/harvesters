@@ -1170,11 +1170,11 @@ class ImageAcquisitionManager:
             self._statistics_latest.reset()
 
     def _worker_image_acquisition(self):
-        for event_new_buffer_manager in self._event_new_buffer_managers:
+        for event_manager in self._event_new_buffer_managers:
             try:
                 if self.is_acquiring_images:
                     time.sleep(0.001)
-                    event_new_buffer_manager.update_event_data(
+                    event_manager.update_event_data(
                         self._timeout_for_image_acquisition
                     )
                 else:
@@ -1183,11 +1183,18 @@ class ImageAcquisitionManager:
                 pass
             else:
                 #
-                buffer = Buffer(
-                    buffer=event_new_buffer_manager.buffer,
-                    data_stream=self._data_streams[0],  # TODO:
-                    node_map=self.device.node_map
-                )
+                try:  # TODO: Delete the except block right before the Python Bindings are officially released.
+                    buffer = Buffer(
+                        buffer=event_manager.buffer,
+                        data_stream=event_manager.parent,
+                        node_map=self.device.node_map
+                    )
+                except AttributeError:
+                    buffer = Buffer(
+                        buffer=event_manager.buffer,
+                        data_stream=self._data_streams[0],
+                        node_map=self.device.node_map
+                    )
 
                 #
                 self._update_statistics(buffer)

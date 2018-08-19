@@ -899,29 +899,35 @@ class ImageAcquisitionManager:
 
             #
             num_required_buffers = self._min_num_buffers
-            try:
-                num_buffers = self._data_streams[0].buffer_announce_min
-                if num_buffers < num_required_buffers:
+            for data_stream in self._data_streams:
+                try:
+                    num_buffers = data_stream.buffer_announce_min
+                    if num_buffers < num_required_buffers:
+                        num_buffers = num_required_buffers
+                except InvalidParameterException as e:
                     num_buffers = num_required_buffers
-            except InvalidParameterException as e:
-                num_buffers = num_required_buffers
+                    num_buffers = num_required_buffers
 
-            if self._data_streams[0].defines_payload_size():
-                buffer_size = self._data_streams[0].payload_size
-            else:
-                buffer_size = self.device.node_map.PayloadSize.value
+                if data_stream.defines_payload_size():
+                    buffer_size = data_stream.payload_size
+                else:
+                    buffer_size = self.device.node_map.PayloadSize.value
 
-            raw_buffers = self._create_raw_buffers(
-                num_buffers, buffer_size
-            )
-            buffer_tokens = self._create_buffer_tokens(
-                raw_buffers
-            )
+                raw_buffers = self._create_raw_buffers(
+                    num_buffers, buffer_size
+                )
 
-            self._announced_buffers = self._announce_buffers(
-                buffer_tokens
-            )
-            self._queue_announced_buffers(self._announced_buffers)
+                buffer_tokens = self._create_buffer_tokens(
+                    raw_buffers
+                )
+
+                self._announced_buffers = self._announce_buffers(
+                    data_stream=data_stream, _buffer_tokens=buffer_tokens
+                )
+
+                self._queue_announced_buffers(
+                    data_stream=data_stream, buffers=self._announced_buffers
+                )
 
             # Reset the number of images to acquire.
             try:
@@ -1010,44 +1016,44 @@ class ImageAcquisitionManager:
             self._statistics_latest.reset()
 
     def _worker_image_acquisition(self):
-
-        try:
-            if self.is_acquiring_images:
-                time.sleep(0.001)
-                self._event_new_buffer_managers[0].update_event_data(
-                    self._timeout_for_image_acquisition
-                )
+        for event_new_buffer_manager in self._event_new_buffer_managers:
+            try:
+                if self.is_acquiring_images:
+                    time.sleep(0.001)
+                    event_new_buffer_manager.update_event_data(
+                        self._timeout_for_image_acquisition
+                    )
+                else:
+                    return
+            except TimeoutException:
+                pass
             else:
-                return
-        except TimeoutException:
-            pass
-        else:
-            #
-            buffer = Buffer(
-                buffer=self._event_new_buffer_managers[0].buffer,
-                data_stream=self._data_streams[0],
-                node_map=self.device.node_map
-            )
+                #
+                buffer = Buffer(
+                    buffer=event_new_buffer_manager.buffer,
+                    data_stream=self._data_streams[0],  # TODO:
+                    node_map=self.device.node_map
+                )
 
-            #
-            self._update_statistics(buffer)
+                #
+                self._update_statistics(buffer)
 
-            if buffer:
-                # We've got a new image so now we can reuse the buffer that
-                # we had kept.
-                with MutexLocker(self.thread_image_acquisition):
+                if buffer:
+                    # We've got a new image so now we can reuse the buffer that
+                    # we had kept.
+                    with MutexLocker(self.thread_image_acquisition):
 
-                    if not self._is_acquiring_images:
-                        return
+                        if not self._is_acquiring_images:
+                            return
 
-                    if len(self._fetched_buffers) >= self._num_images_to_hold:
-                        # We have a buffer now so we queue it; it's discarded
-                        # before being used.
-                        self._fetched_buffers.pop(0).queue()
+                        if len(self._fetched_buffers) >= self._num_images_to_hold:
+                            # We have a buffer now so we queue it; it's discarded
+                            # before being used.
+                            self._fetched_buffers.pop(0).queue()
 
-                    # Append the recently fetched buffer.
-                    # Then one buffer remains for our client.
-                    self._fetched_buffers.append(buffer)
+                        # Append the recently fetched buffer.
+                        # Then one buffer remains for our client.
+                        self._fetched_buffers.append(buffer)
 
             #
             if self._num_images_to_acquire >= 1:
@@ -1119,14 +1125,17 @@ class ImageAcquisitionManager:
         # Then returns the list.
         return _buffer_tokens
 
-    def _announce_buffers(self, _buffer_tokens):
+    def _announce_buffers(self, data_stream=None, _buffer_tokens=None):
+        #
+        assert data_stream
+
         #
         announced_buffers = []
 
         # Iterate announcing buffers in the Buffer Tokens.
         for token in _buffer_tokens:
             # Get an announced buffer.
-            announced_buffer = self._data_streams[0].announce_buffer(token)
+            announced_buffer = data_stream.announce_buffer(token)
 
             # And append it to the list.
             announced_buffers.append(announced_buffer)
@@ -1134,9 +1143,13 @@ class ImageAcquisitionManager:
         # Then return the list of announced Buffer objects.
         return announced_buffers
 
-    def _queue_announced_buffers(self, buffers):
+    def _queue_announced_buffers(self, data_stream=None, buffers=None):
+        #
+        assert data_stream
+
+        #
         for buffer in buffers:
-            self._data_streams[0].queue_buffer(buffer)
+            data_stream.queue_buffer(buffer)
 
     def stop_image_acquisition(self):
         """

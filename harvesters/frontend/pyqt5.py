@@ -28,9 +28,6 @@ from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QMainWindow, QAction, QComboBox, \
     QDesktopWidget, QFileDialog, QDialog, QShortcut, QApplication
 
-from genicam2.gentl import PAYLOADTYPE_INFO_IDS
-from genicam2.gentl import InvalidParameterException
-
 # Local application/library specific imports
 from harvesters._private.frontend.canvas import Canvas
 from harvesters._private.frontend.helper import compose_tooltip
@@ -42,8 +39,6 @@ from harvesters._private.frontend.pyqt5.helper import get_system_font
 from harvesters._private.frontend.pyqt5.icon import Icon
 from harvesters._private.frontend.pyqt5.thread import PyQtThread
 from harvesters.core import Harvester as HarvesterCore
-from harvesters.pfnc import mono_formats, rgb_formats, \
-    rgba_formats, bayer_formats
 
 
 class Harvester(QMainWindow):

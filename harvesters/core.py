@@ -251,7 +251,7 @@ class _PyThreadImpl(Thread):
 
 class ComponentBase:
     """
-    TODO:
+    Is a base class of various (image) data component types.
     """
     def __init__(self, buffer=None):
         """
@@ -271,7 +271,7 @@ class ComponentBase:
     @property
     def data_format(self):
         """
-        TODO:
+        Returns the data type of the data component.
         :return:
         """
         return self._buffer.data_format
@@ -279,7 +279,7 @@ class ComponentBase:
     @property
     def data_format_namespace(self):
         """
-        TODO:
+        Returns the data type namespace of the data component.
         :return:
         """
         return self._buffer.data_format
@@ -295,7 +295,7 @@ class ComponentBase:
     @property
     def data(self):
         """
-        TODO:
+        Returns the component data.
         :return:
         """
         return self._data
@@ -330,7 +330,7 @@ class Component1D(ComponentBase):
 
 class Component2D(ComponentBase):
     """
-    TODO:
+    Represents a color or monochrome (2D) image.
     """
     def __init__(self, buffer=None, part=None, node_map=None):
         """
@@ -414,7 +414,7 @@ class Component2D(ComponentBase):
     @property
     def width(self):
         """
-        TODO:
+        Returns the width of the data component in the buffer in number of pixels.
         :return:
         """
         try:
@@ -429,7 +429,7 @@ class Component2D(ComponentBase):
     @property
     def height(self):
         """
-        TODO:
+        Returns the height of the data component in the buffer in number of pixels.
         :return:
         """
         try:
@@ -444,7 +444,7 @@ class Component2D(ComponentBase):
     @property
     def data_format(self):
         """
-        TODO:
+        Returns the data type of the data component.
         :return:
         """
         try:
@@ -459,7 +459,7 @@ class Component2D(ComponentBase):
     @property
     def delivered_image_height(self):
         """
-        TODO:
+        Returns the image height of the data component.
         :return:
         """
         try:
@@ -474,7 +474,7 @@ class Component2D(ComponentBase):
     @property
     def x_offset(self):  # TODO: Check the naming convention.
         """
-        TODO:
+        Returns the X offset of the data in the buffer in number of pixels from the image origin to handle areas of interest.
         :return:
         """
         try:
@@ -489,7 +489,7 @@ class Component2D(ComponentBase):
     @property
     def y_offset(self):
         """
-        TODO:
+        Returns the Y offset of the data in the buffer in number of pixels from the image origin to handle areas of interest.
         :return:
         """
         try:
@@ -504,6 +504,7 @@ class Component2D(ComponentBase):
     @property
     def x_padding(self):
         """
+        Returns the X padding of the data component in the buffer in number of pixels.
         TODO:
         :return:
         """
@@ -519,6 +520,7 @@ class Component2D(ComponentBase):
     @property
     def y_padding(self):
         """
+        Returns the Y padding of the data component in the buffer in number of pixels.
         TODO:
         :return:
         """
@@ -622,23 +624,25 @@ class Buffer:
     @property
     def payload_type(self):
         """
-        TODO:
-        :return:
+        Returns a payload type of the payload.
+
+        :rtype: genicam2.gentl.PAYLOADTYPE_INFO_IDS
+
         """
+
         return self._buffer.payload_type
 
     @property
     def payload(self):
         """
-        TODO:
+        Returns the payload that the Buffer object contains.
         :return:
         """
         return self._payload
 
     def queue(self):
         """
-        Queues the buffer to prepare for the upcoming image acquisition.
-        :return:
+        Queues the buffer to prepare for the upcoming image acquisition. Once the buffer is queued, the Buffer object will be obsolete. You'll have nothing to do with it.
         """
         self._data_stream.queue_buffer(self._buffer)
 
@@ -673,7 +677,6 @@ class Buffer:
             payload = None
 
         return payload
-
 
 class PayloadBase:
     """
@@ -718,7 +721,7 @@ class PayloadBase:
     @property
     def components(self):
         """
-        TODO:
+        Returns a list containing Component objects.
         :return:
         """
         return self._components
@@ -821,7 +824,7 @@ class PayloadMultiPart(PayloadBase):
 
 class ImageAcquisitionManager:
     """
-    TODO:
+    Manages everything you need to acquire images from an image transmitter device.
     """
     def __init__(
             self, min_num_buffers=16, device=None,
@@ -933,7 +936,8 @@ class ImageAcquisitionManager:
     @property
     def device(self):
         """
-        TODO:
+        Returns the proxy Device module object of the connecting remote
+        device.
         :return:
         """
         return self._device
@@ -941,7 +945,8 @@ class ImageAcquisitionManager:
     @property
     def interface(self):
         """
-        TODO:
+        Returns the parent Interface module object of the connecting remote
+        device.
         :return:
         """
         return self._interface
@@ -949,7 +954,8 @@ class ImageAcquisitionManager:
     @property
     def system(self):
         """
-        TODO:
+        Returns the parent System module object of the connecting remote
+        device.
         :return:
         """
         return self._system

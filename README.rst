@@ -615,7 +615,9 @@ Once you started image acquisition, you should definitely want to get an image. 
 .. code-block:: python
 
     with iam.fetch_buffer() as buffer:
+        # Work with the Buffer object. It consists of everything you need.
         print(buffer)
+        # The buffer will automatically be queued.
 
 Having that code, the fetched buffer is automatically queued once the code step out from the scope of the ``with`` statement. It's prevents you to forget queueing it by accident. The other option is to manually queue the fetched buffer by yourself:
 
@@ -623,9 +625,10 @@ Having that code, the fetched buffer is automatically queued once the code step 
 
     buffer = iam.fetch_buffer()
     print(buffer)
-    iam.queue_buffer(buffer)
+    # Don't forget to queue the buffer.
+    buffer.queue()
 
-In this option, again, do not forget that you have to queue the buffer by yourself. If you forgot queueing it, then you'll lose a buffer that could be used for image acquisition. Everything is up to your design, so please choose an appropriate way for you.
+In this option, again, do not forget that you have to queue the buffer by yourself. If you forgot queueing it, then you'll lose a buffer that could be used for image acquisition. Everything is up to your design, so please choose an appropriate way for you. In addition, once you queued the buffer, the Buffer object will be obsolete. There's nothing to do with it.
 
 Okay, then you would stop image acquisition with the following code:
 

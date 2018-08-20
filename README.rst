@@ -221,7 +221,7 @@ Before start talking about the detail, let's take a look at some important termi
 
 The following diagram shows the hierarchy and relationship of the relevant modules:
 
-.. figure:: https://user-images.githubusercontent.com/8652625/41278759-9d0a5ea0-6e65-11e8-976b-2db8d085b9aa.png
+.. figure:: https://user-images.githubusercontent.com/8652625/44316633-926cf100-a467-11e8-92c6-ac69ad3c8129.png
     :align: center
     :alt: Module hierarchy
     :scale: 40 %
@@ -483,7 +483,7 @@ The source code can be downloaded from the following URL using Subversion:
 
 .. code-block:: shell
 
-    $ svn co https://genicam.mvtec.com/svn/genicam/branches/_dev_teli_kazunari_1881_20180121/
+    $ svn co https://genicam.mvtec.com/svn/genicam/branches/_dev_teli_kazunari_1881_20180812/
 
 Note that you need to be a member of EMVA to download a working copy from their repository. To learn about the detail please visit the following EMVA website:
 

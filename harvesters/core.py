@@ -678,9 +678,10 @@ class Buffer:
 
         return payload
 
+
 class PayloadBase:
     """
-    TODO:
+    Is a base class of various payload types.
     """
     def __init__(self, buffer=None):
         """
@@ -824,7 +825,7 @@ class PayloadMultiPart(PayloadBase):
 
 class ImageAcquisitionManager:
     """
-    Manages everything you need to acquire images from an image transmitter device.
+    Manages everything you need to acquire images from the connecting image transmitter device.
     """
     def __init__(
             self, min_num_buffers=16, device=None,
@@ -1576,7 +1577,7 @@ class Harvester:
             serial_number=None, version=None,
         ):
         """
-        Opens an image acquisition manager for the specified device and return it.
+        Creates an image acquisition manager for the specified device and return it.
 
         :param list_index: Set an item index of the list of :class:`~genicam2.gentl.DeviceInfo` objects.
         :param id_:

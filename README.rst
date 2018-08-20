@@ -614,16 +614,16 @@ Once you started image acquisition, you should definitely want to get an image. 
 
 .. code-block:: python
 
-    with iam.fetch_buffer_manager() as bm:
-        print(bm.payload)
+    with iam.fetch_buffer() as buffer:
+        print(buffer)
 
 Having that code, the fetched buffer is automatically queued once the code step out from the scope of the ``with`` statement. It's prevents you to forget queueing it by accident. The other option is to manually queue the fetched buffer by yourself:
 
 .. code-block:: python
 
-    bm = iam.fetch_buffer_manager()
-    print(bm.payload)
-    iam.queue_buffer(bm)
+    buffer = iam.fetch_buffer()
+    print(buffer)
+    iam.queue_buffer(buffer)
 
 In this option, again, do not forget that you have to queue the buffer by yourself. If you forgot queueing it, then you'll lose a buffer that could be used for image acquisition. Everything is up to your design, so please choose an appropriate way for you.
 

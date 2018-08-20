@@ -34,16 +34,16 @@ log.set_verbosity(log.DEBUG)
 log.info('Entered setup.py')
 log.info('$PATH=%s' % os.environ['PATH'])
 
-__doc__ = ''
 with open('README.rst', 'r',encoding='utf-8_sig') as fh:
     __doc__ = fh.read()
 
-name = 'harvesters'
 description = 'Image acquisition & data visualization library with Python maintained by the official GenICam committee'
 
 setuptools.setup(
+    # The author of the package:
     author='The GenICam Committee',
     author_email='genicam@list.stemmer-imaging.com',
+    # Tells the index and pip some additional metadata about our package:
     classifiers=(
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Science/Research',
@@ -58,25 +58,48 @@ setuptools.setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
     ),
+    # A short, on-sentence summary of the package:
     description=description,
+    # Location where the package may be downloaded:
     download_url='https://pypi.org/project/harvesters/',
+    # A list of required Python modules:
     install_requires=['numpy'],
+    #
     license='Apache Software License V2.0',
+    # A detailed description of the package:
     long_description=__doc__,
+    # The index to tell what type of markup is used for the long description:
     long_description_content_type='text/x-rst',
-    name=name,
+    # The name of the package:
+    name='harvesters',
+    # Keys: Package names; an empty name stands for the root package.
+    # Values: Directory names relative to the setup.py.
     package_dir={
         'harvesters': 'harvesters'
     },
+    # Keys: Package names.
+    # Values: A list of globs.
+    # All the files that match package_data will be added to the MANIFEST
+    # file if no template is provided:
     package_data={
         'harvesters': [
-            '_private/frontend/image/*/*.jpg',
-            '_private/frontend/image/*/*.png'
+            os.path.join(
+                '_private', 'frontend', 'image', '*', '*.jpg'
+            ),
+            os.path.join(
+                '_private', 'frontend', 'image', '*', '*.png'
+            ),
         ]
     },
+    # A list of all Python import packages that should be included in the
+    # distribution package:
     packages=setuptools.find_packages(),
+    # A list of supported platforms:
     platforms='any',
+    #
     provides=['harvesters'],
+    # The URL for the website of the project:
     url='https://github.com/genicam/harvesters',
+    # The package version:
     version=versioneer.get_version(),
 )

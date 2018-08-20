@@ -57,8 +57,6 @@ class ThreadBase:
     """
     def __init__(self, mutex=None):
         """
-        TODO: __init__
-
         :param mutex:
         """
         #
@@ -255,7 +253,6 @@ class ComponentBase:
     """
     def __init__(self, buffer=None):
         """
-        TODO: __init__
         :param buffer:
         """
         #
@@ -314,7 +311,6 @@ class Component1D(ComponentBase):
     #
     def __init__(self, buffer=None, part=None):
         """
-        TODO: __init__
         :param buffer:
         :param part:
         """
@@ -334,7 +330,6 @@ class Component2D(ComponentBase):
     """
     def __init__(self, buffer=None, part=None, node_map=None):
         """
-        TODO: __init__
         :param buffer:
         :param part:
         :param node_map:
@@ -540,7 +535,6 @@ class Buffer:
     """
     def __init__(self, buffer=None, data_stream=None, node_map=None):
         """
-        TODO: __init__
         :param buffer:
         :param data_stream:
         :param node_map:
@@ -685,7 +679,6 @@ class PayloadBase:
     """
     def __init__(self, buffer=None):
         """
-        TODO: __init__
         :param buffer:
         """
         #
@@ -798,7 +791,6 @@ class PayloadMultiPart(PayloadBase):
     """
     def __init__(self, buffer=None, node_map=None):
         """
-        TODO: __init__
         :param buffer:
         :param node_map:
         """
@@ -832,7 +824,6 @@ class ImageAcquisitionManager:
             frontend=None, create_ds_at_connection=True, profiler=None
     ):
         """
-        TODO: __init__
         :param min_num_buffers:
         :param device:
         :param frontend:
@@ -1488,12 +1479,13 @@ def _get_port_connected_node_map(port=None):
 
 
 class Harvester:
+    """
+    Is the class that works for you as Harvester Core. Everything starts with this class.
+    """
     def __init__(
             self, frontend=None, profile=False, parent=None
     ):
         """
-        Is a Python class that works as Harvester Core. You can image
-        acquisition related task through this class.
 
         :param frontend:
         :param profile:

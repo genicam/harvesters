@@ -150,7 +150,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             iam.destroy()
 
     def test_controlling_a_specific_camera(self):
-        if 'TLSimu.cti' not in self._cti_file:
+        if not self.is_running_with_default_target():
             return
 
         # The basic usage.

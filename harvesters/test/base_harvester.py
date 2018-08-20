@@ -27,7 +27,8 @@ import unittest
 
 # Local application/library specific imports
 from harvesters.core import Harvester
-from harvesters._private.core.helper.system import is_running_on_windows
+from harvesters._private.core.helper.system import is_running_on_windows, \
+    is_running_on_macos
 
 
 class TestHarvesterCoreBase(unittest.TestCase):
@@ -36,9 +37,14 @@ class TestHarvesterCoreBase(unittest.TestCase):
         _cti_file = os.getenv(name)
     else:
         if is_running_on_windows():
-            _cti_file = 'c:/users/z1533tel/dev/genicam/bin/win64_x64/TLSimu.cti'
+            _cti_file = 'C:/Users/z1533tel/dev/genicam/bin/Win64_x64'
         else:
-            _cti_file = '/Users/kznr/dev/genicam/bin/Maci64_x64/TLSimu.cti'
+            if is_running_on_macos():
+                _cti_file = '/Users/kznr/dev/genicam/bin/Maci64_x64'
+            else:
+                _cti_file = '/home/vagrant/dev/genicam/bin/Linux64_x64'
+
+        _cti_file += '/TLSimu.cti'
 
     sys.path.append(_cti_file)
 
@@ -92,6 +98,9 @@ class TestHarvesterCoreBase(unittest.TestCase):
     @general_purpose_thread.setter
     def general_purpose_thread(self, value):
         self._thread = value
+
+    def is_running_with_default_target(self):
+        return True if 'TLSimu.cti' in self._cti_file else False
 
 
 if __name__ == '__main__':

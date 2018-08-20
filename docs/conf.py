@@ -374,3 +374,12 @@ intersphinx_mapping = {
 
 # List up the module to be mocked.
 autodoc_mock_imports = ['genicam2']
+
+def skip(app, what, name, obj, skip, options):
+    if name == "__init__":
+        return False
+    return skip
+
+def setup(app):
+    app.connect("autodoc-skip-member", skip)
+    

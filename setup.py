@@ -93,7 +93,7 @@ setuptools.setup(
     },
     # A list of all Python import packages that should be included in the
     # distribution package:
-    packages=setuptools.find_packages(where='src'),
+    packages=setuptools.find_packages(),
     # A list of supported platforms:
     platforms='any',
     #

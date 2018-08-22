@@ -22,12 +22,12 @@
 import os
 import setuptools
 from distutils import log
+import sys
 
 # Related third party imports
 
 # Local application/library specific imports
 import versioneer as versioneer
-
 
 #
 log.set_verbosity(log.DEBUG)
@@ -38,6 +38,14 @@ with open('README.rst', 'r',encoding='utf-8_sig') as fh:
     __doc__ = fh.read()
 
 description = 'Image acquisition & data visualization library with Python maintained by the official GenICam committee'
+
+# Determine the base directory:
+base_dir = os.path.dirname(__file__)
+src_dir = os.path.join(base_dir, 'src')
+
+# Make our package importable when executing setup.py;
+# the package is located in src_dir:
+sys.path.insert(0, src_dir)
 
 setuptools.setup(
     # The author of the package:
@@ -63,7 +71,7 @@ setuptools.setup(
     # Location where the package may be downloaded:
     download_url='https://pypi.org/project/harvesters/',
     # A list of required Python modules:
-    install_requires=['numpy'],
+    install_requires=['numpy'],  # TODO: Add genicam2 once it's released.
     #
     license='Apache Software License V2.0',
     # A detailed description of the package:
@@ -72,10 +80,13 @@ setuptools.setup(
     long_description_content_type='text/x-rst',
     # The name of the package:
     name='harvesters',
+    # A list of all Python import packages that should be included in the
+    # distribution package:
+    packages=setuptools.find_packages(where='src'),
     # Keys: Package names; an empty name stands for the root package.
     # Values: Directory names relative to the setup.py.
     package_dir={
-        'harvesters': 'harvesters'
+        '': 'src'
     },
     # Keys: Package names.
     # Values: A list of globs.
@@ -91,9 +102,6 @@ setuptools.setup(
             ),
         ]
     },
-    # A list of all Python import packages that should be included in the
-    # distribution package:
-    packages=setuptools.find_packages(),
     # A list of supported platforms:
     platforms='any',
     #

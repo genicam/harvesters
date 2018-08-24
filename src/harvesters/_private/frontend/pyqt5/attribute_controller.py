@@ -132,6 +132,7 @@ class AttributeController(QMainWindow):
             QComboBox.AdjustToContents
         )
 
+        #
         items = ('Beginner', 'Expert', 'Guru', 'All')
         for item in items:
             self._combo_box_visibility.addItem(item)
@@ -202,6 +203,11 @@ class AttributeController(QMainWindow):
         #
         group_manipulation.actionTriggered[QAction].connect(
             self.on_button_clicked_action
+        )
+
+        #
+        self._combo_box_visibility.setCurrentIndex(
+            self._visibility_dict['Expert']
         )
 
     def _invalidate_feature_tree_by_visibility(self):

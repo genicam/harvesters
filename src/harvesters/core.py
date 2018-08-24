@@ -825,7 +825,7 @@ class PayloadMultiPart(PayloadBase):
         :param node_map:
         """
         #
-        super().__init__(buffer=buffer)
+        super().__init__(buffer=buffer, node_map=node_map)
 
         # Build data components.
         # We know the buffer consists of a set of "part" that is

@@ -41,7 +41,8 @@ from harvesters.pfnc import component_8bit_formats, component_10bit_formats, \
 class Canvas(app.Canvas):
     _visible_payloads = [
         PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE,
-        PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_DATA
+        PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_DATA,
+        PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART,
     ]
 
     def __init__(

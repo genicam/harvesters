@@ -738,11 +738,11 @@ class PayloadBase:
         #
         generic = False
         if buffer.tl_type == 'U3V':
-            chunk_adapter = ChunkAdapterU3V(node_map._Ptr)
+            chunk_adapter = ChunkAdapterU3V(node_map.pointer)
         elif buffer.tl_type == 'GEV':
-            chunk_adapter = ChunkAdapterGEV(node_map._Ptr)
+            chunk_adapter = ChunkAdapterGEV(node_map.pointer)
         else:
-            chunk_adapter = ChunkAdapterGeneric(node_map._Ptr)
+            chunk_adapter = ChunkAdapterGeneric(node_map.pointer)
             generic = True
 
         try:

@@ -32,11 +32,11 @@ You can freely use, modify, distribute Harvester under `Apache License-2.0 <http
 
 Currently, Harvester is being developed and maintained by the motivated volunteer contributors from all over the world.
 
-***************************
-Why is it called Harvester?
-***************************
+***********************
+Where is the name from?
+***********************
 
-Harvester's name was derived from the great Flemish painter, Pieter Bruegel the Elder's painting so-called "The Harvesters". Harvesters harvest a crop every season that has been fully grown and the harvested crop is passed to the consumers. On the other hand, image acquisition libraries acquire images as their crop and the images are passed to the following processes. We found the similarity between them and decided to name our library Harvester.
+Harvester's name was coming from the great Flemish painter, Pieter Bruegel the Elder's painting so-called "The Harvesters". Harvesters harvest a crop every season that has been fully grown and the harvested crop is passed to the consumers. On the other hand, image acquisition libraries acquire images as their crop and the images are passed to the following processes. We found the similarity between them and decided to name our library Harvester.
 
 Apart from anything else, we love its peaceful and friendly name. We hope you also like it ;-)
 
@@ -47,17 +47,17 @@ Apart from anything else, we love its peaceful and friendly name. We hope you al
 
     Pieter Bruegel the Elder, The Harvesters, 1565, (c) 2000–2018 The Metropolitan Museum of Art
 
-****************
+################
 Asking questions
-****************
+################
 
 We have prepared a chat room in Gitter. Please don't hesitate to drop your message when you get a question regarding Harvester!
 
 https://gitter.im/genicam-harvester/chatroom
 
-**************
+##############
 External links
-**************
+##############
 
 * `GitHub <https://github.com/genicam/harvesters>`_: This is the main repository of Harvester
 * `PyPI <https://pypi.org/project/harvesters/>`_: This is the package distribution page of Harvester which is located in PyPI
@@ -267,20 +267,7 @@ Pixel formats that Harvester Core supports
 
 Currently Harvester Core supports the following pixel formats that are defined by the Pixel Format Naming Convention:
 
-* ``Mono8``
-* ``Mono10``
-* ``Mono12``
-* ``Mono16``
-* ``RGB8``
-* ``RGBa8``
-* ``BayerRG8``
-* ``BayerGR8``
-* ``BayerBG8``
-* ``BayerGB8``
-* ``BayerRG16``
-* ``BayerGR16``
-* ``BayerBG16``
-* ``BayerGB16``
+    ``Mono8``, ``Mono10``, ``Mono12``, ``Mono16``, ``RGB8``, ``RGBa8``, ``BayerRG8``, ``BayerGR8``, ``BayerBG8``, ``BayerGB8``, ``BayerRG16``, ``BayerGR16``, ``BayerBG16``, ``BayerGB16``
 
 *************
 Harvester GUI
@@ -305,20 +292,7 @@ Pixel formats that Harvester GUI supports
 
 Currently Harvester GUI supports the following pixel formats that are defined by the Pixel Format Naming Convention:
 
-* ``Mono8``
-* ``Mono10``
-* ``Mono12``
-* ``Mono16``
-* ``RGB8``
-* ``RGBa8``
-* ``BayerRG8``
-* ``BayerGR8``
-* ``BayerBG8``
-* ``BayerGB8``
-* ``BayerRG16``
-* ``BayerGR16``
-* ``BayerBG16``
-* ``BayerGB16``
+    ``Mono8``, ``Mono10``, ``Mono12``, ``Mono16``, ``RGB8``, ``RGBa8``, ``BayerRG8``, ``BayerGR8``, ``BayerBG8``, ``BayerGB8``, ``BayerRG16``, ``BayerGR16``, ``BayerBG16``, ``BayerGB16``
 
 Note that Harvester GUI has not yet supported demosaicing.
 
@@ -412,7 +386,7 @@ System requirements
 
 The following software modules are required to get Harvester working:
 
-* Python 3.4 or higher
+* Python 3.4 or later
 
 In addition, you will need the following items to let Harvester make something meaningful:
 
@@ -460,18 +434,27 @@ the package name is ``harvesters`` but not ``harvester``:
 
     $ pip install harvesters
 
-Or you could install the latest development version it using ``setup.py`` cloning Harvester from GitHub:
+For people who those have already installed it:
+
+.. code-block:: shell
+
+    $ pip install --upgrade harvesters
+
+These commands will automatically install the required modules such as ``numpy`` if any of them has not yet installed on your environment. The official Python Bindings should be also covered by the installation process but it's not available as of August 2018.
+
+Getting back to the original topic, you could install the latest development version it using ``setup.py`` cloning Harvester from GitHub:
 
 .. code-block:: shell
 
     $ git clone https://github.com/genicam/harvesters.git && cd harvesters && python setup.py install
 
-If you want to use Harvester GUI, then please install the following modules in advance:
+If you want to use Harvester GUI, then please install the following modules in advance because ``PyQt`` is provided under LGPL which may not be ideal for your purpose without having reasonable consideration:
 
 .. code-block:: shell
 
-    $ pip install PyQt5 vispy
+    $ pip install PyQt5
 
+In the future, we might support other GUI frameworks which are more or less open and free.
 
 ******************************
 Installing the Python Bindings
@@ -495,7 +478,7 @@ To build the library, please read the ``README`` file which is located at the fo
 
 Reading that file, you should be able to learn everything you need to build the Python Bindings by yourself.
 
-In the final release, a ``setup.py`` for the Python Bindings will be provided with the GenICam reference implementation package that is distributed at the EMVA website but it's not been available yet. Until it turns available, you may go on a way to manually create a symlink to bridge your target Python interpreter and the built/provided binaries.
+In the end, Python Wheels for the Python Bindings will be distributed at PyPI to allow people installing the Bindings over the ``pip`` command but it's not been available yet. Until it turns available, you may go on a way to manually create a symlink to bridge your target Python interpreter and the built/provided binaries.
 
 The Python Bindings should be packed as ``genicam2``. So on Windows, to create a symlink ``genicam2`` in your target Python interpreter, please invoke the following command:
 
@@ -628,7 +611,7 @@ Having that code, the fetched buffer is automatically queued once the code step 
     # Don't forget to queue the buffer.
     buffer.queue()
 
-In this option, again, do not forget that you have to queue the buffer by yourself. If you forgot queueing it, then you'll lose a buffer that could be used for image acquisition. Everything is up to your design, so please choose an appropriate way for you. In addition, once you queued the buffer, the Buffer object will be obsolete. There's nothing to do with it.
+In this option, again, please do not forget that you have to queue the buffer by yourself. If you forget queueing it, then you'll lose a buffer that could be used for image acquisition. Everything is up to your design, so please choose an appropriate way for you. In addition, once you queued the buffer, the Buffer object will be obsolete. There's nothing to do with it.
 
 Okay, then you would stop image acquisition with the following code:
 
@@ -646,7 +629,7 @@ Now you can quit the program! Please not that the image acquisition manager also
 
 .. code-block:: python
 
-    with h.open_image_acquisition_manager(0) as iam:
+    with h.create_image_acquisition_manager(0) as iam:
         # Work, work, and work with the iam object.
 
     # the iam object will automatically call the destroy method.
@@ -655,7 +638,7 @@ Now you can quit the program! Please not that the image acquisition manager also
 Using Harvester GUI
 *******************
 
-To use Harvester GUI, let's create a Python script file, naming ``foo.py``, that contains the following code:
+To use Harvester GUI, let's create a Python script file, naming ``harvester_gui.py``, that contains the following code:
 
 .. code-block:: python
 
@@ -669,11 +652,11 @@ To use Harvester GUI, let's create a Python script file, naming ``foo.py``, that
         h.show()
         sys.exit(app.exec_())
 
-Then launch ``foo.py``:
+Then launch ``harvester_gui.py``:
 
 .. code-block:: shell
 
-    $ python foo.py
+    $ python harvester_gui.py
 
 You will see Harvester GUI pops up.
 

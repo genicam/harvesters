@@ -29,14 +29,21 @@ from vispy import app
 from vispy.gloo import Program
 from vispy.util.transforms import ortho
 
-from genicam2.gentl import InvalidParameterException
+from genicam2.gentl import PAYLOADTYPE_INFO_IDS
 
 # Local application/library specific imports
 from harvesters._private.core.helper.system import is_running_on_macos
 from harvesters.pfnc import component_8bit_formats, component_10bit_formats, \
     component_12bit_formats, component_14bit_formats, component_16bit_formats
 
+
+
 class Canvas(app.Canvas):
+    _visible_payloads = [
+        PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE,
+        PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_DATA
+    ]
+
     def __init__(
             self,
             image_acquisition_manager=None,
@@ -189,6 +196,9 @@ class Canvas(app.Canvas):
         # Fetch a buffer.
         try:
             with self.iam.fetch_buffer(timeout_ms=0.1) as buffer:
+                if buffer.payload_type not in self._visible_payloads:
+                    return
+
                 # Set the image as the texture of our canvas.
                 if not self._pause_drawing and buffer:
                     # Update the canvas size if needed.

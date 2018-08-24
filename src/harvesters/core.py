@@ -30,11 +30,14 @@ import zipfile
 import numpy as np
 
 from genicam2.genapi import NodeMap
-from genicam2.genapi import LogicalErrorException
+from genicam2.genapi import LogicalErrorException, RuntimeException
+from genicam2.genapi import ChunkAdapterGeneric, ChunkAdapterU3V, \
+    ChunkAdapterGEV
+
 from genicam2.gentl import TimeoutException, AccessDeniedException, \
     LoadLibraryException, InvalidParameterException, \
     NotImplementedException, NotAvailableException, ClosedException, \
-    ResourceInUseException
+    ResourceInUseException, ParsingChunkDataException, NoDataException
 from genicam2.gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
 from genicam2.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
@@ -648,23 +651,22 @@ class Buffer:
 
         #
         if buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_UNKNOWN:
-            payload = PayloadUnknown(buffer=buffer)
-        elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE:
+            payload = PayloadUnknown(buffer=buffer, node_map=node_map)
+        elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE or \
+                buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_DATA:
             payload = PayloadImage(buffer=buffer, node_map=node_map)
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_RAW_DATA:
-            payload = PayloadRawData(buffer=buffer)
+            payload = PayloadRawData(buffer=buffer, node_map=node_map)
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_FILE:
-            payload = PayloadFile(buffer=buffer)
-        elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_DATA:
-            payload = PayloadChunkData(buffer=buffer)
+            payload = PayloadFile(buffer=buffer, node_map=node_map)
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG:
-            payload = PayloadJPEG(buffer=buffer)
+            payload = PayloadJPEG(buffer=buffer, node_map=node_map)
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG2000:
-            payload = PayloadJPEG2000(buffer=buffer)
+            payload = PayloadJPEG2000(buffer=buffer, node_map=node_map)
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_H264:
-            payload = PayloadH264(buffer=buffer)
+            payload = PayloadH264(buffer=buffer, node_map=node_map)
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_ONLY:
-            payload = PayloadChunkOnly(buffer=buffer)
+            payload = PayloadChunkOnly(buffer=buffer, node_map=node_map)
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART:
             payload = PayloadMultiPart(buffer=buffer, node_map=node_map)
         else:
@@ -677,7 +679,7 @@ class PayloadBase:
     """
     Is a base class of various payload types.
     """
-    def __init__(self, buffer=None):
+    def __init__(self, buffer=None, node_map=None):
         """
         :param buffer:
         """
@@ -686,6 +688,11 @@ class PayloadBase:
 
         self._buffer = buffer
         self._components = []
+
+        # Update the chunk data if needed:
+        self._update_chunk_data(
+            buffer=buffer, node_map=node_map
+        )
 
     @property
     def payload_type(self):
@@ -720,17 +727,46 @@ class PayloadBase:
         """
         return self._components
 
+    @staticmethod
+    def _update_chunk_data(buffer=None, node_map=None):
+        try:
+            if buffer.num_chunks == 0:
+                return
+        except (AttributeError, ParsingChunkDataException, NoDataException):  # TODO: Remove AttributeError!
+            return
+
+        #
+        generic = False
+        if buffer.tl_type == 'U3V':
+            chunk_adapter = ChunkAdapterU3V(node_map._Ptr)
+        elif buffer.tl_type == 'GEV':
+            chunk_adapter = ChunkAdapterGEV(node_map._Ptr)
+        else:
+            chunk_adapter = ChunkAdapterGeneric(node_map._Ptr)
+            generic = True
+
+        try:
+            if generic:
+                chunk_adapter.attach_buffer(
+                    buffer.raw_buffer, buffer.chunk_data_info_list
+                )
+            else:
+                chunk_adapter.attach_buffer(buffer.raw_buffer)
+        except RuntimeException:
+            # Failed to parse the chunk data. Something must be wrong.
+            pass
+
 
 class PayloadUnknown(PayloadBase):
-    def __init__(self, buffer=None):
+    def __init__(self, buffer=None, node_map=None):
         #
-        super().__init__(buffer=buffer)
+        super().__init__(buffer=buffer, node_map=node_map)
 
 
 class PayloadImage(PayloadBase):
     def __init__(self, buffer=None, node_map=None):
         #
-        super().__init__(buffer=buffer)
+        super().__init__(buffer=buffer, node_map=node_map)
 
         # Build data components.
         self._components.append(
@@ -744,45 +780,39 @@ class PayloadImage(PayloadBase):
 
 
 class PayloadRawData(PayloadBase):
-    def __init__(self, buffer=None):
+    def __init__(self, buffer=None, node_map=None):
         #
-        super().__init__(buffer=buffer)
+        super().__init__(buffer=buffer, node_map=node_map)
 
 
 class PayloadFile(PayloadBase):
-    def __init__(self, buffer=None):
+    def __init__(self, buffer=None, node_map=None):
         #
-        super().__init__(buffer=buffer)
-
-
-class PayloadChunkData(PayloadImage):
-    def __init__(self, buffer=None):
-        #
-        super().__init__(buffer=buffer)
+        super().__init__(buffer=buffer, node_map=None)
 
 
 class PayloadJPEG(PayloadBase):
-    def __init__(self, buffer=None):
+    def __init__(self, buffer=None, node_map=None):
         #
-        super().__init__(buffer=buffer)
+        super().__init__(buffer=buffer, node_map=node_map)
 
 
 class PayloadJPEG2000(PayloadBase):
-    def __init__(self, buffer=None):
+    def __init__(self, buffer=None, node_map=None):
         #
-        super().__init__(buffer=buffer)
+        super().__init__(buffer=buffer, node_map=node_map)
 
 
 class PayloadH264(PayloadBase):
-    def __init__(self, buffer=None):
+    def __init__(self, buffer=None, node_map=None):
         #
-        super().__init__(buffer=buffer)
+        super().__init__(buffer=buffer, node_map=node_map)
 
 
 class PayloadChunkOnly(PayloadBase):
-    def __init__(self, buffer=None):
+    def __init__(self, buffer=None, node_map=None):
         #
-        super().__init__(buffer=buffer)
+        super().__init__(buffer=buffer, node_map=node_map)
 
 
 class PayloadMultiPart(PayloadBase):

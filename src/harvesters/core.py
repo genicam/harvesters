@@ -255,7 +255,7 @@ class ComponentBase:
     """
     Is a base class of various (image) data component types.
     """
-    def __init__(self, buffer=None):
+    def __init__(self, *, buffer=None):
         """
         :param buffer:
         """
@@ -313,7 +313,7 @@ class Component1D(ComponentBase):
     TODO:
     """
     #
-    def __init__(self, buffer=None, part=None):
+    def __init__(self, *, buffer=None, part=None):
         """
         :param buffer:
         :param part:
@@ -330,9 +330,9 @@ class Component1D(ComponentBase):
 
 class Component2D(ComponentBase):
     """
-    Represents a color or monochrome (2D) image.
+    Represents a 2D image.
     """
-    def __init__(self, buffer=None, part=None, node_map=None):
+    def __init__(self, *, buffer=None, part=None, node_map=None):
         """
         :param buffer:
         :param part:
@@ -537,8 +537,7 @@ class Buffer:
     """
     TODO:
     """
-    def __init__(self, *, buffer=None, data_stream=None, node_map=None,
-                 logger=None):
+    def __init__(self, *, buffer=None, node_map=None, logger=None):
         """
         :param buffer:
         :param data_stream:
@@ -552,7 +551,6 @@ class Buffer:
 
         #
         self._buffer = buffer
-        self._data_stream = data_stream
         self._node_map = node_map
 
         self._payload = self._build_payload(
@@ -614,7 +612,7 @@ class Buffer:
         except (InvalidParameterException, NotImplementedException,
                 NotAvailableException):
             try:
-                frequency = self._data_stream.parent.timestamp_frequency
+                frequency = self._buffer.parent.parent.timestamp_frequency
             except (InvalidParameterException, NotAvailableException):
                 try:
                     frequency = self._node_map.GevTimestampTickFrequency.value
@@ -646,13 +644,14 @@ class Buffer:
         """
         Queues the buffer to prepare for the upcoming image acquisition. Once the buffer is queued, the Buffer object will be obsolete. You'll have nothing to do with it.
         """
-        self._data_stream.queue_buffer(self._buffer)
+        self._buffer.parent.queue_buffer(self._buffer)
 
         #
         self._logger.info(
             'Queued Buffer #{0} to DataStream {1} of Device {2}.'.format(
-                self._buffer.context, self._data_stream.id_,
-                self._data_stream.parent.id_
+                self._buffer.context,
+                self._buffer.parent.id_,
+                self._buffer.parent.parent.id_
             )
         )
 
@@ -692,10 +691,13 @@ class PayloadBase:
     """
     Is a base class of various payload types.
     """
-    def __init__(self, buffer=None, node_map=None):
+    def __init__(self, *, buffer=None, node_map=None, logger=None):
         """
         :param buffer:
         """
+        #
+        self._logger = logger or get_logger(name=__name__)
+
         #
         super().__init__()
 
@@ -740,13 +742,12 @@ class PayloadBase:
         """
         return self._components
 
-    @staticmethod
-    def _update_chunk_data(buffer=None, node_map=None):
+    def _update_chunk_data(self, buffer=None, node_map=None):
         try:
             if buffer.num_chunks == 0:
                 return
-        except (AttributeError, ParsingChunkDataException, NoDataException):  # TODO: Remove AttributeError!
-            return
+        except (ParsingChunkDataException, NoDataException) as e:
+            self._logger.error(e, exc_info=True)
 
         #
         is_generic = False
@@ -765,21 +766,31 @@ class PayloadBase:
                 )
             else:
                 chunk_adapter.attach_buffer(buffer.raw_buffer)
-        except RuntimeException:
+        except RuntimeException as e:
             # Failed to parse the chunk data. Something must be wrong.
-            pass
+            self._logger.error(e, exc_info=True)
 
 
 class PayloadUnknown(PayloadBase):
-    def __init__(self, buffer=None, node_map=None):
+    def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
-        super().__init__(buffer=buffer, node_map=node_map)
+        self._logger = logger or get_logger(name=__name__)
+
+        #
+        super().__init__(
+            buffer=buffer, node_map=node_map, logger=self._logger
+        )
 
 
 class PayloadImage(PayloadBase):
-    def __init__(self, buffer=None, node_map=None):
+    def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
-        super().__init__(buffer=buffer, node_map=node_map)
+        self._logger = logger or get_logger(name=__name__)
+
+        #
+        super().__init__(
+            buffer=buffer, node_map=node_map, logger=self._logger
+        )
 
         # Build data components.
         self._components.append(
@@ -793,52 +804,88 @@ class PayloadImage(PayloadBase):
 
 
 class PayloadRawData(PayloadBase):
-    def __init__(self, buffer=None, node_map=None):
+    def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
-        super().__init__(buffer=buffer, node_map=node_map)
+        self._logger = logger or get_logger(name=__name__)
+
+        #
+        super().__init__(
+            buffer=buffer, node_map=node_map, logger=self._logger
+        )
 
 
 class PayloadFile(PayloadBase):
-    def __init__(self, buffer=None, node_map=None):
+    def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
-        super().__init__(buffer=buffer, node_map=None)
+        self._logger = logger or get_logger(name=__name__)
+
+        #
+        super().__init__(
+            buffer=buffer, node_map=node_map, logger=self._logger
+        )
 
 
 class PayloadJPEG(PayloadBase):
-    def __init__(self, buffer=None, node_map=None):
+    def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
-        super().__init__(buffer=buffer, node_map=node_map)
+        self._logger = logger or get_logger(name=__name__)
+
+        #
+        super().__init__(
+            buffer=buffer, node_map=node_map, logger=self._logger
+        )
 
 
 class PayloadJPEG2000(PayloadBase):
-    def __init__(self, buffer=None, node_map=None):
+    def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
-        super().__init__(buffer=buffer, node_map=node_map)
+        self._logger = logger or get_logger(name=__name__)
+
+        #
+        super().__init__(
+            buffer=buffer, node_map=node_map, logger=self._logger
+        )
 
 
 class PayloadH264(PayloadBase):
-    def __init__(self, buffer=None, node_map=None):
+    def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
-        super().__init__(buffer=buffer, node_map=node_map)
+        self._logger = logger or get_logger(name=__name__)
+
+        #
+        super().__init__(
+            buffer=buffer, node_map=node_map, logger=self._logger
+        )
 
 
 class PayloadChunkOnly(PayloadBase):
-    def __init__(self, buffer=None, node_map=None):
+    def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
-        super().__init__(buffer=buffer, node_map=node_map)
+        self._logger = logger or get_logger(name=__name__)
+
+        #
+        super().__init__(
+            buffer=buffer, node_map=node_map, logger=self._logger
+        )
 
 
 class PayloadMultiPart(PayloadBase):
     """
     TODO:
     """
-    def __init__(self, buffer=None, node_map=None):
+    def __init__(self, *, buffer=None, node_map=None, logger=None):
         """
         :param buffer:
         :param node_map:
         """
         #
-        super().__init__(buffer=buffer, node_map=node_map)
+        self._logger = logger or get_logger(name=__name__)
+
+        #
+        super().__init__(
+            buffer=buffer, node_map=node_map, logger=self._logger
+        )
+        #
 
         # Build data components.
         # We know the buffer consists of a set of "part" that is
@@ -1102,6 +1149,7 @@ class ImageAcquisitionManager:
                     num_buffers = num_required_buffers
             except InvalidParameterException as e:
                 num_buffers = num_required_buffers
+                self._logger.debug(e, exc_info=True)
 
             if data_stream.defines_payload_size():
                 buffer_size = data_stream.payload_size
@@ -1135,9 +1183,10 @@ class ImageAcquisitionManager:
                 num_images_to_acquire = self.device.node_map.AcquisitionFrameCount.value
             else:
                 num_images_to_acquire = -1
-        except LogicalErrorException:
+        except LogicalErrorException as e:
             # The node doesn't exist.
             num_images_to_acquire = -1
+            self._logger.debug(e, exc_info=True)
 
         self._num_images_to_acquire = num_images_to_acquire
 
@@ -1236,7 +1285,6 @@ class ImageAcquisitionManager:
                 #
                 buffer = Buffer(
                     buffer=event_manager.buffer,
-                    data_stream=event_manager.parent,
                     node_map=self.device.node_map,
                     logger=self._logger
                 )
@@ -1296,8 +1344,8 @@ class ImageAcquisitionManager:
         self._logger.info(
             'Fetched Buffer #{0} that belongs to DataStream {1} of {2}.'.format(
                 buffer._buffer.context,
-                buffer._data_stream.id_,
-                buffer._data_stream.parent.id_
+                buffer._buffer.parent.id_,
+                buffer._buffer.parent.parent.id_
             )
         )
 
@@ -1407,13 +1455,8 @@ class ImageAcquisitionManager:
                         data_stream.stop_acquisition(
                             ACQ_STOP_FLAGS_LIST.ACQ_STOP_FLAGS_KILL
                         )
-                    except ResourceInUseException:
-                        # Device throw RESOURCE_IN_USE exception
-                        # if the acquisition has already terminated or
-                        # it has not been started.
-                        pass
-                    except TimeoutException as e:
-                        self._logger.debug(e, exc_info=True)
+                    except (ResourceInUseException, TimeoutException) as e:
+                        self._logger.error(e, exc_info=True)
 
                     # Flash the queue for image acquisition process.
                     data_stream.flush_buffer_queue(
@@ -1494,10 +1537,13 @@ class ImageAcquisitionManager:
         #
         for data_stream in self._data_streams:
             if data_stream and data_stream.is_open():
-                name = data_stream.id_
+                name_ds = data_stream.id_
+                name_dev = data_stream.parent.id_
                 data_stream.close()
                 self._logger.info(
-                    'Closed DataStream module #{0}.'.format(name)
+                    'Closed DataStream module #{0} of {1}.'.format(
+                        name_ds, name_dev
+                    )
                 )
 
         #
@@ -1574,7 +1620,7 @@ class Harvester:
     Is the class that works for you as Harvester Core. Everything starts with this class.
     """
     #
-    def __init__(self, *, profile=False, parent=None, logger=None):
+    def __init__(self, *, profile=False, logger=None):
         """
 
         :param profile:
@@ -1586,9 +1632,6 @@ class Harvester:
 
         #
         super().__init__()
-
-        #
-        self._parent = parent
 
         #
         self._cti_files = []
@@ -1655,9 +1698,9 @@ class Harvester:
         self._has_revised_device_list = value
 
     def create_image_acquisition_manager(
-            self, list_index=None, id_=None,
+            self, list_index=None, *, id_=None,
             vendor=None, model=None, tl_type=None, user_defined_name=None,
-            serial_number=None, version=None,
+            serial_number=None, version=None
         ):
         """
         Creates an image acquisition manager for the specified device and return it.
@@ -1702,8 +1745,9 @@ class Harvester:
                         try:
                             if key_value != eval('item.' + key):
                                 items_to_be_removed.append(item)
-                        except (AttributeError, NotAvailableException):
+                        except (AttributeError, NotAvailableException) as e:
                             # The candidate doesn't support the information.
+                            self._logger.warn(e, exc_info=True)
                             pass
                     # Remove irrelevant items from the candidates.
                     for item in items_to_be_removed:
@@ -1841,7 +1885,6 @@ class Harvester:
 
         #
         self._producers.clear()
-
 
     def _release_systems(self):
         #

@@ -19,6 +19,7 @@
 
 
 # Standard library imports
+from logging import INFO
 import os
 import sys
 import unittest
@@ -26,6 +27,7 @@ import unittest
 # Related third party imports
 
 # Local application/library specific imports
+from harvesters._private.core.helper.logging import get_logger
 from harvesters.core import Harvester
 from harvesters._private.core.helper.system import is_running_on_windows, \
     is_running_on_macos
@@ -56,17 +58,16 @@ class TestHarvesterCoreBase(unittest.TestCase):
         self._harvester = None
         self._iam = None
         self._thread = None
+        self._logger = get_logger(name=__name__, level=INFO)
 
     def setUp(self):
         #
         super().setUp()
 
         #
-        self._harvester = Harvester()
+        self._harvester = Harvester(logger=self._logger)
         self._harvester.add_cti_file(self._cti_file)
         self._harvester.update_device_info_list()
-        self._iam = None
-        self._thread = None
 
     def tearDown(self):
         #
@@ -75,6 +76,9 @@ class TestHarvesterCoreBase(unittest.TestCase):
 
         #
         self._harvester.reset()
+
+        #
+        self._iam = None
 
         #
         super().tearDown()

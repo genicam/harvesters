@@ -46,6 +46,7 @@ from genicam2.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
 # Local application/library specific imports
 from harvesters._private.core.port import ConcretePort
 from harvesters._private.core.statistics import Statistics
+from harvesters._private.core.helper.logging import get_logger
 from harvesters.pfnc import symbolics
 from harvesters.pfnc import uint8_formats, uint16_formats, uint32_formats, \
     float32_formats
@@ -536,12 +537,16 @@ class Buffer:
     """
     TODO:
     """
-    def __init__(self, buffer=None, data_stream=None, node_map=None):
+    def __init__(self, *, buffer=None, data_stream=None, node_map=None,
+                 logger=None):
         """
         :param buffer:
         :param data_stream:
         :param node_map:
         """
+        #
+        self._logger = logger or get_logger(name=__name__)
+
         #
         super().__init__()
 
@@ -642,6 +647,14 @@ class Buffer:
         Queues the buffer to prepare for the upcoming image acquisition. Once the buffer is queued, the Buffer object will be obsolete. You'll have nothing to do with it.
         """
         self._data_stream.queue_buffer(self._buffer)
+
+        #
+        self._logger.info(
+            'Queued Buffer #{0} to DataStream {1} of Device {2}.'.format(
+                self._buffer.context, self._data_stream.id_,
+                self._data_stream.parent.id_
+            )
+        )
 
     @staticmethod
     def _build_payload(buffer=None, node_map=None):
@@ -850,15 +863,17 @@ class ImageAcquisitionManager:
     Manages everything you need to acquire images from the connecting image transmitter device.
     """
     def __init__(
-            self, min_num_buffers=16, device=None,
-            frontend=None, create_ds_at_connection=True, profiler=None
+            self, *, min_num_buffers=16, device=None,
+            create_ds_at_connection=True, profiler=None, logger=None
     ):
         """
         :param min_num_buffers:
         :param device:
-        :param frontend:
         :param profiler:
         """
+        #
+        self._logger = logger or get_logger(name=__name__)
+
         #
         super().__init__()
 
@@ -892,7 +907,6 @@ class ImageAcquisitionManager:
             self._setup_data_streams()
 
         #
-        self._frontend = frontend
         self._profiler = profiler
 
         #
@@ -945,6 +959,13 @@ class ImageAcquisitionManager:
 
         #
         self._min_num_buffers = min_num_buffers
+
+        #
+        self._logger.info(
+            'Instantiated an ImageAcquisitionManager object for {0}.'.format(
+                self._device.id_
+            )
+        )
 
     def __enter__(self):
         return self
@@ -1069,86 +1090,81 @@ class ImageAcquisitionManager:
 
         :return: None
         """
-        if self.is_acquiring_images:
-            # If it's pausing drawing images, just resume it and
-            # immediately return this method.
-            if self._frontend:
-                if self._frontend.canvas.is_pausing:
-                    self._frontend.canvas.resume_drawing()
-        else:
-            if not self._create_ds_at_connection:
-                self._setup_data_streams()
+        if not self._create_ds_at_connection:
+            self._setup_data_streams()
 
-            #
-            num_required_buffers = self._min_num_buffers
-            for data_stream in self._data_streams:
-                try:
-                    num_buffers = data_stream.buffer_announce_min
-                    if num_buffers < num_required_buffers:
-                        num_buffers = num_required_buffers
-                except InvalidParameterException as e:
-                    num_buffers = num_required_buffers
-
-                if data_stream.defines_payload_size():
-                    buffer_size = data_stream.payload_size
-                else:
-                    buffer_size = self.device.node_map.PayloadSize.value
-
-                raw_buffers = self._create_raw_buffers(
-                    num_buffers, buffer_size
-                )
-
-                buffer_tokens = self._create_buffer_tokens(
-                    raw_buffers
-                )
-
-                self._announced_buffers = self._announce_buffers(
-                    data_stream=data_stream, _buffer_tokens=buffer_tokens
-                )
-
-                self._queue_announced_buffers(
-                    data_stream=data_stream, buffers=self._announced_buffers
-                )
-
-            # Reset the number of images to acquire.
+        #
+        num_required_buffers = self._min_num_buffers
+        for data_stream in self._data_streams:
             try:
-                acq_mode = self.device.node_map.AcquisitionMode.value
-                if acq_mode == 'Continuous':
-                    num_images_to_acquire = -1
-                elif acq_mode == 'SingleFrame':
-                    num_images_to_acquire = 1
-                elif acq_mode == 'MultiFrame':
-                    num_images_to_acquire = self.device.node_map.AcquisitionFrameCount.value
-                else:
-                    num_images_to_acquire = -1
-            except LogicalErrorException:
-                # The node doesn't exist.
+                num_buffers = data_stream.buffer_announce_min
+                if num_buffers < num_required_buffers:
+                    num_buffers = num_required_buffers
+            except InvalidParameterException as e:
+                num_buffers = num_required_buffers
+
+            if data_stream.defines_payload_size():
+                buffer_size = data_stream.payload_size
+            else:
+                buffer_size = self.device.node_map.PayloadSize.value
+
+            raw_buffers = self._create_raw_buffers(
+                num_buffers, buffer_size
+            )
+
+            buffer_tokens = self._create_buffer_tokens(
+                raw_buffers
+            )
+
+            self._announced_buffers = self._announce_buffers(
+                data_stream=data_stream, _buffer_tokens=buffer_tokens
+            )
+
+            self._queue_announced_buffers(
+                data_stream=data_stream, buffers=self._announced_buffers
+            )
+
+        # Reset the number of images to acquire.
+        try:
+            acq_mode = self.device.node_map.AcquisitionMode.value
+            if acq_mode == 'Continuous':
                 num_images_to_acquire = -1
+            elif acq_mode == 'SingleFrame':
+                num_images_to_acquire = 1
+            elif acq_mode == 'MultiFrame':
+                num_images_to_acquire = self.device.node_map.AcquisitionFrameCount.value
+            else:
+                num_images_to_acquire = -1
+        except LogicalErrorException:
+            # The node doesn't exist.
+            num_images_to_acquire = -1
 
-            self._num_images_to_acquire = num_images_to_acquire
+        self._num_images_to_acquire = num_images_to_acquire
 
-            #
-            self.reset_statistics()
+        #
+        self.reset_statistics()
 
-            # Start image acquisition.
-            self._is_acquiring_images = True
+        # Start image acquisition.
+        self._is_acquiring_images = True
 
-            for data_stream in self._data_streams:
-                data_stream.start_acquisition(
-                    ACQ_START_FLAGS_LIST.ACQ_START_FLAGS_DEFAULT,
-                    self._num_images_to_acquire
-                )
+        for data_stream in self._data_streams:
+            data_stream.start_acquisition(
+                ACQ_START_FLAGS_LIST.ACQ_START_FLAGS_DEFAULT,
+                self._num_images_to_acquire
+            )
 
-            #
-            if self.thread_statistics_measurement:
-                self.thread_statistics_measurement.start()
+        #
+        if self.thread_statistics_measurement:
+            self.thread_statistics_measurement.start()
 
-            #
-            if self.thread_image_acquisition:
-                self.thread_image_acquisition.start()
+        #
+        if self.thread_image_acquisition:
+            self.thread_image_acquisition.start()
 
-            #
-            self.device.node_map.AcquisitionStart.execute()
+        #
+        self.device.node_map.AcquisitionStart.execute()
+
+        self._logger.info('Started image acquisition.')
 
         if self._profiler:
             self._profiler.print_diff()
@@ -1161,38 +1177,36 @@ class ImageAcquisitionManager:
 
         with MutexLocker(self.thread_statistics_measurement):
             #
-            if self._frontend:
-                #
-                message_config = 'W: {0} x H: {1}, {2}, '.format(
-                    self._current_width,
-                    self._current_height,
-                    self._current_pixel_format,
+            message_config = 'W: {0} x H: {1}, {2}, '.format(
+                self._current_width,
+                self._current_height,
+                self._current_pixel_format,
+            )
+
+            #
+            message_latest = ''
+            if self._statistics_latest.num_images > 0:
+                message_latest = '{0:.1f} fps in the last {1:.1f} s, '.format(
+                    self._statistics_latest.fps,
+                    self._statistics_update_cycle
                 )
 
-                #
-                message_latest = ''
-                if self._statistics_latest.num_images > 0:
-                    message_latest = '{0:.1f} fps in the last {1:.1f} s, '.format(
-                        self._statistics_latest.fps,
-                        self._statistics_update_cycle
-                    )
+            #
+            message_overall = '{0:.1f} fps in the last {1}, {2} images'.format(
+                self._statistics_overall.fps,
+                str(datetime.timedelta(
+                    seconds=int(self._statistics_overall.elapsed_time_s)
+                )),
+                self._statistics_overall.num_images
+            )
 
-                #
-                message_overall = '{0:.1f} fps in the last {1}, {2} images'.format(
-                    self._statistics_overall.fps,
-                    str(datetime.timedelta(
-                        seconds=int(self._statistics_overall.elapsed_time_s)
-                    )),
-                    self._statistics_overall.num_images
+            #
+            if self.updated_statistics:
+                self.updated_statistics.emit(
+                    '{0}'.format(
+                        message_config + message_latest + message_overall
+                    )
                 )
-
-                #
-                if self.updated_statistics:
-                    self.updated_statistics.emit(
-                        '{0}'.format(
-                            message_config + message_latest + message_overall
-                        )
-                    )
 
             self._statistics_latest.reset()
 
@@ -1206,22 +1220,26 @@ class ImageAcquisitionManager:
                     )
                 else:
                     return
-            except TimeoutException:
-                pass
+            except TimeoutException as e:
+                self._logger.debug(e, exc_info=True)
+                return
             else:
                 #
-                try:  # TODO: Delete the except block right before the Python Bindings are officially released.
-                    buffer = Buffer(
-                        buffer=event_manager.buffer,
-                        data_stream=event_manager.parent,
-                        node_map=self.device.node_map
+                self._logger.info(
+                    'Acquired buffer #{0} from DataStraem {1} of Device {2}.'.format(
+                        event_manager.buffer.context,
+                        event_manager.parent.id_,
+                        event_manager.parent.parent.id_
                     )
-                except AttributeError:
-                    buffer = Buffer(
-                        buffer=event_manager.buffer,
-                        data_stream=self._data_streams[0],
-                        node_map=self.device.node_map
-                    )
+                )
+
+                #
+                buffer = Buffer(
+                    buffer=event_manager.buffer,
+                    data_stream=event_manager.parent,
+                    node_map=self.device.node_map,
+                    logger=self._logger
+                )
 
                 #
                 self._update_statistics(buffer)
@@ -1274,6 +1292,14 @@ class ImageAcquisitionManager:
                 with MutexLocker(self.thread_image_acquisition):
                     if len(self._fetched_buffers) > 0:
                         buffer = self._fetched_buffers.pop(0)
+
+        self._logger.info(
+            'Fetched Buffer #{0} that belongs to DataStream {1} of {2}.'.format(
+                buffer._buffer.context,
+                buffer._data_stream.id_,
+                buffer._data_stream.parent.id_
+            )
+        )
 
         return buffer
 
@@ -1328,6 +1354,14 @@ class ImageAcquisitionManager:
             # And append it to the list.
             announced_buffers.append(announced_buffer)
 
+            #
+            self._logger.info(
+                'Announced Buffer #{0} to DataStraem {1}.'.format(
+                    announced_buffer.context,
+                    data_stream.id_
+                )
+            )
+
         # Then return the list of announced Buffer objects.
         return announced_buffers
 
@@ -1338,6 +1372,13 @@ class ImageAcquisitionManager:
         #
         for buffer in buffers:
             data_stream.queue_buffer(buffer)
+            self._logger.info(
+                'Queued Buffer #{0} to DataStraem {1} of Device {2}.'.format(
+                    buffer.context,
+                    data_stream.id_,
+                    data_stream.parent.id_
+                )
+            )
 
     def stop_image_acquisition(self):
         """
@@ -1372,7 +1413,7 @@ class ImageAcquisitionManager:
                         # it has not been started.
                         pass
                     except TimeoutException as e:
-                        print(e)
+                        self._logger.debug(e, exc_info=True)
 
                     # Flash the queue for image acquisition process.
                     data_stream.flush_buffer_queue(
@@ -1390,6 +1431,8 @@ class ImageAcquisitionManager:
             #
             self._has_acquired_1st_image = False
 
+            #
+            self._logger.info('Stopped image acquisition.')
             for statistics in self._statistics_list:
                 statistics.reset()
 
@@ -1418,14 +1461,28 @@ class ImageAcquisitionManager:
             self._release_data_streams()
 
             #
+            id_ = self._device.id_
+
+            #
             if self.device.node_map:
                 self.device.node_map.disconnect()
+                self._logger.info(
+                    'Disconnected the port from the NodeMap of {0}.'.format(
+                        id_
+                    )
+                )
 
             #
             if self._device.is_open():
                 self._device.close()
+                self._logger.info(
+                    'Closed Device module, {0}.'.format(id_)
+                )
 
         self._device = None
+
+        #
+        self._logger.info('Destroyed the ImageAcquisitionManager object.')
 
         if self._profiler:
             self._profiler.print_diff()
@@ -1437,7 +1494,11 @@ class ImageAcquisitionManager:
         #
         for data_stream in self._data_streams:
             if data_stream and data_stream.is_open():
+                name = data_stream.id_
                 data_stream.close()
+                self._logger.info(
+                    'Closed DataStream module #{0}.'.format(name)
+                )
 
         #
         self._data_streams.clear()
@@ -1512,22 +1573,22 @@ class Harvester:
     """
     Is the class that works for you as Harvester Core. Everything starts with this class.
     """
-    def __init__(
-            self, frontend=None, profile=False, parent=None
-    ):
+    #
+    def __init__(self, *, profile=False, parent=None, logger=None):
         """
 
-        :param frontend:
         :param profile:
         :param min_num_buffers:
         :param parent:
         """
         #
+        self._logger = logger or get_logger(name=__name__)
+
+        #
         super().__init__()
 
         #
         self._parent = parent
-        self._frontend = frontend
 
         #
         self._cti_files = []
@@ -1669,18 +1730,19 @@ class Harvester:
             device.open(
                 DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
             )
-        except (AccessDeniedException, ResourceInUseException):
+        except (AccessDeniedException, ResourceInUseException) as e:
+            self._logger.error(e, exc_info=True)
             return None
 
         # Create an image acquisition manager object and return it.
-        iaa = ImageAcquisitionManager(
-            device=device, frontend=self._frontend, profiler=self._profiler
+        iam = ImageAcquisitionManager(
+            device=device, profiler=self._profiler, logger=self._logger
         )
 
         if self._profiler:
             self._profiler.print_diff()
 
-        return iaa
+        return iam
 
     def add_cti_file(self, file_path: str):
         """
@@ -1692,6 +1754,9 @@ class Harvester:
         """
         if file_path not in self._cti_files:
             self._cti_files.append(file_path)
+            self._logger.info(
+                'Added {0} to the CTI file list.'.format(file_path)
+            )
 
     def remove_cti_file(self, file_path: str):
         """
@@ -1703,6 +1768,9 @@ class Harvester:
         """
         if file_path in self._cti_files:
             self._cti_files.remove(file_path)
+            self._logger.info(
+                'Removed {0} from the CTI file list.'.format(file_path)
+            )
 
     def remove_cti_files(self):
         """
@@ -1713,6 +1781,9 @@ class Harvester:
 
         self._cti_files.clear()
 
+        #
+        self._logger.info('Removed the all CTI file from the list.')
+
     def _open_gentl_producers(self):
         #
         for file_path in self._cti_files:
@@ -1720,9 +1791,12 @@ class Harvester:
             try:
                 producer.open(file_path)
             except ClosedException as e:
-                print(e)
+                self._logger.error(e, exc_info=True)
             else:
                 self._producers.append(producer)
+                self._logger.info(
+                    'Initialized a GenTL Producer from {0}.'.format(producer.path_name)
+                )
 
     def _open_systems(self):
         for producer in self._producers:
@@ -1730,9 +1804,13 @@ class Harvester:
             try:
                 system.open()
             except ClosedException as e:
-                print(e)
+                self._logger.error(e, exc_info=True)
             else:
                 self._systems.append(system)
+                self._logger.info('Opened System module, {0}.'.format(
+                        system.id_
+                    )
+                )
 
     def reset(self):
         """
@@ -1740,11 +1818,15 @@ class Harvester:
 
         :return: None
         """
+        self._logger.info('Started resetting the Harvester object.')
         self.remove_cti_files()
         self._release_gentl_producers()
 
         if self._profiler:
             self._profiler.print_diff()
+
+        #
+        self._logger.info('Completed resetting the Harvester object.')
 
     def _release_gentl_producers(self):
         #
@@ -1753,10 +1835,13 @@ class Harvester:
         #
         for producer in self._producers:
             if producer and producer.is_open():
+                name = producer.path_name
                 producer.close()
+                self._logger.info('Closed {0}.'.format(name))
 
         #
         self._producers.clear()
+
 
     def _release_systems(self):
         #
@@ -1765,7 +1850,9 @@ class Harvester:
         #
         for system in self._systems:
             if system is not None and system.is_open():
+                name = system.id_
                 system.close()
+                self._logger.info('Closed System module, {0}.'.format(name))
 
         #
         self._systems.clear()
@@ -1778,7 +1865,11 @@ class Harvester:
         if self._interfaces is not None:
             for iface in self._interfaces:
                 if iface.is_open():
+                    name = iface.id_
                     iface.close()
+                    self._logger.info(
+                        'Closed Interface module, {0}.'.format(name)
+                    )
 
         #
         self._interfaces.clear()
@@ -1787,6 +1878,9 @@ class Harvester:
         #
         if self.device_info_list is not None:
             self._device_info_list.clear()
+
+        #
+        self._logger.info('Discarded the device information list.')
 
     def update_device_info_list(self):
         """
@@ -1816,10 +1910,13 @@ class Harvester:
                         self.device_info_list.append(d_info)
 
         except LoadLibraryException as e:
-            print(e)
+            self._logger.error(e, exc_info=True)
             self._has_revised_device_list = False
         else:
             self._has_revised_device_list = True
+
+        #
+        self._logger.info('Updated the device information list.')
 
 
 if __name__ == '__main__':

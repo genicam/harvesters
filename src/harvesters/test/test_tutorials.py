@@ -53,7 +53,7 @@ class TestTutorials(TestHarvesterCoreBase):
             with self.iam.fetch_buffer() as buffer:
                 # I know we should use a logger instead of the print
                 # function though...
-                print(buffer)
+                self._logger.info('{0}'.format(buffer))
 
                 # TODO: Work with the image you got.
                 # self.do_something(buffer)

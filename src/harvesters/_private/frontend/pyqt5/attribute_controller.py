@@ -98,6 +98,7 @@ class AttributeController(QMainWindow):
         self._delegate = FeatureEditDelegate(proxy=self._proxy)
         self._view.setModel(self._proxy)
         self._view.setItemDelegate(self._delegate)
+        self._view.setUniformRowHeights(True)
 
         #
         unit = 260

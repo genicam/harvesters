@@ -80,7 +80,6 @@ class TreeItem(object):
         return len(self.child_items)
 
     def columnCount(self):
-        ret = 0
         try:
             ret = len(self.own_data)
         except TypeError:
@@ -185,7 +184,7 @@ class FeatureTreeModel(QAbstractItemModel):
         self._root_item = TreeItem(('Feature Name', 'Value'))
         self._node_map = node_map
         if node_map:
-            self.setupModelData(node_map.Root.features, self._root_item)
+            self.populateTreeItems(node_map.Root.features, self._root_item)
 
     @property
     def root_item(self):
@@ -279,13 +278,13 @@ class FeatureTreeModel(QAbstractItemModel):
 
         return parent_item.childCount()
 
-    def setupModelData(self, features, parent_item):
+    def populateTreeItems(self, features, parent_item):
         for feature in features:
             interface_type = feature.node.principal_interface_type
             item = TreeItem([feature, feature], parent_item)
             parent_item.appendChild(item)
             if interface_type == EInterfaceType.intfICategory:
-                self.setupModelData(feature.features, item)
+                self.populateTreeItems(feature.features, item)
 
     def setData(self, index: QModelIndex, value, role=Qt.EditRole):
         if role == Qt.EditRole:

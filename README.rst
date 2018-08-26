@@ -452,7 +452,7 @@ If you want to use Harvester GUI, then please install the following modules in a
 
 .. code-block:: shell
 
-    $ pip install PyQt5
+    $ pip install PyQt5 vispy
 
 In the future, we might support other GUI frameworks which are more or less open and free.
 

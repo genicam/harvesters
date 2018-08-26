@@ -61,15 +61,14 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             # Acquire images.
             self._basic_usage(iam)
 
-    @staticmethod
-    def _basic_usage(iam: ImageAcquisitionManager):
+    def _basic_usage(self, iam: ImageAcquisitionManager):
         # Start image acquisition.
         iam.start_image_acquisition()
 
         # Fetch a buffer that is filled with image data.
         with iam.fetch_buffer() as buffer:
             # Reshape it.
-            print(buffer)
+            self._logger.info('{0}'.format(buffer))
 
         # Stop image acquisition.
         iam.stop_image_acquisition()
@@ -80,7 +79,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
 
     def _test_image_acquisition_managers(self, num_iams=1):
         #
-        print('Number of devices: {0}'.format(num_iams))
+        self._logger.info('Number of devices: {0}'.format(num_iams))
 
         #
         iams = []  # Image Acquisition Managers
@@ -98,10 +97,10 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         #
         for i in range(3):
             #
-            print('---> Round {0}: Set up'.format(i))
+            self._logger.info('---> Round {0}: Set up'.format(i))
             for index, iam in enumerate(iams):
                 iam.start_image_acquisition()
-                print(
+                self._logger.info(
                     'Device #{0} has started image acquisition.'.format(index)
                 )
 
@@ -120,7 +119,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
                             # a client called fetch_buffer method even though
                             # he'd forgotten to start image acquisition.
                             with iam.fetch_buffer() as buffer:
-                                print(buffer)
+                                self._logger.info('{0}'.format(buffer))
                         except AttributeError:
                             # Harvester Core has not started image acquisition
                             # so calling fetch_buffer() raises AttributeError
@@ -132,17 +131,16 @@ class TestHarvesterCore(TestHarvesterCoreBase):
                         # recommended because you might forget to queue the
                         # buffer.
                         buffer = iam.fetch_buffer()
-                        print(buffer)
-                        buffer.queue()
+                        self._logger.info('{0}'.format(buffer))
 
                 #
                 k += 1
 
             #
-            print('<--- Round {0}: Tear down'.format(i))
+            self._logger.info('<--- Round {0}: Tear down'.format(i))
             for index, iam in enumerate(iams):
                 iam.stop_image_acquisition()
-                print(
+                self._logger.info(
                     'Device #{0} has stopped image acquisition.'.format(index)
                 )
 
@@ -170,7 +168,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             )
 
         # The key specifies a unique device.
-        print(self.harvester.device_info_list)
+        self._logger.info(self.harvester.device_info_list)
         iam = self.harvester.create_image_acquisition_manager(
             serial_number='SN_InterfaceA_0'
         )

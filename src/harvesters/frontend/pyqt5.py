@@ -19,6 +19,7 @@
 
 
 # Standard library imports
+from logging import DEBUG
 import os
 import sys
 
@@ -30,6 +31,7 @@ from PyQt5.QtWidgets import QMainWindow, QAction, QComboBox, \
 
 # Local application/library specific imports
 from harvesters._private.frontend.canvas import Canvas
+from harvesters._private.core.helper.logging import get_logger
 from harvesters._private.frontend.helper import compose_tooltip
 from harvesters._private.frontend.pyqt5.about import About
 from harvesters._private.frontend.pyqt5.action import Action
@@ -46,7 +48,10 @@ class Harvester(QMainWindow):
     _signal_update_statistics = pyqtSignal(str)
     _signal_stop_image_acquisition = pyqtSignal()
 
-    def __init__(self):
+    def __init__(self, *, logger=None):
+        #
+        self._logger = logger or get_logger(name=__name__)
+
         #
         super().__init__()
 
@@ -55,7 +60,7 @@ class Harvester(QMainWindow):
 
         profile = True if 'HARVESTER_PROFILE' in os.environ else False
         self._harvester_core = HarvesterCore(
-            frontend=self, profile=profile, parent=self
+            profile=profile, logger=self._logger
         )
         self._iam = None  # Image Acquisition Manager
 
@@ -484,7 +489,6 @@ class Harvester(QMainWindow):
 
             # Update the path to the target GenTL Producer.
             self.harvester_core.add_cti_file(file_path)
-            print(file_path)
 
             # Update the device list.
             self.harvester_core.update_device_info_list()
@@ -513,7 +517,13 @@ class Harvester(QMainWindow):
         return enable
 
     def action_on_start_image_acquisition(self):
-        self.iam.start_image_acquisition()
+        if self.iam.is_acquiring_images:
+            # If it's pausing drawing images, just resume it and
+            # immediately return this method.
+            if self.canvas.is_pausing:
+                self.canvas.resume_drawing()
+        else:
+            self.iam.start_image_acquisition()
 
     def is_enabled_on_start_image_acquisition(self):
         enable = False

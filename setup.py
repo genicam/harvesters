@@ -100,6 +100,9 @@ setuptools.setup(
             os.path.join(
                 '_private', 'frontend', 'image', '*', '*.png'
             ),
+            os.path.join(
+                'logging', '*.ini'
+            ),
         ]
     },
     # A list of supported platforms:

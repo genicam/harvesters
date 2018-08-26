@@ -37,7 +37,8 @@ from genicam2.genapi import ChunkAdapterGeneric, ChunkAdapterU3V, \
 from genicam2.gentl import TimeoutException, AccessDeniedException, \
     LoadLibraryException, InvalidParameterException, \
     NotImplementedException, NotAvailableException, ClosedException, \
-    ResourceInUseException, ParsingChunkDataException, NoDataException
+    ResourceInUseException, ParsingChunkDataException, NoDataException, \
+    NotInitializedException, InvalidHandleException, InvalidIdException
 from genicam2.gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
 from genicam2.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
@@ -59,10 +60,13 @@ class ThreadBase:
     """
     TODO:
     """
-    def __init__(self, mutex=None):
+    def __init__(self, *, mutex=None, logger=None):
         """
         :param mutex:
         """
+        #
+        self._logger = logger or get_logger(name=__name__)
+
         #
         super().__init__()
 
@@ -73,6 +77,9 @@ class ThreadBase:
     def start(self):
         self._is_running = True
         self._start()
+        self._logger.debug(
+            'Started thread {:0X}.'.format(self._thread.id_)
+        )
 
     def _start(self):
         raise NotImplementedError
@@ -104,6 +111,10 @@ class ThreadBase:
 
     @property
     def mutex(self):
+        raise NotImplementedError
+
+    @property
+    def id_(self):
         raise NotImplementedError
 
 
@@ -139,14 +150,14 @@ class MutexLocker:
 
 
 class PyThread(ThreadBase):
-    def __init__(self, mutex=None, worker=None):
+    def __init__(self, *, mutex=None, worker=None, logger=None):
         """
         
         :param mutex:
         :param worker:
         """
         #
-        super().__init__(mutex=mutex)
+        super().__init__(mutex=mutex, logger=logger)
 
         #
         self._thread = None
@@ -172,6 +183,10 @@ class PyThread(ThreadBase):
 
         # Wait until the run methods is terminated.
         self._thread.join()
+
+        self._logger.debug(
+            'Stopped thread {:0X}.'.format(self._thread.id_)
+        )
 
     def acquire(self):
         #
@@ -249,6 +264,10 @@ class _PyThreadImpl(Thread):
     @worker.setter
     def worker(self, obj):
         self._worker = obj
+
+    @property
+    def id_(self):
+        return self.ident
 
 
 class ComponentBase:
@@ -555,7 +574,8 @@ class Buffer:
 
         self._payload = self._build_payload(
             buffer=buffer,
-            node_map=node_map
+            node_map=node_map,
+            logger=self._logger
         )
 
     def __enter__(self):
@@ -647,8 +667,8 @@ class Buffer:
         self._buffer.parent.queue_buffer(self._buffer)
 
         #
-        self._logger.info(
-            'Queued Buffer #{0} to DataStream {1} of Device {2}.'.format(
+        self._logger.debug(
+            'Queued Buffer #{0} to DataStream module {1} of {2}.'.format(
                 self._buffer.context,
                 self._buffer.parent.id_,
                 self._buffer.parent.parent.id_
@@ -656,31 +676,49 @@ class Buffer:
         )
 
     @staticmethod
-    def _build_payload(buffer=None, node_map=None):
+    def _build_payload(*, buffer=None, node_map=None, logger=None):
         #
         assert buffer
         assert node_map
 
         #
         if buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_UNKNOWN:
-            payload = PayloadUnknown(buffer=buffer, node_map=node_map)
+            payload = PayloadUnknown(
+                buffer=buffer, node_map=node_map, logger=logger
+            )
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE or \
                 buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_DATA:
-            payload = PayloadImage(buffer=buffer, node_map=node_map)
+            payload = PayloadImage(
+                buffer=buffer, node_map=node_map, logger=logger
+            )
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_RAW_DATA:
-            payload = PayloadRawData(buffer=buffer, node_map=node_map)
+            payload = PayloadRawData(
+                buffer=buffer, node_map=node_map, logger=logger
+            )
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_FILE:
-            payload = PayloadFile(buffer=buffer, node_map=node_map)
+            payload = PayloadFile(
+                buffer=buffer, node_map=node_map, logger=logger
+            )
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG:
-            payload = PayloadJPEG(buffer=buffer, node_map=node_map)
+            payload = PayloadJPEG(
+                buffer=buffer, node_map=node_map, logger=logger
+            )
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG2000:
-            payload = PayloadJPEG2000(buffer=buffer, node_map=node_map)
+            payload = PayloadJPEG2000(
+                buffer=buffer, node_map=node_map, logger=logger
+            )
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_H264:
-            payload = PayloadH264(buffer=buffer, node_map=node_map)
+            payload = PayloadH264(
+                buffer=buffer, node_map=node_map, logger=logger
+            )
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_ONLY:
-            payload = PayloadChunkOnly(buffer=buffer, node_map=node_map)
+            payload = PayloadChunkOnly(
+                buffer=buffer, node_map=node_map, logger=logger
+            )
         elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART:
-            payload = PayloadMultiPart(buffer=buffer, node_map=node_map)
+            payload = PayloadMultiPart(
+                buffer=buffer, node_map=node_map, logger=logger
+            )
         else:
             payload = None
 
@@ -769,6 +807,12 @@ class PayloadBase:
         except RuntimeException as e:
             # Failed to parse the chunk data. Something must be wrong.
             self._logger.error(e, exc_info=True)
+        else:
+            self._logger.debug(
+                'Updated the node map of {0}.'.format(
+                    buffer.parent.parent.id_
+                )
+            )
 
 
 class PayloadUnknown(PayloadBase):
@@ -960,11 +1004,13 @@ class ImageAcquisitionManager:
         self._mutex = Lock()
         self._thread_image_acquisition = PyThread(
             mutex=self._mutex,
-            worker=self._worker_image_acquisition
+            worker=self._worker_image_acquisition,
+            logger=self._logger
         )
         self._thread_statistics_measurement = PyThread(
             mutex=self._mutex,
-            worker=self._worker_acquisition_statistics
+            worker=self._worker_acquisition_statistics,
+            logger=self._logger
         )
 
         #
@@ -1118,18 +1164,32 @@ class ImageAcquisitionManager:
         #
         for i, stream_id in enumerate(self._device.data_stream_ids):
             data_stream = self._device.create_data_stream()
-            data_stream.open(stream_id)
-            data_stream.local_node_map = _get_port_connected_node_map(
-                data_stream.port
-            )
+            try:
+                data_stream.open(stream_id)
+            except (
+                NotInitializedException, InvalidHandleException,
+                ResourceInUseException, InvalidIdException,
+                InvalidParameterException, AccessDeniedException,
+                NotAvailableException,
+            ) as e:
+                self._logger.debug(e, exc_info=True)
+            else:
+                self._logger.info(
+                    'Opened DataStream module {0} of {1}.'.format(
+                        data_stream.id_, data_stream.parent.id_
+                    )
+                )
+                data_stream.local_node_map = _get_port_connected_node_map(
+                    data_stream.port
+                )
 
-            # Create an Event Manager object for image acquisition.
-            event_token = data_stream.register_event(
-                EVENT_TYPE_LIST.EVENT_NEW_BUFFER
-            )
+                # Create an Event Manager object for image acquisition.
+                event_token = data_stream.register_event(
+                    EVENT_TYPE_LIST.EVENT_NEW_BUFFER
+                )
 
-            self._event_new_buffer_managers.append(EventManagerNewBuffer(event_token))
-            self._data_streams.append(data_stream)
+                self._event_new_buffer_managers.append(EventManagerNewBuffer(event_token))
+                self._data_streams.append(data_stream)
 
     def start_image_acquisition(self):
         """
@@ -1213,7 +1273,9 @@ class ImageAcquisitionManager:
         #
         self.device.node_map.AcquisitionStart.execute()
 
-        self._logger.info('Started image acquisition.')
+        self._logger.info(
+            '{0} started image acquisition.'.format(self._device.id_)
+        )
 
         if self._profiler:
             self._profiler.print_diff()
@@ -1274,7 +1336,7 @@ class ImageAcquisitionManager:
                 return
             else:
                 #
-                self._logger.info(
+                self._logger.debug(
                     'Acquired buffer #{0} from DataStraem {1} of Device {2}.'.format(
                         event_manager.buffer.context,
                         event_manager.parent.id_,
@@ -1341,8 +1403,8 @@ class ImageAcquisitionManager:
                     if len(self._fetched_buffers) > 0:
                         buffer = self._fetched_buffers.pop(0)
 
-        self._logger.info(
-            'Fetched Buffer #{0} that belongs to DataStream {1} of {2}.'.format(
+        self._logger.debug(
+            'Fetched Buffer #{0} that belongs to DataStream module {1} of {2}.'.format(
                 buffer._buffer.context,
                 buffer._buffer.parent.id_,
                 buffer._buffer.parent.parent.id_
@@ -1403,7 +1465,7 @@ class ImageAcquisitionManager:
             announced_buffers.append(announced_buffer)
 
             #
-            self._logger.info(
+            self._logger.debug(
                 'Announced Buffer #{0} to DataStraem {1}.'.format(
                     announced_buffer.context,
                     data_stream.id_
@@ -1420,7 +1482,7 @@ class ImageAcquisitionManager:
         #
         for buffer in buffers:
             data_stream.queue_buffer(buffer)
-            self._logger.info(
+            self._logger.debug(
                 'Queued Buffer #{0} to DataStraem {1} of Device {2}.'.format(
                     buffer.context,
                     data_stream.id_,
@@ -1475,7 +1537,9 @@ class ImageAcquisitionManager:
             self._has_acquired_1st_image = False
 
             #
-            self._logger.info('Stopped image acquisition.')
+            self._logger.info(
+                '{0} stopped image acquisition.'.format(self._device.id_)
+            )
             for statistics in self._statistics_list:
                 statistics.reset()
 
@@ -1541,7 +1605,7 @@ class ImageAcquisitionManager:
                 name_dev = data_stream.parent.id_
                 data_stream.close()
                 self._logger.info(
-                    'Closed DataStream module #{0} of {1}.'.format(
+                    'Closed DataStream module {0} of {1}.'.format(
                         name_ds, name_dev
                     )
                 )
@@ -1774,17 +1838,26 @@ class Harvester:
             device.open(
                 DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
             )
-        except (AccessDeniedException, ResourceInUseException) as e:
-            self._logger.error(e, exc_info=True)
-            return None
+        except (
+            NotInitializedException, InvalidHandleException,
+            InvalidIdException, ResourceInUseException,
+            InvalidParameterException, NotImplementedException,
+            AccessDeniedException,
+        ) as e:
+            self._logger.debug(e, exc_info=True)
+            iam = None
+        else:
+            self._logger.info(
+                'Opened Device module, {0}.'.format(device.id_)
+            )
 
-        # Create an image acquisition manager object and return it.
-        iam = ImageAcquisitionManager(
-            device=device, profiler=self._profiler, logger=self._logger
-        )
+            # Create an image acquisition manager object and return it.
+            iam = ImageAcquisitionManager(
+                device=device, profiler=self._profiler, logger=self._logger
+            )
 
-        if self._profiler:
-            self._profiler.print_diff()
+            if self._profiler:
+                self._profiler.print_diff()
 
         return iam
 
@@ -1834,12 +1907,19 @@ class Harvester:
             producer = GenTLProducer.create_producer()
             try:
                 producer.open(file_path)
-            except ClosedException as e:
-                self._logger.error(e, exc_info=True)
+            except (
+                NotInitializedException, InvalidHandleException,
+                InvalidIdException, ResourceInUseException,
+                InvalidParameterException, NotImplementedException,
+                AccessDeniedException, ClosedException,
+            ) as e:
+                self._logger.debug(e, exc_info=True)
             else:
                 self._producers.append(producer)
                 self._logger.info(
-                    'Initialized a GenTL Producer from {0}.'.format(producer.path_name)
+                    'Initialized GenTL Producer, {0}.'.format(
+                        producer.path_name
+                    )
                 )
 
     def _open_systems(self):
@@ -1847,8 +1927,12 @@ class Harvester:
             system = producer.create_system()
             try:
                 system.open()
-            except ClosedException as e:
-                self._logger.error(e, exc_info=True)
+            except (
+                NotInitializedException, ResourceInUseException,
+                InvalidParameterException, AccessDeniedException,
+                ClosedException,
+            ) as e:
+                self._logger.debug(e, exc_info=True)
             else:
                 self._systems.append(system)
                 self._logger.info('Opened System module, {0}.'.format(
@@ -1946,11 +2030,22 @@ class Harvester:
                 #
                 for i_info in system.interface_info_list:
                     iface = i_info.create_interface()
-                    iface.open()
-                    iface.update_device_info_list(self.timeout_for_update)
-                    self._interfaces.append(iface)
-                    for d_info in iface.device_info_list:
-                        self.device_info_list.append(d_info)
+                    try:
+                        iface.open()
+                    except (
+                        NotInitializedException, ResourceInUseException,
+                        InvalidHandleException, InvalidHandleException,
+                        InvalidParameterException, AccessDeniedException,
+                    ) as e:
+                        self._logger.debug(e, exc_info=True)
+                    else:
+                        self._logger.info(
+                            'Opened Interface module, {0}.'.format(iface.id_)
+                        )
+                        iface.update_device_info_list(self.timeout_for_update)
+                        self._interfaces.append(iface)
+                        for d_info in iface.device_info_list:
+                            self.device_info_list.append(d_info)
 
         except LoadLibraryException as e:
             self._logger.error(e, exc_info=True)

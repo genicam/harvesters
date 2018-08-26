@@ -19,7 +19,7 @@
 
 
 # Standard library imports
-from logging import INFO
+from logging import DEBUG
 import os
 import sys
 import unittest
@@ -58,7 +58,7 @@ class TestHarvesterCoreBase(unittest.TestCase):
         self._harvester = None
         self._iam = None
         self._thread = None
-        self._logger = get_logger(name=__name__, level=INFO)
+        self._logger = get_logger(name=__name__, level=DEBUG)
 
     def setUp(self):
         #

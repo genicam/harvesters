@@ -94,3 +94,8 @@ class _PyQtThreadImpl(QThread):
     @worker.setter
     def worker(self, obj):
         self._worker = obj
+
+    @property
+    def id_(self):
+        return int(self.currentThreadId())
+

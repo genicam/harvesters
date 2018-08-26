@@ -49,7 +49,7 @@ class Harvester(QMainWindow):
 
     def __init__(self, *, logger=None):
         #
-        self._logger = get_logger(logger_given=logger, name=__name__)
+        self._logger = logger or get_logger(name=__name__)
 
         #
         super().__init__()
@@ -59,7 +59,7 @@ class Harvester(QMainWindow):
 
         profile = True if 'HARVESTER_PROFILE' in os.environ else False
         self._harvester_core = HarvesterCore(
-            profile=profile, parent=self, logger=self._logger
+            profile=profile, logger=self._logger
         )
         self._iam = None  # Image Acquisition Manager
 

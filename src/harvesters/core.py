@@ -786,8 +786,8 @@ class PayloadBase:
                 return
         except (ParsingChunkDataException, NoDataException) as e:
             self._logger.error(e, exc_info=True)
-#        except NotImplementedException as e:
-#            self._logger.debug(e, exc_info=True)
+        except NotImplementedException as e:
+            self._logger.debug(e, exc_info=True)
         else:
             #
             is_generic = False

@@ -786,33 +786,35 @@ class PayloadBase:
                 return
         except (ParsingChunkDataException, NoDataException) as e:
             self._logger.error(e, exc_info=True)
-
-        #
-        is_generic = False
-        if buffer.tl_type == 'U3V':
-            chunk_adapter = ChunkAdapterU3V(node_map.pointer)
-        elif buffer.tl_type == 'GEV':
-            chunk_adapter = ChunkAdapterGEV(node_map.pointer)
+#        except NotImplementedException as e:
+#            self._logger.debug(e, exc_info=True)
         else:
-            chunk_adapter = ChunkAdapterGeneric(node_map.pointer)
-            is_generic = True
-
-        try:
-            if is_generic:
-                chunk_adapter.attach_buffer(
-                    buffer.raw_buffer, buffer.chunk_data_info_list
-                )
+            #
+            is_generic = False
+            if buffer.tl_type == 'U3V':
+                chunk_adapter = ChunkAdapterU3V(node_map.pointer)
+            elif buffer.tl_type == 'GEV':
+                chunk_adapter = ChunkAdapterGEV(node_map.pointer)
             else:
-                chunk_adapter.attach_buffer(buffer.raw_buffer)
-        except RuntimeException as e:
-            # Failed to parse the chunk data. Something must be wrong.
-            self._logger.error(e, exc_info=True)
-        else:
-            self._logger.debug(
-                'Updated the node map of {0}.'.format(
-                    buffer.parent.parent.id_
+                chunk_adapter = ChunkAdapterGeneric(node_map.pointer)
+                is_generic = True
+
+            try:
+                if is_generic:
+                    chunk_adapter.attach_buffer(
+                        buffer.raw_buffer, buffer.chunk_data_info_list
+                    )
+                else:
+                    chunk_adapter.attach_buffer(buffer.raw_buffer)
+            except RuntimeException as e:
+                # Failed to parse the chunk data. Something must be wrong.
+                self._logger.error(e, exc_info=True)
+            else:
+                self._logger.debug(
+                    'Updated the node map of {0}.'.format(
+                        buffer.parent.parent.id_
+                    )
                 )
-            )
 
 
 class PayloadUnknown(PayloadBase):

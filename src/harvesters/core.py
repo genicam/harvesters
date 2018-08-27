@@ -968,6 +968,9 @@ class ImageAcquisitionManager:
         self._logger = logger or get_logger(name=__name__)
 
         #
+        assert device
+
+        #
         super().__init__()
 
         #
@@ -1342,7 +1345,7 @@ class ImageAcquisitionManager:
             else:
                 #
                 self._logger.debug(
-                    'Acquired buffer #{0} from DataStraem {1} of Device {2}.'.format(
+                    'Acquired Buffer #{0} from DataStream {1} of Device {2}.'.format(
                         event_manager.buffer.context,
                         event_manager.parent.id_,
                         event_manager.parent.parent.id_
@@ -1397,7 +1400,7 @@ class ImageAcquisitionManager:
             return None
 
         watch_timeout = True if timeout_ms > 0 else False
-        buffer= None
+        buffer = None
         base = time.time()
 
         while buffer is None:
@@ -1565,6 +1568,7 @@ class ImageAcquisitionManager:
         Please don't forget to call this method if you create an image acquisition manager without using the with method.
         """
         #
+        id_ = None
         if self.device:
             #
             self.stop_image_acquisition()
@@ -1594,7 +1598,15 @@ class ImageAcquisitionManager:
         self._device = None
 
         #
-        self._logger.info('Destroyed the ImageAcquisitionManager object.')
+        if id_:
+            self._logger.info(
+                'Destroyed the ImageAcquisitionManager object which {0} '
+                'had belonged to.'.format(id_)
+            )
+        else:
+            self._logger.info(
+                'Destroyed an ImageAcquisitionManager.'
+            )
 
         if self._profiler:
             self._profiler.print_diff()

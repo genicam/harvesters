@@ -956,7 +956,7 @@ class ImageAcquisitionManager:
     Manages everything you need to acquire images from the connecting image transmitter device.
     """
     def __init__(
-            self, *, min_num_buffers=16, device=None,
+            self, *, parent=None, min_num_buffers=16, device=None,
             create_ds_at_connection=True, profiler=None, logger=None
     ):
         """
@@ -969,6 +969,9 @@ class ImageAcquisitionManager:
 
         #
         super().__init__()
+
+        #
+        self._parent = parent
 
         #
         self._device = device
@@ -1855,7 +1858,8 @@ class Harvester:
 
             # Create an image acquisition manager object and return it.
             iam = ImageAcquisitionManager(
-                device=device, profiler=self._profiler, logger=self._logger
+                parent=self, device=device, profiler=self._profiler,
+                logger=self._logger
             )
 
             if self._profiler:

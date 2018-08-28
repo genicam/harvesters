@@ -787,9 +787,9 @@ class PayloadBase:
                     'The buffer does not contain any chunk data.'
                 )
                 return
-        except (ParsingChunkDataException, NoDataException) as e:
+        except ParsingChunkDataException as e:
             self._logger.error(e, exc_info=True)
-        except NotImplementedException as e:
+        except (NotImplementedException, NoDataException) as e:
             self._logger.debug(e, exc_info=True)
         else:
             self._logger.debug(

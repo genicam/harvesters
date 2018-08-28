@@ -330,7 +330,7 @@ Harvester Core on IPython
 
 The following screenshot shows Harvester Core is running on IPython. Harvester Core returns the latest image data at the moment as a Numpy array every time its user call the ``get_image()`` method. Once you get an image you should be able to immediately start image processing. If you're running on Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
-.. image:: https://user-images.githubusercontent.com/8652625/44733429-88f81e80-ab22-11e8-946b-2fab7e1dfac2.png
+.. image:: https://user-images.githubusercontent.com/8652625/44734163-45061900-ab24-11e8-9b93-e6312851c94c.png
     :align: center
     :alt: Harvester on IPython
     :scale: 40 %
@@ -339,42 +339,47 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
 
     In [1]: from harvesters.core import Harvester
 
-    In [2]: h = Harvester()
+    In [2]: import numpy as np
 
-    In [3]: h.add_cti_file('/Users/kznr/dev/genicam/bin/Maci64_x64/TLSimu.cti')
+    In [3]: h = Harvester()
 
-    In [4]: h.update_device_info_list()
+    In [4]: h.add_cti_file('/Users/kznr/dev/genicam/bin/Maci64_x64/TLSimu.cti')
 
-    In [5]: h.device_info_list
-    Out[5]:
+    In [5]: h.update_device_info_list()
+
+    In [6]: h.device_info_list
+    Out[6]:
     [(id_='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceA_0', version='1.2.3'),
      (id_='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceA_1', version='1.2.3'),
      (id_='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_0', version='1.2.3'),
      (id_='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_1', version='1.2.3')]
 
-    In [6]: iam = h.create_image_acquisition_manager(0)
+    In [7]: iam = h.create_image_acquisition_manager(0)
 
-    In [7]: iam.device.node_map.Width.value, iam.device.node_map.Height.value = 8, 8
+    In [8]: iam.device.node_map.Width.value, iam.device.node_map.Height.value = 8, 8
 
-    In [8]: iam.device.node_map.PixelFormat.value = 'Mono8'
+    In [9]: iam.device.node_map.PixelFormat.value = 'Mono8'
 
-    In [9]: iam.start_image_acquisition()
+    In [10]: iam.start_image_acquisition()
 
-    In [10]: with iam.fetch_buffer() as buffer:
-        ...:     print(buffer.payload.components[0].data)
+    In [11]: with iam.fetch_buffer() as buffer:
+        ...:     image = buffer.payload.components[0].data
+        ...:     print(image)
+        ...:     print('Aerage: {0}'.format(np.average(image)))
         ...:
-    [[77 78 79 80 81 82 83 84]
-     [78 79 80 81 82 83 84 85]
-     [79 80 81 82 83 84 85 86]
-     [80 81 82 83 84 85 86 87]
-     [81 82 83 84 85 86 87 88]
-     [82 83 84 85 86 87 88 89]
-     [83 84 85 86 87 88 89 90]
-     [84 85 86 87 88 89 90 91]]
+    [[212 213 214 215 216 217 218 219]
+     [213 214 215 216 217 218 219 220]
+     [214 215 216 217 218 219 220 221]
+     [215 216 217 218 219 220 221 222]
+     [216 217 218 219 220 221 222 223]
+     [217 218 219 220 221 222 223 224]
+     [218 219 220 221 222 223 224 225]
+     [219 220 221 222 223 224 225 226]]
+    Aerage: 219.0
 
-    In [11]: iam.stop_image_acquisition()
+    In [12]: iam.stop_image_acquisition()
 
-    In [12]: iam.destroy()
+    In [13]: iam.destroy()
 
 ############
 Requirements

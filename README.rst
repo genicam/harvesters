@@ -30,7 +30,7 @@ Harvester consumes image acquisition libraries, so-called GenTL Producers. If yo
 
 You can freely use, modify, distribute Harvester under `Apache License-2.0 <https://www.apache.org/licenses/LICENSE-2.0>`_ without worrying about the use of your software: personal, internal or commercial.
 
-Currently, Harvester is being developed and maintained by the motivated volunteer contributors from all over the world.
+Currently, Harvester is being developed and maintained by the motivated contributors from all over the world.
 
 ***********************
 Where is the name from?
@@ -330,7 +330,7 @@ Harvester Core on IPython
 
 The following screenshot shows Harvester Core is running on IPython. Harvester Core returns the latest image data at the moment as a Numpy array every time its user call the ``get_image()`` method. Once you get an image you should be able to immediately start image processing. If you're running on Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
-.. image:: https://user-images.githubusercontent.com/8652625/44210625-f52d6680-a1a1-11e8-909c-b799997f2dd4.png
+.. image:: https://user-images.githubusercontent.com/8652625/44733429-88f81e80-ab22-11e8-946b-2fab7e1dfac2.png
     :align: center
     :alt: Harvester on IPython
     :scale: 40 %

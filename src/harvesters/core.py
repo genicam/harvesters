@@ -783,12 +783,18 @@ class PayloadBase:
     def _update_chunk_data(self, buffer=None, node_map=None):
         try:
             if buffer.num_chunks == 0:
+                self._logger.debug(
+                    'The buffer does not contain any chunk data.'
+                )
                 return
         except (ParsingChunkDataException, NoDataException) as e:
             self._logger.error(e, exc_info=True)
         except NotImplementedException as e:
             self._logger.debug(e, exc_info=True)
         else:
+            self._logger.debug(
+                'The buffer contains chunk data.'
+            )
             #
             is_generic = False
             if buffer.tl_type == 'U3V':
@@ -969,6 +975,7 @@ class ImageAcquisitionManager:
 
         #
         assert device
+        assert parent
 
         #
         super().__init__()
@@ -1560,56 +1567,9 @@ class ImageAcquisitionManager:
         self._current_pixel_format = self.device.node_map.PixelFormat.value
 
     def destroy(self):
-        """
-        Releases all external resources including the controlling device.
-
-        :return: None
-
-        Please don't forget to call this method if you create an image acquisition manager without using the with method.
-        """
-        #
-        id_ = None
-        if self.device:
-            #
-            self.stop_image_acquisition()
-
-            #
-            self._release_data_streams()
-
-            #
-            id_ = self._device.id_
-
-            #
-            if self.device.node_map:
-                self.device.node_map.disconnect()
-                self._logger.info(
-                    'Disconnected the port from the NodeMap of {0}.'.format(
-                        id_
-                    )
-                )
-
-            #
-            if self._device.is_open():
-                self._device.close()
-                self._logger.info(
-                    'Closed Device module, {0}.'.format(id_)
-                )
-
-        self._device = None
-
-        #
-        if id_:
-            self._logger.info(
-                'Destroyed the ImageAcquisitionManager object which {0} '
-                'had belonged to.'.format(id_)
-            )
-        else:
-            self._logger.info(
-                'Destroyed an ImageAcquisitionManager.'
-            )
-
-        if self._profiler:
-            self._profiler.print_diff()
+        # Ask its parent to destroy it:
+        if self._device:
+            self._parent._destroy_image_acquisition_manager(self)
 
     def _release_data_streams(self):
         #
@@ -1720,6 +1680,7 @@ class Harvester:
         self._systems = []
         self._interfaces = []
         self._device_info_list = []
+        self._iams = []
 
         #
         self._has_revised_device_list = False
@@ -1873,6 +1834,7 @@ class Harvester:
                 parent=self, device=device, profiler=self._profiler,
                 logger=self._logger
             )
+            self._iams.append(iam)
 
             if self._profiler:
                 self._profiler.print_diff()
@@ -1964,6 +1926,13 @@ class Harvester:
 
         :return: None
         """
+        #
+        for iam in self._iams:
+            iam.destroy()
+
+        self._iams.clear()
+
+        #
         self._logger.info('Started resetting the Harvester object.')
         self.remove_cti_files()
         self._release_gentl_producers()
@@ -2073,6 +2042,56 @@ class Harvester:
 
         #
         self._logger.info('Updated the device information list.')
+
+    def _destroy_image_acquisition_manager(self, iam):
+        """
+        Releases all external resources including the controlling device.
+        """
+
+        id_ = None
+        if iam.device:
+            #
+            iam.stop_image_acquisition()
+
+            #
+            iam._release_data_streams()
+
+            #
+            id_ = iam._device.id_
+
+            #
+            if iam.device.node_map:
+                iam.device.node_map.disconnect()
+                self._logger.info(
+                    'Disconnected the port from the NodeMap of {0}.'.format(
+                        id_
+                    )
+                )
+
+            #
+            if iam._device.is_open():
+                iam._device.close()
+                self._logger.info(
+                    'Closed Device module, {0}.'.format(id_)
+                )
+
+        iam._device = None
+
+        #
+        if id_:
+            self._logger.info(
+                'Destroyed the ImageAcquisitionManager object which {0} '
+                'had belonged to.'.format(id_)
+            )
+        else:
+            self._logger.info(
+                'Destroyed an ImageAcquisitionManager.'
+            )
+
+        if self._profiler:
+            self._profiler.print_diff()
+
+        self._iams.remove(iam)
 
 
 if __name__ == '__main__':

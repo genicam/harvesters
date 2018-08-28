@@ -34,6 +34,15 @@ log.set_verbosity(log.DEBUG)
 log.info('Entered setup.py')
 log.info('$PATH=%s' % os.environ['PATH'])
 
+
+# Check the Python version:
+if sys.version_info < (3, 4):
+    raise RuntimeError(
+        'You can\'t install Harvester because it requires Python 3.4 '
+        'or later.'
+    )
+
+
 with open('README.rst', 'r',encoding='utf-8_sig') as fh:
     __doc__ = fh.read()
 

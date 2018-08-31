@@ -440,25 +440,7 @@ Installing Harvester
 
 In this section, we will learn how to instruct procedures to get Harvester work.
 
-********
-Overview
-********
-
-In short, you may think which tools are required to get Harvester work. The answer is listed as follows:
-
-* The Python Bindings for GenApi & GenTL
-* The GenICam reference implementation
-* A certified GenTL Producer
-* A GenICam compliant machine vision camera
-
-The first two items will be able to downloaded from the EMVA website in the future. Regarding the 3rd item, you should be able to get proprietary product from software vendors who sell image acquisition library. Regarding the 4th item, you should be able to purchase from machine vision camera manufactures all over the world.
-
-********************
-Installing Harvester
-********************
-
-You can install Harvester via PyPI invoking the following command; note that
-the package name is ``harvesters`` but not ``harvester``:
+You can install Harvester via PyPI invoking the following command; note that the package name is ``harvesters`` but not ``harvester``:
 
 .. code-block:: shell
 
@@ -470,7 +452,7 @@ For people who those have already installed it:
 
     $ pip install --upgrade harvesters
 
-These commands will automatically install the required modules such as ``numpy`` if any of them has not yet installed on your environment. The official Python Bindings should be also covered by the installation process but it's not available as of August 2018.
+These commands will automatically install the required modules such as ``numpy`` or ``genicam2`` (the Python Binding for the GenICam GenApi & the GenTL Producers) if any of them has not yet installed on your environment.
 
 Getting back to the original topic, you could install the latest development version it using ``setup.py`` cloning Harvester from GitHub:
 
@@ -486,45 +468,9 @@ If you want to use Harvester GUI, then please install the following modules in a
 
 In the future, we might support other GUI frameworks which are more or less open and free.
 
-******************************
-Installing the Python Bindings
-******************************
-
-Harvester requires the GenApi-Python Binding and the GenTL-Python Binding. As of July 2018, it's not officially distributed yet by EMVA; so we are working so hard to make it by the end of year 2018. Having that fact, as of today, the only way to get those is building them by yourself.
-
-The source code can be downloaded from the following URL using Subversion:
-
-.. code-block:: shell
-
-    $ svn co https://genicam.mvtec.com/svn/genicam/branches/_dev_teli_kazunari_1881_20180812/
-
-Note that you need to be a member of EMVA to download a working copy from their repository. To learn about the detail please visit the following EMVA website:
-
-https://www.emva.org/about-emva/membership/
-
-To build the library, please read the ``README`` file which is located at the following directory in the source package:
-
-``genicam/source/Bindings/README.rst``
-
-Reading that file, you should be able to learn everything you need to build the Python Bindings by yourself.
-
-In the end, Python Wheels for the Python Bindings will be distributed at PyPI to allow people installing the Bindings over the ``pip`` command but it's not been available yet. Until it turns available, you may go on a way to manually create a symlink to bridge your target Python interpreter and the built/provided binaries.
-
-The Python Bindings should be packed as ``genicam2``. So on Windows, to create a symlink ``genicam2`` in your target Python interpreter, please invoke the following command:
-
-.. code-block:: shell
-
-    $ mklink /D path/to/target/site-packages/genicam2 path/to/source/genicam/bin/Win64_x64
-
-Or, on Linux or macOS, you can do the same invoking the following command; please replace ``Linux64_x64`` with ``Maci64_x64``:
-
-.. code-block:: shell
-
-    $ ln –s path/to/source/genicam/bin/Linux64_x64 path/to/target/site-packages/genicam2
-
-************************************
-Remarks regaring the Python Bindings
-************************************
+*************************************
+Remarks regarding the Python Bindings
+*************************************
 
 Please remind that you need to be careful when you choose a Python version (especially Anaconda Python, maybe?) because some distributions have different directory structure or linking symbols. It simply breaks the Python Bindings. We have started collecting some results from our experiences and have listed them in the "System Configuration Matrix" section in the ``README`` file. We hope it helps you to save your time.
 

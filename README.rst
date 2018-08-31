@@ -43,7 +43,6 @@ Apart from anything else, we love its peaceful and friendly name. We hope you al
 .. figure:: https://user-images.githubusercontent.com/8652625/40595190-1e16e90e-626e-11e8-9dc7-207d691c6d6d.jpg
     :align: center
     :alt: The Harvesters
-    :scale: 55 %
 
     Pieter Bruegel the Elder, The Harvesters, 1565, (c) 2000–2018 The Metropolitan Museum of Art
 
@@ -224,7 +223,6 @@ The following diagram shows the hierarchy and relationship of the relevant modul
 .. figure:: https://user-images.githubusercontent.com/8652625/44316633-926cf100-a467-11e8-92c6-ac69ad3c8129.png
     :align: center
     :alt: Module hierarchy
-    :scale: 40 %
 
 ###########################
 How does Harvester help us?
@@ -311,7 +309,6 @@ The image data visualizer window (below) offers you a visualization of the acqui
 .. image:: https://user-images.githubusercontent.com/8652625/43035346-c84fe404-8d28-11e8-815f-2df66cbbc6d0.png
     :align: center
     :alt: Image data visualizer
-    :scale: 40 %
 
 ***************************
 Attribute controller window
@@ -322,7 +319,6 @@ The attribute controller window (below) offers you to manipulate GenICam feature
 .. image:: https://user-images.githubusercontent.com/8652625/43035351-d35a2936-8d28-11e8-83d5-7b6efa6e2ad8.png
     :align: center
     :alt: Attribute Controller
-    :scale: 40 %
 
 *************************
 Harvester Core on IPython
@@ -330,10 +326,9 @@ Harvester Core on IPython
 
 The following screenshot shows Harvester Core is running on IPython. Harvester Core returns the latest image data at the moment as a Numpy array every time its user call the ``get_image()`` method. Once you get an image you should be able to immediately start image processing. If you're running on Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
-.. image:: https://user-images.githubusercontent.com/8652625/44734163-45061900-ab24-11e8-9b93-e6312851c94c.png
+.. image:: https://user-images.githubusercontent.com/8652625/44914082-15485280-ad6a-11e8-85a5-9d0632aef28f.png
     :align: center
     :alt: Harvester on IPython
-    :scale: 40 %
 
 .. code-block:: python
 
@@ -354,7 +349,7 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
      (id_='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_0', version='1.2.3'),
      (id_='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_1', version='1.2.3')]
 
-    In [7]: iam = h.create_image_acquisition_manager(0)
+    In [7]: iam = h.create_image_acquisition_manager(serial_number='SN_InterfaceA_0')
 
     In [8]: iam.device.node_map.Width.value, iam.device.node_map.Height.value = 8, 8
 
@@ -362,24 +357,54 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
 
     In [10]: iam.start_image_acquisition()
 
-    In [11]: with iam.fetch_buffer() as buffer:
+    In [11]: buffer = iam.fetch_buffer()
+
+    In [12]: type(buffer)
+    Out[12]: harvesters.core.Buffer
+
+    In [13]: type(buffer.payload)
+    Out[13]: harvesters.core.PayloadImage
+
+    In [14]: len(buffer.payload.components)
+    Out[14]: 1
+
+    In [15]: type(buffer.payload.components[0])
+    Out[15]: harvesters.core.Component2D
+
+    In [16]: type(buffer.payload.components[0].data)
+    Out[16]: numpy.ndarray
+
+    In [17]: buffer.payload.components[0].data
+    Out[17]:
+    array([[153, 154, 155, 156, 157, 158, 159, 160],
+           [154, 155, 156, 157, 158, 159, 160, 161],
+           [155, 156, 157, 158, 159, 160, 161, 162],
+           [156, 157, 158, 159, 160, 161, 162, 163],
+           [157, 158, 159, 160, 161, 162, 163, 164],
+           [158, 159, 160, 161, 162, 163, 164, 165],
+           [159, 160, 161, 162, 163, 164, 165, 166],
+           [160, 161, 162, 163, 164, 165, 166, 167]], dtype=uint8)
+
+    In [18]: buffer.queue()
+
+    In [19]: with iam.fetch_buffer() as buffer:
         ...:     image = buffer.payload.components[0].data
+        ...:     print('Average: {0}'.format(np.average(image)))
         ...:     print(image)
-        ...:     print('Aerage: {0}'.format(np.average(image)))
         ...:
-    [[212 213 214 215 216 217 218 219]
+    Average: 218.0
+    [[211 212 213 214 215 216 217 218]
+     [212 213 214 215 216 217 218 219]
      [213 214 215 216 217 218 219 220]
      [214 215 216 217 218 219 220 221]
      [215 216 217 218 219 220 221 222]
      [216 217 218 219 220 221 222 223]
      [217 218 219 220 221 222 223 224]
-     [218 219 220 221 222 223 224 225]
-     [219 220 221 222 223 224 225 226]]
-    Aerage: 219.0
+     [218 219 220 221 222 223 224 225]]
 
-    In [12]: iam.stop_image_acquisition()
+    In [20]: iam.stop_image_acquisition()
 
-    In [13]: iam.destroy()
+    In [21]: iam.destroy()
 
 ############
 Requirements
@@ -681,7 +706,6 @@ Most of Harvester GUI's features can be used through its toolbox. In this sectio
 .. image:: https://user-images.githubusercontent.com/8652625/43035384-7d1109e0-8d29-11e8-9005-38b965a9680e.png
     :align: center
     :alt: Toolbar
-    :scale: 40 %
 
 Selecting a CTI file
 --------------------
@@ -689,7 +713,6 @@ Selecting a CTI file
 .. image:: https://user-images.githubusercontent.com/8652625/40596073-7e1b6a82-6273-11e8-9045-68bbbd034281.png
     :align: left
     :alt: Open file
-    :scale: 40 %
 
 This button is used to select a GenTL Producer file to load. The shortcut key is ``Ctrl+o``.
 
@@ -699,7 +722,6 @@ Updating the device information list
 .. image:: https://user-images.githubusercontent.com/8652625/40596091-9354283a-6273-11e8-8c6f-559db511339a.png
     :align: left
     :alt: Update
-    :scale: 40 %
 
 This button is used to update the device information list; the list will be filled up with the devices that are handled by the GenTL Producer that you have loaded on Harvester GUI; sometime it might be empy if there's no device is available. The shortcut key is ``Ctrl+u``. It might be useful when you newly connect a device to your system.
 
@@ -714,7 +736,6 @@ Connecting a selected device to Harvester
 .. image:: https://user-images.githubusercontent.com/8652625/40596045-49c61d54-6273-11e8-8424-d16e923b5b3f.png
     :align: left
     :alt: Connect
-    :scale: 40 %
 
 This button is used to connect a device which is being selected by the former combo box. The shortcut key is ``Ctrl+c``. Once you connect the device, the device is exclusively controlled.
 
@@ -724,7 +745,6 @@ Disconnecting the connecting device from Harvester
 .. image:: https://user-images.githubusercontent.com/8652625/40596046-49f0fd9e-6273-11e8-83e3-7ba8aad3c4f7.png
     :align: left
     :alt: Disconnect
-    :scale: 40 %
 
 This button is used to disconnect the connecting device from Harvester. The shortcut key is ``Ctrl+d``.
 
@@ -734,7 +754,6 @@ Starting image acquisition
 .. image:: https://user-images.githubusercontent.com/8652625/40596022-34d3d486-6273-11e8-92c3-2349be5fd98f.png
     :align: left
     :alt: Start image acquisition
-    :scale: 40 %
 
 This button is used to start image acquisition. The shortcut key is ``Ctrl+j``. The acquired images will be drawing in the following canvas pane.
 
@@ -744,7 +763,6 @@ Pausing/Resuming image drawing
 .. image:: https://user-images.githubusercontent.com/8652625/40596063-6cae1aba-6273-11e8-9049-2430a042c671.png
     :align: left
     :alt: Pause
-    :scale: 40 %
 
 This button is used to pausing/resuming drawing images on the canvas pane while it's keep acquiring images in the background. The shortcut key is ``Ctrl+k``. If you want to resume drawing images, just click the button again. You can do the same thing with the start image acquisition button (``Ctrl+j``).
 
@@ -754,7 +772,6 @@ Stopping image acquisition
 .. image:: https://user-images.githubusercontent.com/8652625/40596024-35d84c86-6273-11e8-89b8-9368db740f22.png
     :align: left
     :alt: Stop image acquisition
-    :scale: 40 %
 
 This button is used to stop image acquisition. The shortcut key is ``Ctrl+l``.
 
@@ -764,7 +781,6 @@ Showing the device attribute dialog
 .. image:: https://user-images.githubusercontent.com/8652625/40596224-7b2cf0e2-6274-11e8-9088-bb48163968d6.png
     :align: left
     :alt: Device attribute
-    :scale: 40 %
 
 This button is used to show the device attribute dialog. The shortcut key is ``Ctrl+a``. The device attribute dialog offers you to a way to intuitively control device attribute over a GUI.
 
@@ -774,7 +790,6 @@ Showing the about dialog
 .. image:: https://user-images.githubusercontent.com/8652625/40596039-449ddc36-6273-11e8-9f91-1eb7830b8e8c.png
     :align: left
     :alt: About
-    :scale: 40 %
 
 This button is used to show the about dialog.
 
@@ -786,7 +801,6 @@ The canvas of Harvester GUI offers you not only image data visualization but als
 .. image:: https://user-images.githubusercontent.com/8652625/43035349-cdd9f9a0-8d28-11e8-8152-0bc488450ef6.png
     :align: center
     :alt: Canvas
-    :scale: 40 %
 
 Zooming into the displayed image
 --------------------------------
@@ -815,7 +829,6 @@ Attribute controller window :: Toolbar
 .. image:: https://user-images.githubusercontent.com/8652625/43035353-d64c96e2-8d28-11e8-8c68-0bc4ee866d28.png
     :align: center
     :alt: Toolbar
-    :scale: 40 %
 
 Filtering GenICam feature nodes by visibility
 ---------------------------------------------
@@ -872,7 +885,6 @@ Expanding the feature node tree
 .. image:: https://user-images.githubusercontent.com/8652625/41112454-f7471566-6ab9-11e8-93a4-d2d56c7bbd31.png
     :align: left
     :alt: Expand feature node tree
-    :scale: 40 %
 
 This button is used to expand the feature node tree. The shortcut key is ``Ctrl+e``.
 
@@ -882,7 +894,6 @@ Collapsing the feature node tree
 .. image:: https://user-images.githubusercontent.com/8652625/41112453-f712498a-6ab9-11e8-9f9f-160c0e0d8866.png
     :align: left
     :alt: Collapse feature node tree
-    :scale: 40 %
 
 This button is used to collapse the feature node tree. The shortcut key is ``Ctrl+c``.
 

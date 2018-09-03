@@ -988,21 +988,33 @@ class ImageAcquisitionManager:
         self._device.node_map = _get_port_connected_node_map(
             self.device.remote_port
         )  # Remote device's node map
-        self._device.local_node_map = _get_port_connected_node_map(
-            self.device.local_port
-        )  # Local device's node map
+        try:
+            self._device.local_node_map = _get_port_connected_node_map(
+                self.device.local_port
+            )  # Local device's node map
+        except RuntimeException as e:
+            self._logger.error(e, exc_info=True)
+            self._device.local_node_map = None
 
         #
         self._interface = self._device.parent
-        self._interface.local_node_map = _get_port_connected_node_map(
-            self._interface.port
-        )
+        try:
+            self._interface.local_node_map = _get_port_connected_node_map(
+                self._interface.port
+            )
+        except RuntimeException as e:
+            self._logger.error(e, exc_info=True)
+            self._interface.local_node_map = None
 
         #
         self._system = self._interface.parent
-        self._system.local_node_map = _get_port_connected_node_map(
-            self._system.port
-        )
+        try:
+            self._system.local_node_map = _get_port_connected_node_map(
+                self._system.port
+            )
+        except RuntimeException as e:
+            self._logger.error(e, exc_info=True)
+            self._system.local_node_map = None
 
         #
         self._data_streams = []
@@ -1194,9 +1206,13 @@ class ImageAcquisitionManager:
                         data_stream.id_, data_stream.parent.id_
                     )
                 )
-                data_stream.local_node_map = _get_port_connected_node_map(
-                    data_stream.port
-                )
+                try:
+                    data_stream.local_node_map = _get_port_connected_node_map(
+                        data_stream.port
+                    )
+                except RuntimeException as e:
+                    self._logger.error(e, exc_info=True)
+                    data_stream.local_node_map = None
 
                 # Create an Event Manager object for image acquisition.
                 event_token = data_stream.register_event(

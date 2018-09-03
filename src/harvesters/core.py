@@ -152,7 +152,7 @@ class MutexLocker:
 class PyThread(ThreadBase):
     def __init__(self, *, mutex=None, worker=None, logger=None):
         """
-        
+
         :param mutex:
         :param worker:
         """
@@ -633,7 +633,8 @@ class Buffer:
                 NotAvailableException):
             try:
                 frequency = self._buffer.parent.parent.timestamp_frequency
-            except (InvalidParameterException, NotAvailableException):
+            except (InvalidParameterException, NotImplementedException,
+                    NotAvailableException):
                 try:
                     frequency = self._node_map.GevTimestampTickFrequency.value
                 except (LogicalErrorException, NotImplementedException):

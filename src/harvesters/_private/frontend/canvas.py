@@ -33,8 +33,7 @@ from genicam2.gentl import PAYLOADTYPE_INFO_IDS
 
 # Local application/library specific imports
 from harvesters._private.core.helper.system import is_running_on_macos
-from harvesters.pfnc import component_8bit_formats, component_10bit_formats, \
-    component_12bit_formats, component_14bit_formats, component_16bit_formats
+from harvesters.pfnc import calc_pixel_size, is_pixel_custom
 
 
 
@@ -213,19 +212,15 @@ class Canvas(app.Canvas):
                     exponent = 0
 
                     #
-                    pixel_format = buffer.payload.components[0].data_format
-                    if pixel_format in component_8bit_formats:
-                        pass
-                    elif pixel_format in component_10bit_formats:
-                        exponent = 2
-                    elif pixel_format in component_12bit_formats:
-                        exponent = 4
-                    elif pixel_format in component_14bit_formats:
-                        exponent = 6
-                    elif pixel_format in component_16bit_formats:
-                        exponent = 8
-                    else:
+                    pixel_format_value = buffer.payload.components[0].data_format_value
+                    if is_pixel_custom(pixel_format_value):
                         update = False
+                    else:
+                        pixel_size = calc_pixel_size(pixel_format_value)
+                        if 8 <= pixel_size <= 16:
+                            exponent = pixel_size - 8
+                        else:
+                            update = False
 
                     if update:
                         # Convert each data to an 8bit.

@@ -271,6 +271,16 @@ symbolics = {
     0x02180103: 'YCbCr2020_422_12p_CbYCrY',
 }
 
+pfnc_custom = 0x80000000
+pfnc_pixel_size_mask = 0x00FF0000
+pfnc_pixel_size_shift = 16
+
+def calc_pixel_size(pixel_format_value):
+    return (pixel_format_value & pfnc_pixel_size_mask) >> pfnc_pixel_size_shift
+
+def is_pixel_custom(pixel_format_value):
+    return (pixel_format_value & pfnc_custom) == pfnc_custom
+
 mono_formats = ['Mono8', 'Mono10', 'Mono12', 'Mono14', 'Mono16']
 
 rgb_formats = [

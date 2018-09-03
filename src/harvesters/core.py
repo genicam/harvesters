@@ -636,7 +636,7 @@ class Buffer:
             except (InvalidParameterException, NotAvailableException):
                 try:
                     frequency = self._node_map.GevTimestampTickFrequency.value
-                except LogicalErrorException:
+                except (LogicalErrorException, NotImplementedException):
                     pass
 
         return frequency

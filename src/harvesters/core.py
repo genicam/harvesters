@@ -1337,10 +1337,10 @@ class ImageAcquisitionManager:
             self._statistics_latest.reset()
 
     def _worker_image_acquisition(self):
+        time.sleep(0.00001)
         for event_manager in self._event_new_buffer_managers:
             try:
                 if self.is_acquiring_images:
-                    time.sleep(0.001)
                     event_manager.update_event_data(
                         self._timeout_for_image_acquisition
                     )

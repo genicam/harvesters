@@ -314,6 +314,7 @@ def get_bits_per_pixel(data_format):
     """
     Returns the number of (used) bits per pixel.
     So without padding.
+    Returns None if format is not known.
     """
     if data_format in component_8bit_formats:
         return 8
@@ -325,8 +326,8 @@ def get_bits_per_pixel(data_format):
         return 14
     elif data_format in component_16bit_formats:
         return 16
-    # format not known, we just return 8 bit for now
-    return 8
+    # format not known
+    return None
 
 
 mono_formats = ['Mono8', 'Mono10', 'Mono12', 'Mono14', 'Mono16']

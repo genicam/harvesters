@@ -224,7 +224,10 @@ class Canvas(app.Canvas):
                     else:
                         data_format = buffer.payload.components[0].data_format
                         bpp = get_bits_per_pixel(data_format)
-                        exponent = bpp - 8
+                        if bpp is not None:
+                            exponent = bpp - 8
+                        else:
+                            update = False
 
                     if update:
                         # Convert each data to an 8bit.

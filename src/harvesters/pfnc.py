@@ -25,6 +25,9 @@
 # Local application/library specific imports
 
 
+# We create the following symbolics from the official PFNC table so the
+# numeric values are all capitalized but this is an exception: We usually
+# go with lower case in other Python files.
 symbolics = {
     # As of 17-Feb-2017
     0x01080001: 'Mono8',
@@ -272,14 +275,18 @@ symbolics = {
 }
 
 pfnc_custom = 0x80000000
-pfnc_pixel_size_mask = 0x00FF0000
+pfnc_pixel_size_mask = 0x00ff0000
 pfnc_pixel_size_shift = 16
 
-def calc_pixel_size(pixel_format_value):
-    return (pixel_format_value & pfnc_pixel_size_mask) >> pfnc_pixel_size_shift
 
-def is_pixel_custom(pixel_format_value):
+def get_pixel_size(pixel_format_value):
+    return (pixel_format_value & pfnc_pixel_size_mask) >> \
+           pfnc_pixel_size_shift
+
+
+def is_custom(pixel_format_value):
     return (pixel_format_value & pfnc_custom) == pfnc_custom
+
 
 mono_formats = ['Mono8', 'Mono10', 'Mono12', 'Mono14', 'Mono16']
 

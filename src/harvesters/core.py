@@ -676,6 +676,7 @@ class Buffer:
         self._buffer.parent.queue_buffer(self._buffer)
 
         #
+        """
         self._logger.debug(
             'Queued Buffer #{0} to DataStream module {1} of {2}.'.format(
                 self._buffer.context,
@@ -683,6 +684,7 @@ class Buffer:
                 self._buffer.parent.parent.id_
             )
         )
+        """
 
     @staticmethod
     def _build_payload(*, buffer=None, node_map=None, logger=None):
@@ -1362,7 +1364,7 @@ class ImageAcquisitionManager:
             self._statistics_latest.reset()
 
     def _worker_image_acquisition(self):
-        time.sleep(0.00001)
+        time.sleep(0.0001)
         for event_manager in self._event_new_buffer_managers:
             try:
                 if self.is_acquiring_images:
@@ -1372,10 +1374,10 @@ class ImageAcquisitionManager:
                 else:
                     return
             except TimeoutException as e:
-                self._logger.debug(e, exc_info=True)
                 return
             else:
                 #
+                """
                 self._logger.debug(
                     'Acquired Buffer #{0} from DataStream {1} of Device {2}.'.format(
                         event_manager.buffer.context,
@@ -1383,6 +1385,17 @@ class ImageAcquisitionManager:
                         event_manager.parent.parent.id_
                     )
                 )
+                """
+                # We've got a new image so now we can reuse the buffer that
+                # we had kept.
+                with MutexLocker(self.thread_image_acquisition):
+                    if not self._is_acquiring_images:
+                        return
+
+                    if len(self._fetched_buffers) >= self._num_images_to_hold:
+                        # We have a buffer now so we queue it; it's discarded
+                        # before being used.
+                        self._fetched_buffers.pop(0).queue()
 
                 #
                 buffer = Buffer(
@@ -1391,25 +1404,12 @@ class ImageAcquisitionManager:
                     logger=self._logger
                 )
 
+                # Append the recently fetched buffer.
+                # Then one buffer remains for our client.
+                self._fetched_buffers.append(buffer)
+
                 #
                 self._update_statistics(buffer)
-
-                if buffer:
-                    # We've got a new image so now we can reuse the buffer that
-                    # we had kept.
-                    with MutexLocker(self.thread_image_acquisition):
-
-                        if not self._is_acquiring_images:
-                            return
-
-                        if len(self._fetched_buffers) >= self._num_images_to_hold:
-                            # We have a buffer now so we queue it; it's discarded
-                            # before being used.
-                            self._fetched_buffers.pop(0).queue()
-
-                        # Append the recently fetched buffer.
-                        # Then one buffer remains for our client.
-                        self._fetched_buffers.append(buffer)
 
             #
             if self._num_images_to_acquire >= 1:
@@ -1443,6 +1443,7 @@ class ImageAcquisitionManager:
                     if len(self._fetched_buffers) > 0:
                         buffer = self._fetched_buffers.pop(0)
 
+        """
         self._logger.debug(
             'Fetched Buffer #{0} that belongs to DataStream module {1} of {2}.'.format(
                 buffer._buffer.context,
@@ -1450,6 +1451,7 @@ class ImageAcquisitionManager:
                 buffer._buffer.parent.parent.id_
             )
         )
+        """
 
         return buffer
 

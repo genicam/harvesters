@@ -47,7 +47,7 @@ class Canvas(app.Canvas):
             self,
             image_acquisition_manager=None,
             width=640, height=480,
-            fps=50.,
+            fps=30,
             background_color='gray',
             vertex_shader=None,
             fragment_shader=None
@@ -56,6 +56,13 @@ class Canvas(app.Canvas):
         NOTE: fps should be smaller than or equal to 50 fps. If it's exceed
         VisPy drags down the acquisition performance. This is the issue we
         have to investigate.
+        """
+
+        """
+        As far as we know, Vispy refreshes the canvas every 1/30 sec at the
+        fastest no matter which faster number is specified. If we set any
+        value which is greater than 30, then Vispy's callback is randomly
+        called. 
         """
 
         self._vertex_shader = vertex_shader if vertex_shader else """
@@ -195,8 +202,9 @@ class Canvas(app.Canvas):
         # Fetch a buffer.
         try:
             with self.iam.fetch_buffer(timeout_ms=0.1) as buffer:
+                update = True
                 if buffer.payload_type not in self._visible_payloads:
-                    return
+                    update = False
 
                 # Set the image as the texture of our canvas.
                 if not self._pause_drawing and buffer:
@@ -207,7 +215,6 @@ class Canvas(app.Canvas):
                     )
 
                     #
-                    update = True
                     exponent = 0
 
                     #

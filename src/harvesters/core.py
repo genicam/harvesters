@@ -49,6 +49,7 @@ from harvesters._private.core.port import ConcretePort
 from harvesters._private.core.statistics import Statistics
 from harvesters._private.core.helper.logging import get_logger
 from harvesters.pfnc import symbolics
+from harvesters.pfnc import get_pixel_size
 from harvesters.pfnc import uint8_formats, uint16_formats, uint32_formats, \
     float32_formats
 from harvesters.pfnc import component_1d_formats, component_2d_formats
@@ -481,6 +482,14 @@ class Component2D(ComponentBase):
         :return:
         """
         return symbolics[self.data_format_value]
+
+    @property
+    def pixel_size(self):
+        """
+        Returns the effective pixel size in bits.
+        :return:
+        """
+        return get_pixel_size(self.data_format_value)
 
     @property
     def delivered_image_height(self):

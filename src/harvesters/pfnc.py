@@ -287,21 +287,6 @@ def get_pixel_size(pixel_format_value):
 def is_custom(pixel_format_value):
     return (pixel_format_value & pfnc_custom) == pfnc_custom
 
-
-def get_effective_data_size(data_format):
-    if data_format in component_8bit_formats:
-        size = 8
-    elif data_format in component_10bit_formats:
-        size = 10
-    elif data_format in component_12bit_formats:
-        size = 12
-    elif data_format in component_14bit_formats:
-        size = 14
-    elif data_format in component_16bit_formats:
-        size = 16
-    return size
-
-
 mono_formats = ['Mono8', 'Mono10', 'Mono12', 'Mono14', 'Mono16']
 
 rgb_formats = [
@@ -344,35 +329,6 @@ uint32_formats = [
 
 float32_formats = [
     'Coord3D_A32f', 'Coord3D_B32f', 'Coord3D_C32f',
-]
-
-component_8bit_formats = [
-    'Mono8',
-    'RGB8', 'RGBa8',
-    'BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8'
-]
-
-component_10bit_formats = [
-    'Mono10',
-    'RGB10', 'RGBa10',
-    'BayerGR10', 'BayerGB10', 'BayerRG10', 'BayerBG10',
-]
-
-component_12bit_formats = [
-    'Mono12',
-    'RGB12', 'RGBa12',
-    'BayerGR12', 'BayerGB12', 'BayerRG12', 'BayerBG12',
-]
-
-component_14bit_formats = [
-    'Mono14',
-    'RGB14', 'RGBa14',
-]
-
-component_16bit_formats = [
-    'Mono16',
-    'RGB16', 'RGBa16',
-    'BayerGR16', 'BayerRG16', 'BayerGB16', 'BayerBG16',
 ]
 
 component_1d_formats = [

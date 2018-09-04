@@ -274,12 +274,26 @@ symbolics = {
     0x02180103: 'YCbCr2020_422_12p_CbYCrY',
 }
 
+# 32-bit value layout
+# |31            24|23            16|15            08|07            00|
+# | C| Comp. Layout| Effective Size |            Pixel ID             |
+
+# Custom flag
 pfnc_custom = 0x80000000
+# Component layout
+pfnc_single_component = 0x01000000
+pfnc_multiple_component = 0x02000000
+pfnc_component_mask = 0x02000000
+# Effective size
 pfnc_pixel_size_mask = 0x00ff0000
 pfnc_pixel_size_shift = 16
 
 
-def get_pixel_size(pixel_format_value):
+def get_effective_pixel_size(pixel_format_value):
+    """
+    Returns the effective pixel size (number of bits a pixel occupies in memory).
+    This includes padding in many cases and the actually used bits are less.
+    """
     return (pixel_format_value & pfnc_pixel_size_mask) >> \
            pfnc_pixel_size_shift
 
@@ -288,18 +302,31 @@ def is_custom(pixel_format_value):
     return (pixel_format_value & pfnc_custom) == pfnc_custom
 
 
-def get_effective_data_size(data_format):
+def is_single_component(pixel_format_value):
+    return (pixel_format_value & pfnc_component_mask) == pfnc_single_component
+
+
+def is_multiple_component(pixel_format_value):
+    return (pixel_format_value & pfnc_component_mask) == pfnc_multiple_component
+
+
+def get_bits_per_pixel(data_format):
+    """
+    Returns the number of (used) bits per pixel.
+    So without padding.
+    """
     if data_format in component_8bit_formats:
-        size = 8
+        return 8
     elif data_format in component_10bit_formats:
-        size = 10
+        return 10
     elif data_format in component_12bit_formats:
-        size = 12
+        return 12
     elif data_format in component_14bit_formats:
-        size = 14
+        return 14
     elif data_format in component_16bit_formats:
-        size = 16
-    return size
+        return 16
+    # format not known, we just return 8 bit for now
+    return 8
 
 
 mono_formats = ['Mono8', 'Mono10', 'Mono12', 'Mono14', 'Mono16']
@@ -349,7 +376,8 @@ float32_formats = [
 component_8bit_formats = [
     'Mono8',
     'RGB8', 'RGBa8',
-    'BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8'
+    'BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8',
+    'Confidence8'
 ]
 
 component_10bit_formats = [
@@ -373,6 +401,7 @@ component_16bit_formats = [
     'Mono16',
     'RGB16', 'RGBa16',
     'BayerGR16', 'BayerRG16', 'BayerGB16', 'BayerBG16',
+    'Coord3D_C16',
 ]
 
 component_1d_formats = [

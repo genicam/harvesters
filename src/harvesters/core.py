@@ -1293,6 +1293,8 @@ class ImageAcquisitionManager:
 
         #
         if self.thread_statistics_measurement:
+            for s in self._statistics_list:
+                s.reset()
             self.thread_statistics_measurement.start()
 
         #

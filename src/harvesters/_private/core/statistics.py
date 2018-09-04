@@ -55,7 +55,7 @@ class Statistics:
                 self._fps = 0.
 
     def reset(self):
-        self._time_base = 0
+        self._time_base = time.time()
         self._timestamp_base = 0
         self._has_acquired_1st_timestamp = False
         self._fps = 0.
@@ -63,10 +63,7 @@ class Statistics:
         self._fps_max = 0.
 
     def increment_num_images(self, num=1):
-        if self._has_acquired_1st_timestamp:
-            self._time_elapsed = time.time() - self._time_base
-        else:
-            self._time_base = time.time()
+        self._time_elapsed = time.time() - self._time_base
         self._num_images += num
 
     @property

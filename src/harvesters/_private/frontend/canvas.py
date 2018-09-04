@@ -33,7 +33,7 @@ from genicam2.gentl import PAYLOADTYPE_INFO_IDS
 
 # Local application/library specific imports
 from harvesters._private.core.helper.system import is_running_on_macos
-from harvesters.pfnc import calc_pixel_size, is_pixel_custom
+from harvesters.pfnc import get_pixel_size, is_custom
 
 
 
@@ -213,10 +213,10 @@ class Canvas(app.Canvas):
 
                     #
                     pixel_format_value = buffer.payload.components[0].data_format_value
-                    if is_pixel_custom(pixel_format_value):
+                    if is_custom(pixel_format_value):
                         update = False
                     else:
-                        pixel_size = calc_pixel_size(pixel_format_value)
+                        pixel_size = get_pixel_size(pixel_format_value)
                         if 8 <= pixel_size <= 16:
                             exponent = pixel_size - 8
                         else:

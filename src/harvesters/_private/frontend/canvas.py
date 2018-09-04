@@ -33,7 +33,7 @@ from genicam2.gentl import PAYLOADTYPE_INFO_IDS
 
 # Local application/library specific imports
 from harvesters._private.core.helper.system import is_running_on_macos
-from harvesters.pfnc import get_pixel_size, is_custom, get_effective_data_size
+from harvesters.pfnc import is_custom
 
 
 class Canvas(app.Canvas):
@@ -62,7 +62,7 @@ class Canvas(app.Canvas):
         As far as we know, Vispy refreshes the canvas every 1/30 sec at the
         fastest no matter which faster number is specified. If we set any
         value which is greater than 30, then Vispy's callback is randomly
-        called. 
+        called.
         """
 
         self._vertex_shader = vertex_shader if vertex_shader else """
@@ -222,9 +222,12 @@ class Canvas(app.Canvas):
                     if is_custom(data_format_value):
                         update = False
                     else:
-                        data_format = buffer.payload.components[0].data_format
-                        effective_data_size = get_effective_data_size(data_format)
-                        exponent = effective_data_size - 8
+                        # only support formats with 8 to 16 bits per pixel for now
+                        bits_per_pixel = buffer.payload.components[0].pixel_size
+                        if 8 <= bits_per_pixel <= 16:
+                            exponent = bits_per_pixel - 8
+                        else:
+                            update = False
 
                     if update:
                         # Convert each data to an 8bit.

@@ -288,6 +288,20 @@ def is_custom(pixel_format_value):
     return (pixel_format_value & pfnc_custom) == pfnc_custom
 
 
+def get_effective_data_size(data_format):
+    if data_format in component_8bit_formats:
+        size = 8
+    elif data_format in component_10bit_formats:
+        size = 10
+    elif data_format in component_12bit_formats:
+        size = 12
+    elif data_format in component_14bit_formats:
+        size = 14
+    elif data_format in component_16bit_formats:
+        size = 16
+    return size
+
+
 mono_formats = ['Mono8', 'Mono10', 'Mono12', 'Mono14', 'Mono16']
 
 rgb_formats = [

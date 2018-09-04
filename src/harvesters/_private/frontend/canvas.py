@@ -33,8 +33,7 @@ from genicam2.gentl import PAYLOADTYPE_INFO_IDS
 
 # Local application/library specific imports
 from harvesters._private.core.helper.system import is_running_on_macos
-from harvesters.pfnc import get_pixel_size, is_custom
-
+from harvesters.pfnc import get_pixel_size, is_custom, get_effective_data_size
 
 
 class Canvas(app.Canvas):
@@ -212,25 +211,23 @@ class Canvas(app.Canvas):
                     exponent = 0
 
                     #
-                    pixel_format_value = buffer.payload.components[0].data_format_value
-                    if is_custom(pixel_format_value):
+                    data_format_value = buffer.payload.components[0].data_format_value
+                    if is_custom(data_format_value):
                         update = False
                     else:
-                        pixel_size = get_pixel_size(pixel_format_value)
-                        if 8 <= pixel_size <= 16:
-                            exponent = pixel_size - 8
-                        else:
-                            update = False
+                        data_format = buffer.payload.components[0].data_format
+                        effective_data_size = get_effective_data_size(data_format)
+                        exponent = effective_data_size - 8
 
                     if update:
                         # Convert each data to an 8bit.
                         content = buffer.payload.components[0].data
                         if exponent > 0:
                             # The following code may affect to the rendering
-                            # performance.
+                            # performance:
                             content = (content / (2 ** exponent))
 
-                            # Then cast each array elemtn to an uint8.
+                            # Then cast each array element to an uint8:
                             content = content.astype(np.uint8)
 
                         self._program['texture'] = content

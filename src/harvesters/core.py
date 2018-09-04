@@ -460,9 +460,9 @@ class Component2D(ComponentBase):
         return value
 
     @property
-    def data_format(self):
+    def data_format_value(self):
         """
-        Returns the data type of the data component.
+        Returns the data type of the data component as integer value.
         :return:
         """
         try:
@@ -472,7 +472,15 @@ class Component2D(ComponentBase):
                 value = self._buffer.pixel_format
         except InvalidParameterException:
             value = self._node_map.PixelFormat.value
-        return symbolics[value]
+        return value
+
+    @property
+    def data_format(self):
+        """
+        Returns the data type of the data component as string.
+        :return:
+        """
+        return symbolics[self.data_format_value]
 
     @property
     def delivered_image_height(self):

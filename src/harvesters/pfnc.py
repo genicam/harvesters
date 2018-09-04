@@ -325,6 +325,7 @@ uint8_formats = [
     'Mono8',
     'RGB8', 'RGB8Packed', 'RGBa8',
     'BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8',
+    'Confidence8'
 ]
 
 uint16_formats = [
@@ -334,6 +335,7 @@ uint16_formats = [
     'BayerGR10', 'BayerGB10', 'BayerRG10', 'BayerBG10',
     'BayerGR12', 'BayerGB12', 'BayerRG12', 'BayerBG12',
     'BayerGR16', 'BayerRG16', 'BayerGB16', 'BayerBG16',
+    'Coord3D_C16'
 ]
 
 uint32_formats = [
@@ -376,7 +378,6 @@ component_16bit_formats = [
 component_1d_formats = [
     'Confidence1',
     'Confidence1p',
-    'Confidence8',
     'Confidence16',
     'Confidence32f',
 ]
@@ -392,4 +393,6 @@ component_2d_formats = [
     'Coord3D_A32f',
     'Coord3D_B32f',
     'Coord3D_C32f',
+    'Coord3D_C16',
+    'Confidence8',
 ]

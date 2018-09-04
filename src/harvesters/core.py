@@ -794,18 +794,24 @@ class PayloadBase:
     def _update_chunk_data(self, buffer=None, node_map=None):
         try:
             if buffer.num_chunks == 0:
+                """
                 self._logger.debug(
                     'The buffer does not contain any chunk data.'
                 )
+                """
                 return
         except ParsingChunkDataException as e:
-            self._logger.error(e, exc_info=True)
+            #self._logger.error(e, exc_info=True)
+            pass
         except (NotImplementedException, NoDataException) as e:
-            self._logger.debug(e, exc_info=True)
+            #self._logger.debug(e, exc_info=True)
+            pass
         else:
+            """
             self._logger.debug(
                 'The buffer contains chunk data.'
             )
+            """
             #
             is_generic = False
             if buffer.tl_type == 'U3V':
@@ -827,11 +833,14 @@ class PayloadBase:
                 # Failed to parse the chunk data. Something must be wrong.
                 self._logger.error(e, exc_info=True)
             else:
+                """
                 self._logger.debug(
                     'Updated the node map of {0}.'.format(
                         buffer.parent.parent.id_
                     )
                 )
+                """
+                pass
 
 
 class PayloadUnknown(PayloadBase):
@@ -973,7 +982,7 @@ class ImageAcquisitionManager:
     Manages everything you need to acquire images from the connecting image transmitter device.
     """
     def __init__(
-            self, *, parent=None, min_num_buffers=16, device=None,
+            self, *, parent=None, min_num_buffers=8, device=None,
             create_ds_at_connection=True, profiler=None, logger=None
     ):
         """

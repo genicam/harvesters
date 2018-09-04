@@ -405,13 +405,6 @@ component_16bit_formats = [
     'Coord3D_C16',
 ]
 
-component_1d_formats = [
-    'Confidence1',
-    'Confidence1p',
-    'Confidence16',
-    'Confidence32f',
-]
-
 component_2d_formats = [
     'Mono8', 'Mono10', 'Mono12', 'Mono14', 'Mono16',
     'RGB8', 'RGB10', 'RGB12', 'RGB14', 'RGB16',
@@ -420,9 +413,8 @@ component_2d_formats = [
     'BayerGR10', 'BayerGB10', 'BayerRG10', 'BayerBG10',
     'BayerGR12', 'BayerGB12', 'BayerRG12', 'BayerBG12',
     'BayerGR16', 'BayerRG16', 'BayerGB16', 'BayerBG16',
-    'Coord3D_A32f',
-    'Coord3D_B32f',
-    'Coord3D_C32f',
+    'Coord3D_A32f', 'Coord3D_B32f', 'Coord3D_C32f',
     'Coord3D_C16',
-    'Confidence8',
+    'Confidence1', 'Confidence1p', 'Confidence8', 'Confidence16',
+    'Confidence32f',
 ]

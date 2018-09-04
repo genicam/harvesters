@@ -51,7 +51,7 @@ from harvesters._private.core.helper.logging import get_logger
 from harvesters.pfnc import symbolics
 from harvesters.pfnc import uint8_formats, uint16_formats, uint32_formats, \
     float32_formats
-from harvesters.pfnc import component_1d_formats, component_2d_formats
+from harvesters.pfnc import component_2d_formats
 from harvesters.pfnc import mono_formats, rgb_formats, \
     rgba_formats, bayer_formats
 
@@ -325,26 +325,6 @@ class ComponentRaw(ComponentBase):
     def __init__(self):
         #
         super().__init__()
-
-
-class Component1D(ComponentBase):
-    """
-    TODO:
-    """
-    #
-    def __init__(self, *, buffer=None, part=None):
-        """
-        :param buffer:
-        :param part:
-        """
-        #
-        super().__init__(buffer=buffer)
-
-    def __repr__(self):
-        return '{0} elements,\n{1}'.format(
-            self.data.size,
-            self.data
-        )
 
 
 class Component2D(ComponentBase):
@@ -776,8 +756,6 @@ class PayloadBase:
 
         #
         symbolic = symbolics[data_format]
-        if symbolic in component_1d_formats:
-            return Component1D(buffer=buffer, part=part)
         if symbolic in component_2d_formats:
             return Component2D(buffer=buffer, part=part, node_map=node_map)
 

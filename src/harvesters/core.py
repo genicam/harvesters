@@ -1384,17 +1384,12 @@ class ImageAcquisitionManager:
                     if len(self._fetched_buffers) >= self._num_images_to_hold:
                         # We have a buffer now so we queue it; it's discarded
                         # before being used.
-                        self._fetched_buffers.pop(0).queue()
-
-                #
-                buffer = Buffer(
-                    buffer=event_manager.buffer,
-                    node_map=self.device.node_map,
-                    logger=self._logger
-                )
+                        buffer = self._fetched_buffers.pop(0)
+                        buffer.parent.queue_buffer(buffer)
 
                 # Append the recently fetched buffer.
                 # Then one buffer remains for our client.
+                buffer = event_manager.buffer
                 self._fetched_buffers.append(buffer)
 
                 #
@@ -1430,7 +1425,11 @@ class ImageAcquisitionManager:
             else:
                 with MutexLocker(self.thread_image_acquisition):
                     if len(self._fetched_buffers) > 0:
-                        buffer = self._fetched_buffers.pop(0)
+                        buffer = Buffer(
+                            buffer=self._fetched_buffers.pop(0),
+                            node_map=self.device.node_map,
+                            logger=self._logger
+                        )
 
         """
         self._logger.debug(
@@ -1448,9 +1447,7 @@ class ImageAcquisitionManager:
         #
         for statistics in self._statistics_list:
             statistics.increment_num_images()
-            statistics.set_timestamp(
-                buffer.timestamp, buffer.timestamp_frequency
-            )
+            statistics.update_timestamp(buffer)
 
     @staticmethod
     def _create_raw_buffers(num_buffers, size):

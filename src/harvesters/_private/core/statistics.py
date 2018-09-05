@@ -22,6 +22,9 @@
 import time
 
 # Related third party imports
+from genicam2.gentl import InvalidParameterException, \
+    NotImplementedException, NotAvailableException
+from genicam2.genapi import LogicalErrorException
 
 # Local application/library specific imports
 
@@ -40,19 +43,51 @@ class Statistics:
         self._num_images = 0
         self._fps_max = 0.
 
-    def set_timestamp(self, timestamp, frequency):
+    def update_timestamp(self, buffer):
         if not self._has_acquired_1st_timestamp:
-            self._timestamp_base = timestamp
+            self._timestamp_base = self._get_timestamp(buffer)
             self._has_acquired_1st_timestamp = True
         else:
-            diff = timestamp - self._timestamp_base
-            if diff > 0:
-                fps = (self._num_images - 1) * frequency / diff
-                if fps > self._fps_max:
-                    self._fps_max = fps
-                self._fps = fps
-            else:
-                self._fps = 0.
+            freq = self._get_timestamp_freq(buffer)
+            if freq is not None:
+                diff = self._get_timestamp(buffer) - self._timestamp_base
+                if diff > 0:
+                    fps = (self._num_images - 1) * freq / diff
+                    if fps > self._fps_max:
+                        self._fps_max = fps
+                    self._fps = fps
+                else:
+                    self._fps = 0.
+
+    @staticmethod
+    def _get_timestamp(buffer):
+        try:
+            timestamp = buffer.timestamp_ns
+        except (InvalidParameterException, NotImplementedException,
+                NotAvailableException):
+            try:
+                timestamp = buffer.timestamp
+            except (InvalidParameterException, NotAvailableException):
+                timestamp = 0
+
+        return timestamp
+
+    @staticmethod
+    def _get_timestamp_freq(buffer):
+        #
+        try:
+            _ = buffer.timestamp_ns
+        except (InvalidParameterException, NotImplementedException,
+                NotAvailableException):
+            try:
+                frequency = buffer.parent.parent.timestamp_frequency
+            except (InvalidParameterException, NotImplementedException,
+                    NotAvailableException):
+                return None
+        else:
+            frequency = 1000000000  # Hz
+
+        return frequency
 
     def reset(self):
         self._time_base = time.time()

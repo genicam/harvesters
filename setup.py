@@ -46,7 +46,7 @@ if sys.version_info < (3, 4):
 with open('README.rst', 'r',encoding='utf-8_sig') as fh:
     __doc__ = fh.read()
 
-description = 'Image acquisition & data visualization library with Python maintained by the official GenICam committee'
+description = 'Image acquisition & visualization library with Python (Maintained by the official GenICam committee)'
 
 # Determine the base directory:
 base_dir = os.path.dirname(__file__)

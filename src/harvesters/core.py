@@ -1404,11 +1404,12 @@ class ImageAcquisitionManager:
                 if self.signal_stop_image_acquisition:
                     self.signal_stop_image_acquisition.emit()
 
-    def fetch_buffer(self, timeout_ms=0):
+    def fetch_buffer(self, *, timeout_ms=0, is_raw=False):
         """
         Fetches the oldest :class:`~harvesters.buffer.Buffer` object and returns it.
 
         :param timeout_ms: Set timeout value in ms.
+        :param is_raw: Set True if you need a raw GenTL Buffer module.
 
         :return: A :class:`~harvesters.buffer.Buffer` object.
         """
@@ -1425,11 +1426,14 @@ class ImageAcquisitionManager:
             else:
                 with MutexLocker(self.thread_image_acquisition):
                     if len(self._fetched_buffers) > 0:
-                        buffer = Buffer(
-                            buffer=self._fetched_buffers.pop(0),
-                            node_map=self.device.node_map,
-                            logger=self._logger
-                        )
+                        if is_raw:
+                            buffer = self._fetched_buffers.pop(0)
+                        else:
+                            buffer = Buffer(
+                                buffer=self._fetched_buffers.pop(0),
+                                node_map=self.device.node_map,
+                                logger=self._logger
+                            )
 
         """
         self._logger.debug(

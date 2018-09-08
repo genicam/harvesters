@@ -22,7 +22,9 @@
 import io
 import datetime
 import pathlib
-from threading import Lock, Thread
+import signal
+import sys
+from threading import Lock, Thread, Event
 import time
 import zipfile
 
@@ -54,6 +56,53 @@ from harvesters.pfnc import uint8_formats, uint16_formats, uint32_formats, \
 from harvesters.pfnc import component_2d_formats
 from harvesters.pfnc import mono_formats, rgb_formats, \
     rgba_formats, bayer_formats
+
+
+class SignalHandler:
+    _event = None
+    _threads = None
+
+    def __init__(self, *, event=None, threads=None, logger=None):
+        #
+        self._logger = logger or get_logger(name=__name__)
+
+        #
+        super().__init__()
+
+        #
+        assert event
+        assert threads
+
+        #
+        self._event = event
+        self._threads = threads
+
+    def __call__(self, signum, frame):
+        """
+        A registered Python signal modules will call this method.
+        """
+
+        self._logger.debug(
+            'Going to terminate threads having triggered '
+            'by the event {0}.'.format(
+                self._event
+            )
+        )
+
+        # Set the Event:
+        self._event.set()
+
+        # Terminate the threads:
+        for thread in self._threads:
+            thread.stop()
+
+        self._logger.debug(
+            'Has terminated threads having triggered by '
+            'the event {0}.'.format(
+                self._event
+            )
+        )
+        sys.exit(0)
 
 
 class ThreadBase:
@@ -959,6 +1008,10 @@ class ImageAcquisitionManager:
     """
     Manages everything you need to acquire images from the connecting image transmitter device.
     """
+
+    #
+    _event = Event()
+
     def __init__(
             self, *, parent=None, min_num_buffers=8, device=None,
             create_ds_at_connection=True, profiler=None, logger=None
@@ -1037,6 +1090,16 @@ class ImageAcquisitionManager:
             worker=self._worker_acquisition_statistics,
             logger=self._logger
         )
+
+        # Prepare handling the SIGINT event:
+        self._threads = []
+        self._threads.append(self._thread_image_acquisition)
+        self._threads.append(self._thread_statistics_measurement)
+
+        self._sigint_handler = SignalHandler(
+            event=self._event, threads=self._threads, logger=self._logger
+        )
+        signal.signal(signal.SIGINT, self._sigint_handler)
 
         #
         self._current_width = 0

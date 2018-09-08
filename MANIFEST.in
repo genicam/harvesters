@@ -7,5 +7,5 @@ global-exclude *.py[co]
 global-exclude \.DS_Store
 
 # Misc
-include LICENSE
+include LICENSE.txt
 include README.rst

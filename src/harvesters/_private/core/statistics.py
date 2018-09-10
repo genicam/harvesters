@@ -35,7 +35,7 @@ class Statistics:
         super().__init__()
 
         #
-        self._time_base = 0
+        self._time_base = time.time()
         self._time_elapsed = 0
         self._timestamp_base = 0
         self._has_acquired_1st_timestamp = False
@@ -44,12 +44,12 @@ class Statistics:
         self._fps_max = 0.
 
     def update_timestamp(self, buffer):
-        if not self._has_acquired_1st_timestamp:
-            self._timestamp_base = self._get_timestamp(buffer)
-            self._has_acquired_1st_timestamp = True
-        else:
-            freq = self._get_timestamp_freq(buffer)
-            if freq is not None:
+        freq = self._get_timestamp_freq(buffer)
+        if freq is not None:
+            if not self._has_acquired_1st_timestamp:
+                self._timestamp_base = self._get_timestamp(buffer)
+                self._has_acquired_1st_timestamp = True
+            else:
                 diff = self._get_timestamp(buffer) - self._timestamp_base
                 if diff > 0:
                     fps = (self._num_images - 1) * freq / diff
@@ -58,6 +58,9 @@ class Statistics:
                     self._fps = fps
                 else:
                     self._fps = 0.
+        else:
+            if self._time_elapsed > 0:
+                self._fps = self._num_images / self._time_elapsed
 
     @staticmethod
     def _get_timestamp(buffer):

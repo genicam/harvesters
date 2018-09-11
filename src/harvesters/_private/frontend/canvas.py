@@ -36,28 +36,14 @@ from harvesters._private.core.helper.system import is_running_on_macos
 from harvesters.pfnc import is_custom, get_bits_per_pixel
 
 
-class Canvas(app.Canvas):
-    _visible_payloads = [
-        PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE,
-        PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_DATA,
-        PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART,
-    ]
-
+class CanvasBase(app.Canvas):
     def __init__(
-            self,
+            self, *,
             image_acquisition_manager=None,
             width=640, height=480,
-            fps=30,
-            background_color='gray',
-            vertex_shader=None,
-            fragment_shader=None
+            fps=30.,
+            background_color='gray'
     ):
-        """
-        NOTE: fps should be smaller than or equal to 50 fps. If it's exceed
-        VisPy drags down the acquisition performance. This is the issue we
-        have to investigate.
-        """
-
         """
         As far as we know, Vispy refreshes the canvas every 1/30 sec at the
         fastest no matter which faster number is specified. If we set any
@@ -65,52 +51,13 @@ class Canvas(app.Canvas):
         called.
         """
 
-        self._vertex_shader = vertex_shader if vertex_shader else """
-            // Uniforms
-            uniform mat4 u_model;
-            uniform mat4 u_view;
-            uniform mat4 u_projection;
-
-            // Attributes
-            attribute vec2 a_position;
-            attribute vec2 a_texcoord;
-
-            // Varyings
-            varying vec2 v_texcoord;
-
-            // Main
-            void main (void)
-            {
-                v_texcoord = a_texcoord;
-                gl_Position = u_projection * u_view * u_model * vec4(a_position, 0.0, 1.0);
-            }
-        """
-
-        self._fragment_shader = fragment_shader if fragment_shader else """
-            varying vec2 v_texcoord;
-            uniform sampler2D texture;
-            void main()
-            {
-                gl_FragColor = texture2D(texture, v_texcoord);
-            }
-        """
-
-        #
-        self._iam = image_acquisition_manager
-
         #
         app.Canvas.__init__(
             self, size=(width, height), vsync=True, autoswap=True
         )
 
         #
-        self._program = None
-        self._data = None
-        self._coordinate = None
-        self._origin = None
-        self._translate = 0.
-        self._latest_translate = self._translate
-        self._magnification = 1.
+        self._iam = image_acquisition_manager
 
         #
         self._background_color = background_color
@@ -124,59 +71,13 @@ class Canvas(app.Canvas):
         # draw images on the canvas.
         self._pause_drawing = False
 
-        # Apply shaders.
-        self.set_shaders(
-            vertex_shader=self._vertex_shader,
-            fragment_shader=self._fragment_shader
-        )
+        #
+        self._origin = [0, 0]
 
         #
         self._timer = app.Timer(1./fps, connect=self.update, start=True)
 
-    @property
-    def iam(self):
-        return self._iam
-
-    @iam.setter
-    def iam(self, value):
-        self._iam = value
-
-    def set_shaders(self, vertex_shader=None, fragment_shader=None):
-        #
-        vs = vertex_shader if vertex_shader else self._vertex_shader
-        fs = fragment_shader if fragment_shader else self._fragment_shader
-        self._program = Program(vs, fs, count=4)
-
-        #
-        self._data = np.zeros(
-            4, dtype=[
-                ('a_position', np.float32, 2),
-                ('a_texcoord', np.float32, 2)
-            ]
-        )
-
-        #
-        self._data['a_texcoord'] = np.array(
-            [[0., 1.], [1., 1.], [0., 0.], [1., 0.]]
-        )
-
-        #
-        self._program['u_model'] = np.eye(4, dtype=np.float32)
-        self._program['u_view'] = np.eye(4, dtype=np.float32)
-
-        #
-        self._coordinate = [0, 0]
-        self._origin = [0, 0]
-
-        #
-        self._program['texture'] = np.zeros(
-            (self._height, self._width), dtype='uint8'
-        )
-
-        #
-        self.apply_magnification()
-
-    def set_rect(self, width, height):
+    def set_canvas_size(self, width, height):
         #
         self._has_filled_texture = False
 
@@ -196,52 +97,12 @@ class Canvas(app.Canvas):
     def on_draw(self, event):
         # Clear the canvas in gray.
         gloo.clear(color=self._background_color)
-        self._update_texture()
 
-    def _update_texture(self):
         # Fetch a buffer.
         try:
             with self.iam.fetch_buffer(timeout_ms=0.1) as buffer:
-                update = True
-                if buffer.payload_type not in self._visible_payloads:
-                    update = False
-
-                # Set the image as the texture of our canvas.
-                if not self._pause_drawing and buffer:
-                    # Update the canvas size if needed.
-                    self.set_rect(
-                        buffer.payload.components[0].width,
-                        buffer.payload.components[0].height
-                    )
-
-                    #
-                    exponent = 0
-
-                    #
-                    data_format_value = buffer.payload.components[0].data_format_value
-                    if is_custom(data_format_value):
-                        update = False
-                    else:
-                        data_format = buffer.payload.components[0].data_format
-                        bpp = get_bits_per_pixel(data_format)
-                        if bpp is not None:
-                            exponent = bpp - 8
-                        else:
-                            update = False
-
-                    if update:
-                        # Convert each data to an 8bit.
-                        content = buffer.payload.components[0].data
-                        if exponent > 0:
-                            # The following code may affect to the rendering
-                            # performance:
-                            content = (content / (2 ** exponent))
-
-                            # Then cast each array element to an uint8:
-                            content = content.astype(np.uint8)
-
-                        self._program['texture'] = content
-
+                # Prepare a texture to draw:
+                self._prepare_texture(buffer)
                 # Draw the texture.
                 self._draw()
 
@@ -262,10 +123,197 @@ class Canvas(app.Canvas):
             self._draw()
 
     def _draw(self):
-        self._program.draw('triangle_strip')
+        raise NotImplementedError
 
     def on_resize(self, event):
         self.apply_magnification()
+
+    def apply_magnification(self):
+        raise NotImplementedError
+
+    def on_mouse_wheel(self, event):
+        raise NotImplementedError
+
+    def on_mouse_press(self, event):
+        self._is_dragging = True
+        self._origin = event.pos
+
+    def on_mouse_release(self, event):
+        self._is_dragging = False
+
+    def on_mouse_move(self, event):
+        raise NotImplementedError
+
+    def pause_drawing(self, pause=True):
+        self._pause_drawing = pause
+
+    def toggle_drawing(self):
+        self._pause_drawing = False if self._pause_drawing else True
+
+    @property
+    def is_pausing(self):
+        return True if self._pause_drawing else False
+
+    def resume_drawing(self):
+        self._pause_drawing = False
+
+    @property
+    def background_color(self):
+        return self._background_color
+
+    @background_color.setter
+    def background_color(self, color):
+        self._background_color = color
+
+    @property
+    def iam(self):
+        return self._iam
+
+    @iam.setter
+    def iam(self, value):
+        self._iam = value
+
+    def _prepare_texture(self, buffer):
+        raise NotImplementedError
+
+
+class Canvas2D(CanvasBase):
+    _visible_payloads = [
+        PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE,
+        PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_DATA,
+        PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART,
+    ]
+
+    def __init__(
+            self, *,
+            image_acquisition_manager=None,
+            width=640, height=480,
+            background_color='gray'
+    ):
+        #
+        super().__init__(
+            image_acquisition_manager=image_acquisition_manager,
+            width=width, height=height,
+            fps=30.,
+            background_color=background_color
+        )
+
+        #
+        self._vertex_shader = """
+            // Uniforms
+            uniform mat4 u_model;
+            uniform mat4 u_view;
+            uniform mat4 u_projection;
+
+            // Attributes
+            attribute vec2 a_position;
+            attribute vec2 a_texcoord;
+
+            // Varyings
+            varying vec2 v_texcoord;
+
+            // Main
+            void main (void)
+            {
+                v_texcoord = a_texcoord;
+                gl_Position = u_projection * u_view * u_model * vec4(a_position, 0.0, 1.0);
+            }
+        """
+
+        self._fragment_shader = """
+            varying vec2 v_texcoord;
+            uniform sampler2D texture;
+            void main()
+            {
+                gl_FragColor = texture2D(texture, v_texcoord);
+            }
+        """
+
+        #
+        self._program = None
+        self._data = None
+        self._coordinate = None
+        self._translate = 0.
+        self._latest_translate = self._translate
+        self._magnification = 1.
+
+        # Apply shaders.
+        self._program = Program(
+            self._vertex_shader, self._fragment_shader, count=4
+        )
+
+        #
+        self._data = np.zeros(
+            4, dtype=[
+                ('a_position', np.float32, 2),
+                ('a_texcoord', np.float32, 2)
+            ]
+        )
+
+        #
+        self._data['a_texcoord'] = np.array(
+            [[0., 1.], [1., 1.], [0., 0.], [1., 0.]]
+        )
+
+        #
+        self._program['u_model'] = np.eye(4, dtype=np.float32)
+        self._program['u_view'] = np.eye(4, dtype=np.float32)
+
+        #
+        self._coordinate = [0, 0]
+
+
+        #
+        self._program['texture'] = np.zeros(
+            (self._height, self._width), dtype='uint8'
+        )
+
+        #
+        self.apply_magnification()
+
+    def _prepare_texture(self, buffer):
+        update = True
+        if buffer.payload_type not in self._visible_payloads:
+            update = False
+
+        # Set the image as the texture of our canvas.
+        if not self._pause_drawing and buffer:
+            # Update the canvas size if needed.
+            self.set_canvas_size(
+                buffer.payload.components[0].width,
+                buffer.payload.components[0].height
+            )
+
+            #
+            exponent = 0
+
+            #
+            data_format_value = buffer.payload.components[0].data_format_value
+            if is_custom(data_format_value):
+                update = False
+            else:
+                data_format = buffer.payload.components[0].data_format
+                bpp = get_bits_per_pixel(data_format)
+                if bpp is not None:
+                    exponent = bpp - 8
+                else:
+                    update = False
+
+            if update:
+                # Convert each data to an 8bit.
+                content = buffer.payload.components[0].data
+                if exponent > 0:
+                    # The following code may affect to the rendering
+                    # performance:
+                    content = (content / (2 ** exponent))
+
+                    # Then cast each array element to an uint8:
+                    content = content.astype(np.uint8)
+
+                self._program['texture'] = content
+
+    def _draw(self):
+        self._program.draw('triangle_strip')
 
     def apply_magnification(self):
         #
@@ -296,7 +344,7 @@ class Canvas(app.Canvas):
 
     def on_mouse_wheel(self, event):
         self._translate += event.delta[1]
-        power = 7. if is_running_on_macos() else 5.  # 2 ** power
+        power = 7. if is_running_on_macos() else 5.  # 2 ** exponent
         stride = 4. if is_running_on_macos() else 7.
         translate = self._translate
         translate = min(power * stride, translate)
@@ -307,13 +355,6 @@ class Canvas(app.Canvas):
             self.apply_magnification()
             self._latest_translate = self._translate
 
-    def on_mouse_press(self, event):
-        self._is_dragging = True
-        self._origin = event.pos
-
-    def on_mouse_release(self, event):
-        self._is_dragging = False
-
     def on_mouse_move(self, event):
         if self._is_dragging:
             adjustment = 2. if is_running_on_macos() else 1.
@@ -323,25 +364,3 @@ class Canvas(app.Canvas):
             self._coordinate[0] -= (delta[0] * ratio)
             self._coordinate[1] += (delta[1] * ratio)
             self.apply_magnification()
-
-    def pause_drawing(self, pause=True):
-        self._pause_drawing = pause
-
-    def toggle_drawing(self):
-        self._pause_drawing = False if self._pause_drawing else True
-
-    @property
-    def is_pausing(self):
-        return True if self._pause_drawing else False
-
-    def resume_drawing(self):
-        self._pause_drawing = False
-
-    @property
-    def background_color(self):
-        return self._background_color
-
-    @background_color.setter
-    def background_color(self, color):
-        self._background_color = color
-

@@ -30,7 +30,7 @@ from PyQt5.QtWidgets import QMainWindow, QAction, QComboBox, \
     QDesktopWidget, QFileDialog, QDialog, QShortcut, QApplication
 
 # Local application/library specific imports
-from harvesters._private.frontend.canvas import Canvas
+from harvesters._private.frontend.canvas import Canvas2D
 from harvesters._private.core.helper.logging import get_logger
 from harvesters._private.frontend.helper import compose_tooltip
 from harvesters._private.frontend.pyqt5.about import About
@@ -64,8 +64,7 @@ class Harvester(QMainWindow):
         )
         self._iam = None  # Image Acquisition Manager
 
-        self._widget_canvas = Canvas()
-        self._widget_canvas.set_shaders()  # Pass custom shares if needed.
+        self._widget_canvas = Canvas2D()
         self._widget_canvas.create_native()
         self._widget_canvas.native.setParent(self)
 

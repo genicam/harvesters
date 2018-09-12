@@ -33,7 +33,8 @@ from genicam2.gentl import PAYLOADTYPE_INFO_IDS
 
 # Local application/library specific imports
 from harvesters._private.core.helper.system import is_running_on_macos
-from harvesters.pfnc import is_custom, get_bits_per_pixel
+from harvesters.pfnc import is_custom, get_bits_per_pixel, \
+    component_bgr_formats
 
 
 class CanvasBase(app.Canvas):
@@ -286,6 +287,7 @@ class Canvas2D(CanvasBase):
 
             #
             exponent = 0
+            data_format = None
 
             #
             data_format_value = buffer.payload.components[0].data_format_value
@@ -309,6 +311,10 @@ class Canvas2D(CanvasBase):
 
                     # Then cast each array element to an uint8:
                     content = content.astype(np.uint8)
+
+                if data_format in component_bgr_formats:
+                    # Swap every R and B:
+                    content = content[:, :, ::-1]
 
                 self._program['texture'] = content
 

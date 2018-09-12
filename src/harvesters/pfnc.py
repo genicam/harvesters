@@ -336,7 +336,8 @@ mono_formats = [
 
 rgb_formats = [
     'RGB8', 'RGB10', 'RGB12', 'RGB14', 'RGB16',
-    'RGB8Packed'
+    'BGR8', 'BGR10', 'BGR12', 'BGR14', 'BGR16',
+    'RGB8Packed',
 ]
 
 rgba_formats = [
@@ -362,6 +363,8 @@ uint8_formats = [
     #
     'RGB8', 'RGB8Packed', 'RGBa8',
     #
+    'BGR8', 'BGRa8',
+    #
     'BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8',
     #
     'Confidence8'
@@ -373,7 +376,11 @@ uint16_formats = [
     #
     'RGB10', 'RGB12', 'RGB14', 'RGB16',
     #
+    'BGR10', 'BGR12', 'BGR14', 'BGR16',
+    #
     'RGBa10', 'RGBa12', 'RGBa14', 'RGBa16',
+    #
+    'BGRa10', 'BGRa12', 'BGRa14', 'BGRa16',
     #
     'BayerGR10', 'BayerGB10', 'BayerRG10', 'BayerBG10',
     #
@@ -398,6 +405,8 @@ component_8bit_formats = [
     #
     'RGB8', 'RGBa8',
     #
+    'BGR8', 'BGRa8',
+    #
     'BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8',
     #
     'Confidence8'
@@ -409,6 +418,8 @@ component_10bit_formats = [
     #
     'RGB10', 'RGBa10',
     #
+    'BGR10', 'BGRa10',
+    #
     'BayerGR10', 'BayerGB10', 'BayerRG10', 'BayerBG10',
 ]
 
@@ -418,6 +429,8 @@ component_12bit_formats = [
     #
     'RGB12', 'RGBa12',
     #
+    'BGR12', 'BGRa12',
+    #
     'BayerGR12', 'BayerGB12', 'BayerRG12', 'BayerBG12',
 ]
 
@@ -426,6 +439,8 @@ component_14bit_formats = [
     'Mono14',
     #
     'RGB14', 'RGBa14',
+    #
+    'BGR14', 'BGRa14',
 ]
 
 component_16bit_formats = [
@@ -445,7 +460,11 @@ component_2d_formats = [
     #
     'RGB8', 'RGB10', 'RGB12', 'RGB14', 'RGB16',
     #
+    'BGR8', 'BGR10', 'BGR12', 'BGR14', 'BGR16',
+    #
     'RGBa8', 'RGBa10', 'RGBa12', 'RGBa14', 'RGBa16',
+    #
+    'BGRa8', 'BGRa10', 'BGRa12', 'BGRa14', 'BGRa16',
     #
     'BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8',
     #
@@ -460,4 +479,11 @@ component_2d_formats = [
     #
     'Confidence1', 'Confidence1p', 'Confidence8', 'Confidence16',
     'Confidence32f',
+]
+
+component_bgr_formats = [
+    #
+    'BGR8', 'BGR10', 'BGR12', 'BGR14', 'BGR16',
+    #
+    'BGRa8', 'BGRa10', 'BGRa12', 'BGRa14', 'BGRa16',
 ]

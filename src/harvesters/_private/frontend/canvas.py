@@ -99,16 +99,17 @@ class CanvasBase(app.Canvas):
         # Clear the canvas in gray.
         gloo.clear(color=self._background_color)
 
-        # Fetch a buffer.
         drew = False
         try:
             if not self._pause_drawing:
+                # Fetch a buffer.
                 with self.iam.fetch_buffer(timeout_ms=0.1) as buffer:
                     # Prepare a texture to draw:
                     self._prepare_texture(buffer)
                     # Draw the texture until the buffer object exists
                     # within this scope:
                     self._draw()
+                    # We have drawn the latest image on the canvas:
                     drew = True
         except AttributeError:
             # Harvester Core has not started image acquisition so
@@ -124,8 +125,8 @@ class CanvasBase(app.Canvas):
             #     https://github.com/vispy/vispy/issues/1394
             pass
 
+        # Draw the latest texture again if needed:
         if not drew:
-            # Draw the texture:
             self._draw()
 
     def _draw(self):

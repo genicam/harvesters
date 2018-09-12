@@ -100,13 +100,16 @@ class CanvasBase(app.Canvas):
         gloo.clear(color=self._background_color)
 
         # Fetch a buffer.
+        drew = False
         try:
-            with self.iam.fetch_buffer(timeout_ms=0.1) as buffer:
-                # Prepare a texture to draw:
-                self._prepare_texture(buffer)
-                # Draw the texture.
-                self._draw()
-
+            if not self._pause_drawing:
+                with self.iam.fetch_buffer(timeout_ms=0.1) as buffer:
+                    # Prepare a texture to draw:
+                    self._prepare_texture(buffer)
+                    # Draw the texture until the buffer object exists
+                    # within this scope:
+                    self._draw()
+                    drew = True
         except AttributeError:
             # Harvester Core has not started image acquisition so
             # calling fetch_buffer() raises AttributeError because
@@ -119,8 +122,10 @@ class CanvasBase(app.Canvas):
             # See the following URL to check the latest information:
             #
             #     https://github.com/vispy/vispy/issues/1394
+            pass
 
-            # Draw the texture.
+        if not drew:
+            # Draw the texture:
             self._draw()
 
     def _draw(self):
@@ -278,7 +283,7 @@ class Canvas2D(CanvasBase):
             update = False
 
         # Set the image as the texture of our canvas.
-        if not self._pause_drawing and buffer:
+        if buffer:
             # Update the canvas size if needed.
             self.set_canvas_size(
                 buffer.payload.components[0].width,

@@ -1377,13 +1377,6 @@ class ImageAcquisitionManager:
         if self._profiler:
             self._profiler.print_diff()
 
-    @staticmethod
-    def _release_gil():
-        if not is_running_on_windows():
-            os.system(
-                "echo 'could be a database query' >> /dev/null"
-            )
-
     def _worker_acquisition_statistics(self):
         if not self.is_acquiring_images:
             return
@@ -1424,6 +1417,13 @@ class ImageAcquisitionManager:
                 )
 
             self._statistics_latest.reset()
+
+    @staticmethod
+    def _release_gil():
+        if not is_running_on_windows():
+            os.system(
+                "echo '' >> /dev/null"
+            )
 
     def _worker_image_acquisition(self):
         #

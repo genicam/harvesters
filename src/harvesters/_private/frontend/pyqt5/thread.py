@@ -80,6 +80,8 @@ class _PyQtThreadImpl(QThread):
         while self._base.is_running:
             if self._worker:
                 self._worker()
+                # Force the current thread to sleep for some microseconds:
+                self.usleep(1)
 
     def acquire(self):
         return QMutexLocker(self._base.mutex)

@@ -299,6 +299,7 @@ class _PyThreadImpl(Thread):
         while self._base.is_running:
             if self._worker:
                 self._worker()
+                time.sleep(0.0000001)
 
     def acquire(self):
         return self._base.mutex.acquire()
@@ -1416,7 +1417,6 @@ class ImageAcquisitionManager:
             self._statistics_latest.reset()
 
     def _worker_image_acquisition(self):
-        time.sleep(0.0001)
         for event_manager in self._event_new_buffer_managers:
             try:
                 if self.is_acquiring_images:
@@ -1426,7 +1426,7 @@ class ImageAcquisitionManager:
                 else:
                     return
             except TimeoutException as e:
-                return
+                continue
             else:
                 #
                 """

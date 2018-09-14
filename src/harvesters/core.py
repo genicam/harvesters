@@ -21,7 +21,6 @@
 # Standard library imports
 import io
 import datetime
-import os
 import pathlib
 import signal
 import sys
@@ -51,7 +50,6 @@ from genicam2.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
 from harvesters._private.core.port import ConcretePort
 from harvesters._private.core.statistics import Statistics
 from harvesters._private.core.helper.logging import get_logger
-from harvesters._private.core.helper.system import is_running_on_windows
 from harvesters.pfnc import symbolics
 from harvesters.pfnc import uint8_formats, uint16_formats, uint32_formats, \
     float32_formats
@@ -1418,17 +1416,7 @@ class ImageAcquisitionManager:
 
             self._statistics_latest.reset()
 
-    @staticmethod
-    def _release_gil():
-        if not is_running_on_windows():
-            os.system(
-                "echo '' >> /dev/null"
-            )
-
     def _worker_image_acquisition(self):
-        #
-        self._release_gil()
-
         for event_manager in self._event_new_buffer_managers:
             try:
                 if self.is_acquiring_images:

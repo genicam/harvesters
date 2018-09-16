@@ -104,10 +104,12 @@ class TreeItem(object):
                     if interface_type == EInterfaceType.intfICommand:
                         value = '[Click here]'
                     else:
-                        value = '[N/A]'
-                        if feature.node.get_access_mode() in \
-                                self._readable_access_modes and \
-                                interface_type in self._readable_nodes:
+                        if feature.node.get_access_mode() not in \
+                                self._readable_access_modes:
+                            value = '[Not accessible]'
+                        elif interface_type not in self._readable_nodes:
+                            value = '[Not readable]'
+                        else:
                             try:
                                 value = str(feature.value)
                             except AttributeError:

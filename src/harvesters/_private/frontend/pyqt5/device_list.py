@@ -22,7 +22,8 @@
 
 # Related third party imports
 from PyQt5.QtWidgets import QComboBox
-from genicam2.gentl import NotImplementedException, NotAvailableException
+from genicam2.gentl import NotImplementedException, NotAvailableException, \
+    InvalidParameterException
 
 # Local application/library specific imports
 from harvesters._private.frontend.pyqt5.helper import get_system_font
@@ -49,7 +50,10 @@ class ComboBox(QComboBox, Observer):
                     name += d.serial_number
                 try:
                     _ = d.user_defined_name
-                except (NotImplementedException, NotAvailableException) as e:
+                except (
+                        NotImplementedException, NotAvailableException,
+                        InvalidParameterException,
+                ) as e:
                     pass
                 else:
                     if d.user_defined_name != '':

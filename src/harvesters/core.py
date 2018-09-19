@@ -1038,11 +1038,11 @@ class ImageAcquisitionManager:
         #
         self._device = device
         self._device.node_map = _get_port_connected_node_map(
-            self.device.remote_port
+            port=self.device.remote_port, logger=self._logger
         )  # Remote device's node map
         try:
             self._device.local_node_map = _get_port_connected_node_map(
-                self.device.local_port
+                port=self.device.local_port, logger=self._logger
             )  # Local device's node map
         except RuntimeException as e:
             self._logger.error(e, exc_info=True)
@@ -1052,7 +1052,7 @@ class ImageAcquisitionManager:
         self._interface = self._device.parent
         try:
             self._interface.local_node_map = _get_port_connected_node_map(
-                self._interface.port
+                port=self._interface.port, logger=self._logger
             )
         except RuntimeException as e:
             self._logger.error(e, exc_info=True)
@@ -1062,7 +1062,7 @@ class ImageAcquisitionManager:
         self._system = self._interface.parent
         try:
             self._system.local_node_map = _get_port_connected_node_map(
-                self._system.port
+                port=self._system.port, logger=self._logger
             )
         except RuntimeException as e:
             self._logger.error(e, exc_info=True)
@@ -1270,7 +1270,7 @@ class ImageAcquisitionManager:
                 )
                 try:
                     data_stream.local_node_map = _get_port_connected_node_map(
-                        data_stream.port
+                        port=data_stream.port, logger=self._logger
                     )
                 except RuntimeException as e:
                     self._logger.error(e, exc_info=True)
@@ -1682,10 +1682,12 @@ class ImageAcquisitionManager:
         self._announced_buffers.clear()
 
 
-def _get_port_connected_node_map(port=None):
+def _get_port_connected_node_map(*, port=None, logger=None):
     # Inquire it's URL information.
     # TODO: Consider a case where len(url_info_list) > 1.
     url = port.url_info_list[0].url
+    if logger:
+        logger.info('URL: {0}'.format(url))
 
     # And parse the URL.
     location, others = url.split(':', 1)
@@ -1722,6 +1724,8 @@ def _get_port_connected_node_map(port=None):
     node_map = NodeMap()
 
     # Then load the XML file content on the node map object.
+    if logger:
+        logger.info('Device Description File: {0}'.format(content))
     node_map.load_xml_from_string(content)
 
     # Instantiate a concrete port object of the remote device's

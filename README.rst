@@ -73,62 +73,77 @@ So far, Harvester has tested GenTL Producers and GenICam compliant devices from 
     :align: center
 
     - - Company Name
+      - CoaXPress
       - GigE Vision
       - USB3 Vision
-      - Devices
+      - Cameras
     - - `Active Silicon <https://www.activesilicon.com/>`_
+      - Tested
       - \-
       - \-
       - N/A
     - - `Adimec <https://www.adimec.com/>`_
       - N/A
       - N/A
-      - \-
+      - N/A
+      - Tested
     - - `Allied Vision <https://www.alliedvision.com/en/digital-industrial-camera-solutions.html>`_
       - \-
       - \-
       - \-
-    - - `Autometion Technology <https://www.automationtechnology.de/cms/en/>`_
+      - \-
+    - - `Automation Technology <https://www.automationtechnology.de/cms/en/>`_
+      - \-
       - N/A
       - N/A
       - Tested
     - - `Basler <https://www.baslerweb.com/>`_
       - N/A
       - N/A
-      - \-
+      - N/A
+      - Tested
     - - `Baumer Optronic <https://www.baumer.com/se/en/>`_
+      - \-
       - Tested
       - Tested
       - Tested
     - - `DAHENG VISION <http://en.daheng-image.com/main.html>`_
       - \-
+      - \-
       - Tested
       - Tested
     - - `Euresys <https://www.euresys.com/Homepage>`_
+      - Tested
       - \-
       - \-
       - N/A
     - - `FLIR <https://www.flir.com>`_
+      - \-
       - N/A
       - N/A
       - Tested
     - - `Gardasoft <http://www.gardasoft.com>`_
+      - \-
       - N/A
       - N/A
       - Tested
     - - `JAI <https://www.jai.com>`_
       - \-
+      - \-
       - Tested
       - \-
     - - `Lucid Vision Labs <https://thinklucid.com>`_
       - \-
+      - \-
       - N/A
       - \-
     - - `MATRIX VISION <https://www.matrix-vision.com/home-en.html>`_
+      - \-
       - Tested
       - Tested
       - \-
     - - `OMRON SENTECH <https://sentech.co.jp/en/>`_
+      - \-
       - \-
       - Tested
       - Tested
@@ -136,19 +151,24 @@ So far, Harvester has tested GenTL Producers and GenICam compliant devices from 
       - \-
       - \-
       - \-
+      - \-
     - - `Roboception <https://roboception.com/en/>`_
+      - \-
       - N/A
       - N/A
       - Tested
     - - `SICK <https://www.sick.com/ag/en/>`_
+      - \-
       - \-
       - N/A
       - \-
     - - `Silicon Software <https://silicon.software/>`_
       - \-
       - \-
+      - \-
       - N/A
     - - `STEMMER IMAGING <https://www.stemmer-imaging.com/en/>`_
+      - \-
       - Tested
       - Tested
       - N/A
@@ -156,7 +176,9 @@ So far, Harvester has tested GenTL Producers and GenICam compliant devices from 
       - \-
       - \-
       - \-
+      - \-
     - - `XIMEA <https://www.ximea.com/>`_
+      - \-
       - \-
       - \-
       - \-

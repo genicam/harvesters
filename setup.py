@@ -38,8 +38,7 @@ log.info('$PATH=%s' % os.environ['PATH'])
 # Check the Python version:
 if sys.version_info < (3, 4):
     raise RuntimeError(
-        'You can\'t install Harvester because it requires Python 3.4 '
-        'or later.'
+        'See https://github.com/genicam/harvesters#requirements'
     )
 
 
@@ -70,7 +69,9 @@ setuptools.setup(
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX',
-        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
     ),
     # A short, on-sentence summary of the package:
     description=description,

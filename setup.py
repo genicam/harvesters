@@ -36,7 +36,8 @@ log.info('$PATH=%s' % os.environ['PATH'])
 
 
 # Check the Python version:
-if sys.version_info < (3, 4):
+supported_versions = [(3, 4), (3, 5), (3, 6)]
+if sys.version_info not in supported_versions:
     raise RuntimeError(
         'See https://github.com/genicam/harvesters#requirements'
     )

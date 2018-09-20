@@ -78,6 +78,9 @@ class CanvasBase(app.Canvas):
         #
         self._timer = app.Timer(1./fps, connect=self.update, start=True)
 
+        #
+        self._buffers = []
+
     def set_canvas_size(self, width, height):
         #
         self._has_filled_texture = False
@@ -103,14 +106,25 @@ class CanvasBase(app.Canvas):
         try:
             if not self._pause_drawing:
                 # Fetch a buffer.
-                with self.iam.fetch_buffer(timeout_s=0.0001) as buffer:
+                buffer = self.iam.fetch_buffer(timeout_s=0.0001)
+
+                if buffer:
                     # Prepare a texture to draw:
                     self._prepare_texture(buffer)
+
                     # Draw the texture until the buffer object exists
                     # within this scope:
                     self._draw()
+
+                    #
+                    self.release_buffers()
+
                     # We have drawn the latest image on the canvas:
                     drew = True
+
+                    #
+                    self._buffers.append(buffer)
+
         except AttributeError:
             # Harvester Core has not started image acquisition so
             # calling fetch_buffer() raises AttributeError because
@@ -128,6 +142,12 @@ class CanvasBase(app.Canvas):
         # Draw the latest texture again if needed:
         if not drew:
             self._draw()
+
+    def release_buffers(self):
+        for _buffer in self._buffers:
+            if _buffer:
+                _buffer.queue()
+        self._buffers.clear()
 
     def _draw(self):
         raise NotImplementedError
@@ -179,6 +199,8 @@ class CanvasBase(app.Canvas):
     @iam.setter
     def iam(self, value):
         self._iam = value
+        # Register a method which is called at stop_image_acquisition:
+        self._iam.tear_down = self.release_buffers
 
     def _prepare_texture(self, buffer):
         raise NotImplementedError

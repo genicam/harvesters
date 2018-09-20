@@ -783,11 +783,6 @@ class PayloadBase:
         self._buffer = buffer
         self._components = []
 
-        # Update the chunk data if needed:
-        self._update_chunk_data(
-            buffer=buffer, node_map=node_map
-        )
-
     @property
     def payload_type(self):
         """
@@ -818,57 +813,6 @@ class PayloadBase:
         :return:
         """
         return self._components
-
-    def _update_chunk_data(self, buffer=None, node_map=None):
-        try:
-            if buffer.num_chunks == 0:
-                """
-                self._logger.debug(
-                    'The buffer does not contain any chunk data.'
-                )
-                """
-                return
-        except ParsingChunkDataException as e:
-            #self._logger.error(e, exc_info=True)
-            pass
-        except (NotImplementedException, NoDataException) as e:
-            #self._logger.debug(e, exc_info=True)
-            pass
-        else:
-            """
-            self._logger.debug(
-                'The buffer contains chunk data.'
-            )
-            """
-            #
-            is_generic = False
-            if buffer.tl_type == 'U3V':
-                chunk_adapter = ChunkAdapterU3V(node_map.pointer)
-            elif buffer.tl_type == 'GEV':
-                chunk_adapter = ChunkAdapterGEV(node_map.pointer)
-            else:
-                chunk_adapter = ChunkAdapterGeneric(node_map.pointer)
-                is_generic = True
-
-            try:
-                if is_generic:
-                    chunk_adapter.attach_buffer(
-                        buffer.raw_buffer, buffer.chunk_data_info_list
-                    )
-                else:
-                    chunk_adapter.attach_buffer(buffer.raw_buffer)
-            except RuntimeException as e:
-                # Failed to parse the chunk data. Something must be wrong.
-                self._logger.error(e, exc_info=True)
-            else:
-                """
-                self._logger.debug(
-                    'Updated the node map of {0}.'.format(
-                        buffer.parent.parent.id_
-                    )
-                )
-                """
-                pass
 
 
 class PayloadUnknown(PayloadBase):
@@ -1012,10 +956,12 @@ class ImageAcquisitionManager:
 
     #
     _event = Event()
+    _specialized_tl_type = ['U3V', 'GEV']
 
     def __init__(
             self, *, parent=None, min_num_buffers=8, device=None,
-            create_ds_at_connection=True, profiler=None, logger=None
+            create_ds_at_connection=True, profiler=None, logger=None,
+            tear_down=None
     ):
         """
         :param min_num_buffers:
@@ -1149,6 +1095,19 @@ class ImageAcquisitionManager:
             )
         )
 
+        #
+        self._chunk_adapter = self._get_chunk_adapter(device=self._device)
+        self._tear_down = tear_down
+
+    @staticmethod
+    def _get_chunk_adapter(*, device=None):
+        if device.tl_type == 'U3V':
+            return ChunkAdapterU3V(device.node_map.pointer)
+        elif device.tl_type == 'GEV':
+            return ChunkAdapterGEV(device.node_map.pointer)
+        else:
+            return ChunkAdapterGeneric(device.node_map.pointer)
+
     def __enter__(self):
         return self
 
@@ -1248,6 +1207,14 @@ class ImageAcquisitionManager:
     @signal_stop_image_acquisition.setter
     def signal_stop_image_acquisition(self, obj):
         self._signal_stop_image_acquisition = obj
+
+    @property
+    def tear_down(self):
+        return self._tear_down
+
+    @tear_down.setter
+    def tear_down(self, value):
+        self._tear_down = value
 
     def _setup_data_streams(self):
         #
@@ -1453,6 +1420,7 @@ class ImageAcquisitionManager:
                 # Append the recently fetched buffer.
                 # Then one buffer remains for our client.
                 buffer = event_manager.buffer
+
                 self._fetched_buffers.append(buffer)
 
                 #
@@ -1466,6 +1434,52 @@ class ImageAcquisitionManager:
                 #
                 if self.signal_stop_image_acquisition:
                     self.signal_stop_image_acquisition.emit()
+
+    def _update_chunk_data(self, buffer=None):
+        try:
+            if buffer.num_chunks == 0:
+                """
+                self._logger.debug(
+                    'The buffer does not contain any chunk data.'
+                )
+                """
+                return
+        except ParsingChunkDataException as e:
+            #self._logger.error(e, exc_info=True)
+            pass
+        except (NotImplementedException, NoDataException) as e:
+            #self._logger.debug(e, exc_info=True)
+            pass
+        else:
+            """
+            self._logger.debug(
+                'The buffer contains chunk data.'
+            )
+            """
+            #
+            is_generic = False
+            if buffer.tl_type not in self._specialized_tl_type:
+                is_generic = True
+
+            try:
+                if is_generic:
+                    self._chunk_adapter.attach_buffer(
+                        buffer.raw_buffer, buffer.chunk_data_info_list
+                    )
+                else:
+                    self._chunk_adapter.attach_buffer(buffer.raw_buffer)
+            except RuntimeException as e:
+                # Failed to parse the chunk data. Something must be wrong.
+                self._logger.error(e, exc_info=True)
+            else:
+                """
+                self._logger.debug(
+                    'Updated the node map of {0}.'.format(
+                        buffer.parent.parent.id_
+                    )
+                )
+                """
+                pass
 
     def fetch_buffer(self, *, timeout_s=0, is_raw=False):
         """
@@ -1492,11 +1506,16 @@ class ImageAcquisitionManager:
                         if is_raw:
                             buffer = self._fetched_buffers.pop(0)
                         else:
+                            # Update the chunk data:
+                            _buffer = self._fetched_buffers.pop(0)
+                            self._update_chunk_data(buffer=_buffer)
+                            #
                             buffer = Buffer(
-                                buffer=self._fetched_buffers.pop(0),
+                                buffer=_buffer,
                                 node_map=self.device.node_map,
                                 logger=self._logger
                             )
+
 
         """
         self._logger.debug(
@@ -1594,6 +1613,10 @@ class ImageAcquisitionManager:
         if self.is_acquiring_images:
             #
             self._is_acquiring_images = False
+
+            #
+            if self._tear_down:
+                self._tear_down()
 
             #
             if self.thread_image_acquisition.is_running:

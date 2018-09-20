@@ -62,49 +62,9 @@ External links
 * `PyPI <https://pypi.org/project/harvesters/>`_: This is the package distribution page of Harvester which is located in PyPI
 * `Read the Docs <https://harvesters.readthedocs.io/en/latest/>`_: You can find the API reference of Harvester Core and Harvester GUI
 
-############
-Installation
-############
-
-In this section, we will learn how to instruct procedures to get Harvester work.
-
-You can install Harvester via PyPI invoking the following command; note that the package name is ``harvesters`` but not ``harvester``; unfortunately, the latter word had been reserved:
-
-.. code-block:: shell
-
-    $ pip install harvesters
-
-For people who those have already installed it:
-
-.. code-block:: shell
-
-    $ pip install --upgrade harvesters
-
-Perhaps ``pip`` could install cached package. If you want to install the newly dowloaded package, you should invoke the following command:
-
-.. code-block:: shell
-
-    $ pip install harvesters --no-cache-dir
-
-These commands will automatically install the required modules such as ``numpy`` or ``genicam2`` (the Python Binding for the GenICam GenApi & the GenTL Producers) if the module has not yet installed on your environment.
-
-Getting back to the original topic, you could install the latest development version it using ``setup.py`` cloning Harvester from GitHub:
-
-.. code-block:: shell
-
-    $ git clone https://github.com/genicam/harvesters.git && cd harvesters && python setup.py install
-
-If you want to use Harvester GUI, then please install the following modules in advance because ``PyQt`` is provided under LGPL which may not be ideal for your purpose without having reasonable consideration:
-
-.. code-block:: shell
-
-    $ pip install PyQt5 vispy
-
-In the future, we might support other GUI frameworks which are more or less open and free.
-
-######################
+**********************
 Friendly collaborators
-######################
+**********************
 
 So far, Harvester has tested GenTL Producers and GenICam compliant devices from the following companies and they gave Harvester opportunities to improve its quality:
 
@@ -285,6 +245,46 @@ The following diagram shows the hierarchy and relationship of the relevant modul
 .. figure:: https://user-images.githubusercontent.com/8652625/44316633-926cf100-a467-11e8-92c6-ac69ad3c8129.png
     :align: center
     :alt: Module hierarchy
+
+############
+Installation
+############
+
+In this section, we will learn how to instruct procedures to get Harvester work.
+
+You can install Harvester via PyPI invoking the following command; note that the package name is ``harvesters`` but not ``harvester``; unfortunately, the latter word had been reserved:
+
+.. code-block:: shell
+
+    $ pip install harvesters
+
+For people who those have already installed it:
+
+.. code-block:: shell
+
+    $ pip install --upgrade harvesters
+
+Perhaps ``pip`` could install cached package. If you want to install the newly dowloaded package, you should invoke the following command:
+
+.. code-block:: shell
+
+    $ pip install harvesters --no-cache-dir
+
+These commands will automatically install the required modules such as ``numpy`` or ``genicam2`` (the Python Binding for the GenICam GenApi & the GenTL Producers) if the module has not yet installed on your environment.
+
+Getting back to the original topic, you could install the latest development version it using ``setup.py`` cloning Harvester from GitHub:
+
+.. code-block:: shell
+
+    $ git clone https://github.com/genicam/harvesters.git && cd harvesters && python setup.py install
+
+If you want to use Harvester GUI, then please install the following modules in advance because ``PyQt`` is provided under LGPL which may not be ideal for your purpose without having reasonable consideration:
+
+.. code-block:: shell
+
+    $ pip install PyQt5 vispy
+
+In the future, we might support other GUI frameworks which are more or less open and free.
 
 ###########################
 How does Harvester help us?

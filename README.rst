@@ -46,21 +46,59 @@ Apart from anything else, we love its peaceful and friendly name. We hope you al
 
     Pieter Bruegel the Elder, The Harvesters, 1565, (c) 2000–2018 The Metropolitan Museum of Art
 
-################
+****************
 Asking questions
-################
+****************
 
 We have prepared a chat room in Gitter. Please don't hesitate to drop your message when you get a question regarding Harvester!
 
 https://gitter.im/genicam-harvester/chatroom
 
-##############
+**************
 External links
 ##############
 
 * `GitHub <https://github.com/genicam/harvesters>`_: This is the main repository of Harvester
 * `PyPI <https://pypi.org/project/harvesters/>`_: This is the package distribution page of Harvester which is located in PyPI
 * `Read the Docs <https://harvesters.readthedocs.io/en/latest/>`_: You can find the API reference of Harvester Core and Harvester GUI
+
+############
+Installation
+############
+
+In this section, we will learn how to instruct procedures to get Harvester work.
+
+You can install Harvester via PyPI invoking the following command; note that the package name is ``harvesters`` but not ``harvester``; unfortunately, the latter word had been reserved:
+
+.. code-block:: shell
+
+    $ pip install harvesters
+
+For people who those have already installed it:
+
+.. code-block:: shell
+
+    $ pip install --upgrade harvesters
+
+Perhaps ``pip`` could install cached package. If you want to install the newly dowloaded package, you should invoke the following command:
+
+    $ pip install harvesters --no-cache-dir
+
+These commands will automatically install the required modules such as ``numpy`` or ``genicam2`` (the Python Binding for the GenICam GenApi & the GenTL Producers) if the module has not yet installed on your environment.
+
+Getting back to the original topic, you could install the latest development version it using ``setup.py`` cloning Harvester from GitHub:
+
+.. code-block:: shell
+
+    $ git clone https://github.com/genicam/harvesters.git && cd harvesters && python setup.py install
+
+If you want to use Harvester GUI, then please install the following modules in advance because ``PyQt`` is provided under LGPL which may not be ideal for your purpose without having reasonable consideration:
+
+.. code-block:: shell
+
+    $ pip install PyQt5 vispy
+
+In the future, we might support other GUI frameworks which are more or less open and free.
 
 ######################
 Friendly collaborators
@@ -93,7 +131,7 @@ So far, Harvester has tested GenTL Producers and GenICam compliant devices from 
       - \-
       - \-
     - - `Automation Technology <https://www.automationtechnology.de/cms/en/>`_
-      - \-
+      - N/A
       - N/A
       - N/A
       - Tested
@@ -103,12 +141,12 @@ So far, Harvester has tested GenTL Producers and GenICam compliant devices from 
       - N/A
       - Tested
     - - `Baumer Optronic <https://www.baumer.com/se/en/>`_
-      - \-
+      - N/A
       - Tested
       - Tested
       - Tested
     - - `DAHENG VISION <http://en.daheng-image.com/main.html>`_
-      - \-
+      - N/A
       - \-
       - Tested
       - Tested
@@ -118,12 +156,12 @@ So far, Harvester has tested GenTL Producers and GenICam compliant devices from 
       - \-
       - N/A
     - - `FLIR <https://www.flir.com>`_
-      - \-
+      - N/A
       - N/A
       - N/A
       - Tested
     - - `Gardasoft <http://www.gardasoft.com>`_
-      - \-
+      - N/A
       - N/A
       - N/A
       - Tested
@@ -133,12 +171,12 @@ So far, Harvester has tested GenTL Producers and GenICam compliant devices from 
       - Tested
       - \-
     - - `Lucid Vision Labs <https://thinklucid.com>`_
-      - \-
+      - N/A
       - \-
       - N/A
       - \-
     - - `MATRIX VISION <https://www.matrix-vision.com/home-en.html>`_
-      - \-
+      - N/A
       - Tested
       - Tested
       - \-
@@ -148,17 +186,17 @@ So far, Harvester has tested GenTL Producers and GenICam compliant devices from 
       - Tested
       - Tested
     - - `PCO <https://www.pco-imaging.com/>`_
-      - \-
-      - \-
-      - \-
+      - N/A
+      - N/A
+      - N/A
       - \-
     - - `Roboception <https://roboception.com/en/>`_
-      - \-
+      - N/A
       - N/A
       - N/A
       - Tested
     - - `SICK <https://www.sick.com/ag/en/>`_
-      - \-
+      - N/A
       - \-
       - N/A
       - \-
@@ -438,11 +476,11 @@ System requirements
 
 The following software modules are required to get Harvester working:
 
-* Python 3.4 or later
+* Either of Python 3.4, 3.5, or 3.6
 
 In addition, you will need the following items to let Harvester make something meaningful:
 
-* Officially certified GenTL Producers
+* GenTL Producers
 * GenICam compliant machine vision cameras
 
 ***************************
@@ -455,40 +493,6 @@ Harvester has been tested with the following operating systems:
 * Ubuntu 14.04
 * Red Hat Enterprise Linux Workstation 7.4
 * Windows 7
-
-####################
-Installing Harvester
-####################
-
-In this section, we will learn how to instruct procedures to get Harvester work.
-
-You can install Harvester via PyPI invoking the following command; note that the package name is ``harvesters`` but not ``harvester``:
-
-.. code-block:: shell
-
-    $ pip install harvesters
-
-For people who those have already installed it:
-
-.. code-block:: shell
-
-    $ pip install --upgrade harvesters
-
-These commands will automatically install the required modules such as ``numpy`` or ``genicam2`` (the Python Binding for the GenICam GenApi & the GenTL Producers) if any of them has not yet installed on your environment.
-
-Getting back to the original topic, you could install the latest development version it using ``setup.py`` cloning Harvester from GitHub:
-
-.. code-block:: shell
-
-    $ git clone https://github.com/genicam/harvesters.git && cd harvesters && python setup.py install
-
-If you want to use Harvester GUI, then please install the following modules in advance because ``PyQt`` is provided under LGPL which may not be ideal for your purpose without having reasonable consideration:
-
-.. code-block:: shell
-
-    $ pip install PyQt5 vispy
-
-In the future, we might support other GUI frameworks which are more or less open and free.
 
 *************************************
 Remarks regarding the Python Bindings

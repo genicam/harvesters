@@ -186,9 +186,9 @@ So far, Harvester has tested GenTL Producers and GenICam compliant devices from 
 
 Please don't hesitate to tell us if you have tested Harvester with your GenTL Producer or GenICam compliant device. We will add your company/organization name to the list.
 
-*************************
-Certified GenTL Producers
-*************************
+***************
+GenTL Producers
+***************
 
 As of today, we have tested Harvester with the following GenTL Producers and it definitely is the shortest way to get one from the following list to get Harvester working with tangible machine vision cameras:
 
@@ -251,6 +251,34 @@ Installation
 ############
 
 In this section, we will learn how to instruct procedures to get Harvester work.
+
+*******************
+System Requirements
+*******************
+
+The following software modules are required to get Harvester working:
+
+* Either of Python 3.4, 3.5, or 3.6
+
+In addition, you will need the following items to let Harvester make something meaningful:
+
+* GenTL Producers
+* GenICam compliant machine vision cameras
+
+***************************
+Supported operating systems
+***************************
+
+Harvester has been tested with the following operating systems:
+
+* macOS 10.13
+* Ubuntu 14.04
+* Red Hat Enterprise Linux Workstation 7.4
+* Windows 7
+
+********************
+Installing Harvester
+********************
 
 You can install Harvester via PyPI invoking the following command; note that the package name is ``harvesters`` but not ``harvester``; unfortunately, the latter word had been reserved:
 
@@ -467,40 +495,6 @@ The following screenshot shows Harvester Core is running on IPython. Harvester C
     In [20]: iam.stop_image_acquisition()
 
     In [21]: iam.destroy()
-
-############
-Requirements
-############
-
-*******************
-System requirements
-*******************
-
-The following software modules are required to get Harvester working:
-
-* Either of Python 3.4, 3.5, or 3.6
-
-In addition, you will need the following items to let Harvester make something meaningful:
-
-* GenTL Producers
-* GenICam compliant machine vision cameras
-
-***************************
-Supported operating systems
-***************************
-
-Harvester has been tested with the following operating systems:
-
-* macOS 10.13
-* Ubuntu 14.04
-* Red Hat Enterprise Linux Workstation 7.4
-* Windows 7
-
-*************************************
-Remarks regarding the Python Bindings
-*************************************
-
-Please remind that you need to be careful when you choose a Python version (especially Anaconda Python, maybe?) because some distributions have different directory structure or linking symbols. It simply breaks the Python Bindings. We have started collecting some results from our experiences and have listed them in the "System Configuration Matrix" section in the ``README`` file. We hope it helps you to save your time.
 
 ###############
 Using Harvester

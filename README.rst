@@ -56,7 +56,7 @@ https://gitter.im/genicam-harvester/chatroom
 
 **************
 External links
-##############
+**************
 
 * `GitHub <https://github.com/genicam/harvesters>`_: This is the main repository of Harvester
 * `PyPI <https://pypi.org/project/harvesters/>`_: This is the package distribution page of Harvester which is located in PyPI

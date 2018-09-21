@@ -276,9 +276,9 @@ Harvester has been tested with the following operating systems:
 * Red Hat Enterprise Linux Workstation 7.4
 * Windows 7
 
-********************
-Installing Harvester
-********************
+*************************
+Installing Harvester Core
+*************************
 
 You can install Harvester via PyPI invoking the following command; note that the package name is ``harvesters`` but not ``harvester``; unfortunately, the latter word had been reserved:
 
@@ -306,7 +306,11 @@ Getting back to the original topic, you could install the latest development ver
 
     $ git clone https://github.com/genicam/harvesters.git && cd harvesters && python setup.py install
 
-If you want to use Harvester GUI, then please install the following modules in advance because ``PyQt`` is provided under LGPL which may not be ideal for your purpose without having reasonable consideration:
+************************
+Installing Harvester GUI
+************************
+
+If you want to use Harvester GUI, then please additionally install the following modules. Note that ``PyQt`` is provided under LGPL and it may not be ideal for your purpose:
 
 .. code-block:: shell
 

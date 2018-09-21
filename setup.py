@@ -79,7 +79,7 @@ setuptools.setup(
     # Location where the package may be downloaded:
     download_url='https://pypi.org/project/harvesters/',
     # A list of required Python modules:
-    install_requires=['harvesters_core', 'harvesters_util', 'PyQt5', 'vispy'],
+    install_requires=['harvesters_util', 'PyQt5', 'vispy'],
     #
     license='Apache Software License V2.0',
     # A detailed description of the package:

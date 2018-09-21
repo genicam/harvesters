@@ -27,10 +27,10 @@ import unittest
 # Related third party imports
 
 # Local application/library specific imports
-from harvesters._private.core.helper.logging import get_logger
 from harvesters.core import Harvester
 from harvesters._private.core.helper.system import is_running_on_windows, \
     is_running_on_macos
+from harvesters_util.logging import get_logger
 
 
 class TestHarvesterCoreBase(unittest.TestCase):

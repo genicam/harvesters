@@ -336,7 +336,7 @@ To launch Harvester GUI, let's create a Python script file, naming ``harvester.p
         h.show()
         sys.exit(app.exec_())
 
-Then launch ``harvester_gui.py``:
+Then launch ``harvester.py``:
 
 .. code-block:: shell
 

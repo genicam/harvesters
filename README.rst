@@ -314,6 +314,32 @@ If you want to use Harvester GUI, then please install the following modules in a
 
 In the future, we might support other GUI frameworks which are more or less open and free.
 
+***********************
+Launching Harvester GUI
+***********************
+
+To launch Harvester GUI, let's create a Python script file, naming ``harvester.py``, that contains the following code:
+
+.. code-block:: python
+
+    import sys
+    from PyQt5.QtWidgets import QApplication
+    from harvesters.frontend.pyqt5 import Harvester
+
+    if __name__ == '__main__':
+        app = QApplication(sys.argv)
+        h = Harvester()
+        h.show()
+        sys.exit(app.exec_())
+
+Then launch ``harvester_gui.py``:
+
+.. code-block:: shell
+
+    $ python path/to/harvester.py
+
+You will see Harvester GUI pops up.
+
 ###########################
 How does Harvester help us?
 ###########################
@@ -631,32 +657,6 @@ Now you can quit the program! Please not that the image acquisition manager also
         # Work, work, and work with the iam object.
 
     # the iam object will automatically call the destroy method.
-
-*******************
-Using Harvester GUI
-*******************
-
-To use Harvester GUI, let's create a Python script file, naming ``harvester_gui.py``, that contains the following code:
-
-.. code-block:: python
-
-    import sys
-    from PyQt5.QtWidgets import QApplication
-    from harvesters.frontend.pyqt5 import Harvester
-
-    if __name__ == '__main__':
-        app = QApplication(sys.argv)
-        h = Harvester()
-        h.show()
-        sys.exit(app.exec_())
-
-Then launch ``harvester_gui.py``:
-
-.. code-block:: shell
-
-    $ python harvester_gui.py
-
-You will see Harvester GUI pops up.
 
 #############
 Harvester GUI

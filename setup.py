@@ -79,7 +79,7 @@ setuptools.setup(
     # Location where the package may be downloaded:
     download_url='https://pypi.org/project/harvesters/',
     # A list of required Python modules:
-    install_requires=['harvesters_util'],
+    install_requires=['harvesters_util', 'genicam2'],
     #
     license='Apache Software License V2.0',
     # A detailed description of the package:
@@ -102,12 +102,6 @@ setuptools.setup(
     # file if no template is provided:
     package_data={
         'harvesters': [
-            os.path.join(
-                '_private', 'frontend', 'image', '*', '*.jpg'
-            ),
-            os.path.join(
-                '_private', 'frontend', 'image', '*', '*.png'
-            ),
             os.path.join(
                 'logging', '*.ini'
             ),

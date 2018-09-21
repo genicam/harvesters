@@ -310,13 +310,13 @@ Getting back to the original topic, you could install the latest development ver
 Installing Harvester GUI
 ************************
 
-If you want to use Harvester GUI, then please additionally install the following modules. Note that ``PyQt`` is provided under LGPL and it may not be ideal for your purpose:
+If you want to use Harvester GUI, then please invoke the following command:
 
 .. code-block:: shell
 
-    $ pip install PyQt5 vispy
+    $ pip install harvesters_gui
 
-In the future, we might support other GUI frameworks which are more or less open and free.
+Note that ``PyQt`` is provided under LGPL and it may not be ideal for your purpose. In the future, we might support other GUI frameworks which are more or less open and free.
 
 ***********************
 Launching Harvester GUI
@@ -328,7 +328,7 @@ To launch Harvester GUI, let's create a Python script file, naming ``harvester.p
 
     import sys
     from PyQt5.QtWidgets import QApplication
-    from harvesters.frontend.pyqt5 import Harvester
+    from harvesters_gui.frontend.pyqt5 import Harvester
 
     if __name__ == '__main__':
         app = QApplication(sys.argv)

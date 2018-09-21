@@ -316,7 +316,7 @@ If you want to use Harvester GUI, then please invoke the following command:
 
     $ pip install harvesters_gui
 
-Note that ``PyQt`` is provided under LGPL and it may not be ideal for your purpose. In the future, we might support other GUI frameworks which are more or less open and free.
+Note that ``PyQt5`` is distributed under LGPL and it may not be ideal for your purpose. In the future, we might support other GUI frameworks which are more or less open and free.
 
 ***********************
 Launching Harvester GUI

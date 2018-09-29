@@ -22,6 +22,7 @@
 import unittest
 
 # Related third party imports
+from genicam2.gentl import TimeoutException
 
 # Local application/library specific imports
 from harvesters.test.base_harvester import TestHarvesterCoreBase
@@ -172,6 +173,46 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         iam = self.harvester.create_image_acquisition_manager(
             serial_number='SN_InterfaceA_0'
         )
+        iam.destroy()
+
+    def test_timeout_on_fetching_buffer(self):
+        # Create an image acquisition manager:
+        iam = self.harvester.create_image_acquisition_manager(0)
+
+        # We do not start image acquisition:
+        #iam.start_image_acquisition()
+
+        timeout = 3  # sec
+
+        with self.assertRaises(TimeoutException):
+            # Try to fetch a buffer but the IAM will immediately raise
+            # TimeoutException because it's not started image acquisition:
+            _ = iam.fetch_buffer(timeout_s=timeout)
+
+        # Then we setup the device for software trigger mode:
+        iam.device.node_map.TriggerMode.value = 'On'
+        iam.device.node_map.TriggerSource.value = 'Software'
+
+        # We're ready to start image acquisition:
+        iam.start_image_acquisition()
+
+        with self.assertRaises(TimeoutException):
+            # Try to fetch a buffer but the IAM will raise TimeoutException
+            # because we've not triggered the device so far:
+            _ = iam.fetch_buffer(timeout_s=timeout)
+
+        # We finally acquire an image triggering the device:
+        buffer = None
+        self.assertIsNone(buffer)
+
+        iam.device.node_map.TriggerSoftware.execute()
+        buffer = iam.fetch_buffer(timeout_s=timeout)
+        self.assertIsNotNone(buffer)
+        self._logger.info('{0}'.format(buffer))
+        buffer.queue()
+
+        # Now we stop image acquisition:
+        iam.stop_image_acquisition()
         iam.destroy()
 
 

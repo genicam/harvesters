@@ -1491,7 +1491,7 @@ class ImageAcquisitionManager:
         :return: A :class:`~harvesters.buffer.Buffer` object.
         """
         if not self.is_acquiring_images:
-            return None
+            raise TimeoutException
 
         watch_timeout = True if timeout_s > 0 else False
         buffer = None
@@ -1499,7 +1499,7 @@ class ImageAcquisitionManager:
 
         while buffer is None:
             if watch_timeout and (time.time() - base) > timeout_s:
-                break
+                raise TimeoutException
             else:
                 with MutexLocker(self.thread_image_acquisition):
                     if len(self._fetched_buffers) > 0:

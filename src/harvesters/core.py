@@ -1481,6 +1481,9 @@ class ImageAcquisitionManager:
             self._has_acquired_1st_image = False
 
             #
+            self._chunk_adapter.detach_buffer()
+
+            #
             self._logger.info(
                 '{0} stopped image acquisition.'.format(self._device.id_)
             )

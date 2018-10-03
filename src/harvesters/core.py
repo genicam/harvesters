@@ -58,7 +58,7 @@ from harvesters_util.pfnc import mono_formats, rgb_formats, \
     rgba_formats, bayer_formats
 
 
-class SignalHandler:
+class _SignalHandler:
     _event = None
     _threads = None
 
@@ -105,7 +105,7 @@ class SignalHandler:
         sys.exit(0)
 
 
-class ThreadImageAcquisition:
+class _ThreadImageAcquisition:
     def __init__(self, *, target=None, lock=None, logger=None):
         #
         self._logger = logger or get_logger(name=__name__)
@@ -855,11 +855,11 @@ class ImageAcquisitionManager:
 
         #
         self._lock_image_acquisition = Lock()
-        self._thread_image_acquisition = ThreadImageAcquisition(
+        self._thread_image_acquisition = _ThreadImageAcquisition(
             target=self._worker_image_acquisition,
             lock=self._lock_image_acquisition,
         )
-        self._thread_statistics_measurement = ThreadImageAcquisition(
+        self._thread_statistics_measurement = _ThreadImageAcquisition(
             target=self._worker_acquisition_statistics,
             lock=self._lock_image_acquisition,
         )
@@ -869,7 +869,7 @@ class ImageAcquisitionManager:
         self._threads.append(self._thread_image_acquisition)
         self._threads.append(self._thread_statistics_measurement)
 
-        self._sigint_handler = SignalHandler(
+        self._sigint_handler = _SignalHandler(
             event=self._event, threads=self._threads, logger=self._logger
         )
         signal.signal(signal.SIGINT, self._sigint_handler)

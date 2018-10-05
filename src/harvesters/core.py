@@ -890,12 +890,9 @@ class ImageAcquisitionManager:
         self._timeout_for_image_acquisition = 1  # ms
 
         #
-        self._statistics_update_cycle = 1  # s
-        self._statistics_latest = Statistics()
+        self._statistics_update_cycle = 0.25  # s
         self._statistics_overall = Statistics()
-        self._statistics_list = [
-            self._statistics_latest, self._statistics_overall
-        ]
+        self._statistics_list = [self._statistics_overall]
 
         #
         self._announced_buffers = []
@@ -1182,15 +1179,6 @@ class ImageAcquisitionManager:
                 self._current_pixel_format,
             )
 
-            #
-            message_latest = ''
-            if self._statistics_latest.num_images > 0:
-                message_latest = '{0:.1f} fps in the last {1:.1f} s, '.format(
-                    self._statistics_latest.fps,
-                    self._statistics_update_cycle
-                )
-
-            #
             message_overall = '{0:.1f} fps in the last {1}, {2} images'.format(
                 self._statistics_overall.fps,
                 str(datetime.timedelta(
@@ -1203,11 +1191,9 @@ class ImageAcquisitionManager:
             if self.updated_statistics:
                 self.updated_statistics.emit(
                     '{0}'.format(
-                        message_config + message_latest + message_overall
+                        message_config + message_overall
                     )
                 )
-
-            self._statistics_latest.reset()
 
     def _worker_image_acquisition(self):
         for event_manager in self._event_new_buffer_managers:

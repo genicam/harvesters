@@ -50,14 +50,16 @@ class Statistics:
                 self._timestamp_base = self._get_timestamp(buffer)
                 self._has_acquired_1st_timestamp = True
             else:
-                diff = self._get_timestamp(buffer) - self._timestamp_base
+                # Calculate the instant frame rate from the gap between
+                # the one before the latest and the latest:
+                now = self._get_timestamp(buffer)
+                diff = now - self._timestamp_base
+                self._timestamp_base = now
                 if diff > 0:
-                    fps = (self._num_images - 1) * freq / diff
+                    fps = freq / diff
                     if fps > self._fps_max:
                         self._fps_max = fps
                     self._fps = fps
-                else:
-                    self._fps = 0.
         else:
             if self._time_elapsed > 0:
                 self._fps = self._num_images / self._time_elapsed

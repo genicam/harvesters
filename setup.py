@@ -106,6 +106,9 @@ setuptools.setup(
             os.path.join(
                 'logging', '*.ini'
             ),
+            os.path.join(
+                'xml', '_empty'
+            ),
         ]
     },
     # A list of supported platforms:

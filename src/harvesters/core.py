@@ -1487,8 +1487,6 @@ class ImageAcquisitionManager:
             self._logger.info(
                 '{0} stopped image acquisition.'.format(self._device.id_)
             )
-            for statistics in self._statistics_list:
-                statistics.reset()
 
         if self._profiler:
             self._profiler.print_diff()

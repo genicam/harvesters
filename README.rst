@@ -80,11 +80,11 @@ Important links
     - - Source repository
       - https://github.com/genicam/harvesters
 
-**********************
-Friendly collaborators
-**********************
+******************
+Development status
+******************
 
-So far, Harvester has tested GenTL Producers and GenICam compliant devices from the following companies and they gave Harvester opportunities to improve its quality:
+The Harvester project has started since April 2018 and it's still under development as of October 2018 but many developers and researchers over the world have already confirmed that it is actually usable with the popular GenTL Producers and GenICam compliant cameras from the following companies. We have realized the progress had been brought by all interested people's positive expectation in the machine vision market and we strongly believe it will sustain to the following years. Of course, we will never forget the importance of volunteer companies which provided us their products to test Harvester. Thank you very much! Harvester is here for you all!
 
 .. list-table::
     :header-rows: 1

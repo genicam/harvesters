@@ -37,9 +37,17 @@ You can freely use, modify, distribute Harvester under `Apache License-2.0 <http
 
 Currently, Harvester is being developed by the motivated contributors from all over the world.
 
-***********************
-Where is the name from?
-***********************
+****************
+Asking questions
+****************
+
+We have opened a chat room for you. Please don't hesitate to drop your message any time when you get a question regarding Harvester!
+
+https://gitter.im/genicam-harvester/chatroom
+
+************************************
+Harvester... where is the name from?
+************************************
 
 Harvester's name was coming from the great Flemish painter, Pieter Bruegel the Elder's painting so-called "The Harvesters". Harvesters harvest a crop every season that has been fully grown and the harvested crop is passed to the consumers. On the other hand, image acquisition libraries acquire images as their crop and the images are passed to the following processes. We found the similarity between them and decided to name our library Harvester.
 
@@ -51,22 +59,24 @@ Apart from anything else, we love its peaceful and friendly name. We hope you al
 
     Pieter Bruegel the Elder, The Harvesters, 1565, (c) 2000–2018 The Metropolitan Museum of Art
 
-****************
-Asking questions
-****************
+***************
+Important links
+***************
 
-We have prepared a chat room in Gitter. Please don't hesitate to drop your message when you get a question regarding Harvester!
+.. list-table::
 
-https://gitter.im/genicam-harvester/chatroom
-
-**************
-External links
-**************
-
-* `GitHub <https://github.com/genicam/harvesters>`_: This is the main repository of Harvester
-* `Harvester GUI <https://github.com/genicam/harvesters_gui>`_: Graphical user interface of Harvester
-* `PyPI <https://pypi.org/project/harvesters/>`_: This is the package distribution page of Harvester which is located in PyPI
-* `Read the Docs <https://harvesters.readthedocs.io/en/latest/>`_: You can find the API reference of Harvester Core and Harvester GUI
+    - - Chat room
+      - https://gitter.im/genicam-harvester/chatroom
+    - - Documentation
+      - https://harvesters.readthedocs.io/en/latest/
+    - - EMVA website
+      - https://www.emva.org/standards-technology/genicam/genicam-downloads/
+    - - Harvester GUI
+      - https://github.com/genicam/harvesters_gui
+    - - PyPI: Python Package Index
+      - https://pypi.org/project/harvesters/
+    - - Source repository
+      - https://github.com/genicam/harvesters
 
 **********************
 Friendly collaborators

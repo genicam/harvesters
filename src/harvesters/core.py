@@ -1738,8 +1738,6 @@ def _get_port_connected_node_map(*, port=None, logger=None):
     node_map = NodeMap()
 
     # Then load the XML file content on the node map object.
-    if logger:
-        logger.info('Device Description File: {0}'.format(content))
     node_map.load_xml_from_string(content)
 
     # Instantiate a concrete port object of the remote device's

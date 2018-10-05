@@ -127,7 +127,7 @@ class ThreadBase:
         self._is_running = True
         self._start()
         self._logger.debug(
-            'Started thread {:0X}.'.format(self._thread.id_)
+            'Started thread {:0X}.'.format(self.id_)
         )
 
     def _start(self):

@@ -21,6 +21,7 @@
 # Standard library imports
 import io
 import datetime
+import os
 import pathlib
 import signal
 import sys
@@ -1720,6 +1721,11 @@ def _get_port_connected_node_map(*, port=None, logger=None):
     # But wait, we have to check if it's a zip file or not.
     content = content[1]
     file_content = io.BytesIO(content)
+
+    #
+    directory = os.path.dirname(__file__)
+    with open(os.path.join(directory, 'xml', file_name), 'w+b') as f:
+        f.write(content)
 
     # Let's check the reality.
     if zipfile.is_zipfile(file_content):

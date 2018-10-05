@@ -105,8 +105,14 @@ class _SignalHandler:
         sys.exit(0)
 
 
-class _ThreadImageAcquisition:
-    def __init__(self, *, target=None, lock=None, logger=None):
+class ThreadBase:
+    """
+    TODO:
+    """
+    def __init__(self, *, mutex=None, logger=None):
+        """
+        :param mutex:
+        """
         #
         self._logger = logger or get_logger(name=__name__)
 
@@ -114,38 +120,208 @@ class _ThreadImageAcquisition:
         super().__init__()
 
         #
-        self._target = target
         self._is_running = False
-        self._mutex = lock
-        self._thread = None
+        self._mutex = mutex
 
     def start(self):
-        self._thread = Thread(target=self._run)
         self._is_running = True
+        self._start()
+        self._logger.debug(
+            'Started thread {:0X}.'.format(self._thread.id_)
+        )
+
+    def _start(self):
+        raise NotImplementedError
+
+    def stop(self):
+        raise NotImplementedError
+
+    def acquire(self):
+        raise NotImplementedError
+
+    def release(self):
+        raise NotImplementedError
+
+    @property
+    def is_running(self):
+        return self._is_running
+
+    @is_running.setter
+    def is_running(self, value):
+        self._is_running = value
+
+    @property
+    def worker(self):
+        raise NotImplementedError
+
+    @worker.setter
+    def worker(self, obj):
+        raise NotImplementedError
+
+    @property
+    def mutex(self):
+        raise NotImplementedError
+
+    @property
+    def id_(self):
+        raise NotImplementedError
+
+
+class MutexLocker:
+    def __init__(self, thread: ThreadBase=None):
+        """
+
+        :param thread:
+        """
+        #
+        super().__init__()
+
+        #
+        self._thread = thread
+        self._locked_mutex = None
+
+    def __enter__(self):
+        #
+        if self._thread is None:
+            return None
+
+        #
+        self._locked_mutex = self._thread.acquire()
+        return self._locked_mutex
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        #
+        if self._thread is None:
+            return
+
+        #
+        self._thread.release()
+
+
+class _BuiltInThread(ThreadBase):
+    def __init__(self, *, mutex=None, worker=None, logger=None):
+        """
+
+        :param mutex:
+        :param worker:
+        """
+        #
+        super().__init__(mutex=mutex, logger=logger)
+
+        #
+        self._thread = None
+        self._worker = worker
+
+    def _start(self):
+        # Create a Thread object. The object is not reusable.
+        self._thread = _ThreadImpl(
+            base=self,
+            worker=self._worker
+        )
+
+        # Start running its worker method.
         self._thread.start()
 
     def stop(self):
-        with self._mutex:
-            self._is_running = False
+        #
+        if self._thread is None:
+            return
 
-    def join(self):
+        # Prepare to terminate the worker method.
+        self._thread.stop()
+
+        # Wait until the run methods is terminated.
         self._thread.join()
 
-    def _run(self):
+        self._logger.debug(
+            'Stopped thread {:0X}.'.format(self._thread.id_)
+        )
+
+    def acquire(self):
+        #
+        if self._thread is None:
+            return None
+
+        #
+        return self._thread.acquire()
+
+    def release(self):
+        #
+        if self._thread is None:
+            return
+
+        #
+        self._thread.release()
+
+    @property
+    def worker(self):
+        #
+        if self._thread is None:
+            return None
+
+        #
+        return self._thread.worker
+
+    @worker.setter
+    def worker(self, obj):
+        #
+        if self._thread is None:
+            return
+
+        #
+        self._thread.worker = obj
+
+    @property
+    def mutex(self):
+        return self._mutex
+
+    @property
+    def id_(self):
+        return self._thread.id_
+
+
+class _ThreadImpl(Thread):
+    def __init__(self, base=None, worker=None):
+        #
+        super().__init__()
+
+        #
+        self._worker = worker
+        self._base = base
+
+    def stop(self):
+        with self._base.mutex:
+            self._base.is_running = False
+
+    def run(self):
         """
         Runs its worker method.
 
         This method will be terminated once its parent's is_running
         property turns False.
         """
-        while self._is_running:
-            if self._target:
-                self._target()
+        while self._base.is_running:
+            if self._worker:
+                self._worker()
                 time.sleep(0.0000001)
 
+    def acquire(self):
+        return self._base.mutex.acquire()
+
+    def release(self):
+        self._base.mutex.release()
+
     @property
-    def is_running(self):
-        return self._is_running
+    def worker(self):
+        return self._worker
+
+    @worker.setter
+    def worker(self, obj):
+        self._worker = obj
+
+    @property
+    def id_(self):
+        return self.ident
 
 
 class ComponentBase:
@@ -854,14 +1030,16 @@ class ImageAcquisitionManager:
         self._profiler = profiler
 
         #
-        self._lock_image_acquisition = Lock()
-        self._thread_image_acquisition = _ThreadImageAcquisition(
-            target=self._worker_image_acquisition,
-            lock=self._lock_image_acquisition,
+        self._mutex = Lock()
+        self._thread_image_acquisition = _BuiltInThread(
+            mutex=self._mutex,
+            worker=self._worker_image_acquisition,
+            logger=self._logger
         )
-        self._thread_statistics_measurement = _ThreadImageAcquisition(
-            target=self._worker_acquisition_statistics,
-            lock=self._lock_image_acquisition,
+        self._thread_statistics_measurement = _BuiltInThread(
+            mutex=self._mutex,
+            worker=self._worker_acquisition_statistics,
+            logger=self._logger
         )
 
         # Prepare handling the SIGINT event:
@@ -1171,7 +1349,7 @@ class ImageAcquisitionManager:
 
         time.sleep(self._statistics_update_cycle)
 
-        with self._lock_image_acquisition:
+        with MutexLocker(self.thread_image_acquisition):
             #
             message_config = 'W: {0} x H: {1}, {2}, '.format(
                 self._current_width,
@@ -1219,7 +1397,7 @@ class ImageAcquisitionManager:
                 """
                 # We've got a new image so now we can reuse the buffer that
                 # we had kept.
-                with self._lock_image_acquisition:
+                with MutexLocker(self.thread_image_acquisition):
                     if not self._is_acquiring_images:
                         return
 
@@ -1313,7 +1491,7 @@ class ImageAcquisitionManager:
             if watch_timeout and (time.time() - base) > timeout_s:
                 raise TimeoutException
             else:
-                with self._lock_image_acquisition:
+                with MutexLocker(self.thread_image_acquisition):
                     if len(self._fetched_buffers) > 0:
                         if is_raw:
                             buffer = self._fetched_buffers.pop(0)
@@ -1437,7 +1615,7 @@ class ImageAcquisitionManager:
             if self.thread_statistics_measurement.is_running:  # TODO
                 self.thread_statistics_measurement.stop()
 
-            with self._lock_image_acquisition:
+            with MutexLocker(self.thread_image_acquisition):
                 #
                 self.device.node_map.AcquisitionStop.execute()
 

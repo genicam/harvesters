@@ -1743,7 +1743,9 @@ class Harvester:
             AccessDeniedException,
         ) as e:
             self._logger.debug(e, exc_info=True)
-            iam = None
+            # Just re-throw the exception. The decision should be made by
+            # the client but not Harvester:
+            raise
         else:
             self._logger.info(
                 'Opened Device module, {0}.'.format(device.id_)

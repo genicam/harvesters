@@ -108,7 +108,7 @@ class _SignalHandler:
 
 class ThreadBase:
     """
-    By default, Harvester internally uses Python's built-in `treading` module. However, you may want to use your preferred threading module such as QThread of PyQt for some technical reasons. To allow using your preferred threading module, Harvester provides you a base proxy class to allow you implementing your threading functionality.
+    By default, Harvester internally uses Python's built-in `treading` module. However, you may want to use your preferred threading module such as QThread of PyQt for some technical reasons. To allow us your preferred threading module, Harvester provides you a base proxy class to allow you implementing your threading functionality.
     """
     def __init__(self, *, mutex=None, logger=None):
         """
@@ -1858,7 +1858,7 @@ class Harvester:
         :param serial_number:
         :param version:
 
-        :return: None
+        :return: An `ImageAcquisitionManager` object that associates with the specified device.
 
         Note that you have to close it when you are ready to release the device that you have been controlled. As long as you hold it, the controlled device will be not available from other clients.
 

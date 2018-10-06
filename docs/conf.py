@@ -19,7 +19,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../harvesters/'))
+sys.path.insert(0, os.path.abspath('../src/harvesters/'))
 
 # -- General configuration ------------------------------------------------
 
@@ -382,4 +382,3 @@ def skip(app, what, name, obj, skip, options):
 
 def setup(app):
     app.connect("autodoc-skip-member", skip)
-    

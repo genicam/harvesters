@@ -45,6 +45,10 @@ We have opened a chat room for you. Please don't hesitate to drop your message a
 
 https://gitter.im/genicam-harvester/chatroom
 
+We have also prepared an FAQ page. Perhaps your issue could be resolved just reading through it.
+
+https://github.com/genicam/harvesters/wiki/FAQ
+
 ************************************
 Harvester... where is the name from?
 ************************************

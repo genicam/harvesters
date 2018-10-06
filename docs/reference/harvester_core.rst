@@ -10,11 +10,6 @@ Classes
   :show-inheritance:
   :inherited-members:
 
-.. autoclass:: harvesters.core.Component1D
-  :members:
-  :show-inheritance:
-  :inherited-members:
-
 .. autoclass:: harvesters.core.Component2D
   :members:
   :show-inheritance:

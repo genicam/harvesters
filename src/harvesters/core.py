@@ -108,7 +108,7 @@ class _SignalHandler:
 
 class ThreadBase:
     """
-    TODO:
+    By default, Harvester internally uses Python's built-in `treading` module. However, you may want to use your preferred threading module such as QThread of PyQt for some technical reasons. To allow using your preferred threading module, Harvester provides you a base proxy class to allow you implementing your threading functionality.
     """
     def __init__(self, *, mutex=None, logger=None):
         """

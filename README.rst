@@ -212,13 +212,13 @@ Please don't hesitate to tell us if you have tested Harvester with your GenTL Pr
 Wanna have a GUI?
 *****************
 
-.. image:: https://user-images.githubusercontent.com/8652625/43035346-c84fe404-8d28-11e8-815f-2df66cbbc6d0.png
-    :align: center
-    :alt: Image data visualizer
-
 Would you like to have a GUI? Harvester has a sister project that is called **Harvester GUI**. Oops, there's no punch line on its name! Please take a look its source repository if you are interested in it:
 
 https://github.com/genicam/harvesters_gui
+
+.. image:: https://user-images.githubusercontent.com/8652625/43035346-c84fe404-8d28-11e8-815f-2df66cbbc6d0.png
+    :align: center
+    :alt: Image data visualizer
 
 ***************
 GenTL Producers

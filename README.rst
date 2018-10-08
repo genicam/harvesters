@@ -326,11 +326,17 @@ For people who those have already installed it:
 
     $ pip install --upgrade harvesters
 
+Or more simply:
+
+.. code-block:: shell
+
+    $ pip install -U harvesters
+
 Perhaps ``pip`` could install cached package. If you want to install the newly dowloaded package, you should invoke the following command:
 
 .. code-block:: shell
 
-    $ pip install harvesters --no-cache-dir
+    $ pip install -U --no-cache-dir harvesters
 
 These commands will automatically install the required modules such as ``numpy`` or ``genicam2`` (the Python Binding for the GenICam GenApi & the GenTL Producers) if the module has not yet installed on your environment.
 

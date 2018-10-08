@@ -24,6 +24,7 @@ import datetime
 import os
 import pathlib
 import signal
+import sys
 from threading import Lock, Thread, Event
 import time
 import zipfile
@@ -282,11 +283,24 @@ class _BuiltInThread(ThreadBase):
 class _ThreadImpl(Thread):
     def __init__(self, base=None, worker=None):
         #
-        super().__init__()
+        super().__init__(daemon=self._is_interactive())
 
         #
         self._worker = worker
         self._base = base
+
+    @staticmethod
+    def _is_interactive():
+        #
+        if bool(getattr(sys, 'ps1', sys.flags.interactive)):
+            return True
+
+        #
+        try:
+            from traitlets.config.application import Application as App
+            return App.initialized() and App.instance().interact
+        except (ImportError, AttributeError):
+            return False
 
     def stop(self):
         with self._base.mutex:

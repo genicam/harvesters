@@ -24,7 +24,6 @@ import datetime
 import os
 import pathlib
 import signal
-import sys
 from threading import Lock, Thread, Event
 import time
 import zipfile
@@ -103,7 +102,6 @@ class _SignalHandler:
                 self._event
             )
         )
-        sys.exit(0)
 
 
 class ThreadBase:

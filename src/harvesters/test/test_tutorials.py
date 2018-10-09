@@ -34,7 +34,7 @@ class TestTutorials(TestHarvesterCoreBase):
             return
 
         # Connect to the first camera in the list.
-        self.iam = self.harvester.create_image_acquisition_manager(0)
+        self.ia = self.harvester.create_image_acquirer(0)
 
         #
         num_images_to_acquire = 0
@@ -43,14 +43,14 @@ class TestTutorials(TestHarvesterCoreBase):
         self.setup_camera()
 
         # Then start image acquisition.
-        self.iam.start_image_acquisition()
+        self.ia.start_image_acquisition()
 
         # Setup your equipment then trigger the camera.
         self.setup_equipment_and_trigger_camera()
 
         while num_images_to_acquire < 100:
             #
-            with self.iam.fetch_buffer() as buffer:
+            with self.ia.fetch_buffer() as buffer:
                 # I know we should use a logger instead of the print
                 # function though...
                 self._logger.info('{0}'.format(buffer))
@@ -64,9 +64,9 @@ class TestTutorials(TestHarvesterCoreBase):
             num_images_to_acquire += 1
 
     def setup_camera(self):
-        self.iam.device.node_map.AcquisitionMode.value = 'Continuous'
-        self.iam.device.node_map.TriggerMode.value = 'On'
-        self.iam.device.node_map.TriggerSource.value = 'Software'
+        self.ia.device.node_map.AcquisitionMode.value = 'Continuous'
+        self.ia.device.node_map.TriggerMode.value = 'On'
+        self.ia.device.node_map.TriggerSource.value = 'Software'
 
     def setup_equipment_and_trigger_camera(self):
         # Setup your equipment.
@@ -74,7 +74,7 @@ class TestTutorials(TestHarvesterCoreBase):
 
         # Trigger the camera because you have already setup your
         # equipment for the upcoming image acquisition.
-        self.iam.device.node_map.TriggerSoftware.execute()
+        self.ia.device.node_map.TriggerSoftware.execute()
 
 
 if __name__ == '__main__':

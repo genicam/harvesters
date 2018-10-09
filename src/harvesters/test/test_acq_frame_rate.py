@@ -59,10 +59,10 @@ class TestTutorials(TestHarvesterCoreBase):
 
     def test_performance_on_image_acquisition(self):
         # Connect to the first camera in the list.
-        self.iam = self.harvester.create_image_acquisition_manager(0)
+        self.ia = self.harvester.create_image_acquirer(0)
 
         # Then start image acquisition.
-        self.iam.start_image_acquisition()
+        self.ia.start_image_acquisition()
 
         # Run the image acquisition thread:
         thread = ThreadImageAcquisition(
@@ -72,10 +72,10 @@ class TestTutorials(TestHarvesterCoreBase):
         thread.join()
 
         # Stop image acquisition:
-        self.iam.stop_image_acquisition()
+        self.ia.stop_image_acquisition()
 
     def _worker_acq_images(self):
-        # Just let the image acquisition manager acquires images:
+        # Just let the image acquirer acquires images:
         pass
 
 

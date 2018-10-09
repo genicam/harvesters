@@ -388,7 +388,7 @@ Screenshots
 Harvester Core on IPython
 *************************
 
-The following screenshot shows Harvester Core is running on IPython. An acquired image is delivered as the payload of a buffer and the buffer can be fetched by calling the ``fetch_buffer`` method of the ``ImageAcquisitionManager`` class. Once you get an image you should be able to immediately start image processing. If you're running on the Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
+The following screenshot shows Harvester Core is running on IPython. An acquired image is delivered as the payload of a buffer and the buffer can be fetched by calling the ``fetch_buffer`` method of the ``ImageAcquirer`` class. Once you get an image you should be able to immediately start image processing. If you're running on the Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
 .. image:: https://user-images.githubusercontent.com/8652625/44914082-15485280-ad6a-11e8-85a5-9d0632aef28f.png
     :align: center
@@ -413,15 +413,15 @@ The following screenshot shows Harvester Core is running on IPython. An acquired
      (id_='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_0', version='1.2.3'),
      (id_='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_1', version='1.2.3')]
 
-    In [7]: iam = h.create_image_acquisition_manager(serial_number='SN_InterfaceA_0')
+    In [7]: ia = h.create_image_acquirer(serial_number='SN_InterfaceA_0')
 
-    In [8]: iam.device.node_map.Width.value, iam.device.node_map.Height.value = 8, 8
+    In [8]: ia.device.node_map.Width.value, ia.device.node_map.Height.value = 8, 8
 
-    In [9]: iam.device.node_map.PixelFormat.value = 'Mono8'
+    In [9]: ia.device.node_map.PixelFormat.value = 'Mono8'
 
-    In [10]: iam.start_image_acquisition()
+    In [10]: ia.start_image_acquisition()
 
-    In [11]: buffer = iam.fetch_buffer()
+    In [11]: buffer = ia.fetch_buffer()
 
     In [12]: type(buffer)
     Out[12]: harvesters.core.Buffer
@@ -451,7 +451,7 @@ The following screenshot shows Harvester Core is running on IPython. An acquired
 
     In [18]: buffer.queue()
 
-    In [19]: with iam.fetch_buffer() as buffer:
+    In [19]: with ia.fetch_buffer() as buffer:
         ...:     image = buffer.payload.components[0].data
         ...:     print('Average: {0}'.format(np.average(image)))
         ...:     print(image)
@@ -466,9 +466,9 @@ The following screenshot shows Harvester Core is running on IPython. An acquired
      [217 218 219 220 221 222 223 224]
      [218 219 220 221 222 223 224 225]]
 
-    In [20]: iam.stop_image_acquisition()
+    In [20]: ia.stop_image_acquisition()
 
-    In [21]: iam.destroy()
+    In [21]: ia.destroy()
 
 ####################
 Using Harvester Core
@@ -535,37 +535,37 @@ Our friendly GenTL Producer, so called TLSimu, gives you the following informati
      (unique_id='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_0', version='1.2.3'),
      (unique_id='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_1', version='1.2.3')]
 
-And you create an image acquisition manager object specifying a target device. The image acquisition manager does the image acquisition task for you. In the following example it's trying to create an manager object of the first candidate device in the device information list:
+And you create an image acquirer object specifying a target device. The image acquirer does the image acquisition task for you. In the following example it's trying to create an acquirer object of the first candidate device in the device information list:
 
 .. code-block:: python
 
-    iam = h.create_image_acquisition_manager(0)
+    ia = h.create_image_acquirer(0)
 
 Or equivalently:
 
 .. code-block:: python
 
-    iam = h.create_image_acquisition_manager(list_index=0)
+    ia = h.create_image_acquirer(list_index=0)
 
 You can connect the same device passing more unique information to the method such as:
 
 .. code-block:: python
 
-    mono_a = h.create_image_acquisition_manager(serial_number='SN_InterfaceA_0')
+    mono_a = h.create_image_acquirer(serial_number='SN_InterfaceA_0')
 
-We named the manager object ``iam`` in the above example but in a practical occasion, you may name it like just ``camera``, ``mono_cam``, or ``face_detection_cam`` more specifically even though those entities don't acquire images by themselves but they transfer images that will be acquired by their image acquisition manager.
+We named the acquirer object ``ia`` in the above example but in a practical occasion, you may name it like just ``camera``, ``mono_cam``, or ``face_detection_cam`` more specifically even though those entities don't acquire images by themselves but they transfer images that will be acquired by their image acquirer.
 
 Anyway, then now we start image acquisition:
 
 .. code-block:: python
 
-    iam.start_image_acquisition()
+    ia.start_image_acquisition()
 
-Once you started image acquisition, you should definitely want to get an image. An image is delivered to a buffer manager object. To fetch a buffer that has been filled up with an image, you can have 2 options; the first option is to use the ``with`` statement:
+Once you started image acquisition, you should definitely want to get an image. Images are delivered to the acquirer allocated buffers. To fetch a buffer that has been filled up with an image, you can have 2 options; the first option is to use the ``with`` statement:
 
 .. code-block:: python
 
-    with iam.fetch_buffer() as buffer:
+    with ia.fetch_buffer() as buffer:
         # Work with the Buffer object. It consists of everything you need.
         print(buffer)
         # The buffer will automatically be queued.
@@ -574,7 +574,7 @@ Having that code, the fetched buffer is automatically queued once the code step 
 
 .. code-block:: python
 
-    buffer = iam.fetch_buffer()
+    buffer = ia.fetch_buffer()
     print(buffer)
     # Don't forget to queue the buffer.
     buffer.queue()
@@ -585,22 +585,22 @@ Okay, then you would stop image acquisition with the following code:
 
 .. code-block:: python
 
-    iam.stop_image_acquisition()
+    ia.stop_image_acquisition()
 
-And the following code disconnects the connecting device from the image acquisition manager; you'll have to create an image acquisition manager object again when you have to work with a device:
-
-.. code-block:: python
-
-    iam.destroy()
-
-Now you can quit the program! Please not that the image acquisition manager also supports the ``with`` statement. So you may write program as follows:
+And the following code disconnects the connecting device from the image acquirer; you'll have to create an image acquirer object again when you have to work with a device:
 
 .. code-block:: python
 
-    with h.create_image_acquisition_manager(0) as iam:
-        # Work, work, and work with the iam object.
+    ia.destroy()
 
-    # the iam object will automatically call the destroy method.
+Now you can quit the program! Please not that the image acquirer also supports the ``with`` statement. So you may write program as follows:
+
+.. code-block:: python
+
+    with h.create_image_acquirer(0) as ia:
+        # Work, work, and work with the ia object.
+
+    # the ia object will automatically call the destroy method.
 
 ################
 Acknowledgements

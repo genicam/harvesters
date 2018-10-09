@@ -966,7 +966,7 @@ class PayloadMultiPart(PayloadBase):
         return ret
 
 
-class ImageAcquisitionManager:
+class ImageAcquirer:
     """
     Manages everything you need to acquire images from the connecting image transmitter device.
     """
@@ -1104,7 +1104,7 @@ class ImageAcquisitionManager:
 
         #
         self._logger.info(
-            'Instantiated an ImageAcquisitionManager object for {0}.'.format(
+            'Instantiated an ImageAcquirer object for {0}.'.format(
                 self._device.id_
             )
         )
@@ -1676,7 +1676,7 @@ class ImageAcquisitionManager:
     def destroy(self):
         # Ask its parent to destroy it:
         if self._device:
-            self._parent._destroy_image_acquisition_manager(self)
+            self._parent._destroy_image_acquirer(self)
 
     def _release_data_streams(self):
         #
@@ -1794,7 +1794,7 @@ class Harvester:
         self._systems = []
         self._interfaces = []
         self._device_info_list = []
-        self._iams = []
+        self._ias = []
 
         #
         self._has_revised_device_list = False
@@ -1853,13 +1853,13 @@ class Harvester:
     def has_revised_device_info_list(self, value):
         self._has_revised_device_list = value
 
-    def create_image_acquisition_manager(
+    def create_image_acquirer(
             self, list_index=None, *, id_=None,
             vendor=None, model=None, tl_type=None, user_defined_name=None,
             serial_number=None, version=None
         ):
         """
-        Creates an image acquisition manager for the specified device and return it.
+        Creates an image acquirer for the specified device and return it.
 
         :param list_index: Set an item index of the list of :class:`~genicam2.gentl.DeviceInfo` objects.
         :param id_:
@@ -1870,7 +1870,7 @@ class Harvester:
         :param serial_number:
         :param version:
 
-        :return: An `ImageAcquisitionManager` object that associates with the specified device.
+        :return: An `ImageAcquirer` object that associates with the specified device.
 
         Note that you have to close it when you are ready to release the device that you have been controlled. As long as you hold it, the controlled device will be not available from other clients.
 
@@ -1945,17 +1945,17 @@ class Harvester:
                 'Opened Device module, {0}.'.format(device.id_)
             )
 
-            # Create an image acquisition manager object and return it.
-            iam = ImageAcquisitionManager(
+            # Create an image acquirer object and return it.
+            ia = ImageAcquirer(
                 parent=self, device=device, profiler=self._profiler,
                 logger=self._logger
             )
-            self._iams.append(iam)
+            self._ias.append(ia)
 
             if self._profiler:
                 self._profiler.print_diff()
 
-        return iam
+        return ia
 
     def add_cti_file(self, file_path: str):
         """
@@ -2043,10 +2043,10 @@ class Harvester:
         :return: None
         """
         #
-        for iam in self._iams:
-            iam.destroy()
+        for ia in self._ias:
+            ia.destroy()
 
-        self._iams.clear()
+        self._ias.clear()
 
         #
         self._logger.info('Started resetting the Harvester object.')
@@ -2159,25 +2159,25 @@ class Harvester:
         #
         self._logger.info('Updated the device information list.')
 
-    def _destroy_image_acquisition_manager(self, iam):
+    def _destroy_image_acquirer(self, ia):
         """
         Releases all external resources including the controlling device.
         """
 
         id_ = None
-        if iam.device:
+        if ia.device:
             #
-            iam.stop_image_acquisition()
+            ia.stop_image_acquisition()
 
             #
-            iam._release_data_streams()
+            ia._release_data_streams()
 
             #
-            id_ = iam._device.id_
+            id_ = ia._device.id_
 
             #
-            if iam.device.node_map:
-                iam.device.node_map.disconnect()
+            if ia.device.node_map:
+                ia.device.node_map.disconnect()
                 self._logger.info(
                     'Disconnected the port from the NodeMap of {0}.'.format(
                         id_
@@ -2185,29 +2185,29 @@ class Harvester:
                 )
 
             #
-            if iam._device.is_open():
-                iam._device.close()
+            if ia._device.is_open():
+                ia._device.close()
                 self._logger.info(
                     'Closed Device module, {0}.'.format(id_)
                 )
 
-        iam._device = None
+        ia._device = None
 
         #
         if id_:
             self._logger.info(
-                'Destroyed the ImageAcquisitionManager object which {0} '
+                'Destroyed the ImageAcquirer object which {0} '
                 'had belonged to.'.format(id_)
             )
         else:
             self._logger.info(
-                'Destroyed an ImageAcquisitionManager.'
+                'Destroyed an ImageAcquirer.'
             )
 
         if self._profiler:
             self._profiler.print_diff()
 
-        self._iams.remove(iam)
+        self._ias.remove(ia)
 
 
 if __name__ == '__main__':

@@ -56,7 +56,7 @@ class TestHarvesterCoreBase(unittest.TestCase):
 
         #
         self._harvester = None
-        self._iam = None
+        self._ia = None
         self._thread = None
         self._logger = get_logger(name='harvesters', level=DEBUG)
 
@@ -71,14 +71,14 @@ class TestHarvesterCoreBase(unittest.TestCase):
 
     def tearDown(self):
         #
-        if self.iam:
-            self.iam.destroy()
+        if self.ia:
+            self.ia.destroy()
 
         #
         self._harvester.reset()
 
         #
-        self._iam = None
+        self._ia = None
 
         #
         super().tearDown()
@@ -88,12 +88,12 @@ class TestHarvesterCoreBase(unittest.TestCase):
         return self._harvester
 
     @property
-    def iam(self):
-        return self._iam
+    def ia(self):
+        return self._ia
 
-    @iam.setter
-    def iam(self, value):
-        self._iam = value
+    @ia.setter
+    def ia(self, value):
+        self._ia = value
 
     @property
     def general_purpose_thread(self):

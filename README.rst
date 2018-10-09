@@ -13,6 +13,20 @@
 
 ----
 
+############
+Dear readers
+############
+
+Hello everyone. I'm Kazunari, the original author of Harvester.
+
+Since I opened the source code of Harvester in May 2018, so many people visited our website and left their very positive messages about Harvester. The number was much more than I expected what I had in the beginning and it truly was an amazing experience I ever had in my professional career.
+
+The original motivation that drove myself to develop Harvester was I didn't know how to develop an image acquisition consumer library though I had been involved in the machine vision market for some reasonable years. Before having the idea of Harvester, I had to learn and adapt to a 3rd party image acquisition library from scratch even though I wanted to get just an image to manipulate; to be honest, I had felt it's a bit ridiculous. Yes, this was the place where Harvester should come. I needed a unified way to acquire images.
+
+I believe Harvester can help you to concentrate on image processing that you really needed to focus on. Of course, you may have to implement the algorithm again using other proprietary libraries to optimize the performance. However, Harvester doesn't intend to take the place of such libraries because those libraries were designed for exactly that purpose. Harvester just wants to help you to realize your idea as early as possible. Fortunately, Harvester has got firm support from the high-quality GenTL Producers in the market. It means you can smoothly start working with real modern cameras that you may want to work with.
+
+I always hope you can fully put your labor of passion on your work with Harvester!
+
 .. contents:: Table of Contents
     :depth: 2
 
@@ -41,7 +55,7 @@ Currently, Harvester is being developed by the motivated contributors from all o
 Asking questions
 ****************
 
-We have opened a chat room for you. Please don't hesitate to drop your message any time when you get a question regarding Harvester!
+We have opened a chat room for you. Please don't hesitate to leave your message any time when you get a question regarding Harvester!
 
 https://gitter.im/genicam-harvester/chatroom
 

@@ -1071,8 +1071,7 @@ class ImageAcquirer:
         self._current_pixel_format = ''
 
         #
-        self._num_images_to_hold_min = 1
-        self._num_images_to_hold = self._num_images_to_hold_min
+        self._num_images_to_hold = 1
 
         #
         self._num_images_to_acquire = -1
@@ -1184,17 +1183,6 @@ class ImageAcquirer:
     def timeout_for_image_acquisition(self, ms):
         with self.thread_image_acquisition:
             self._timeout_for_image_acquisition = ms
-
-    @property
-    def num_images_to_hold(self):
-        return self._num_images_to_hold
-
-    @num_images_to_hold.setter
-    def num_images_to_hold(self, value):
-        if value >= self._num_images_to_hold_min:
-            self._num_images_to_hold = value
-        else:
-            self._num_images_to_hold = self._num_images_to_hold_min
 
     @property
     def thread_image_acquisition(self):

@@ -1448,6 +1448,7 @@ class ImageAcquirer:
                 'The buffer contains chunk data.'
             )
             """
+
             #
             is_generic = False
             if buffer.tl_type not in self._specialized_tl_type:

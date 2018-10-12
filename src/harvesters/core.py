@@ -1050,26 +1050,15 @@ class ImageAcquirer:
             worker=self._worker_image_acquisition,
             logger=self._logger
         )
-        self._thread_statistics_measurement = _BuiltInThread(
-            mutex=self._mutex,
-            worker=self._worker_acquisition_statistics,
-            logger=self._logger
-        )
 
         # Prepare handling the SIGINT event:
         self._threads = []
         self._threads.append(self._thread_image_acquisition)
-        self._threads.append(self._thread_statistics_measurement)
 
         self._sigint_handler = _SignalHandler(
             event=self._event, threads=self._threads, logger=self._logger
         )
         signal.signal(signal.SIGINT, self._sigint_handler)
-
-        #
-        self._current_width = 0
-        self._current_height = 0
-        self._current_pixel_format = ''
 
         #
         self._num_images_to_hold = 1
@@ -1081,9 +1070,7 @@ class ImageAcquirer:
         self._timeout_for_image_acquisition = 1  # ms
 
         #
-        self._statistics_update_cycle = 0.25  # s
-        self._statistics_overall = Statistics()
-        self._statistics_list = [self._statistics_overall]
+        self._statistics = Statistics()
 
         #
         self._announced_buffers = []
@@ -1093,7 +1080,6 @@ class ImageAcquirer:
         self._has_acquired_1st_image = False
 
         #
-        self._updated_statistics = None
         self._signal_stop_image_acquisition = None
 
         #
@@ -1169,14 +1155,6 @@ class ImageAcquirer:
         return self._is_acquiring_images
 
     @property
-    def updated_statistics(self):
-        return self._updated_statistics
-
-    @updated_statistics.setter
-    def updated_statistics(self, obj):
-        self._updated_statistics = obj
-
-    @property
     def timeout_for_image_acquisition(self):
         return self._timeout_for_image_acquisition
 
@@ -1195,15 +1173,6 @@ class ImageAcquirer:
         self._thread_image_acquisition.worker = self._worker_image_acquisition
 
     @property
-    def thread_statistics_measurement(self):
-        return self._thread_statistics_measurement
-
-    @thread_statistics_measurement.setter
-    def thread_statistics_measurement(self, obj):
-        self._thread_statistics_measurement = obj
-        self._thread_statistics_measurement.worker = self._worker_acquisition_statistics
-
-    @property
     def signal_stop_image_acquisition(self):
         return self._signal_stop_image_acquisition
 
@@ -1218,6 +1187,10 @@ class ImageAcquirer:
     @tear_down.setter
     def tear_down(self, value):
         self._tear_down = value
+
+    @property
+    def statistics(self):
+        return self._statistics
 
     def _setup_data_streams(self):
         #
@@ -1313,9 +1286,6 @@ class ImageAcquirer:
 
         self._num_images_to_acquire = num_images_to_acquire
 
-        #
-        self.reset_statistics()
-
         # Start image acquisition.
         self._is_acquiring_images = True
 
@@ -1324,12 +1294,6 @@ class ImageAcquirer:
                 ACQ_START_FLAGS_LIST.ACQ_START_FLAGS_DEFAULT,
                 self._num_images_to_acquire
             )
-
-        #
-        if self.thread_statistics_measurement:
-            for s in self._statistics_list:
-                s.reset()
-            self.thread_statistics_measurement.start()
 
         #
         if self.thread_image_acquisition:
@@ -1344,36 +1308,6 @@ class ImageAcquirer:
 
         if self._profiler:
             self._profiler.print_diff()
-
-    def _worker_acquisition_statistics(self):
-        if not self.is_acquiring_images:
-            return
-
-        time.sleep(self._statistics_update_cycle)
-
-        with MutexLocker(self.thread_image_acquisition):
-            #
-            message_config = 'W: {0} x H: {1}, {2}, '.format(
-                self._current_width,
-                self._current_height,
-                self._current_pixel_format,
-            )
-
-            message_overall = '{0:.1f} fps in the last {1}, {2} images'.format(
-                self._statistics_overall.fps,
-                str(datetime.timedelta(
-                    seconds=int(self._statistics_overall.elapsed_time_s)
-                )),
-                self._statistics_overall.num_images
-            )
-
-            #
-            if self.updated_statistics:
-                self.updated_statistics.emit(
-                    '{0}'.format(
-                        message_config + message_overall
-                    )
-                )
 
     def _worker_image_acquisition(self):
         for event_manager in self._event_new_buffer_managers:
@@ -1524,9 +1458,8 @@ class ImageAcquirer:
 
     def _update_statistics(self, buffer):
         #
-        for statistics in self._statistics_list:
-            statistics.increment_num_images()
-            statistics.update_timestamp(buffer)
+        self._statistics.increment_num_images()
+        self._statistics.update_timestamp(buffer)
 
     @staticmethod
     def _create_raw_buffers(num_buffers, size):
@@ -1615,9 +1548,6 @@ class ImageAcquirer:
             if self.thread_image_acquisition.is_running:  # TODO
                 self.thread_image_acquisition.stop()
 
-            if self.thread_statistics_measurement.is_running:  # TODO
-                self.thread_statistics_measurement.stop()
-
             with MutexLocker(self.thread_image_acquisition):
                 #
                 self.device.node_map.AcquisitionStop.execute()
@@ -1657,11 +1587,6 @@ class ImageAcquirer:
 
         if self._profiler:
             self._profiler.print_diff()
-
-    def reset_statistics(self):
-        self._current_width = self.device.node_map.Width.value
-        self._current_height = self.device.node_map.Height.value
-        self._current_pixel_format = self.device.node_map.PixelFormat.value
 
     def destroy(self):
         # Ask its parent to destroy it:

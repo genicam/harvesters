@@ -165,9 +165,9 @@ The Harvester project has started since April 2018 and it's still under developm
       - Tested
     - - `JAI <https://www.jai.com>`_
       - \-
-      - \-
       - Tested
-      - \-
+      - Tested
+      - Tested
     - - `Lucid Vision Labs <https://thinklucid.com>`_
       - N/A
       - Tested

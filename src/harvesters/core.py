@@ -41,7 +41,8 @@ from genicam2.gentl import TimeoutException, AccessDeniedException, \
     LoadLibraryException, InvalidParameterException, \
     NotImplementedException, NotAvailableException, ClosedException, \
     ResourceInUseException, ParsingChunkDataException, NoDataException, \
-    NotInitializedException, InvalidHandleException, InvalidIdException
+    NotInitializedException, InvalidHandleException, InvalidIdException, \
+    ErrorException
 from genicam2.gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
 from genicam2.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
@@ -1435,7 +1436,7 @@ class ImageAcquirer:
                 )
                 """
                 return
-        except ParsingChunkDataException as e:
+        except (ParsingChunkDataException, ErrorException) as e:
             #self._logger.error(e, exc_info=True)
             pass
         except (NotImplementedException, NoDataException) as e:

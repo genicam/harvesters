@@ -23,7 +23,7 @@ import time
 
 # Related third party imports
 from genicam2.gentl import InvalidParameterException, \
-    NotImplementedException, NotAvailableException
+    NotImplementedException, NotAvailableException, InvalidHandleException
 from genicam2.genapi import LogicalErrorException
 
 # Local application/library specific imports
@@ -83,7 +83,7 @@ class Statistics:
         try:
             _ = buffer.timestamp_ns
         except (InvalidParameterException, NotImplementedException,
-                NotAvailableException):
+                NotAvailableException, InvalidHandleException):
             try:
                 frequency = buffer.parent.parent.timestamp_frequency
             except (InvalidParameterException, NotImplementedException,

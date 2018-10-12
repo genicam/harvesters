@@ -170,9 +170,9 @@ The Harvester project has started since April 2018 and it's still under developm
       - \-
     - - `Lucid Vision Labs <https://thinklucid.com>`_
       - N/A
-      - \-
+      - Tested
       - N/A
-      - \-
+      - Tested
     - - `MATRIX VISION <https://www.matrix-vision.com/home-en.html>`_
       - N/A
       - Tested

@@ -404,7 +404,7 @@ Harvester Core on IPython
 
 The following screenshot shows Harvester Core is running on IPython. An acquired image is delivered as the payload of a buffer and the buffer can be fetched by calling the ``fetch_buffer`` method of the ``ImageAcquirer`` class. Once you get an image you should be able to immediately start image processing. If you're running on the Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
-.. image:: https://user-images.githubusercontent.com/8652625/44914082-15485280-ad6a-11e8-85a5-9d0632aef28f.png
+.. image:: https://user-images.githubusercontent.com/8652625/46953201-21913080-d0c8-11e8-9ec9-822fc3b9b048.png
     :align: center
     :alt: Harvester on IPython
 

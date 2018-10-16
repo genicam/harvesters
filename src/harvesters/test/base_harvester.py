@@ -33,22 +33,27 @@ from harvesters._private.core.helper.system import is_running_on_windows, \
 from harvesters_util.logging import get_logger
 
 
-class TestHarvesterCoreBase(unittest.TestCase):
+def get_cti_file_path():
     name = 'HARVESTER_TEST_TARGET'
     if name in os.environ:
-        _cti_file = os.getenv(name)
+        cti_file_path = os.getenv(name)
     else:
         if is_running_on_windows():
-            _cti_file = 'C:/Users/z1533tel/dev/genicam/bin/Win64_x64'
+            cti_file_path = 'C:/Users/z1533tel/dev/genicam/bin/Win64_x64'
         else:
             if is_running_on_macos():
-                _cti_file = '/Users/kznr/dev/genicam/bin/Maci64_x64'
+                cti_file_path = '/Users/kznr/dev/genicam/bin/Maci64_x64'
             else:
-                _cti_file = '/home/vagrant/dev/genicam/bin/Linux64_x64'
+                cti_file_path = '/home/vagrant/dev/genicam/bin/Linux64_x64'
 
-        _cti_file += '/TLSimu.cti'
-
-    sys.path.append(_cti_file)
+        cti_file_path += '/TLSimu.cti'
+    
+    return cti_file_path
+    
+    
+class TestHarvesterCoreBase(unittest.TestCase):
+    _cti_file_path = get_cti_file_path()
+    sys.path.append(_cti_file_path)
 
     def __init__(self, *args, **kwargs):
         #
@@ -66,7 +71,7 @@ class TestHarvesterCoreBase(unittest.TestCase):
 
         #
         self._harvester = Harvester(logger=self._logger)
-        self._harvester.add_cti_file(self._cti_file)
+        self._harvester.add_cti_file(self._cti_file_path)
         self._harvester.update_device_info_list()
 
     def tearDown(self):
@@ -104,7 +109,7 @@ class TestHarvesterCoreBase(unittest.TestCase):
         self._thread = value
 
     def is_running_with_default_target(self):
-        return True if 'TLSimu.cti' in self._cti_file else False
+        return True if 'TLSimu.cti' in self._cti_file_path else False
 
 
 if __name__ == '__main__':

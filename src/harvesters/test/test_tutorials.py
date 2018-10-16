@@ -22,9 +22,11 @@
 import unittest
 
 # Related third party imports
+from harvesters.core import Harvester
 
 # Local application/library specific imports
 from harvesters.test.base_harvester import TestHarvesterCoreBase
+from harvesters.test.base_harvester import get_cti_file_path
 
 
 class TestTutorials(TestHarvesterCoreBase):
@@ -51,8 +53,7 @@ class TestTutorials(TestHarvesterCoreBase):
         while num_images_to_acquire < 100:
             #
             with self.ia.fetch_buffer() as buffer:
-                # I know we should use a logger instead of the print
-                # function though...
+                #
                 self._logger.info('{0}'.format(buffer))
 
                 # TODO: Work with the image you got.
@@ -75,6 +76,38 @@ class TestTutorials(TestHarvesterCoreBase):
         # Trigger the camera because you have already setup your
         # equipment for the upcoming image acquisition.
         self.ia.device.node_map.TriggerSoftware.execute()
+
+
+class TestTutorials2(unittest.TestCase):
+    def test_traversable_tutorial(self):
+        # Create a Harvester object:
+        self.harvester = Harvester()
+        
+        # Add a CTI file path:
+        self.harvester.add_cti_file(
+            get_cti_file_path()
+        )
+        self.harvester.update_device_info_list()
+
+        # Connect to the first camera in the list:
+        self.ia = self.harvester.create_image_acquirer(0)
+
+        #
+        num_images_to_acquire = 0
+
+        # Then start image acquisition:
+        self.ia.start_image_acquisition()
+
+        while num_images_to_acquire < 100:
+            #
+            with self.ia.fetch_buffer() as buffer:
+                # self.do_something(buffer)
+                pass
+
+            num_images_to_acquire += 1
+
+        # We don't need the ImageAcquirer object. Destroy it:
+        self.ia.destroy()
 
 
 if __name__ == '__main__':

@@ -200,7 +200,8 @@ class MutexLocker:
 
 
 class _BuiltInThread(ThreadBase):
-    def __init__(self, *, mutex=None, worker=None, logger=None):
+    def __init__(self, *, mutex=None, worker=None, logger=None,
+                 sleep_duration_s=0.0):
         """
 
         :param mutex:
@@ -212,12 +213,13 @@ class _BuiltInThread(ThreadBase):
         #
         self._thread = None
         self._worker = worker
+        self._sleep_duration_s = sleep_duration_s
 
     def _start(self):
         # Create a Thread object. The object is not reusable.
         self._thread = _ThreadImpl(
-            base=self,
-            worker=self._worker
+            base=self, worker=self._worker,
+            sleep_duration_s=self._sleep_duration_s
         )
 
         # Start running its worker method.
@@ -282,13 +284,14 @@ class _BuiltInThread(ThreadBase):
 
 
 class _ThreadImpl(Thread):
-    def __init__(self, base=None, worker=None):
+    def __init__(self, base=None, worker=None, sleep_duration_s=0.0):
         #
         super().__init__(daemon=self._is_interactive())
 
         #
         self._worker = worker
         self._base = base
+        self._sleep_duration_s = sleep_duration_s
 
     @staticmethod
     def _is_interactive():
@@ -317,7 +320,7 @@ class _ThreadImpl(Thread):
         while self._base.is_running:
             if self._worker:
                 self._worker()
-                time.sleep(0.0000001)
+                time.sleep(self._sleep_duration_s)
 
     def acquire(self):
         return self._base.mutex.acquire()
@@ -979,7 +982,7 @@ class ImageAcquirer:
     def __init__(
             self, *, parent=None, min_num_buffers=8, device=None,
             create_ds_at_connection=True, profiler=None, logger=None,
-            tear_down=None
+            tear_down=None, sleep_duration=0.0
     ):
         """
         :param min_num_buffers:
@@ -1048,7 +1051,8 @@ class ImageAcquirer:
         self._thread_image_acquisition = _BuiltInThread(
             mutex=self._mutex,
             worker=self._worker_image_acquisition,
-            logger=self._logger
+            logger=self._logger,
+            sleep_duration_s=sleep_duration
         )
 
         # Prepare handling the SIGINT event:

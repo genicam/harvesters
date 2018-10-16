@@ -319,10 +319,12 @@ Supported operating systems
 
 Harvester has been tested with the following operating systems:
 
+* Fedora 27
 * macOS 10.13
-* Ubuntu 14.04
 * Red Hat Enterprise Linux Workstation 7.4
+* Ubuntu 14.04
 * Windows 7
+* Windows 10
 
 *************************
 Installing Harvester Core

@@ -306,7 +306,7 @@ System Requirements
 
 The following software modules are required to get Harvester working:
 
-* Either of Python 3.4, 3.5, 3.6, or 3.7
+* Either of Python 3.4, 3.5, 3.6, or 3.7 (Only 64bit versions are supported as of October 2018.)
 
 In addition, you will need the following items to let Harvester make something meaningful:
 

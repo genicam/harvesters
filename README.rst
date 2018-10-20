@@ -85,7 +85,7 @@ Important links
       - https://www.emva.org/standards-technology/genicam/genicam-downloads/
     - - Harvester at PyPI
       - https://pypi.org/project/harvesters/
-    - - Harvester GUI at GitHub
+    - - Harvester GUI
       - https://github.com/genicam/harvesters_gui
     - - Issue tracker
       - https://github.com/genicam/harvesters/issues

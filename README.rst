@@ -36,14 +36,8 @@ About Harvester
 
 Harvester was created to be a friendly image acquisition library for all people who those want to learn computer/machine vision. Harvester consists of two Python libraries, Harvester Core and Harvester GUI, and technically speaking, each library is responsible for the following tasks:
 
-Harvester Core:
-
-- Image acquisition
-- Device manipulation
-
-Harvester GUI:
-
-- Image data visualization
+- Harvester Core: Image acquisition & device manipulation
+- Harvester GUI: Image data visualization
 
 Harvester consumes image acquisition libraries, so-called GenTL Producers. Just grabbing a GenTL Producer and GenICam compliant machine vision cameras, then Harvester will supply you the acquired image data as `numpy <http://www.numpy.org>`_ array to make your image processing task productive.
 

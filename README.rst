@@ -20,15 +20,15 @@
 Dear readers
 ############
 
-Hello everyone. I'm Kazunari, the original author of Harvester.
+Hello everyone. I'm Kazunari, the author of Harvester.
 
-Since I opened the source code of Harvester in May 2018, so many people visited our website and left their very positive messages about Harvester. The number was much more than I expected what I had in the beginning and it truly was an amazing experience I ever had in my professional career.
+Since I opened the source code of Harvester in May 2018, so many people visited our website and left their very positive messages about Harvester. The number was much more than I expected what I had in the beginning and it truly was one of the exciting experiences I ever had in my professional career.
 
-The original motivation that drove myself to develop Harvester was I didn't know how to develop an image acquisition consumer library though I had been involved in the machine vision market for some reasonable years. Before having the idea of Harvester, I had to learn and adapt to a 3rd party image acquisition library from scratch even though I wanted to get just an image to manipulate; to be honest, I had felt it's a bit ridiculous. Yes, this was the place where Harvester should come. I needed a unified way to acquire images.
+The original motivation that drove myself to develop Harvester was I didn't know how to develop any image acquisition consumer library though I had been involved in the machine vision market for some reasonable years. Until I got the idea of Harvester, I had to learn and adapt to popular proprietary 3rd party image acquisition libraries from scratch every time even though I just wanted to get an image to manipulate it; to be honest, I had felt it's a bit ridiculous and that exactly was the place where Harvester should came: I needed a unified image acquisition library. In addition, I also needed Python to gain the productivity.
 
-I believe Harvester can help you to concentrate on image processing that you really needed to focus on. Of course, you may have to implement the algorithm again using other proprietary libraries to optimize the performance. However, Harvester doesn't intend to take the place of such superior libraries because those libraries were designed for exactly that purpose. Harvester just wants to shorten the time you spend to realize your brilliant ideas as much as possible. Fortunately, Harvester has got firm support from the high-quality GenTL Producers in the market. It means you can smoothly start working with real modern cameras that you may want to work with.
+I believe Harvester can help you to concentrate on image processing that you really had to. Of course, you may have to implement the algorithm again using other proprietary libraries to optimize the performance. However, Harvester doesn't intend to take the place of such superior libraries because they were designed for exactly that purpose. Harvester just wants to shorten the time you spend to realize your brilliant ideas as much as possible. Fortunately, Harvester has got firm support from the high-quality GenTL Producers in the market. It means you can smoothly start working with any GenICam compliant cameras that you may want to work with.
 
-So keep having fun for working. Harvester has got your back.
+So everyone, there's no worry anymore. Keep having fun for working. Harvester has got your back.
 
 ###############
 About Harvester

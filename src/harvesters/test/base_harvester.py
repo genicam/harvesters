@@ -28,25 +28,28 @@ import unittest
 
 # Local application/library specific imports
 from harvesters.core import Harvester
-from harvesters._private.core.helper.system import is_running_on_windows, \
-    is_running_on_macos
 from harvesters_util.logging import get_logger
 
 
 def get_cti_file_path():
     name = 'HARVESTER_TEST_TARGET'
     if name in os.environ:
+        # Run tests with specified GenTL Producer:
         cti_file_path = os.getenv(name)
     else:
-        if is_running_on_windows():
-            cti_file_path = 'C:/Users/z1533tel/dev/genicam/bin/Win64_x64'
+        try:
+            import genicam2
+        except ImportError:
+            # Failed to import genicam2 module; suggest the expected
+            # solution to the client:
+            raise ImportError(
+                'You must specify a target GenTL Producer either using '
+                'HARVESTER_TEST_TARGET or installing genicam2 module.'
+            )
         else:
-            if is_running_on_macos():
-                cti_file_path = '/Users/kznr/dev/genicam/bin/Maci64_x64'
-            else:
-                cti_file_path = '/home/vagrant/dev/genicam/bin/Linux64_x64'
-
-        cti_file_path += '/TLSimu.cti'
+            # Run tests with the default test target, TLSimu:
+            dir_name = os.path.dirname(genicam2.__file__)
+            cti_file_path = os.path.join(dir_name, 'TLSimu.cti')
     
     return cti_file_path
     

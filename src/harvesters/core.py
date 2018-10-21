@@ -60,6 +60,9 @@ from harvesters_util.pfnc import mono_formats, rgb_formats, \
     rgba_formats, bayer_formats
 
 
+_is_logging_buffer_manipulation = True if 'HARVESTER_LOG_BUFFER_MANIPULATION' in os.environ else False
+
+
 class _SignalHandler:
     _event = None
     _threads = None
@@ -724,18 +727,22 @@ class Buffer:
         """
         Queues the buffer to prepare for the upcoming image acquisition. Once the buffer is queued, the Buffer object will be obsolete. You'll have nothing to do with it.
         """
-        self._buffer.parent.queue_buffer(self._buffer)
-
         #
-        """
-        self._logger.debug(
-            'Queued Buffer #{0} to DataStream module {1} of {2}.'.format(
-                self._buffer.context,
-                self._buffer.parent.id_,
-                self._buffer.parent.parent.id_
+        if _is_logging_buffer_manipulation:
+            self._logger.debug(
+                'Queued Buffer module #{0}'
+                ' containing frame #{1}'
+                ' to DataStream module {2}'
+                ' of Device module {3}'
+                '.'.format(
+                    self._buffer.context,
+                    self._buffer.frame_id,
+                    self._buffer.parent.id_,
+                    self._buffer.parent.parent.id_
+                )
             )
-        )
-        """
+
+        self._buffer.parent.queue_buffer(self._buffer)
 
     @staticmethod
     def _build_payload(*, buffer=None, node_map=None, logger=None):
@@ -1326,15 +1333,19 @@ class ImageAcquirer:
                 continue
             else:
                 #
-                """
-                self._logger.debug(
-                    'Acquired Buffer #{0} from DataStream {1} of Device {2}.'.format(
-                        event_manager.buffer.context,
-                        event_manager.parent.id_,
-                        event_manager.parent.parent.id_
+                if _is_logging_buffer_manipulation:
+                    self._logger.debug(
+                        'Acquired Buffer module #{0}'
+                        ' containing frame #{1}'
+                        ' from DataStream module {2}'
+                        ' of Device module {3}'
+                        '.'.format(
+                            event_manager.buffer.context,
+                            event_manager.buffer.frame_id,
+                            event_manager.parent.id_,
+                            event_manager.parent.parent.id_
+                        )
                     )
-                )
-                """
                 # We've got a new image so now we can reuse the buffer that
                 # we had kept.
                 with MutexLocker(self.thread_image_acquisition):
@@ -1448,15 +1459,19 @@ class ImageAcquirer:
                             )
 
 
-        """
-        self._logger.debug(
-            'Fetched Buffer #{0} that belongs to DataStream module {1} of {2}.'.format(
-                buffer._buffer.context,
-                buffer._buffer.parent.id_,
-                buffer._buffer.parent.parent.id_
+        if _is_logging_buffer_manipulation:
+            self._logger.debug(
+                'Fetched Buffer module #{0}'
+                ' containing frame #{1}'
+                ' that belongs to DataStream module {2}'
+                ' of Device module {2}'
+                '.'.format(
+                    buffer._buffer.context,
+                    buffer._buffer.frame_id,
+                    buffer._buffer.parent.id_,
+                    buffer._buffer.parent.parent.id_
+                )
             )
-        )
-        """
 
         return buffer
 
@@ -1527,7 +1542,10 @@ class ImageAcquirer:
         for buffer in buffers:
             data_stream.queue_buffer(buffer)
             self._logger.debug(
-                'Queued Buffer #{0} to DataStraem {1} of Device {2}.'.format(
+                'Queued Buffer module #{0}'
+                ' to DataStream module {1}'
+                ' that belongs to Device module {2}'
+                '.'.format(
                     buffer.context,
                     data_stream.id_,
                     data_stream.parent.id_
@@ -1622,6 +1640,13 @@ class ImageAcquirer:
             if data_stream.is_open():
                 #
                 for buffer in self._announced_buffers:
+                    self._logger.debug(
+                        'Revoked Buffer module #{0}.'.format(
+                            buffer.context,
+                            data_stream.id_,
+                            data_stream.parent.id_
+                        )
+                    )
                     _ = data_stream.revoke_buffer(buffer)
 
         self._fetched_buffers.clear()

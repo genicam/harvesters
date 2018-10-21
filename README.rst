@@ -28,7 +28,7 @@ The original motivation that drove myself to develop Harvester was I didn't know
 
 I believe Harvester can help you to concentrate on image processing that you really needed to focus on. Of course, you may have to implement the algorithm again using other proprietary libraries to optimize the performance. However, Harvester doesn't intend to take the place of such superior libraries because those libraries were designed for exactly that purpose. Harvester just wants to shorten the time you spend to realize your brilliant ideas as much as possible. Fortunately, Harvester has got firm support from the high-quality GenTL Producers in the market. It means you can smoothly start working with real modern cameras that you may want to work with.
 
-Your dread days have gone. Keep having fun for working. Harvester has got your back.
+So keep having fun for working. Harvester has got your back.
 
 ###############
 About Harvester

@@ -32,7 +32,7 @@ from harvesters_util.logging import get_logger
 
 
 def get_cti_file_path():
-    name = 'HARVESTER_TEST_TARGET'
+    name = 'HARVESTERS_TEST_TARGET'
     if name in os.environ:
         # Run tests with specified GenTL Producer:
         cti_file_path = os.getenv(name)
@@ -44,7 +44,7 @@ def get_cti_file_path():
             # solution to the client:
             raise ImportError(
                 'You must specify a target GenTL Producer either using '
-                'HARVESTER_TEST_TARGET or installing genicam2 module.'
+                'HARVESTERS_TEST_TARGET or installing genicam2 module.'
             )
         else:
             # Run tests with the default test target, TLSimu:

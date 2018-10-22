@@ -1356,6 +1356,19 @@ class ImageAcquirer:
                         # We have a buffer now so we queue it; it's discarded
                         # before being used.
                         buffer = self._fetched_buffers.pop(0)
+                        if _is_logging_buffer_manipulation:
+                            self._logger.debug(
+                                'Queued Buffer module #{0}'
+                                ' containing frame #{1}'
+                                ' to DataStream module {2}'
+                                ' of Device module {3}'
+                                '.'.format(
+                                    buffer.context,
+                                    buffer.frame_id,
+                                    buffer.parent.id_,
+                                    buffer.parent.parent.id_
+                                )
+                            )
                         buffer.parent.queue_buffer(buffer)
 
                 # Append the recently fetched buffer.
@@ -1463,7 +1476,7 @@ class ImageAcquirer:
             self._logger.debug(
                 'Fetched Buffer module #{0}'
                 ' containing frame #{1}'
-                ' that belongs to DataStream module {2}'
+                ' of DataStream module {2}'
                 ' of Device module {2}'
                 '.'.format(
                     buffer._buffer.context,
@@ -1544,7 +1557,7 @@ class ImageAcquirer:
             self._logger.debug(
                 'Queued Buffer module #{0}'
                 ' to DataStream module {1}'
-                ' that belongs to Device module {2}'
+                ' of Device module {2}'
                 '.'.format(
                     buffer.context,
                     data_stream.id_,

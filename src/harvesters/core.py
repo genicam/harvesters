@@ -60,7 +60,7 @@ from harvesters_util.pfnc import mono_formats, rgb_formats, \
     rgba_formats, bayer_formats
 
 
-_is_logging_buffer_manipulation = True if 'HARVESTER_LOG_BUFFER_MANIPULATION' in os.environ else False
+_is_logging_buffer_manipulation = True if 'HARVESTERS_LOG_BUFFER_MANIPULATION' in os.environ else False
 
 
 class _SignalHandler:

@@ -1501,7 +1501,6 @@ class ImageAcquirer:
                                 logger=self._logger
                             )
 
-
         if _is_logging_buffer_manipulation:
             self._logger.debug(
                 'Fetched Buffer module #{0}'

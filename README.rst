@@ -311,10 +311,10 @@ In addition, you will need the following items to let Harvester make something m
 * GenICam compliant machine vision cameras
 
 ***************************
-Supported operating systems
+Certified operating systems
 ***************************
 
-Harvester has been tested with the following operating systems:
+Harvester has been confirmed it works with the following 64-bit operating systems:
 
 * Fedora 27
 * macOS 10.13

@@ -83,12 +83,12 @@ Important links
       - https://harvesters.readthedocs.io/en/latest/
     - - EMVA website
       - https://www.emva.org/standards-technology/genicam/genicam-downloads/
-    - - PyPI
-      - https://pypi.org/project/harvesters/
     - - Harvester GUI
       - https://github.com/genicam/harvesters_gui
     - - Issue tracker
       - https://github.com/genicam/harvesters/issues
+    - - PyPI
+      - https://pypi.org/project/harvesters/
     - - Source repository
       - https://github.com/genicam/harvesters
 

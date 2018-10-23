@@ -176,6 +176,9 @@ class MutexLocker:
         :param thread:
         """
         #
+        assert thread
+
+        #
         super().__init__()
 
         #
@@ -286,6 +289,9 @@ class _BuiltInThread(ThreadBase):
 
 class _ThreadImpl(Thread):
     def __init__(self, base=None, worker=None, sleep_duration_s=0.0):
+        #
+        assert base
+
         #
         super().__init__(daemon=self._is_interactive())
 
@@ -410,8 +416,8 @@ class Component2D(ComponentBase):
         :param node_map:
         """
         #
-        assert node_map
         assert buffer
+        assert node_map
 
         #
         super().__init__(buffer=buffer)
@@ -623,6 +629,10 @@ class Buffer:
         :param node_map:
         """
         #
+        assert buffer
+        assert node_map
+
+        #
         self._logger = logger or get_logger(name=__name__)
 
         #
@@ -797,10 +807,13 @@ class PayloadBase:
     """
     Is a base class of various payload types.
     """
-    def __init__(self, *, buffer=None, node_map=None, logger=None):
+    def __init__(self, *, buffer=None, logger=None):
         """
         :param buffer:
         """
+        #
+        assert buffer
+
         #
         self._logger = logger or get_logger(name=__name__)
 
@@ -845,23 +858,27 @@ class PayloadBase:
 class PayloadUnknown(PayloadBase):
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
+        assert buffer
+        assert node_map
+
+        #
         self._logger = logger or get_logger(name=__name__)
 
         #
-        super().__init__(
-            buffer=buffer, node_map=node_map, logger=self._logger
-        )
+        super().__init__(buffer=buffer, logger=self._logger)
 
 
 class PayloadImage(PayloadBase):
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
+        assert buffer
+        assert node_map
+
+        #
         self._logger = logger or get_logger(name=__name__)
 
         #
-        super().__init__(
-            buffer=buffer, node_map=node_map, logger=self._logger
-        )
+        super().__init__(buffer=buffer, logger=self._logger)
 
         # Build data components.
         self._components.append(
@@ -877,67 +894,79 @@ class PayloadImage(PayloadBase):
 class PayloadRawData(PayloadBase):
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
+        assert buffer
+        assert node_map
+
+        #
         self._logger = logger or get_logger(name=__name__)
 
         #
-        super().__init__(
-            buffer=buffer, node_map=node_map, logger=self._logger
-        )
+        super().__init__(buffer=buffer, logger=self._logger)
 
 
 class PayloadFile(PayloadBase):
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
+        assert buffer
+        assert node_map
+
+        #
         self._logger = logger or get_logger(name=__name__)
 
         #
-        super().__init__(
-            buffer=buffer, node_map=node_map, logger=self._logger
-        )
+        super().__init__(buffer=buffer, logger=self._logger)
 
 
 class PayloadJPEG(PayloadBase):
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
+        assert buffer
+        assert node_map
+
+        #
         self._logger = logger or get_logger(name=__name__)
 
         #
-        super().__init__(
-            buffer=buffer, node_map=node_map, logger=self._logger
-        )
+        super().__init__(buffer=buffer, logger=self._logger)
 
 
 class PayloadJPEG2000(PayloadBase):
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
+        assert buffer
+        assert node_map
+
+        #
         self._logger = logger or get_logger(name=__name__)
 
         #
-        super().__init__(
-            buffer=buffer, node_map=node_map, logger=self._logger
-        )
+        super().__init__(buffer=buffer, logger=self._logger)
 
 
 class PayloadH264(PayloadBase):
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
+        assert buffer
+        assert node_map
+
+        #
         self._logger = logger or get_logger(name=__name__)
 
         #
-        super().__init__(
-            buffer=buffer, node_map=node_map, logger=self._logger
-        )
+        super().__init__(buffer=buffer, logger=self._logger)
 
 
 class PayloadChunkOnly(PayloadBase):
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
+        assert buffer
+        assert node_map
+
+        #
         self._logger = logger or get_logger(name=__name__)
 
         #
-        super().__init__(
-            buffer=buffer, node_map=node_map, logger=self._logger
-        )
+        super().__init__(buffer=buffer, logger=self._logger)
 
 
 class PayloadMultiPart(PayloadBase):
@@ -950,12 +979,14 @@ class PayloadMultiPart(PayloadBase):
         :param node_map:
         """
         #
+        assert buffer
+        assert node_map
+
+        #
         self._logger = logger or get_logger(name=__name__)
 
         #
-        super().__init__(
-            buffer=buffer, node_map=node_map, logger=self._logger
-        )
+        super().__init__(buffer=buffer, logger=self._logger)
         #
 
         # Build data components.
@@ -999,8 +1030,8 @@ class ImageAcquirer:
         self._logger = logger or get_logger(name=__name__)
 
         #
-        assert device
         assert parent
+        assert device
 
         #
         super().__init__()

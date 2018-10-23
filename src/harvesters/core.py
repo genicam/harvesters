@@ -20,7 +20,6 @@
 
 # Standard library imports
 import io
-import datetime
 import os
 import pathlib
 import signal
@@ -53,11 +52,10 @@ from harvesters._private.core.port import ConcretePort
 from harvesters._private.core.statistics import Statistics
 from harvesters_util.logging import get_logger
 from harvesters_util.pfnc import symbolics
-from harvesters_util.pfnc import uint8_formats, uint16_formats, uint32_formats, \
+from harvesters_util.pfnc import uint16_formats, uint32_formats, \
     float32_formats
 from harvesters_util.pfnc import component_2d_formats
-from harvesters_util.pfnc import mono_formats, rgb_formats, \
-    rgba_formats, bayer_formats
+from harvesters_util.pfnc import rgb_formats, rgba_formats
 
 
 _is_logging_buffer_manipulation = True if 'HARVESTERS_LOG_BUFFER_MANIPULATION' in os.environ else False

@@ -1519,11 +1519,18 @@ class ImageAcquirer:
 
     def _update_statistics(self, buffer):
         #
+        assert buffer
+
+        #
         self._statistics.increment_num_images()
         self._statistics.update_timestamp(buffer)
 
     @staticmethod
     def _create_raw_buffers(num_buffers, size):
+        #
+        assert num_buffers >= 0
+        assert size >= 0
+
         # Instantiate a list object.
         raw_buffers = []
 
@@ -1538,6 +1545,9 @@ class ImageAcquirer:
 
     @staticmethod
     def _create_buffer_tokens(raw_buffers):
+        #
+        assert raw_buffers
+
         # Instantiate a list object.
         _buffer_tokens = []
 
@@ -1696,6 +1706,9 @@ class ImageAcquirer:
 
 
 def _get_port_connected_node_map(*, port=None, logger=None):
+    #
+    assert port
+
     # Inquire it's URL information.
     # TODO: Consider a case where len(url_info_list) > 1.
     url = port.url_info_list[0].url
@@ -1951,6 +1964,11 @@ class Harvester:
 
         :return: None
         """
+        if not os.path.exists(file_path):
+            self._logger.warning(
+                'Attempted to add {0} which does not exist.'.format(file_path)
+            )
+
         if file_path not in self._cti_files:
             self._cti_files.append(file_path)
             self._logger.info(

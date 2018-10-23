@@ -1,15 +1,18 @@
-.. image:: https://img.shields.io/pypi/v/harvesters.svg
-    :target: https://pypi.org/project/harvesters
-
 .. image:: https://readthedocs.org/projects/harvesters/badge/?version=latest
     :target: https://harvesters.readthedocs.io/en/latest/?badge=latest
 
+.. image:: https://img.shields.io/pypi/v/harvesters.svg
+    :target: https://pypi.org/project/harvesters
+
 .. image:: https://img.shields.io/pypi/pyversions/harvesters.svg
+    :target: https://img.shields.io/pypi/pyversions/harvesters.svg
 
 ----
 
 *Even though we just wanted to research image processing algorithms, why did we have to change our image acquisition library every time we change the camera that we use for the research?
 - Anonymous*
+
+----
 
 .. figure:: https://user-images.githubusercontent.com/8652625/40595190-1e16e90e-626e-11e8-9dc7-207d691c6d6d.jpg
     :align: center

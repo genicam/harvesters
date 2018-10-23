@@ -751,40 +751,41 @@ class Buffer:
         assert node_map
 
         #
-        if buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_UNKNOWN:
+        p_type = buffer.payload_type
+        if p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_UNKNOWN:
             payload = PayloadUnknown(
                 buffer=buffer, node_map=node_map, logger=logger
             )
-        elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE or \
+        elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE or \
                 buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_DATA:
             payload = PayloadImage(
                 buffer=buffer, node_map=node_map, logger=logger
             )
-        elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_RAW_DATA:
+        elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_RAW_DATA:
             payload = PayloadRawData(
                 buffer=buffer, node_map=node_map, logger=logger
             )
-        elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_FILE:
+        elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_FILE:
             payload = PayloadFile(
                 buffer=buffer, node_map=node_map, logger=logger
             )
-        elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG:
+        elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG:
             payload = PayloadJPEG(
                 buffer=buffer, node_map=node_map, logger=logger
             )
-        elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG2000:
+        elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG2000:
             payload = PayloadJPEG2000(
                 buffer=buffer, node_map=node_map, logger=logger
             )
-        elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_H264:
+        elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_H264:
             payload = PayloadH264(
                 buffer=buffer, node_map=node_map, logger=logger
             )
-        elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_ONLY:
+        elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_ONLY:
             payload = PayloadChunkOnly(
                 buffer=buffer, node_map=node_map, logger=logger
             )
-        elif buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART:
+        elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART:
             payload = PayloadMultiPart(
                 buffer=buffer, node_map=node_map, logger=logger
             )

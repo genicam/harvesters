@@ -142,8 +142,8 @@ The Harvester project has started since April 2018 and it's still under developm
       - Tested
     - - `CREVIS <http://www.crevis.co.kr/eng/main/main.php>`_
       - N/A
-      - -
-      - -
+      - \-
+      - N/A
       - Tested
     - - `DAHENG VISION <http://en.daheng-image.com/main.html>`_
       - N/A

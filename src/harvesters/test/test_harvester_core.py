@@ -232,7 +232,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         # Then stop image acquisition:
         ia.stop_image_acquisition()
 
-        # And dstroy the ImageAcquirer:
+        # And destroy the ImageAcquirer:
         ia.destroy()
 
 

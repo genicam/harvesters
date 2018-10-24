@@ -1855,7 +1855,7 @@ class Harvester:
     def create_image_acquirer(
             self, list_index=None, *, id_=None,
             vendor=None, model=None, tl_type=None, user_defined_name=None,
-            serial_number=None, version=None
+            serial_number=None, version=None, sleep_duration_s=0.0
         ):
         """
         Creates an image acquirer for the specified device and return it.
@@ -1947,7 +1947,7 @@ class Harvester:
             # Create an image acquirer object and return it.
             ia = ImageAcquirer(
                 parent=self, device=device, profiler=self._profiler,
-                logger=self._logger
+                logger=self._logger, sleep_duration=sleep_duration_s
             )
             self._ias.append(ia)
 

@@ -215,6 +215,26 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         ia.stop_image_acquisition()
         ia.destroy()
 
+    def test_stop_start_and_stop(self):
+        # Create an image acquirer:
+        ia = self.harvester.create_image_acquirer(0)
+
+        # It's not necessary but we stop image acquisition first:
+        ia.stop_image_acquisition()
+
+        # Then start it:
+        ia.start_image_acquisition()
+
+        # Fetch a buffer to make sure it's working:
+        with ia.fetch_buffer() as buffer:
+            self._logger.info('{0}'.format(buffer))
+
+        # Then stop image acquisition:
+        ia.stop_image_acquisition()
+
+        # And dstroy the ImageAcquirer:
+        ia.destroy()
+
 
 if __name__ == '__main__':
     unittest.main()

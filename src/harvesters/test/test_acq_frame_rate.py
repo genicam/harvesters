@@ -63,22 +63,32 @@ class ThreadImageAcquisitionStatistics(Thread):
 
 class TestTutorials(TestHarvesterCoreBase):
 
-    def test_performance_on_image_acquisition(self):
+    def _test_performance_on_image_acquisition(self, sleep_duration=0.0):
+        #
+        self._logger.info(
+            'Sleep duration: {0} s'.format(sleep_duration)
+        )
+
         # Connect to the first camera in the list.
-        self.ia = self.harvester.create_image_acquirer(0)
+        self.ia = self.harvester.create_image_acquirer(
+            0, sleep_duration=sleep_duration
+        )
 
         # Then start image acquisition.
         self.ia.start_image_acquisition()
 
         # Run the image acquisition thread:
         thread = ThreadImageAcquisitionStatistics(
-            worker=self._worker_update_statistics, timeout=10
+            worker=self._worker_update_statistics, timeout=5
         )
         thread.start()
         thread.join()
 
         # Stop image acquisition:
         self.ia.stop_image_acquisition()
+
+        # Destroy the image acquirer:
+        self.ia.destroy()
 
     def _worker_update_statistics(self):
         #
@@ -101,6 +111,20 @@ class TestTutorials(TestHarvesterCoreBase):
             self._logger.info(
                 '{0}'.format(message_config + message_statistics)
             )
+
+    def test_performance_on_image_acquisition_with_sleep_duration(self):
+        # Connect to the first camera in the list.
+        sleep_duration = 0.001
+        for i in range(4):
+            self._test_performance_on_image_acquisition(
+                sleep_duration=sleep_duration
+            )
+            sleep_duration *= 0.1
+
+    def test_performance_on_image_acquisition_with_zero_sleep_duration(self):
+        self._test_performance_on_image_acquisition(
+            sleep_duration=0.0
+        )
 
 
 if __name__ == '__main__':

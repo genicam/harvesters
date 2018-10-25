@@ -59,6 +59,7 @@ from harvesters_util.pfnc import rgb_formats, rgba_formats
 
 
 _is_logging_buffer_manipulation = True if 'HARVESTERS_LOG_BUFFER_MANIPULATION' in os.environ else False
+_sleep_duration_default = 0.0  # s
 
 
 class _SignalHandler:
@@ -205,11 +206,13 @@ class MutexLocker:
 
 class _BuiltInThread(ThreadBase):
     def __init__(self, *, mutex=None, worker=None, logger=None,
-                 sleep_duration_s=0.0):
+                 sleep_duration=_sleep_duration_default):
         """
 
         :param mutex:
         :param worker:
+        :param logger:
+        :param sleep_duration:
         """
         #
         super().__init__(mutex=mutex, logger=logger)
@@ -217,13 +220,13 @@ class _BuiltInThread(ThreadBase):
         #
         self._thread = None
         self._worker = worker
-        self._sleep_duration_s = sleep_duration_s
+        self._sleep_duration = sleep_duration
 
     def _start(self):
         # Create a Thread object. The object is not reusable.
         self._thread = _ThreadImpl(
             base=self, worker=self._worker,
-            sleep_duration_s=self._sleep_duration_s
+            sleep_duration=self._sleep_duration
         )
 
         # Start running its worker method.
@@ -288,7 +291,8 @@ class _BuiltInThread(ThreadBase):
 
 
 class _ThreadImpl(Thread):
-    def __init__(self, base=None, worker=None, sleep_duration_s=0.0):
+    def __init__(self, base=None, worker=None,
+                 sleep_duration=_sleep_duration_default):
         #
         assert base
 
@@ -298,7 +302,7 @@ class _ThreadImpl(Thread):
         #
         self._worker = worker
         self._base = base
-        self._sleep_duration_s = sleep_duration_s
+        self._sleep_duration = sleep_duration
 
     @staticmethod
     def _is_interactive():
@@ -327,7 +331,7 @@ class _ThreadImpl(Thread):
         while self._base.is_running:
             if self._worker:
                 self._worker()
-                time.sleep(self._sleep_duration_s)
+                time.sleep(self._sleep_duration)
 
     def acquire(self):
         return self._base.mutex.acquire()
@@ -1019,12 +1023,15 @@ class ImageAcquirer:
     def __init__(
             self, *, parent=None, min_num_buffers=8, device=None,
             create_ds_at_connection=True, profiler=None, logger=None,
-            tear_down=None, sleep_duration=0.0
+            tear_down=None, sleep_duration=_sleep_duration_default
     ):
         """
         :param min_num_buffers:
         :param device:
         :param profiler:
+        :param logger:
+        :param tear_down:
+        :param sleep_duration:
         """
         #
         self._logger = logger or get_logger(name=__name__)
@@ -1089,7 +1096,7 @@ class ImageAcquirer:
             mutex=self._mutex,
             worker=self._worker_image_acquisition,
             logger=self._logger,
-            sleep_duration_s=sleep_duration
+            sleep_duration=sleep_duration
         )
 
         # Prepare handling the SIGINT event:
@@ -1855,7 +1862,8 @@ class Harvester:
     def create_image_acquirer(
             self, list_index=None, *, id_=None,
             vendor=None, model=None, tl_type=None, user_defined_name=None,
-            serial_number=None, version=None, sleep_duration_s=0.0
+            serial_number=None, version=None,
+            sleep_duration=_sleep_duration_default
         ):
         """
         Creates an image acquirer for the specified device and return it.
@@ -1868,6 +1876,7 @@ class Harvester:
         :param user_defined_name:
         :param serial_number:
         :param version:
+        :param sleep_duration:
 
         :return: An `ImageAcquirer` object that associates with the specified device.
 
@@ -1947,7 +1956,7 @@ class Harvester:
             # Create an image acquirer object and return it.
             ia = ImageAcquirer(
                 parent=self, device=device, profiler=self._profiler,
-                logger=self._logger, sleep_duration=sleep_duration_s
+                logger=self._logger, sleep_duration=sleep_duration
             )
             self._ias.append(ia)
 

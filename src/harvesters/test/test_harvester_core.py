@@ -187,7 +187,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         with self.assertRaises(TimeoutException):
             # Try to fetch a buffer but the IA will immediately raise
             # TimeoutException because it's not started image acquisition:
-            _ = ia.fetch_buffer(timeout_s=timeout)
+            _ = ia.fetch_buffer(timeout=timeout)
 
         # Then we setup the device for software trigger mode:
         ia.device.node_map.TriggerMode.value = 'On'
@@ -199,14 +199,14 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         with self.assertRaises(TimeoutException):
             # Try to fetch a buffer but the IA will raise TimeoutException
             # because we've not triggered the device so far:
-            _ = ia.fetch_buffer(timeout_s=timeout)
+            _ = ia.fetch_buffer(timeout=timeout)
 
         # We finally acquire an image triggering the device:
         buffer = None
         self.assertIsNone(buffer)
 
         ia.device.node_map.TriggerSoftware.execute()
-        buffer = ia.fetch_buffer(timeout_s=timeout)
+        buffer = ia.fetch_buffer(timeout=timeout)
         self.assertIsNotNone(buffer)
         self._logger.info('{0}'.format(buffer))
         buffer.queue()

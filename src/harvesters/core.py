@@ -1473,11 +1473,11 @@ class ImageAcquirer:
                 """
                 pass
 
-    def fetch_buffer(self, *, timeout_s=0, is_raw=False):
+    def fetch_buffer(self, *, timeout=0, is_raw=False):
         """
         Fetches the oldest :class:`~harvesters.buffer.Buffer` object and returns it.
 
-        :param timeout_s: Set timeout value in second.
+        :param timeout: Set timeout value in second.
         :param is_raw: Set True if you need a raw GenTL Buffer module.
 
         :return: A :class:`~harvesters.buffer.Buffer` object.
@@ -1485,12 +1485,12 @@ class ImageAcquirer:
         if not self.is_acquiring_images:
             raise TimeoutException
 
-        watch_timeout = True if timeout_s > 0 else False
+        watch_timeout = True if timeout > 0 else False
         buffer = None
         base = time.time()
 
         while buffer is None:
-            if watch_timeout and (time.time() - base) > timeout_s:
+            if watch_timeout and (time.time() - base) > timeout:
                 raise TimeoutException
             else:
                 with MutexLocker(self.thread_image_acquisition):

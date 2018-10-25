@@ -31,14 +31,19 @@ from harvesters.test.base_harvester import TestHarvesterCoreBase
 
 
 class ThreadImageAcquisitionStatistics(Thread):
-    def __init__(self, *, worker=None, timeout_s=0):
+    def __init__(self, *, worker=None, timeout=0):
+        """
+
+        :param worker:
+        :param timeout: Set timeout value in second.
+        """
         #
         super().__init__()
 
         #
         self._worker = worker
         self._is_running = False
-        self._timeout_s = timeout_s
+        self._timeout_s = timeout
         self._time_base = 0
 
     def run(self):
@@ -67,7 +72,7 @@ class TestTutorials(TestHarvesterCoreBase):
 
         # Run the image acquisition thread:
         thread = ThreadImageAcquisitionStatistics(
-            worker=self._worker_update_statistics, timeout_s=10
+            worker=self._worker_update_statistics, timeout=10
         )
         thread.start()
         thread.join()

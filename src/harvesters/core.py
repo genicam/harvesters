@@ -59,7 +59,7 @@ from harvesters_util.pfnc import rgb_formats, rgba_formats
 
 
 _is_logging_buffer_manipulation = True if 'HARVESTERS_LOG_BUFFER_MANIPULATION' in os.environ else False
-_sleep_duration_default = 0.0  # s
+_sleep_duration_default = 0.000001  # s
 
 
 class _SignalHandler:

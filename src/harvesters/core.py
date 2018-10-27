@@ -53,7 +53,7 @@ from harvesters._private.core.statistics import Statistics
 from harvesters_util.logging import get_logger
 from harvesters_util.pfnc import symbolics
 from harvesters_util.pfnc import uint16_formats, uint32_formats, \
-    float32_formats
+    float32_formats, uint8_formats
 from harvesters_util.pfnc import component_2d_formats
 from harvesters_util.pfnc import lmn_444_formats, lmno_4444_formats, \
     mono_formats, bayer_formats
@@ -444,9 +444,13 @@ class Component2DImage(ComponentBase):
         elif symbolic in float32_formats:
             dtype = 'float32'
             bytes_per_pixel_data_component = 4
-        else:
+        elif symbolic in uint8_formats:
             dtype = 'uint8'
             bytes_per_pixel_data_component = 1
+        else:
+            # Sorry, Harvester can't handle this:
+            self._data = None
+            return
 
         # Determine the number of components per pixel:
         if symbolic in lmn_444_formats:
@@ -456,7 +460,9 @@ class Component2DImage(ComponentBase):
         elif symbolic in mono_formats or symbolic in bayer_formats:
             num_components_per_pixel = 1
         else:
-            num_components_per_pixel = 1
+            # Sorry, Harvester can't handle this:
+            self._data = None
+            return
 
         #
         width = self.width  # + self.x_padding

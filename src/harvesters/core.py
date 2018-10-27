@@ -459,8 +459,8 @@ class Component2DImage(ComponentBase):
             num_components_per_pixel = 1
 
         #
-        width = self.width + self.x_padding
-        height = self.height + self.y_padding
+        width = self.width  # + self.x_padding
+        height = self.height  # + self.y_padding
 
         #
         if self._part:

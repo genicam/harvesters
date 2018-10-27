@@ -432,21 +432,21 @@ class Component2DImage(ComponentBase):
         self._node_map = node_map
         self._data = None
 
-        # Determine the data type:
         symbolic = self.data_format
 
+        # Determine the data type:
         if symbolic in uint16_formats:
             dtype = 'uint16'
-            byte_per_pixel_data_component = 2
+            bytes_per_pixel_data_component = 2
         elif symbolic in uint32_formats:
             dtype = 'uint32'
-            byte_per_pixel_data_component = 4
+            bytes_per_pixel_data_component = 4
         elif symbolic in float32_formats:
             dtype = 'float32'
-            byte_per_pixel_data_component = 4
+            bytes_per_pixel_data_component = 4
         else:
             dtype = 'uint8'
-            byte_per_pixel_data_component = 1
+            bytes_per_pixel_data_component = 1
 
         # Determine the number of components per pixel:
         if symbolic in lmn_444_formats:
@@ -465,7 +465,7 @@ class Component2DImage(ComponentBase):
         #
         if self._part:
             count = self._part.data_size
-            count //= byte_per_pixel_data_component
+            count //= bytes_per_pixel_data_component
             data_offset = self._part.data_offset
         else:
             count = width * height

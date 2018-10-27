@@ -409,7 +409,7 @@ class ComponentRaw(ComponentBase):
         super().__init__()
 
 
-class Component2D(ComponentBase):
+class Component2DImage(ComponentBase):
     """
     Represents a 2D image.
     """
@@ -431,40 +431,41 @@ class Component2D(ComponentBase):
         self._node_map = node_map
         self._data = None
 
-        # Identify the data type.
+        # Determine the data type:
         symbolic = self.data_format
 
         if symbolic in uint16_formats:
             dtype = 'uint16'
-            component_per_bytes = 2
+            byte_per_pixel_data_component = 2
         elif symbolic in uint32_formats:
             dtype = 'uint32'
-            component_per_bytes = 4
+            byte_per_pixel_data_component = 4
         elif symbolic in float32_formats:
             dtype = 'float32'
-            component_per_bytes = 4
+            byte_per_pixel_data_component = 4
         else:
             dtype = 'uint8'
-            component_per_bytes = 1
+            byte_per_pixel_data_component = 1
 
+        # Determine the number of components per pixel:
         if symbolic in rgb_formats:
-            num_pixel_components = 3
+            num_components_per_pixel = 3
         elif symbolic in rgba_formats:
-            num_pixel_components = 4
+            num_components_per_pixel = 4
         else:
-            num_pixel_components = 1
+            num_components_per_pixel = 1
 
         #
         if self._part:
             count = self._part.data_size
-            count //= component_per_bytes
+            count //= byte_per_pixel_data_component
             data_offset = self._part.data_offset
         else:
             count = self.width * self.height
-            count *= num_pixel_components
+            count *= num_components_per_pixel
             data_offset = 0
 
-        # Convert the Python's built-in bytes array to a Numpy array.
+        # Convert the Python's built-in bytes array to a Numpy array:
         self._data = np.frombuffer(
             self._buffer.raw_buffer,
             count=count,
@@ -473,9 +474,9 @@ class Component2D(ComponentBase):
         )
 
         #
-        if num_pixel_components > 1:
+        if num_components_per_pixel > 1:
             self._data = self._data.reshape(
-                self.height, self.width, num_pixel_components
+                self.height, self.width, num_components_per_pixel
             )
         else:
             self._data = self._data.reshape(
@@ -846,7 +847,7 @@ class PayloadBase:
         #
         symbolic = symbolics[data_format]
         if symbolic in component_2d_formats:
-            return Component2D(buffer=buffer, part=part, node_map=node_map)
+            return Component2DImage(buffer=buffer, part=part, node_map=node_map)
 
         return None
 

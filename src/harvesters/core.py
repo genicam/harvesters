@@ -456,12 +456,16 @@ class Component2DImage(ComponentBase):
             num_components_per_pixel = 1
 
         #
+        width = self.width + self.x_padding
+        height = self.height + self.y_padding
+
+        #
         if self._part:
             count = self._part.data_size
             count //= byte_per_pixel_data_component
             data_offset = self._part.data_offset
         else:
-            count = self.width * self.height
+            count = width * height
             count *= num_components_per_pixel
             data_offset = 0
 
@@ -476,11 +480,11 @@ class Component2DImage(ComponentBase):
         #
         if num_components_per_pixel > 1:
             self._data = self._data.reshape(
-                self.height, self.width, num_components_per_pixel
+                height, width, num_components_per_pixel
             )
         else:
             self._data = self._data.reshape(
-                self.height, self.width
+                height, width
             )
 
     def __repr__(self):

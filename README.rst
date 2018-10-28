@@ -44,7 +44,7 @@ Announcements
 #############
 
 - **Version 0.2.0**: Resolves issue `#53 <https://github.com/genicam/harvesters/issues/53>`_.
-- **Version 0.1.0**: Note that this version will be deprecated and the following versions will be incompatible with any of `0.1.n` versions.
+- **Version 0.1.0**: Note that this version will be deprecated and the following versions will be incompatible with any of ``0.1.n`` versions.
 
 ###############
 About Harvester
@@ -624,7 +624,7 @@ Now you can quit the program! Please not that the image acquirer also supports t
 Reshaping a NumPy array
 ***********************
 
-We have learned how to acquire images from a target device through an `ImageAcquirer` class object. In this section, we will learn how to reshape the acquired image into another that can be used by your application.
+We have learned how to acquire images from a target device through an ``ImageAcquirer`` class object. In this section, we will learn how to reshape the acquired image into another that can be used by your application.
 
 First, you should know that Harvester Core returns you an image as a 1D NumPy array.
 
@@ -635,7 +635,7 @@ First, you should know that Harvester Core returns you an image as a 1D NumPy ar
 
 Perhaps you may expect to have it as a 2D array but Harvester Core doesn't in reality because if Harvester Core provides an image as a specific shape, then it could limit your algorithm that you can apply to get the image that fits to your expected shape. Instead, Harvester Core provides you an image as a 1D array and also provides you required information that you would need while you're reshaping the original array to another.
 
-The following code is an except from Harvester GUI that reshapes the source 1D array to another to draw it on the VisPy canvas. VisPy canvas takes `content` as an image to draw:
+The following code is an except from Harvester GUI that reshapes the source 1D array to another to draw it on the VisPy canvas. VisPy canvas takes ``content`` as an image to draw:
 
 .. code-block:: python
 
@@ -670,15 +670,15 @@ The following code is an except from Harvester GUI that reshapes the source 1D a
         else:
             return
 
-Note that `component.num_components_per_pixel` returns a `float` so please don't forget to cast it when you pass it to the `reshape` method of NumPy array. If you try to set a `float` then the method will refuse it.
+Note that ``component.num_components_per_pixel`` returns a ``float`` so please don't forget to cast it when you pass it to the `reshape` method of NumPy array. If you try to set a ``float`` then the method will refuse it.
 
-Sometimes you may have to handle image formats that require you to newly create another image calculating each pixel component value referring to the pixel location. To help such calculation, `Component2DImage` class provides the `represent_2d_pixel_location` method to tell you the 2D pixel location that corresponds to the pixel format. The pixel location is defined by Pixel Format Naming Convention, PFNC in short. The array that is returned by the method is a 2D NumPy array and it corresponds to the model that is defined by PFNC.
+Sometimes you may have to handle image formats that require you to newly create another image calculating each pixel component value referring to the pixel location. To help such calculation, ``Component2DImage`` class provides the ``represent_2d_pixel_location`` method to tell you the 2D pixel location that corresponds to the pixel format. The pixel location is defined by Pixel Format Naming Convention, PFNC in short. The array that is returned by the method is a 2D NumPy array and it corresponds to the model that is defined by PFNC.
 
 .. code-block:: python
 
     pixel_location = component.represent_2d_pixel_location()
 
-For example, if you acquired an image in YUV 4:2:2 format, then the 1st and the 2nd rows of `pixel_location` would look as follows:
+For example, if you acquired an image in YUV 4:2:2 format, then the 1st and the 2nd rows of ``pixel_location`` would look as follows:
 
 .. code-block:: python
 

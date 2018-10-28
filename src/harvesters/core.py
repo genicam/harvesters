@@ -50,13 +50,14 @@ from genicam2.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
 # Local application/library specific imports
 from harvesters._private.core.port import ConcretePort
 from harvesters._private.core.statistics import Statistics
-from harvesters_util.logging import get_logger
-from harvesters_util.pfnc import symbolics
-from harvesters_util.pfnc import uint16_formats, uint32_formats, \
+from harvesters.util.logging import get_logger
+from harvesters.util.pfnc import symbolics
+from harvesters.util.pfnc import uint16_formats, uint32_formats, \
     float32_formats, uint8_formats
-from harvesters_util.pfnc import component_2d_formats
-from harvesters_util.pfnc import lmn_444_location_formats, lmno_4444_location_formats, \
-    lmn_422_location_formats, lmn_411_location_formats, mono_location_formats, bayer_location_formats
+from harvesters.util.pfnc import component_2d_formats
+from harvesters.util.pfnc import lmn_444_location_formats, \
+    lmno_4444_location_formats, lmn_422_location_formats, \
+    lmn_411_location_formats, mono_location_formats, bayer_location_formats
 
 
 _is_logging_buffer_manipulation = True if 'HARVESTERS_LOG_BUFFER_MANIPULATION' in os.environ else False

@@ -28,7 +28,7 @@ import unittest
 
 # Local application/library specific imports
 from harvesters.core import Harvester
-from harvesters_util.logging import get_logger
+from harvesters.util.logging import get_logger
 
 
 def get_cti_file_path():

@@ -686,7 +686,7 @@ For example, if you acquired an image in YUV 4:2:2 format, then the 1st and the 
     [Y11, U11, Y12, V11, Y13, U13, Y14, V13, ...]
     [Y21, U21, Y22, V21, Y23, U23, Y24, V23, ...]
 
-Having that pixel location, you should be able to convert the color space from YUV to RGB.
+Having that pixel location, you should be able to convert the color space of each row from YUV to RGB.
 
 You can download the standard document of PFNC at the `EMVA website <https://www.emva.org/standards-technology/genicam/genicam-downloads/>`_.
 

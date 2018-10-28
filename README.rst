@@ -682,8 +682,8 @@ For example, if you acquired an image in YUV 4:2:2 format, then the 1st and the 
 
 .. code-block:: python
 
-    [Y11, U11, Y12, V11, Y13, U13. Y14, V13, ...]
-    [Y21, U21, Y22, V21, Y23, U23. Y24, V23, ...]
+    [Y11, U11, Y12, V11, Y13, U13, Y14, V13, ...]
+    [Y21, U21, Y22, V21, Y23, U23, Y24, V23, ...]
 
 Having that pixel location, you should be able to convert the color space from YUV to RGB.
 

@@ -24,7 +24,6 @@ import time
 # Related third party imports
 from genicam2.gentl import InvalidParameterException, \
     NotImplementedException, NotAvailableException, InvalidHandleException
-from genicam2.genapi import LogicalErrorException
 
 # Local application/library specific imports
 

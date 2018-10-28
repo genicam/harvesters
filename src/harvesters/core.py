@@ -431,6 +431,7 @@ class Component2DImage(ComponentBase):
         self._part = part
         self._node_map = node_map
         self._data = None
+        self._num_components_per_pixel = 0
 
         symbolic = self.data_format
 
@@ -513,8 +514,12 @@ class Component2DImage(ComponentBase):
         height = self.height  # + self.y_padding
 
         return self._data.reshape(
-            height, width * self._num_components_per_pixel
+            height, int(width * self._num_components_per_pixel)
         )
+
+    @property
+    def num_components_per_pixel(self):
+        return self._num_components_per_pixel
 
     def __repr__(self):
         return '{0} x {1}, {2}, {3} elements,\n{4}'.format(

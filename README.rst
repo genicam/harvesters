@@ -647,6 +647,7 @@ The following code is an except from Harvester GUI that reshapes the source 1D a
     component = payload.components[0]
     width = component.width
     height = component.height
+    data_format = component.data_format
 
     # Reshape the image so that it can be drawn on the VisPy canvas:
     if data_format in mono_location_formats:

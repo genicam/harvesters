@@ -474,8 +474,8 @@ class Component2DImage(ComponentBase):
         self._symbolic = symbolic
 
         #
-        width = self.width  # + self.x_padding
-        height = self.height  # + self.y_padding
+        total_width = self.width + self.x_padding
+        total_height = self.height + self.y_padding
 
         #
         if self._part:
@@ -483,7 +483,7 @@ class Component2DImage(ComponentBase):
             count //= bytes_per_pixel_data_component
             data_offset = self._part.data_offset
         else:
-            count = width * height
+            count = total_width * total_height
             count *= num_components_per_pixel
             data_offset = 0
 

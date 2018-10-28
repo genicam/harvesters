@@ -464,6 +464,9 @@ class Component2DImage(ComponentBase):
             self._data = None
             return
 
+        self._num_components_per_pixel = num_components_per_pixel
+        self._symbolic = symbolic
+
         #
         width = self.width  # + self.x_padding
         height = self.height  # + self.y_padding
@@ -486,15 +489,27 @@ class Component2DImage(ComponentBase):
             offset=data_offset
         )
 
+    def represent_2d_pixel_location(self):
+        """
+        Returns a NumPy array that represents the 2D pixel location,
+        which is defined by PFNC, of the original image data.
+
+        You may use the returned NumPy array for a calcuration to map the
+        original image to another format.
+
+        :return: A NumPy array that represents the 2D pixel location.
+        """
+        if self.data is None:
+            return None
+
         #
-        if num_components_per_pixel > 1:
-            self._data = self._data.reshape(
-                height, width, num_components_per_pixel
-            )
-        else:
-            self._data = self._data.reshape(
-                height, width
-            )
+        _data = None
+        width = self.width  # + self.x_padding
+        height = self.height  # + self.y_padding
+
+        return self._data.reshape(
+            height, width * self._num_components_per_pixel
+        )
 
     def __repr__(self):
         return '{0} x {1}, {2}, {3} elements,\n{4}'.format(

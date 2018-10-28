@@ -436,22 +436,30 @@ class Component2DImage(ComponentBase):
         symbolic = self.data_format
 
         # Determine the data type:
-        if symbolic in uint16_formats:
-            dtype = 'uint16'
-            bytes_per_pixel_data_component = 2
-        elif symbolic in uint32_formats:
-            dtype = 'uint32'
-            bytes_per_pixel_data_component = 4
-        elif symbolic in float32_formats:
-            dtype = 'float32'
-            bytes_per_pixel_data_component = 4
-        elif symbolic in uint8_formats:
+        if self.x_padding > 0:
+            # In this case, the client will have to trim the padding part.
+            # so we create a NumPy array that consists of uint8 elements
+            # first. The client will interpret the array in an appropriate
+            # dtype in the end once he trimmed:
             dtype = 'uint8'
             bytes_per_pixel_data_component = 1
         else:
-            # Sorry, Harvester can't handle this:
-            self._data = None
-            return
+            if symbolic in uint16_formats:
+                dtype = 'uint16'
+                bytes_per_pixel_data_component = 2
+            elif symbolic in uint32_formats:
+                dtype = 'uint32'
+                bytes_per_pixel_data_component = 4
+            elif symbolic in float32_formats:
+                dtype = 'float32'
+                bytes_per_pixel_data_component = 4
+            elif symbolic in uint8_formats:
+                dtype = 'uint8'
+                bytes_per_pixel_data_component = 1
+            else:
+                # Sorry, Harvester can't handle this:
+                self._data = None
+                return
 
         # Determine the number of components per pixel:
         if symbolic in lmn_444_location_formats:
@@ -485,6 +493,7 @@ class Component2DImage(ComponentBase):
         else:
             count = width * height
             count *= num_components_per_pixel
+            count += self.y_padding
             data_offset = 0
 
         # Convert the Python's built-in bytes array to a Numpy array:
@@ -509,11 +518,9 @@ class Component2DImage(ComponentBase):
             return None
 
         #
-        _data = None
-
         return self._data.reshape(
             self.height + self.y_padding,
-            int(self.width * self._num_components_per_pixel)
+            int(self.width * self._num_components_per_pixel + self.x_padding)
         )
 
     @property

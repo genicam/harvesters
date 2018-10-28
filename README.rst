@@ -422,30 +422,32 @@ Harvester Core on IPython
 
 The following screenshot shows Harvester Core is running on IPython. An acquired image is delivered as the payload of a buffer and the buffer can be fetched by calling the ``fetch_buffer`` method of the ``ImageAcquirer`` class. Once you get an image you should be able to immediately start image processing. If you're running on the Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
-.. image:: https://user-images.githubusercontent.com/8652625/46953201-21913080-d0c8-11e8-9ec9-822fc3b9b048.png
+.. image:: https://user-images.githubusercontent.com/8652625/47616853-6627bd80-db05-11e8-9b33-b3be9a293b45.png
     :align: center
     :alt: Harvester on IPython
 
 .. code-block:: python
 
+    (genicam) kznr@Kazunaris-MacBook:~% ipython
+    Python 3.6.6 |Anaconda, Inc.| (default, Jun 28 2018, 11:07:29)
+    Type 'copyright', 'credits' or 'license' for more information
+    IPython 6.5.0 -- An enhanced Interactive Python. Type '?' for help.
+
     In [1]: from harvesters.core import Harvester
 
-    In [2]: import numpy as np
+    In [2]: h = Harvester()
 
-    In [3]: h = Harvester()
+    In [3]: h.add_cti_file('/Users/kznr/dev/genicam/bin/Maci64_x64/TLSimu.cti')
 
-    In [4]: h.add_cti_file('/Users/kznr/dev/genicam/bin/Maci64_x64/TLSimu.cti')
+    In [4]: h.update_device_info_list()
 
-    In [5]: h.update_device_info_list()
+    In [5]: len(h.device_info_list)
+    Out[5]: 4
 
-    In [6]: h.device_info_list
-    Out[6]:
-    [(id_='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceA_0', version='1.2.3'),
-     (id_='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceA_1', version='1.2.3'),
-     (id_='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_0', version='1.2.3'),
-     (id_='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_1', version='1.2.3')]
+    In [6]: h.device_info_list[0]
+    Out[6]: (id_='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceA_0', version='1.2.3')
 
-    In [7]: ia = h.create_image_acquirer(serial_number='SN_InterfaceA_0')
+    In [7]: ia = h.create_image_acquirer(0)
 
     In [8]: ia.device.node_map.Width.value, ia.device.node_map.Height.value = 8, 8
 
@@ -453,54 +455,38 @@ The following screenshot shows Harvester Core is running on IPython. An acquired
 
     In [10]: ia.start_image_acquisition()
 
-    In [11]: buffer = ia.fetch_buffer()
-
-    In [12]: type(buffer)
-    Out[12]: harvesters.core.Buffer
-
-    In [13]: type(buffer.payload)
-    Out[13]: harvesters.core.PayloadImage
-
-    In [14]: len(buffer.payload.components)
-    Out[14]: 1
-
-    In [15]: type(buffer.payload.components[0])
-    Out[15]: harvesters.core.Component2D
-
-    In [16]: type(buffer.payload.components[0].data)
-    Out[16]: numpy.ndarray
-
-    In [17]: buffer.payload.components[0].data
-    Out[17]:
-    array([[153, 154, 155, 156, 157, 158, 159, 160],
-           [154, 155, 156, 157, 158, 159, 160, 161],
-           [155, 156, 157, 158, 159, 160, 161, 162],
-           [156, 157, 158, 159, 160, 161, 162, 163],
-           [157, 158, 159, 160, 161, 162, 163, 164],
-           [158, 159, 160, 161, 162, 163, 164, 165],
-           [159, 160, 161, 162, 163, 164, 165, 166],
-           [160, 161, 162, 163, 164, 165, 166, 167]], dtype=uint8)
-
-    In [18]: buffer.queue()
-
-    In [19]: with ia.fetch_buffer() as buffer:
-        ...:     image = buffer.payload.components[0].data
-        ...:     print('Average: {0}'.format(np.average(image)))
-        ...:     print(image)
+    In [11]: with ia.fetch_buffer() as buffer:
+        ...:     import numpy as np
+        ...:     _1d = buffer.payload.components[0].data
+        ...:     print('1D: {0}'.format(_1d))
+        ...:     _2d = buffer.payload.components[0].represent_2d_pixel_location()
+        ...:     print('2D: {0}'.format(_2d))
+        ...:     print(
+        ...:         'AVE: {0}, MIN: {1}, MAX: {2}'.format(
+        ...:             np.average(_2d), _2d.min(), _2d.max()
+        ...:         )
+        ...:     )
         ...:
-    Average: 218.0
-    [[211 212 213 214 215 216 217 218]
-     [212 213 214 215 216 217 218 219]
-     [213 214 215 216 217 218 219 220]
-     [214 215 216 217 218 219 220 221]
-     [215 216 217 218 219 220 221 222]
-     [216 217 218 219 220 221 222 223]
-     [217 218 219 220 221 222 223 224]
-     [218 219 220 221 222 223 224 225]]
+    1D: [123 124 125 126 127 128 129 130 124 125 126 127 128 129 130 131 125 126
+     127 128 129 130 131 132 126 127 128 129 130 131 132 133 127 128 129 130
+     131 132 133 134 128 129 130 131 132 133 134 135 129 130 131 132 133 134
+     135 136 130 131 132 133 134 135 136 137]
+    2D: [[123 124 125 126 127 128 129 130]
+     [124 125 126 127 128 129 130 131]
+     [125 126 127 128 129 130 131 132]
+     [126 127 128 129 130 131 132 133]
+     [127 128 129 130 131 132 133 134]
+     [128 129 130 131 132 133 134 135]
+     [129 130 131 132 133 134 135 136]
+     [130 131 132 133 134 135 136 137]]
+    AVE: 130.0, MIN: 123, MAX: 137
 
-    In [20]: ia.stop_image_acquisition()
+    In [12]: ia.stop_image_acquisition()
 
-    In [21]: ia.destroy()
+    In [13]: ia.destroy()
+
+    In [14]: quit
+    (genicam) kznr@Kazunaris-MacBook:~%
 
 ####################
 Using Harvester Core

@@ -55,8 +55,8 @@ from harvesters_util.pfnc import symbolics
 from harvesters_util.pfnc import uint16_formats, uint32_formats, \
     float32_formats, uint8_formats
 from harvesters_util.pfnc import component_2d_formats
-from harvesters_util.pfnc import lmn_444_formats, lmno_4444_formats, \
-    lmn_422_formats, lmn_411_formats, mono_formats, bayer_formats
+from harvesters_util.pfnc import lmn_444_location_formats, lmno_4444_location_formats, \
+    lmn_422_location_formats, lmn_411_location_formats, mono_location_formats, bayer_location_formats
 
 
 _is_logging_buffer_manipulation = True if 'HARVESTERS_LOG_BUFFER_MANIPULATION' in os.environ else False
@@ -453,15 +453,15 @@ class Component2DImage(ComponentBase):
             return
 
         # Determine the number of components per pixel:
-        if symbolic in lmn_444_formats:
+        if symbolic in lmn_444_location_formats:
             num_components_per_pixel = 3.
-        elif symbolic in lmn_422_formats:
+        elif symbolic in lmn_422_location_formats:
             num_components_per_pixel = 2.
-        elif symbolic in lmn_411_formats:
+        elif symbolic in lmn_411_location_formats:
             num_components_per_pixel = 1.5
-        elif symbolic in lmno_4444_formats:
+        elif symbolic in lmno_4444_location_formats:
             num_components_per_pixel = 4.
-        elif symbolic in mono_formats or symbolic in bayer_formats:
+        elif symbolic in mono_location_formats or symbolic in bayer_location_formats:
             num_components_per_pixel = 1.
         else:
             # Sorry, Harvester can't handle this:

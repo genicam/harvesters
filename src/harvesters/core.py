@@ -461,7 +461,8 @@ class Component2DImage(ComponentBase):
             num_components_per_pixel = 1.5
         elif symbolic in lmno_4444_location_formats:
             num_components_per_pixel = 4.
-        elif symbolic in mono_location_formats or symbolic in bayer_location_formats:
+        elif symbolic in mono_location_formats or \
+                symbolic in bayer_location_formats:
             num_components_per_pixel = 1.
         else:
             # Sorry, Harvester can't handle this:

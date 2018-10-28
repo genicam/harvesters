@@ -620,6 +620,75 @@ Now you can quit the program! Please not that the image acquirer also supports t
 
     # the ia object will automatically call the destroy method.
 
+***********************
+Reshaping a NumPy array
+***********************
+
+We have learned how to acquire images from a target device through an `ImageAcquirer` class object. In this section, we will learn how to reshape the acquired image into another that can be used by your application.
+
+First, you should know that Harvester Core returns you an image as a 1D NumPy array.
+
+.. code-block:: python
+
+    buffer = ia.fetch_buffer()
+    _1d = buffer.payload.components[0].data
+
+Perhaps you may expect to have it as a 2D array but Harvester Core doesn't in reality because if Harvester Core provides an image as a specific shape, then it could limit your algorithm that you can apply to get the image that fits to your expected shape. Instead, Harvester Core provides you an image as a 1D array and also provides you required information that you would need while you're reshaping the original array to another.
+
+The following code is an except from Harvester GUI that reshapes the source 1D array to another to draw it on the VisPy canvas. VisPy canvas takes `content` as an image to draw:
+
+.. code-block:: python
+
+    from harvesters.util.pfnc import mono_location_formats, \
+        rgb_formats, bgr_formats, \
+        rgba_formats, bgra_formats
+
+    payload = buffer.payload
+    component = payload.components[0]
+    width = component.width
+    height = component.height
+
+    # Reshape the image so that it can be drawn on the VisPy canvas:
+    if data_format in mono_location_formats:
+        content = component.data.reshape(height, width)
+    else:
+        # The image requires you to reshape it to draw it on the
+        # canvas:
+        if data_format in rgb_formats or \
+                data_format in rgba_formats or \
+                data_format in bgr_formats or \
+                data_format in bgra_formats:
+            #
+            content = component.data.reshape(
+                height, width,
+                int(component.num_components_per_pixel)  # Set of R, G, B, and Alpha
+            )
+            #
+            if data_format in bgr_formats:
+                # Swap every R and B:
+                content = content[:, :, ::-1]
+        else:
+            return
+
+Note that `component.num_components_per_pixel` returns a `float` so please don't forget to cast it when you pass it to the `reshape` method of NumPy array. If you try to set a `float` then the method will refuse it.
+
+Sometimes you may have to handle image formats that require you to newly create another image calculating each pixel component value referring to the pixel location. To help such calculation, `Component2DImage` class provides the `represent_2d_pixel_location` method to tell you the 2D pixel location that corresponds to the pixel format. The pixel location is defined by Pixel Format Naming Convention, PFNC in short. The array that is returned by the method is a 2D NumPy array and it corresponds to the model that is defined by PFNC.
+
+.. code-block:: python
+
+    pixel_location = component.represent_2d_pixel_location()
+
+For example, if you acquired an image in YUV 4:2:2 format, then the 1st and the 2nd rows of `pixel_location` would look as follows:
+
+.. code-block:: python
+
+    [Y11, U11, Y12, V11, Y13, U13. Y14, V13, ...]
+    [Y21, U21, Y22, V21, Y23, U23. Y24, V23, ...]
+
+Having that pixel location, you should be able to convert the color space from YUV to RGB.
+
+You can download the standard document of PFNC at the `EMVA website <https://www.emva.org/standards-technology/genicam/genicam-downloads/>`_.
+
 ################
 Acknowledgements
 ################

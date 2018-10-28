@@ -43,7 +43,8 @@ So everyone, there's no worry anymore. Keep having fun for working. Harvester ha
 Announcements
 #############
 
-- **Version 0.1.0**: Note that this version will be deprecated and the following versions will be incompatible with any of 0.1.n versions.
+- **Version 0.2.0**: Resolves issue #54.
+- **Version 0.1.0**: Note that this version will be deprecated and the following versions will be incompatible with any of `0.1.n` versions.
 
 ###############
 About Harvester

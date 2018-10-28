@@ -688,6 +688,13 @@ For example, if you acquired an image in YUV 4:2:2 format, then the 1st and the 
 
 Having that pixel location, you should be able to convert the color space of each row from YUV to RGB.
 
+.. code-block:: python
+
+    import numpy as np
+    # Create the output array that has been filled up with zeros.
+    rgb_2d = np.zeros(shape=(height, width, 3), dtype='uint8')
+    # Calculate each pixel component using pixel_location.
+
 You can download the standard document of PFNC at the `EMVA website <https://www.emva.org/standards-technology/genicam/genicam-downloads/>`_.
 
 ################

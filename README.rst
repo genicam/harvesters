@@ -39,6 +39,12 @@ I believe Harvester can help you to concentrate on image processing that you rea
 
 So everyone, there's no worry anymore. Keep having fun for working. Harvester has got your back.
 
+#############
+Announcements
+#############
+
+- **Version 0.1.0**: Note that this version will be deprecated and the following versions will be incompatible with any of 0.1.n versions.
+
 ###############
 About Harvester
 ###############

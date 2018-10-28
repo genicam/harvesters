@@ -50,12 +50,14 @@ from genicam2.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
 # Local application/library specific imports
 from harvesters._private.core.port import ConcretePort
 from harvesters._private.core.statistics import Statistics
-from harvesters_util.logging import get_logger
-from harvesters_util.pfnc import symbolics
-from harvesters_util.pfnc import uint16_formats, uint32_formats, \
-    float32_formats
-from harvesters_util.pfnc import component_2d_formats
-from harvesters_util.pfnc import rgb_formats, rgba_formats
+from harvesters.util.logging import get_logger
+from harvesters.util.pfnc import symbolics
+from harvesters.util.pfnc import uint16_formats, uint32_formats, \
+    float32_formats, uint8_formats
+from harvesters.util.pfnc import component_2d_formats
+from harvesters.util.pfnc import lmn_444_location_formats, \
+    lmno_4444_location_formats, lmn_422_location_formats, \
+    lmn_411_location_formats, mono_location_formats, bayer_location_formats
 
 
 _is_logging_buffer_manipulation = True if 'HARVESTERS_LOG_BUFFER_MANIPULATION' in os.environ else False
@@ -409,7 +411,7 @@ class ComponentRaw(ComponentBase):
         super().__init__()
 
 
-class Component2D(ComponentBase):
+class Component2DImage(ComponentBase):
     """
     Represents a 2D image.
     """
@@ -430,57 +432,101 @@ class Component2D(ComponentBase):
         self._part = part
         self._node_map = node_map
         self._data = None
+        self._num_components_per_pixel = 0
 
-        # Identify the data type.
         symbolic = self.data_format
 
-        if symbolic in uint16_formats:
-            dtype = 'uint16'
-            component_per_bytes = 2
-        elif symbolic in uint32_formats:
-            dtype = 'uint32'
-            component_per_bytes = 4
-        elif symbolic in float32_formats:
-            dtype = 'float32'
-            component_per_bytes = 4
-        else:
+        # Determine the data type:
+        if self.x_padding > 0:
+            # In this case, the client will have to trim the padding part.
+            # so we create a NumPy array that consists of uint8 elements
+            # first. The client will interpret the array in an appropriate
+            # dtype in the end once he trimmed:
             dtype = 'uint8'
-            component_per_bytes = 1
-
-        if symbolic in rgb_formats:
-            num_pixel_components = 3
-        elif symbolic in rgba_formats:
-            num_pixel_components = 4
+            bytes_per_pixel_data_component = 1
         else:
-            num_pixel_components = 1
+            if symbolic in uint16_formats:
+                dtype = 'uint16'
+                bytes_per_pixel_data_component = 2
+            elif symbolic in uint32_formats:
+                dtype = 'uint32'
+                bytes_per_pixel_data_component = 4
+            elif symbolic in float32_formats:
+                dtype = 'float32'
+                bytes_per_pixel_data_component = 4
+            elif symbolic in uint8_formats:
+                dtype = 'uint8'
+                bytes_per_pixel_data_component = 1
+            else:
+                # Sorry, Harvester can't handle this:
+                self._data = None
+                return
+
+        # Determine the number of components per pixel:
+        if symbolic in lmn_444_location_formats:
+            num_components_per_pixel = 3.
+        elif symbolic in lmn_422_location_formats:
+            num_components_per_pixel = 2.
+        elif symbolic in lmn_411_location_formats:
+            num_components_per_pixel = 1.5
+        elif symbolic in lmno_4444_location_formats:
+            num_components_per_pixel = 4.
+        elif symbolic in mono_location_formats or \
+                symbolic in bayer_location_formats:
+            num_components_per_pixel = 1.
+        else:
+            # Sorry, Harvester can't handle this:
+            self._data = None
+            return
+
+        self._num_components_per_pixel = num_components_per_pixel
+        self._symbolic = symbolic
+
+        #
+        width = self.width
+        height = self.height
 
         #
         if self._part:
             count = self._part.data_size
-            count //= component_per_bytes
+            count //= bytes_per_pixel_data_component
             data_offset = self._part.data_offset
         else:
-            count = self.width * self.height
-            count *= num_pixel_components
+            count = width * height
+            count *= num_components_per_pixel
+            count += self.y_padding
             data_offset = 0
 
-        # Convert the Python's built-in bytes array to a Numpy array.
+        # Convert the Python's built-in bytes array to a Numpy array:
         self._data = np.frombuffer(
             self._buffer.raw_buffer,
-            count=count,
+            count=int(count),
             dtype=dtype,
             offset=data_offset
         )
 
+    def represent_2d_pixel_location(self):
+        """
+        Returns a NumPy array that represents the 2D pixel location,
+        which is defined by PFNC, of the original image data.
+
+        You may use the returned NumPy array for a calcuration to map the
+        original image to another format.
+
+        :return: A NumPy array that represents the 2D pixel location.
+        """
+        if self.data is None:
+            return None
+
         #
-        if num_pixel_components > 1:
-            self._data = self._data.reshape(
-                self.height, self.width, num_pixel_components
-            )
-        else:
-            self._data = self._data.reshape(
-                self.height, self.width
-            )
+        return self._data.reshape(
+            self.height + self.y_padding,
+            int(self.width * self._num_components_per_pixel + self.x_padding)
+        )
+
+    @property
+    def num_components_per_pixel(self):
+        return self._num_components_per_pixel
 
     def __repr__(self):
         return '{0} x {1}, {2}, {3} elements,\n{4}'.format(
@@ -846,7 +892,7 @@ class PayloadBase:
         #
         symbolic = symbolics[data_format]
         if symbolic in component_2d_formats:
-            return Component2D(buffer=buffer, part=part, node_map=node_map)
+            return Component2DImage(buffer=buffer, part=part, node_map=node_map)
 
         return None
 

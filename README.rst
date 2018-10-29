@@ -420,11 +420,7 @@ Screenshots
 Harvester Core on IPython
 *************************
 
-The following screenshot shows Harvester Core is running on IPython. An acquired image is delivered as the payload of a buffer and the buffer can be fetched by calling the ``fetch_buffer`` method of the ``ImageAcquirer`` class. Once you get an image you should be able to immediately start image processing. If you're running on the Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
-
-.. image:: https://user-images.githubusercontent.com/8652625/47616853-6627bd80-db05-11e8-9b33-b3be9a293b45.png
-    :align: center
-    :alt: Harvester on IPython
+The following code block shows Harvester Core is running on IPython. An acquired image is delivered as the payload of a buffer and the buffer can be fetched by calling the ``fetch_buffer`` method of the ``ImageAcquirer`` class. Once you get an image you should be able to immediately start image processing. If you're running on the Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
 .. code-block:: python
 
@@ -459,7 +455,7 @@ The following screenshot shows Harvester Core is running on IPython. An acquired
         ...:     import numpy as np
         ...:     _1d = buffer.payload.components[0].data
         ...:     print('1D: {0}'.format(_1d))
-        ...:     _2d = buffer.payload.components[0].represent_2d_pixel_location()
+        ...:     _2d = buffer.payload.components[0].represent_pixel_location()
         ...:     print('2D: {0}'.format(_2d))
         ...:     print(
         ...:         'AVE: {0}, MIN: {1}, MAX: {2}'.format(
@@ -673,11 +669,11 @@ The following code is an except from Harvester GUI that reshapes the source 1D a
 
 Note that ``component.num_components_per_pixel`` returns a ``float`` so please don't forget to cast it when you pass it to the ``reshape`` method of NumPy array. If you try to set a ``float`` then the method will refuse it.
 
-It's not always but sometimes you may have to handle image formats that require you to newly create another image calculating each pixel component value referring to the pixel location. To help such calculation, ``Component2DImage`` class provides the ``represent_2d_pixel_location`` method to tell you the 2D pixel location that corresponds to the pixel format. The pixel location is defined by Pixel Format Naming Convention, PFNC in short. The array that is returned by the method is a 2D NumPy array and it corresponds to the model that is defined by PFNC.
+It's not always but sometimes you may have to handle image formats that require you to newly create another image calculating each pixel component value referring to the pixel location. To help such calculation, ``Component2DImage`` class provides the ``represent_pixel_location`` method to tell you the 2D pixel location that corresponds to the pixel format. The pixel location is defined by Pixel Format Naming Convention, PFNC in short. The array that is returned by the method is a 2D NumPy array and it corresponds to the model that is defined by PFNC.
 
 .. code-block:: python
 
-    pixel_location = component.represent_2d_pixel_location()
+    pixel_location = component.represent_pixel_location()
 
 The 2D array you get from the method is equivalent to the definition that is given by PFNC. The following screenshot is an excerpt from the PFNC 2.1:
 

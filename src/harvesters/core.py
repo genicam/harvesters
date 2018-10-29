@@ -505,7 +505,7 @@ class Component2DImage(ComponentBase):
             offset=data_offset
         )
 
-    def represent_2d_pixel_location(self):
+    def represent_pixel_location(self):
         """
         Returns a NumPy array that represents the 2D pixel location,
         which is defined by PFNC, of the original image data.

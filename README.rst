@@ -671,22 +671,28 @@ The following code is an except from Harvester GUI that reshapes the source 1D a
         else:
             return
 
-Note that ``component.num_components_per_pixel`` returns a ``float`` so please don't forget to cast it when you pass it to the `reshape` method of NumPy array. If you try to set a ``float`` then the method will refuse it.
+Note that ``component.num_components_per_pixel`` returns a ``float`` so please don't forget to cast it when you pass it to the ``reshape`` method of NumPy array. If you try to set a ``float`` then the method will refuse it.
 
-Sometimes you may have to handle image formats that require you to newly create another image calculating each pixel component value referring to the pixel location. To help such calculation, ``Component2DImage`` class provides the ``represent_2d_pixel_location`` method to tell you the 2D pixel location that corresponds to the pixel format. The pixel location is defined by Pixel Format Naming Convention, PFNC in short. The array that is returned by the method is a 2D NumPy array and it corresponds to the model that is defined by PFNC.
+It's not always but sometimes you may have to handle image formats that require you to newly create another image calculating each pixel component value referring to the pixel location. To help such calculation, ``Component2DImage`` class provides the ``represent_2d_pixel_location`` method to tell you the 2D pixel location that corresponds to the pixel format. The pixel location is defined by Pixel Format Naming Convention, PFNC in short. The array that is returned by the method is a 2D NumPy array and it corresponds to the model that is defined by PFNC.
 
 .. code-block:: python
 
     pixel_location = component.represent_2d_pixel_location()
 
-For example, if you acquired an image in YUV 4:2:2 format, then the 1st and the 2nd rows of ``pixel_location`` would look as follows:
+The 2D array you get from the method is equivalent to the definition that is given by PFNC. The following screenshot is an excerpt from the PFNC 2.1:
+
+.. image:: https://user-images.githubusercontent.com/8652625/47624017-dad91700-db5a-11e8-9f87-6f383c0c6627.png
+    :align: center
+    :alt: The definition of the pixel location of LMN422 formats
+
+For example, if you acquired a YCbCr422_8 format image, then the first and the second rows of ``pixel_location`` would look as follows; ``L`` is used to denote the 1st component, ``M`` is for the 2nd, and ``N`` is for the 3rd, and they correspond to ``Y``, ``Cb``, and ``Cr`` respectively; in the following description, for a given pixel, the first index represents the row number and the second index represents the column number and note that the following index notation is based on one but not zero though you will use the zero based notation in your Python script:
 
 .. code-block:: python
 
-    [Y11, U11, Y12, V11, Y13, U13, Y14, V13, ...]
-    [Y21, U21, Y22, V21, Y23, U23, Y24, V23, ...]
+    [Y11, Cb11, Y12, Cr11, Y13, Cb13, Y14, Cr13, ...]
+    [Y21, Cb21, Y22, Cr21, Y23, Cb23, Y24, Cr23, ...]
 
-Having that pixel location, you should be able to convert the color space of each row from YUV to RGB.
+Having that pixel location, you should be able to convert the color space of each row from YCbCr to RGB.
 
 .. code-block:: python
 
@@ -694,6 +700,30 @@ Having that pixel location, you should be able to convert the color space of eac
     # Create the output array that has been filled up with zeros.
     rgb_2d = np.zeros(shape=(height, width, 3), dtype='uint8')
     # Calculate each pixel component using pixel_location.
+    # Calculation block follows:
+    #     ...
+
+For example, if you have a YCbCr709 image, then you can get the RGB value of the first pixel calculating the following formula:
+
+.. math::
+
+    R_11 = 1.16438 (Y_11 - 16) + 1.79274 (Cr_11 - 128)
+
+    G_11 = 1.16438 (Y_11 - 16) - 0.21325 (Cb_11 - 128) - 0.53291 (Cr_11 - 128)
+
+    B_11 = 1.16438 (Y_11 - 16) - 0.21240 (Cb_11 - 128)
+
+Similarly, you can get the RGB value of the second pixel calculating the following formula:
+
+.. math::
+
+    R_12 = 1.16438 (Y_12 - 16) + 1.79274 (Cr_11 - 128)
+
+    G_12 = 1.16438 (Y_12 - 16) - 0.21325 (Cb_11 - 128) - 0.53291 (Cr_11 - 128)
+
+    B_12 = 1.16438 (Y_12 - 16) - 0.21240 (Cb_11 - 128)
+
+Once you finished filling up each pixel with a set of RGB values, then you'll be able to handle it as a RGB image but not a YCbCr image.
 
 You can download the standard document of PFNC at the `EMVA website <https://www.emva.org/standards-technology/genicam/genicam-downloads/>`_.
 

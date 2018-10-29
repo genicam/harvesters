@@ -703,13 +703,13 @@ Having that pixel location, you should be able to convert the color space of eac
     # Calculation block follows:
     #     ...
 
-For example, if you have a YCbCr709 image, then you can get the RGB value of the first pixel calculating the following formula:
+For example, if you have an 8 bits YCbCr709 image, then you can get the RGB values of the first pixel calculating the following formula:
 
 .. image:: https://user-images.githubusercontent.com/8652625/47624981-298bae80-db65-11e8-8f78-53b188f22f53.png
     :align: center
     :alt: \begin{align*} R_{11} &= 1.16438 (Y_{11} - 16) &                           & + 1.79274 (Cr_{11} - 128) \\G_{11} &= 1.16438 (Y_{11} - 16) & - 0.21325 (Cb_{11} - 128) & - 0.53291 (Cr_{11} - 128) \\B_{11} &= 1.16438 (Y_{11} - 16) & - 0.21240 (Cb_{11} - 128) \\\end{align*}
 
-Similarly, you can get the RGB value of the second pixel calculating the following formula:
+Similarly, you can get the RGB values of the second pixel calculating the following formula:
 
 .. image:: https://user-images.githubusercontent.com/8652625/47625009-6657a580-db65-11e8-900d-f84f70e055a5.png
     :align: center

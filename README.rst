@@ -43,6 +43,7 @@ So everyone, there's no worry anymore. Keep having fun for working. Harvester ha
 Announcements
 #############
 
+- **Version 0.2.1**: Resolves issue `#55 <https://github.com/genicam/harvesters/issues/55>`_.
 - **Version 0.2.0**: Resolves issue `#53 <https://github.com/genicam/harvesters/issues/53>`_.
 - **Version 0.1.0**: Note that this version will be deprecated and the following versions will be incompatible with any of ``0.1.n`` versions.
 

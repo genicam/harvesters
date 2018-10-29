@@ -705,23 +705,15 @@ Having that pixel location, you should be able to convert the color space of eac
 
 For example, if you have a YCbCr709 image, then you can get the RGB value of the first pixel calculating the following formula:
 
-.. math::
-
-    R_11 = 1.16438 (Y_11 - 16) + 1.79274 (Cr_11 - 128)
-
-    G_11 = 1.16438 (Y_11 - 16) - 0.21325 (Cb_11 - 128) - 0.53291 (Cr_11 - 128)
-
-    B_11 = 1.16438 (Y_11 - 16) - 0.21240 (Cb_11 - 128)
+.. image:: https://user-images.githubusercontent.com/8652625/47624981-298bae80-db65-11e8-8f78-53b188f22f53.png
+    :align: center
+    :alt: \begin{align*} R_{11} &= 1.16438 (Y_{11} - 16) &                           & + 1.79274 (Cr_{11} - 128) \\G_{11} &= 1.16438 (Y_{11} - 16) & - 0.21325 (Cb_{11} - 128) & - 0.53291 (Cr_{11} - 128) \\B_{11} &= 1.16438 (Y_{11} - 16) & - 0.21240 (Cb_{11} - 128) \\\end{align*}
 
 Similarly, you can get the RGB value of the second pixel calculating the following formula:
 
-.. math::
-
-    R_12 = 1.16438 (Y_12 - 16) + 1.79274 (Cr_11 - 128)
-
-    G_12 = 1.16438 (Y_12 - 16) - 0.21325 (Cb_11 - 128) - 0.53291 (Cr_11 - 128)
-
-    B_12 = 1.16438 (Y_12 - 16) - 0.21240 (Cb_11 - 128)
+.. image:: https://user-images.githubusercontent.com/8652625/47625009-6657a580-db65-11e8-900d-f84f70e055a5.png
+    :align: center
+    :alt: \begin{align*} R_{12} &= 1.16438 (Y_{12} - 16) &                           & + 1.79274 (Cr_{11} - 128) \\G_{12} &= 1.16438 (Y_{12} - 16) & - 0.21325 (Cb_{11} - 128) & - 0.53291 (Cr_{11} - 128) \\B_{11} &= 1.16438 (Y_{11} - 16) & - 0.21240 (Cb_{11} - 128) \\\end{align*}
 
 Once you finished filling up each pixel with a set of RGB values, then you'll be able to handle it as a RGB image but not a YCbCr image.
 

@@ -507,6 +507,12 @@ Producer:
 
 .. code-block:: python
 
+    # ATTENTION! Please use the CTI file in the original location!
+
+    # Why? Visit https://github.com/genicam/harvesters/wiki/FAQ and
+    # read "I pointed out a CTI file but Harvester says the image doesn't
+    # exist (Part 2)."
+
     h.add_cti_file('path/to/gentl_producer.cti')
 
 Note that you can add **one or more CTI files** on a single Harvester Core object. To add another CTI file, just repeat calling ``add_cti_file`` method passing another target CTI file:

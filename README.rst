@@ -455,14 +455,22 @@ The following code block shows Harvester Core is running on IPython. An acquired
     In [11]: ia.start_image_acquisition()
 
     In [12]: with ia.fetch_buffer() as buffer:
+        ...:     # Let's create an alias of the 2D image component:
+        ...:     component = buffer.payload.components[0]
+        ...:
+        ...:     # Note that the number of components can be vary. If your
+        ...:     # target device transmits a multi-part information, then you'd
+        ...:     # get two or more components in the payload. However, now we're
+        ...:     # working with a device that transmits only a 2D image. So we
+        ...:     # manipulate only index 0 of the list object, compoenents.
+        ...:
         ...:     # Let's see the acquired data in 1D:
-        ...:     _1d = buffer.payload.components[0].data
+        ...:     _1d = component.data
         ...:     print('1D: {0}'.format(_1d))
         ...:
         ...:     # Reshape the NumPy array into a 2D array:
-        ...:     _2d = buffer.payload.components[0].data.reshape(
-        ...:         buffer.payload.components[0].height,
-        ...:         buffer.payload.components[0].width
+        ...:     _2d = component.data.reshape(
+        ...:         component.height, component.width
         ...:     )
         ...:     print('2D: {0}'.format(_2d))
         ...:

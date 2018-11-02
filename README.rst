@@ -453,11 +453,21 @@ The following code block shows Harvester Core is running on IPython. An acquired
     In [10]: ia.start_image_acquisition()
 
     In [11]: with ia.fetch_buffer() as buffer:
+        ...:     # Of course, you'd usually import this in advance though:
         ...:     import numpy as np
+        ...:
+        ...:     # Let's see the acquired data in 1D:
         ...:     _1d = buffer.payload.components[0].data
         ...:     print('1D: {0}'.format(_1d))
-        ...:     _2d = buffer.payload.components[0].represent_pixel_location()
+        ...:
+        ...:     # Reshape the NumPy array into a 2D array:
+        ...:     _2d = buffer.payload.components[0].data.reshape(
+        ...:         buffer.payload.components[0].height,
+        ...:         buffer.payload.components[0].width
+        ...:     )
         ...:     print('2D: {0}'.format(_2d))
+        ...:
+        ...:     # Here are some trivial calculations:
         ...:     print(
         ...:         'AVE: {0}, MIN: {1}, MAX: {2}'.format(
         ...:             np.average(_2d), _2d.min(), _2d.max()

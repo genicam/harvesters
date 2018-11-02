@@ -432,30 +432,29 @@ The following code block shows Harvester Core is running on IPython. An acquired
 
     In [1]: from harvesters.core import Harvester
 
-    In [2]: h = Harvester()
+    In [2]: import numpy as np  # This is just for a demonstratoin.
 
-    In [3]: h.add_cti_file('/Users/kznr/dev/genicam/bin/Maci64_x64/TLSimu.cti')
+    In [3]: h = Harvester()
 
-    In [4]: h.update_device_info_list()
+    In [4]: h.add_cti_file('/Users/kznr/dev/genicam/bin/Maci64_x64/TLSimu.cti')
 
-    In [5]: len(h.device_info_list)
-    Out[5]: 4
+    In [5]: h.update_device_info_list()
 
-    In [6]: h.device_info_list[0]
-    Out[6]: (id_='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceA_0', version='1.2.3')
+    In [6]: len(h.device_info_list)
+    Out[6]: 4
 
-    In [7]: ia = h.create_image_acquirer(0)
+    In [7]: h.device_info_list[0]
+    Out[7]: (id_='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceA_0', version='1.2.3')
 
-    In [8]: ia.device.node_map.Width.value, ia.device.node_map.Height.value = 8, 8
+    In [8]: ia = h.create_image_acquirer(0)
 
-    In [9]: ia.device.node_map.PixelFormat.value = 'Mono8'
+    In [9]: ia.device.node_map.Width.value, ia.device.node_map.Height.value = 8, 8
 
-    In [10]: ia.start_image_acquisition()
+    In [10]: ia.device.node_map.PixelFormat.value = 'Mono8'
 
-    In [11]: with ia.fetch_buffer() as buffer:
-        ...:     # Of course, you'd usually import this in advance though:
-        ...:     import numpy as np
-        ...:
+    In [11]: ia.start_image_acquisition()
+
+    In [12]: with ia.fetch_buffer() as buffer:
         ...:     # Let's see the acquired data in 1D:
         ...:     _1d = buffer.payload.components[0].data
         ...:     print('1D: {0}'.format(_1d))
@@ -488,11 +487,11 @@ The following code block shows Harvester Core is running on IPython. An acquired
      [130 131 132 133 134 135 136 137]]
     AVE: 130.0, MIN: 123, MAX: 137
 
-    In [12]: ia.stop_image_acquisition()
+    In [13]: ia.stop_image_acquisition()
 
-    In [13]: ia.destroy()
+    In [14]: ia.destroy()
 
-    In [14]: quit
+    In [15]: quit
     (genicam) kznr@Kazunaris-MacBook:~%
 
 ####################

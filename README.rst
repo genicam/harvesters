@@ -432,7 +432,7 @@ The following code block shows Harvester Core is running on IPython. An acquired
 
     In [1]: from harvesters.core import Harvester
 
-    In [2]: import numpy as np  # This is just for a demonstratoin.
+    In [2]: import numpy as np  # This is just for a demonstration.
 
     In [3]: h = Harvester()
 

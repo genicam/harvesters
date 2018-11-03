@@ -1665,7 +1665,7 @@ class ImageAcquirer:
 
     def fetch_buffer(self, *, timeout=0, is_raw=False):
         """
-        Fetches the oldest :class:`Buffer` object and returns it.
+        Fetches the latest :class:`Buffer` object and returns it.
 
         :param timeout: Set timeout value in second.
         :param is_raw: Set :const:`True` if you need a raw GenTL Buffer module.

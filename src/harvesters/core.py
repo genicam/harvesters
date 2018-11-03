@@ -116,8 +116,11 @@ class ThreadBase:
     """
     def __init__(self, *, mutex=None, logger=None):
         """
+
         :param mutex:
+        :param logger:
         """
+
         #
         self._logger = logger or get_logger(name=__name__)
 
@@ -178,6 +181,7 @@ class MutexLocker:
 
         :param thread:
         """
+
         #
         assert thread
 
@@ -216,6 +220,7 @@ class _BuiltInThread(ThreadBase):
         :param logger:
         :param sleep_duration:
         """
+
         #
         super().__init__(mutex=mutex, logger=logger)
 
@@ -295,6 +300,13 @@ class _BuiltInThread(ThreadBase):
 class _ThreadImpl(Thread):
     def __init__(self, base=None, worker=None,
                  sleep_duration=_sleep_duration_default):
+        """
+
+        :param base:
+        :param worker:
+        :param sleep_duration:
+        """
+
         #
         assert base
 
@@ -864,6 +876,7 @@ class PayloadBase:
     def __init__(self, *, buffer=None, logger=None):
         """
         :param buffer:
+        :param logger:
         """
         #
         assert buffer
@@ -914,6 +927,13 @@ class PayloadUnknown(PayloadBase):
     Represents a payload that is classified as PAYLOAD_TYPE_UNKNOWN by the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
+        """
+
+        :param buffer:
+        :param node_map:
+        :param logger:
+        """
+
         #
         assert buffer
         assert node_map
@@ -930,6 +950,13 @@ class PayloadImage(PayloadBase):
     Represents a payload that is classified as PAYLOAD_TYPE_IMAGE by the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
+        """
+
+        :param buffer:
+        :param node_map:
+        :param logger:
+        """
+
         #
         assert buffer
         assert node_map
@@ -956,6 +983,13 @@ class PayloadRawData(PayloadBase):
     Represents a payload that is classified as PAYLOAD_TYPE_RAW_DATA by the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
+        """
+
+        :param buffer:
+        :param node_map:
+        :param logger:
+        """
+
         #
         assert buffer
         assert node_map
@@ -972,6 +1006,13 @@ class PayloadFile(PayloadBase):
     Represents a payload that is classified as PAYLOAD_TYPE_FILE by the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
+        """
+
+        :param buffer:
+        :param node_map:
+        :param logger:
+        """
+
         #
         assert buffer
         assert node_map
@@ -988,6 +1029,13 @@ class PayloadJPEG(PayloadBase):
     Represents a payload that is classified as PAYLOAD_TYPE_JPEG by the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
+        """
+
+        :param buffer:
+        :param node_map:
+        :param logger:
+        """
+
         #
         assert buffer
         assert node_map
@@ -1004,6 +1052,13 @@ class PayloadJPEG2000(PayloadBase):
     Represents a payload that is classified as PAYLOAD_TYPE_JPEG2000 by the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
+        """
+
+        :param buffer:
+        :param node_map:
+        :param logger:
+        """
+
         #
         assert buffer
         assert node_map
@@ -1020,6 +1075,13 @@ class PayloadH264(PayloadBase):
     Represents a payload that is classified as PAYLOAD_TYPE_H264 by the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
+        """
+
+        :param buffer:
+        :param node_map:
+        :param logger:
+        """
+
         #
         assert buffer
         assert node_map
@@ -1053,9 +1115,12 @@ class PayloadMultiPart(PayloadBase):
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         """
+
         :param buffer:
         :param node_map:
+        :param logger:
         """
+
         #
         assert buffer
         assert node_map
@@ -1100,12 +1165,16 @@ class ImageAcquirer:
             sleep_duration=_sleep_duration_default
     ):
         """
+
+        :param parent:
         :param min_num_buffers:
         :param device:
+        :param create_ds_at_connection:
         :param profiler:
         :param logger:
         :param sleep_duration:
         """
+
         #
         self._logger = logger or get_logger(name=__name__)
 
@@ -1845,9 +1914,9 @@ class Harvester:
         """
 
         :param profile:
-        :param min_num_buffers:
-        :param parent:
+        :param logger:
         """
+
         #
         self._logger = logger or get_logger(name=__name__)
 

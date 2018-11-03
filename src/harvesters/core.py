@@ -137,6 +137,11 @@ class ThreadBase:
         self._mutex = mutex
 
     def start(self):
+        """
+
+        :return: None.
+        """
+
         self._is_running = True
         self._start()
         self._logger.debug(
@@ -145,6 +150,8 @@ class ThreadBase:
 
     def _start(self):
         """
+        This method is abstract and should be reimplemented in any sub-class.
+
         Starts its worker running.
 
         :return: None.
@@ -153,6 +160,8 @@ class ThreadBase:
 
     def stop(self):
         """
+        This method is abstract and should be reimplemented in any sub-class.
+
         Stops its worker running.
 
         :return: None.
@@ -161,6 +170,8 @@ class ThreadBase:
 
     def acquire(self):
         """
+        This method is abstract and should be reimplemented in any sub-class.
+
         Acquires a mutex.
 
         :return: None.
@@ -169,6 +180,8 @@ class ThreadBase:
 
     def release(self):
         """
+        This method is abstract and should be reimplemented in any sub-class.
+
         Releases the acquired mutex.
 
         :return: None.
@@ -188,18 +201,38 @@ class ThreadBase:
 
     @property
     def worker(self):
+        """
+        This method is abstract and should be reimplemented in any sub-class.
+
+        :return: None.
+        """
         raise NotImplementedError
 
     @worker.setter
     def worker(self, obj):
+        """
+        This method is abstract and should be reimplemented in any sub-class.
+
+        :return: None.
+        """
         raise NotImplementedError
 
     @property
     def mutex(self):
+        """
+        This method is abstract and should be reimplemented in any sub-class.
+
+        :return: None.
+        """
         raise NotImplementedError
 
     @property
     def id_(self):
+        """
+        This method is abstract and should be reimplemented in any sub-class.
+
+        :return: None.
+        """
         raise NotImplementedError
 
 

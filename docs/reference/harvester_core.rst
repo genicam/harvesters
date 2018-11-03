@@ -1,3 +1,7 @@
+#############
+API reference
+#############
+
 .. autoclass:: harvesters.core.Buffer
   :members:
   :show-inheritance:

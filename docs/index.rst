@@ -59,5 +59,4 @@ Table of Contents
 .. toctree::
   :maxdepth: 2
 
-  reference/index
-
+  reference/harvester_core

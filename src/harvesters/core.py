@@ -737,9 +737,12 @@ class Component2DImage(ComponentBase):
 
 class Buffer:
     """
-    Provides you a way to access acquired data and its relevant information.
-    In general, note that it will never be necessary to create this object by
-    yourself.
+    Is provided by an :class:`ImageAcquire` object when you call its
+    :method:`fetch_buffer` method. It provides you a way to access acquired
+    data and its relevant information.
+
+    Note that it will never be necessary to create this object by yourself
+    in general.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         """

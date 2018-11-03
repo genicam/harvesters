@@ -1985,7 +1985,7 @@ class Harvester:
         self._has_revised_device_list = value
 
     def create_image_acquirer(
-            self, list_index=None, *, id_=None,
+            self, list_index=0, *, id_=None,
             vendor=None, model=None, tl_type=None, user_defined_name=None,
             serial_number=None, version=None,
             sleep_duration=_sleep_duration_default
@@ -1993,15 +1993,15 @@ class Harvester:
         """
         Creates an image acquirer for the specified remote device and return the created ImageAcquirer object.
 
-        :param list_index: Set an item index of the list of :class:`~genicam2.gentl.DeviceInfo` objects.
-        :param id_:
-        :param vendor:
-        :param model:
-        :param tl_type:
-        :param user_defined_name:
-        :param serial_number:
-        :param version:
-        :param sleep_duration:
+        :param list_index: (Optional) Set an item index of the list of :class:`~genicam2.gentl.DeviceInfo` objects.
+        :param id_: (Optional) Set an index of the device information list.
+        :param vendor: (Optional) Set a vendor name of the target device.
+        :param model: (Optional) Set a model name of the target device.
+        :param tl_type: (Optional) Set a transport layer type of the target device.
+        :param user_defined_name: (Optional) Set a user defined name string of the target device.
+        :param serial_number: (Optional) Set a serial number string of the target device.
+        :param version: (Optional) Set a version number string of the target device.
+        :param sleep_duration: (Optional) Set a sleep duration in second that is inserted after the image acquisition worker is executed.
 
         :return: An `ImageAcquirer` object that associates with the specified device.
 

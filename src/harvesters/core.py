@@ -815,6 +815,11 @@ class Buffer:
         Queues the buffer to prepare for the upcoming image acquisition. Once
         the buffer is queued, the :class:`Buffer` object will be obsolete.
         You'll have nothing to do with it.
+
+        Note that you have to return the ownership of the fetched buffer to
+        the :class:`ImageAcquirer` object before stopping image acquisition
+        calling this method because the :class:`ImageAcquirer` object tries
+        to clear the self-allocated buffers when it stops image acquisition.
         """
         #
         if _is_logging_buffer_manipulation:

@@ -1069,14 +1069,13 @@ class ImageAcquirer:
     def __init__(
             self, *, parent=None, min_num_buffers=8, device=None,
             create_ds_at_connection=True, profiler=None, logger=None,
-            tear_down=None, sleep_duration=_sleep_duration_default
+            sleep_duration=_sleep_duration_default
     ):
         """
         :param min_num_buffers:
         :param device:
         :param profiler:
         :param logger:
-        :param tear_down:
         :param sleep_duration:
         """
         #
@@ -1191,7 +1190,6 @@ class ImageAcquirer:
 
         #
         self._chunk_adapter = self._get_chunk_adapter(device=self._device)
-        self._tear_down = tear_down
 
     @staticmethod
     def _get_chunk_adapter(*, device=None):
@@ -1273,14 +1271,6 @@ class ImageAcquirer:
     @signal_stop_image_acquisition.setter
     def signal_stop_image_acquisition(self, obj):
         self._signal_stop_image_acquisition = obj
-
-    @property
-    def tear_down(self):
-        return self._tear_down
-
-    @tear_down.setter
-    def tear_down(self, value):
-        self._tear_down = value
 
     @property
     def statistics(self):
@@ -1666,10 +1656,6 @@ class ImageAcquirer:
         if self.is_acquiring_images:
             #
             self._is_acquiring_images = False
-
-            #
-            if self._tear_down:
-                self._tear_down()
 
             #
             if self.thread_image_acquisition.is_running:  # TODO

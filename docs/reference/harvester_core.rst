@@ -1,10 +1,3 @@
-**************
-Harvester Core
-**************
-
-Classes
-=======
-
 .. autoclass:: harvesters.core.Buffer
   :members:
   :show-inheritance:
@@ -49,10 +42,3 @@ Classes
   :members:
   :show-inheritance:
   :inherited-members:
-
-Exceptions
-==========
-
-
-Enumerations
-============

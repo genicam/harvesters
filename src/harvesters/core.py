@@ -2004,9 +2004,11 @@ class Harvester:
         :param version: (Optional) Set a version number string of the target device.
         :param sleep_duration: (Optional) Set a sleep duration in second that is inserted after the image acquisition worker is executed.
 
-        :return: An `ImageAcquirer` object that associates with the specified device.
+        :return: An :class:`ImageAcquirer` object that associates with the specified device.
 
-        Note that you have to close it when you are ready to release the device that you have been controlled. As long as you hold it, the controlled device will be not available from other clients.
+        Note that you have to close it when you are ready to release the
+        device that you have been controlled. As long as you hold it, the
+        controlled device will be not available from other clients.
 
         """
         #

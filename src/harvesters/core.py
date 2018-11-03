@@ -139,19 +139,42 @@ class ThreadBase:
         )
 
     def _start(self):
+        """
+        Starts its worker running.
+
+        :return: None.
+        """
         raise NotImplementedError
 
     def stop(self):
+        """
+        Stops its worker running.
+
+        :return: None.
+        """
         raise NotImplementedError
 
     def acquire(self):
+        """
+        Acquires a mutex.
+
+        :return: None.
+        """
         raise NotImplementedError
 
     def release(self):
+        """
+        Releases the acquired mutex.
+
+        :return: None.
+        """
         raise NotImplementedError
 
     @property
     def is_running(self):
+        """
+        :return: True if the worker is still running. Otherwise False.
+        """
         return self._is_running
 
     @is_running.setter
@@ -387,32 +410,28 @@ class ComponentBase:
     @property
     def data_format(self):
         """
-        Returns the data type of the data component.
-        :return:
+        :return: The data type of the data component.
         """
         return self._buffer.data_format
 
     @property
     def data_format_namespace(self):
         """
-        Returns the data type namespace of the data component.
-        :return:
+        :return: The data type namespace of the data component.
         """
         return self._buffer.data_format
 
     @property
     def source_id(self):
         """
-        TODO:
-        :return:
+        :return: The source ID of the data component.
         """
         return self._buffer.source_id
 
     @property
     def data(self):
         """
-        Returns the component data.
-        :return:
+        :return: The component data.
         """
         return self._data
 
@@ -525,7 +544,7 @@ class Component2DImage(ComponentBase):
         Returns a NumPy array that represents the 2D pixel location,
         which is defined by PFNC, of the original image data.
 
-        You may use the returned NumPy array for a calcuration to map the
+        You may use the returned NumPy array for a calculation to map the
         original image to another format.
 
         :return: A NumPy array that represents the 2D pixel location.
@@ -541,6 +560,9 @@ class Component2DImage(ComponentBase):
 
     @property
     def num_components_per_pixel(self):
+        """
+        :return: The number of data components per pixel.
+        """
         return self._num_components_per_pixel
 
     def __repr__(self):
@@ -555,8 +577,7 @@ class Component2DImage(ComponentBase):
     @property
     def width(self):
         """
-        Returns the width of the data component in the buffer in number of pixels.
-        :return:
+        :return: The width of the data component in the buffer in number of pixels.
         """
         try:
             if self._part:
@@ -570,8 +591,7 @@ class Component2DImage(ComponentBase):
     @property
     def height(self):
         """
-        Returns the height of the data component in the buffer in number of pixels.
-        :return:
+        :return: The height of the data component in the buffer in number of pixels.
         """
         try:
             if self._part:
@@ -585,8 +605,7 @@ class Component2DImage(ComponentBase):
     @property
     def data_format_value(self):
         """
-        Returns the data type of the data component as integer value.
-        :return:
+        :return: The data type of the data component as integer value.
         """
         try:
             if self._part:
@@ -600,16 +619,14 @@ class Component2DImage(ComponentBase):
     @property
     def data_format(self):
         """
-        Returns the data type of the data component as string.
-        :return:
+        :return: The data type of the data component as string.
         """
         return symbolics[self.data_format_value]
 
     @property
     def delivered_image_height(self):
         """
-        Returns the image height of the data component.
-        :return:
+        :return: The image height of the data component.
         """
         try:
             if self._part:
@@ -623,8 +640,7 @@ class Component2DImage(ComponentBase):
     @property
     def x_offset(self):  # TODO: Check the naming convention.
         """
-        Returns the X offset of the data in the buffer in number of pixels from the image origin to handle areas of interest.
-        :return:
+        :return: The X offset of the data in the buffer in number of pixels from the image origin to handle areas of interest.
         """
         try:
             if self._part:
@@ -638,8 +654,7 @@ class Component2DImage(ComponentBase):
     @property
     def y_offset(self):
         """
-        Returns the Y offset of the data in the buffer in number of pixels from the image origin to handle areas of interest.
-        :return:
+        :return: The Y offset of the data in the buffer in number of pixels from the image origin to handle areas of interest.
         """
         try:
             if self._part:
@@ -653,9 +668,8 @@ class Component2DImage(ComponentBase):
     @property
     def x_padding(self):
         """
-        Returns the X padding of the data component in the buffer in number of pixels.
-        TODO:
-        :return:
+        Returns
+        :return: The X padding of the data component in the buffer in number of pixels.
         """
         try:
             if self._part:
@@ -669,9 +683,7 @@ class Component2DImage(ComponentBase):
     @property
     def y_padding(self):
         """
-        Returns the Y padding of the data component in the buffer in number of pixels.
-        TODO:
-        :return:
+        :return: The Y padding of the data component in the buffer in number of pixels.
         """
         try:
             if self._part:
@@ -726,16 +738,14 @@ class Buffer:
     @property
     def timestamp_ns(self):
         """
-        TODO:
-        :return:
+        :return: The timestamp in nano-second.
         """
         return self._buffer.timestamp_ns
 
     @property
     def timestamp(self):
         """
-        TODO:
-        :return:
+        :return: The timestamp in the TL specific unit.
         """
         timestamp = 0
         try:
@@ -757,8 +767,7 @@ class Buffer:
     @property
     def timestamp_frequency(self):
         """
-        TODO:
-        :return:
+        :return: The timestamp frequency which is used to represent a timestamp.
         """
         #
         frequency = 1000000000  # Hz
@@ -781,10 +790,7 @@ class Buffer:
     @property
     def payload_type(self):
         """
-        Returns a payload type of the payload.
-
-        :rtype: genicam2.gentl.PAYLOADTYPE_INFO_IDS
-
+        :return: The payload type that the Buffer object contains.
         """
 
         return self._buffer.payload_type
@@ -792,8 +798,7 @@ class Buffer:
     @property
     def payload(self):
         """
-        Returns the payload that the Buffer object contains.
-        :return:
+        :return: The payload that the Buffer object contains.
         """
         return self._payload
 
@@ -916,8 +921,7 @@ class PayloadBase:
     @property
     def components(self):
         """
-        Returns a list containing Component objects.
-        :return:
+        :return: A list containing Component objects.
         """
         return self._components
 
@@ -1309,37 +1313,28 @@ class ImageAcquirer:
     @property
     def device(self):
         """
-        Returns the proxy Device module object of the connecting remote
-        device.
-        :return:
+        :return: The proxy Device module object of the connecting remote device.
         """
         return self._device
 
     @property
     def interface(self):
         """
-        Returns the parent Interface module object of the connecting remote
-        device.
-        :return:
+        :return: The parent Interface module object of the connecting remote device.
         """
         return self._interface
 
     @property
     def system(self):
         """
-        Returns the parent System module object of the connecting remote
-        device.
-        :return:
+        :return: The parent System module object of the connecting remote device.
         """
         return self._system
 
     @property
     def is_acquiring_images(self):
         """
-        Returns a truth value of the following proposition: The
-        :class:`~harvesters.core.Harvester` object is acquiring images.
-
-        :rtype: bool
+        :return: True if it's acquiring images. Otherwise False.
         """
         return self._is_acquiring_images
 
@@ -1412,7 +1407,7 @@ class ImageAcquirer:
         """
         Starts image acquisition.
 
-        :return: None
+        :return: None.
         """
         if not self._create_ds_at_connection:
             self._setup_data_streams()
@@ -1748,7 +1743,7 @@ class ImageAcquirer:
         """
         Stops image acquisition.
 
-        :return: None
+        :return: None.
         """
         if self.is_acquiring_images:
             #
@@ -1799,6 +1794,11 @@ class ImageAcquirer:
             self._profiler.print_diff()
 
     def destroy(self):
+        """
+        Destroys the ImageAcquirer object. Once you destroyed the object, all allocated resources, including buffers and the remote device, are released.
+
+        :return: None.
+        """
         # Ask its parent to destroy it:
         if self._device:
             self._parent._destroy_image_acquirer(self)
@@ -1957,8 +1957,6 @@ class Harvester:
     @property
     def cti_files(self):
         """
-        Returns a :class:`list` containing CTI file paths.
-
         :return: A list object containing str objects.
         """
         return self._cti_files
@@ -1966,8 +1964,6 @@ class Harvester:
     @property
     def device_info_list(self):
         """
-        Returns a :class:`list` containing :class:`~genicam2.gentl.DeviceInfo` objects.
-
         :return: A list object containing :class:`~genicam2.gentl.DeviceInfo` objects
         """
         return self._device_info_list
@@ -1995,7 +1991,7 @@ class Harvester:
             sleep_duration=_sleep_duration_default
         ):
         """
-        Creates an image acquirer for the specified device and return it.
+        Creates an image acquirer for the specified remote device and return the created ImageAcquirer object.
 
         :param list_index: Set an item index of the list of :class:`~genicam2.gentl.DeviceInfo` objects.
         :param id_:
@@ -2100,7 +2096,7 @@ class Harvester:
 
         :param file_path: Set a file path to the target CTI file.
 
-        :return: None
+        :return: None.
         """
         if not os.path.exists(file_path):
             self._logger.warning(
@@ -2119,7 +2115,7 @@ class Harvester:
 
         :param file_path: Set a file path to the target CTI file.
 
-        :return: None
+        :return: None.
         """
         if file_path in self._cti_files:
             self._cti_files.remove(file_path)
@@ -2131,7 +2127,7 @@ class Harvester:
         """
         Removes all CTI files in the CTI file list.
 
-        :return: None
+        :return: None.
         """
 
         self._cti_files.clear()
@@ -2180,9 +2176,9 @@ class Harvester:
 
     def reset(self):
         """
-        Initializes the Harvester object.
+        Initializes the Harvester object. Once you reset the Harvester object, all allocated resources, including buffers and remote device, will be released.
 
-        :return: None
+        :return: None.
         """
         #
         for ia in self._ias:
@@ -2259,7 +2255,7 @@ class Harvester:
         Updates the device information list. You'll have to call this method
         every time you added CTI files or plugged/unplugged devices.
 
-        :return: None
+        :return: None.
         """
         #
         self._release_gentl_producers()

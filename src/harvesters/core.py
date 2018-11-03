@@ -112,7 +112,11 @@ class _SignalHandler:
 
 class ThreadBase:
     """
-    By default, Harvester internally uses Python's built-in `treading` module. However, you may want to use your preferred threading module such as QThread of PyQt for some technical reasons. To allow us your preferred threading module, Harvester provides you a base proxy class to allow you implementing your threading functionality.
+    By default, Harvester internally uses Python's built-in `treading`
+    module. However, you may want to use your preferred threading module such
+    as QThread of PyQt for some technical reasons. To allow us your preferred
+    threading module, Harvester provides you a base proxy class to allow you
+    implementing your threading functionality.
     """
     def __init__(self, *, mutex=None, logger=None):
         """
@@ -438,7 +442,8 @@ class ComponentBase:
 
 class ComponentUnknown(ComponentBase):
     """
-    Represents a data component that is classified as PART_DATATYPE_UNKNOWN by the GenTL Standard.
+    Represents a data component that is classified as
+    :const:`PART_DATATYPE_UNKNOWN` by the GenTL Standard.
     """
     def __init__(self):
         #
@@ -447,7 +452,8 @@ class ComponentUnknown(ComponentBase):
 
 class Component2DImage(ComponentBase):
     """
-    Represents a data component that is classified as PART_DATATYPE_2D_IMAGE by the GenTL Standard.
+    Represents a data component that is classified as
+    :const:`PART_DATATYPE_2D_IMAGE` by the GenTL Standard.
     """
     def __init__(self, *, buffer=None, part=None, node_map=None):
         """
@@ -697,7 +703,9 @@ class Component2DImage(ComponentBase):
 
 class Buffer:
     """
-    Provides you a way to access acquired data and its relevant information. In general, note that it will never be necessary to create this object by yourself.
+    Provides you a way to access acquired data and its relevant information.
+    In general, note that it will never be necessary to create this object by
+    yourself.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         """
@@ -804,7 +812,9 @@ class Buffer:
 
     def queue(self):
         """
-        Queues the buffer to prepare for the upcoming image acquisition. Once the buffer is queued, the Buffer object will be obsolete. You'll have nothing to do with it.
+        Queues the buffer to prepare for the upcoming image acquisition. Once
+        the buffer is queued, the :class:`Buffer` object will be obsolete.
+        You'll have nothing to do with it.
         """
         #
         if _is_logging_buffer_manipulation:
@@ -876,7 +886,8 @@ class Buffer:
 
 class PayloadBase:
     """
-    Is a base class of various payload types. The types are defined by the GenTL Standard.
+    Is a base class of various payload types. The types are defined by the
+    GenTL Standard.
     """
     def __init__(self, *, buffer=None, logger=None):
         """
@@ -928,7 +939,8 @@ class PayloadBase:
 
 class PayloadUnknown(PayloadBase):
     """
-    Represents a payload that is classified as PAYLOAD_TYPE_UNKNOWN by the GenTL Standard.
+    Represents a payload that is classified as :const:`PAYLOAD_TYPE_UNKNOWN`
+    by the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         """
@@ -951,7 +963,8 @@ class PayloadUnknown(PayloadBase):
 
 class PayloadImage(PayloadBase):
     """
-    Represents a payload that is classified as PAYLOAD_TYPE_IMAGE by the GenTL Standard.
+    Represents a payload that is classified as :const:`PAYLOAD_TYPE_IMAGE` by
+    the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         """
@@ -984,7 +997,8 @@ class PayloadImage(PayloadBase):
 
 class PayloadRawData(PayloadBase):
     """
-    Represents a payload that is classified as PAYLOAD_TYPE_RAW_DATA by the GenTL Standard.
+    Represents a payload that is classified as :const:`PAYLOAD_TYPE_RAW_DATA`
+    by the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         """
@@ -1007,7 +1021,8 @@ class PayloadRawData(PayloadBase):
 
 class PayloadFile(PayloadBase):
     """
-    Represents a payload that is classified as PAYLOAD_TYPE_FILE by the GenTL Standard.
+    Represents a payload that is classified as :const:`PAYLOAD_TYPE_FILE` by
+    the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         """
@@ -1030,7 +1045,8 @@ class PayloadFile(PayloadBase):
 
 class PayloadJPEG(PayloadBase):
     """
-    Represents a payload that is classified as PAYLOAD_TYPE_JPEG by the GenTL Standard.
+    Represents a payload that is classified as :const:`PAYLOAD_TYPE_JPEG` by
+    the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         """
@@ -1053,7 +1069,8 @@ class PayloadJPEG(PayloadBase):
 
 class PayloadJPEG2000(PayloadBase):
     """
-    Represents a payload that is classified as PAYLOAD_TYPE_JPEG2000 by the GenTL Standard.
+    Represents a payload that is classified as :const:`PAYLOAD_TYPE_JPEG2000`
+    by the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         """
@@ -1076,7 +1093,8 @@ class PayloadJPEG2000(PayloadBase):
 
 class PayloadH264(PayloadBase):
     """
-    Represents a payload that is classified as PAYLOAD_TYPE_H264 by the GenTL Standard.
+    Represents a payload that is classified as :const:`PAYLOAD_TYPE_H264` by
+    the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         """
@@ -1099,7 +1117,8 @@ class PayloadH264(PayloadBase):
 
 class PayloadChunkOnly(PayloadBase):
     """
-    Represents a payload that is classified as PAYLOAD_TYPE_CHUNK_ONLY by the GenTL Standard.
+    Represents a payload that is classified as
+    :const:`PAYLOAD_TYPE_CHUNK_ONLY` by the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
@@ -1115,7 +1134,8 @@ class PayloadChunkOnly(PayloadBase):
 
 class PayloadMultiPart(PayloadBase):
     """
-    Represents a payload that is classified as PAYLOAD_TYPE_MULTI_PART by the GenTL Standard.
+    Represents a payload that is classified as
+    :const:`PAYLOAD_TYPE_MULTI_PART` by the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         """
@@ -1603,12 +1623,12 @@ class ImageAcquirer:
 
     def fetch_buffer(self, *, timeout=0, is_raw=False):
         """
-        Fetches the oldest :class:`~harvesters.buffer.Buffer` object and returns it.
+        Fetches the oldest :class:`Buffer` object and returns it.
 
         :param timeout: Set timeout value in second.
         :param is_raw: Set True if you need a raw GenTL Buffer module.
 
-        :return: A :class:`~harvesters.buffer.Buffer` object.
+        :return: A :class:`Buffer` object.
         """
         if not self.is_acquiring_images:
             raise TimeoutException
@@ -1795,7 +1815,9 @@ class ImageAcquirer:
 
     def destroy(self):
         """
-        Destroys the ImageAcquirer object. Once you destroyed the object, all allocated resources, including buffers and the remote device, are released.
+        Destroys the :class:`ImageAcquirer` object. Once you called this
+        method, all allocated resources, including buffers and the remote
+        device, are released.
 
         :return: None.
         """
@@ -1907,7 +1929,8 @@ def _get_port_connected_node_map(*, port=None, logger=None):
 
 class Harvester:
     """
-    Is the class that works for you as Harvester Core. Everything begins with this class.
+    Is the class that works for you as Harvester Core. Everything begins with
+    this class.
     """
     #
     def __init__(self, *, profile=False, logger=None):

@@ -356,7 +356,7 @@ class _ThreadImpl(Thread):
 
 class ComponentBase:
     """
-    Is a base class of various (image) data component types.
+    Is a base class of various data component types.
     """
     def __init__(self, *, buffer=None):
         """
@@ -405,9 +405,9 @@ class ComponentBase:
         return self._data
 
 
-class ComponentRaw(ComponentBase):
+class ComponentUnknown(ComponentBase):
     """
-    Represents raw data.
+    Represents a data component that is classified as PART_DATATYPE_UNKNOWN by the GenTL Standard.
     """
     def __init__(self):
         #
@@ -416,7 +416,7 @@ class ComponentRaw(ComponentBase):
 
 class Component2DImage(ComponentBase):
     """
-    Represents a 2D image.
+    Represents a data component that is classified as PART_DATATYPE_2D_IMAGE by the GenTL Standard.
     """
     def __init__(self, *, buffer=None, part=None, node_map=None):
         """
@@ -1087,7 +1087,7 @@ class PayloadMultiPart(PayloadBase):
 
 class ImageAcquirer:
     """
-    Manages everything you need to acquire images from the connecting image transmitter device.
+    Manages everything you need to acquire images from the connecting device.
     """
 
     #

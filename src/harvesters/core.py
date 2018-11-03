@@ -1994,8 +1994,7 @@ class Harvester:
         Creates an image acquirer for the specified remote device and return
         the created ImageAcquirer object.
 
-        :param list_index: (Optional) Set an item index of the list of
-        DeviceInfo objects.
+        :param list_index: (Optional) Set an item index of the list of :class:`~genicam2.gentl.DeviceInfo` objects.
         :param id_: (Optional) Set an index of the device information list.
         :param vendor: (Optional) Set a vendor name of the target device.
         :param model: (Optional) Set a model name of the target device.

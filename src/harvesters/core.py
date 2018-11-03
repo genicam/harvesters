@@ -406,6 +406,9 @@ class ComponentBase:
 
 
 class ComponentRaw(ComponentBase):
+    """
+    Represents raw data.
+    """
     def __init__(self):
         #
         super().__init__()
@@ -670,14 +673,15 @@ class Component2DImage(ComponentBase):
 
 class Buffer:
     """
-    TODO:
+    Provides you a way to access acquired data and its relevant information. In general, note that it will never be necessary to create this object by yourself.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         """
         :param buffer:
-        :param data_stream:
         :param node_map:
+        :param logger:
         """
+
         #
         assert buffer
         assert node_map
@@ -855,7 +859,7 @@ class Buffer:
 
 class PayloadBase:
     """
-    Is a base class of various payload types.
+    Is a base class of various payload types. The types are defined by the GenTL Standard.
     """
     def __init__(self, *, buffer=None, logger=None):
         """
@@ -906,6 +910,9 @@ class PayloadBase:
 
 
 class PayloadUnknown(PayloadBase):
+    """
+    Represents a payload that is classified as PAYLOAD_TYPE_UNKNOWN by the GenTL Standard.
+    """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
         assert buffer
@@ -919,6 +926,9 @@ class PayloadUnknown(PayloadBase):
 
 
 class PayloadImage(PayloadBase):
+    """
+    Represents a payload that is classified as PAYLOAD_TYPE_IMAGE by the GenTL Standard.
+    """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
         assert buffer
@@ -942,6 +952,9 @@ class PayloadImage(PayloadBase):
 
 
 class PayloadRawData(PayloadBase):
+    """
+    Represents a payload that is classified as PAYLOAD_TYPE_RAW_DATA by the GenTL Standard.
+    """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
         assert buffer
@@ -955,6 +968,9 @@ class PayloadRawData(PayloadBase):
 
 
 class PayloadFile(PayloadBase):
+    """
+    Represents a payload that is classified as PAYLOAD_TYPE_FILE by the GenTL Standard.
+    """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
         assert buffer
@@ -968,6 +984,9 @@ class PayloadFile(PayloadBase):
 
 
 class PayloadJPEG(PayloadBase):
+    """
+    Represents a payload that is classified as PAYLOAD_TYPE_JPEG by the GenTL Standard.
+    """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
         assert buffer
@@ -981,6 +1000,9 @@ class PayloadJPEG(PayloadBase):
 
 
 class PayloadJPEG2000(PayloadBase):
+    """
+    Represents a payload that is classified as PAYLOAD_TYPE_JPEG2000 by the GenTL Standard.
+    """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
         assert buffer
@@ -994,6 +1016,9 @@ class PayloadJPEG2000(PayloadBase):
 
 
 class PayloadH264(PayloadBase):
+    """
+    Represents a payload that is classified as PAYLOAD_TYPE_H264 by the GenTL Standard.
+    """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
         assert buffer
@@ -1007,6 +1032,9 @@ class PayloadH264(PayloadBase):
 
 
 class PayloadChunkOnly(PayloadBase):
+    """
+    Represents a payload that is classified as PAYLOAD_TYPE_CHUNK_ONLY by the GenTL Standard.
+    """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
         assert buffer
@@ -1021,7 +1049,7 @@ class PayloadChunkOnly(PayloadBase):
 
 class PayloadMultiPart(PayloadBase):
     """
-    TODO:
+    Represents a payload that is classified as PAYLOAD_TYPE_MULTI_PART by the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         """
@@ -1810,7 +1838,7 @@ def _get_port_connected_node_map(*, port=None, logger=None):
 
 class Harvester:
     """
-    Is the class that works for you as Harvester Core. Everything starts with this class.
+    Is the class that works for you as Harvester Core. Everything begins with this class.
     """
     #
     def __init__(self, *, profile=False, logger=None):

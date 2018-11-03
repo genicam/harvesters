@@ -843,7 +843,7 @@ class Buffer:
     @property
     def payload(self):
         """
-        :return: The payload that the :class:`Buffer` object contains.
+        :return: A containing object which derives from :class:`PayloadBase` class.
         """
         return self._payload
 

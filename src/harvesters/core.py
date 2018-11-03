@@ -738,8 +738,8 @@ class Component2DImage(ComponentBase):
 class Buffer:
     """
     Is provided by an :class:`ImageAcquire` object when you call its
-    :meth:`fetch_buffer` method. It provides you a way to access acquired
-    data and its relevant information.
+    :meth:`ImageAcquirer.fetch_buffer` method. It provides you a way to
+    access acquired data and its relevant information.
 
     Note that it will never be necessary to create this object by yourself
     in general.

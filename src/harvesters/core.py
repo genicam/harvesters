@@ -177,7 +177,7 @@ class ThreadBase:
     @property
     def is_running(self):
         """
-        :return: True if the worker is still running. Otherwise False.
+        :return: :const:`True` if the worker is still running. Otherwise :const:`False`.
         """
         return self._is_running
 
@@ -798,7 +798,7 @@ class Buffer:
     @property
     def payload_type(self):
         """
-        :return: The payload type that the Buffer object contains.
+        :return: The payload type that the :class:`Buffer` object contains.
         """
 
         return self._buffer.payload_type
@@ -806,7 +806,7 @@ class Buffer:
     @property
     def payload(self):
         """
-        :return: The payload that the Buffer object contains.
+        :return: The payload that the :class:`Buffer` object contains.
         """
         return self._payload
 
@@ -816,7 +816,7 @@ class Buffer:
         the buffer is queued, the :class:`Buffer` object will be obsolete.
         You'll have nothing to do with it.
 
-        Note that you have to return the ownership of the fetched buffer to
+        Note that you have to return the ownership of the fetched buffers to
         the :class:`ImageAcquirer` object before stopping image acquisition
         calling this method because the :class:`ImageAcquirer` object tries
         to clear the self-allocated buffers when it stops image acquisition.
@@ -937,7 +937,7 @@ class PayloadBase:
     @property
     def components(self):
         """
-        :return: A list containing Component objects.
+        :return: A :class:`list` containing objects that derive from :const:`ComponentBase` class.
         """
         return self._components
 
@@ -1338,28 +1338,28 @@ class ImageAcquirer:
     @property
     def device(self):
         """
-        :return: The proxy Device module object of the connecting remote device.
+        :return: The proxy :class:`Device` module object of the connecting remote device.
         """
         return self._device
 
     @property
     def interface(self):
         """
-        :return: The parent Interface module object of the connecting remote device.
+        :return: The parent :class:`Interface` module object of the connecting remote device.
         """
         return self._interface
 
     @property
     def system(self):
         """
-        :return: The parent System module object of the connecting remote device.
+        :return: The parent :class:`System` module object of the connecting remote device.
         """
         return self._system
 
     @property
     def is_acquiring_images(self):
         """
-        :return: True if it's acquiring images. Otherwise False.
+        :return: :const:`True` if it's acquiring images. Otherwise :const:`False`.
         """
         return self._is_acquiring_images
 
@@ -1631,7 +1631,7 @@ class ImageAcquirer:
         Fetches the oldest :class:`Buffer` object and returns it.
 
         :param timeout: Set timeout value in second.
-        :param is_raw: Set True if you need a raw GenTL Buffer module.
+        :param is_raw: Set :const:`True` if you need a raw GenTL Buffer module.
 
         :return: A :class:`Buffer` object.
         """
@@ -1985,14 +1985,14 @@ class Harvester:
     @property
     def cti_files(self):
         """
-        :return: A list object containing str objects.
+        :return: A :class:`list` object containing :class:`str` objects.
         """
         return self._cti_files
 
     @property
     def device_info_list(self):
         """
-        :return: A list object containing :class:`~genicam2.gentl.DeviceInfo` objects
+        :return: A :class:`list` object containing :class:`DeviceInfo` objects
         """
         return self._device_info_list
 
@@ -2020,9 +2020,9 @@ class Harvester:
         ):
         """
         Creates an image acquirer for the specified remote device and return
-        the created ImageAcquirer object.
+        the created :class:`ImageAcquirer` object.
 
-        :param list_index: (Optional) Set an item index of the list of :class:`~genicam2.gentl.DeviceInfo` objects.
+        :param list_index: (Optional) Set an item index of the list of :class:`DeviceInfo` objects.
         :param id_: (Optional) Set an index of the device information list.
         :param vendor: (Optional) Set a vendor name of the target device.
         :param model: (Optional) Set a model name of the target device.
@@ -2109,7 +2109,7 @@ class Harvester:
                 'Opened Device module, {0}.'.format(device.id_)
             )
 
-            # Create an image acquirer object and return it.
+            # Create an :class:`ImageAcquirer` object and return it.
             ia = ImageAcquirer(
                 parent=self, device=device, profiler=self._profiler,
                 logger=self._logger, sleep_duration=sleep_duration
@@ -2207,7 +2207,9 @@ class Harvester:
 
     def reset(self):
         """
-        Initializes the Harvester object. Once you reset the Harvester object, all allocated resources, including buffers and remote device, will be released.
+        Initializes the :class:`Harvester` object. Once you reset the
+        :class:`Harvester` object, all allocated resources, including buffers
+        and remote device, will be released.
 
         :return: None.
         """

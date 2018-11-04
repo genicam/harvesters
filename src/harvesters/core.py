@@ -113,7 +113,7 @@ class _SignalHandler:
 class ThreadBase:
     """
     By default, :class:`ImageAcquirer` class internally uses Python's
-    built-in :class:`threading` module. However, you may want to use your
+    built-in :mod:`threading` module. However, you may want to use your
     preferred threading module such as :class:`QThread` of PyQt for some
     technical reasons. To allow us your preferred threading module, Harvester
     provides you a base proxy class to allow you implementing your threading

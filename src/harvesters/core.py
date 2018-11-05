@@ -2078,7 +2078,7 @@ class Harvester:
         self._has_revised_device_list = value
 
     def create_image_acquirer(
-            self, list_index=0, *, id_=None,
+            self, list_index=None, *, id_=None,
             vendor=None, model=None, tl_type=None, user_defined_name=None,
             serial_number=None, version=None,
             sleep_duration=_sleep_duration_default

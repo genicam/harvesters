@@ -364,7 +364,7 @@ Assume we have added the Anaconda Python executable directory to the ``PATH`` en
 
 We have created an environment ``genicam`` with Python ``3.6``. If you prefer to install another version, just change the version number above.
 
-After that, we activate the environment to work with Harvester. To activate the environment, please type the following command:
+After that, we activate the environment to work with Harvester. To activate the environment, type the following command:
 
 .. code-block:: shell
 
@@ -382,7 +382,7 @@ If it works well then you will be able to find ``genicam`` in the shell prompt a
 
     (genicam) kznr@Kazunaris-MacBook:~%
 
-Then let's check the version number of Python. To check the version number of Python, please type the following command:
+Then let's check the version number of Python. To check the version number of Python, type the following command:
 
 .. code-block:: shell
 
@@ -394,13 +394,21 @@ You should be able to see the expected version number in its return as follows:
 
     Python 3.6.5 :: Anaconda, Inc.
 
+Finally, to deactivate the environment, type the following command:
+
+.. code-block:: shell
+
+    $ deactivate
+
+It's so easy.
+
 ***************************
 Installing a GenTL Producer
 ***************************
 
 Now we install a GenTL Producer that works with Harvester. Harvester can't acquire images without it.
 
-Today, many camera manufacturers and software vendors all over the world provide GenTL Producers to support image acquisition using GenICam compliant cameras. However, you should note that some GenTL Producers may block cameras from other competitors. Though it's perfectly legal but we recommend you here to use a GenTL Producer from MATRIX VISION as a one of reliable GenTL Producer for this tutorial because it doesn't block cameras from other competitors. However, **please respect their license and give them feedback immediately if you find something to be reported or something that you appreciate**. As an open source activity, we would like to pay our best respect to their products.
+Today, many camera manufacturers and software vendors all over the world provide GenTL Producers to support image acquisition using GenICam compliant cameras. However, you should note that some GenTL Producers may block cameras from other competitors. Though it's perfectly legal but we recommend you here to use a GenTL Producer from MATRIX VISION as a one of reliable GenTL Producer for this tutorial because it doesn't block cameras from other competitors. However, please respect their license and give them feedback immediately if you find something to be reported or something that you appreciate. As an open source activity, we would like to pay our best respect to their attitude and their products.
 
 You can get their SDK from the following URL; please download ``mvIMPACT_Acquire`` and install it.
 
@@ -416,7 +424,7 @@ Installing Harvester Core
 
 Before installing Harvester, let's make sure that you are working in the environment that you created in `the previous chapter <https://github.com/genicam/harvesters#id18>`_.
 
-After that, you can install Harvester via PyPI invoking the following command; note that the package name is ``harvesters`` but not ``harvester``; unfortunately, the latter word had been reserved:
+After that, you can install Harvester via PyPI invoking the following command; note that the package name is ``harvesters`` but not ``harvester``; unfortunately, the latter word had been reserved by another project:
 
 .. code-block:: shell
 

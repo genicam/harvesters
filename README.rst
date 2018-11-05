@@ -364,7 +364,20 @@ First, let's install Python. There are several options for you but I would like 
 
 https://www.anaconda.com/download/
 
-Please find a 64-Bit graphical installer that fits your machine and download it. The installation process is straightforward but it might be a good idea to add the Anaconda Python executable directory to the ``PATH`` environment variable if you're sure that you're wiling to use the Python which you're going to use as your system Python. If you don't add it to the environment variable, you should not forget to specify the full path of the Python to create/delete/activate an environment.
+For Windows, please find a 64-Bit graphical installer that fits your machine and download it. The installation process is straightforward but it could be a bad idea to add the Anaconda Python executable directory to the ``PATH`` environment variable because it means your system begins to use your Anaconda Python instead of the system Python that had been already installed before you installed Anaconda Python.
+
+To not letting Anaconda Python interfere in your system Python, not adding Anaconda Python to the ``PATH`` and you should always launch ``Anaconda Prompt`` in the ``Anaconda3 (64-bit)`` folder from the Windows's start menu. It will automatically kick up the Anaconda Python so that you can immediately use the functionality that Anaconda provides you.
+
+On Linux machines, with the former reason, it might be a good idea to manually add your Anaconda Python to the ``PATH`` every time you begin a session to start work with Harvester. You can add your Anaconda Python typing the following command:
+
+.. code-block:: shell
+
+    PATH=path/to/Anaconda3/bin:$PATH
+
+However, there's nothing wrong with adding Anaconda Python to the ``PATH`` as long as you are sure that it doesn't interfer in your system Python. If you are sure there's no application that works with your system Python, just edit the ``.bashrc`` file or another equivalent file so that it adds the Anaconda Python directory to the ``PATH`` everytime you launch a session.
+
+Creating an environment
+=======================
 
 After installing a Python, let's create an isolated environment where does not interfere in your system. An environment is very helpful for developers because everything will be okay just deleting the environment if you completely corrupted it by accident. Please imagine a case where you corrupt the system-wide Python. It's obviously a nightmare and it will enforce you to spend some days to recover it so it is very recommended to work in an isolated environment when you need to develop something.
 
@@ -380,13 +393,7 @@ After that, we activate the environment to work with Harvester. To activate the 
 
 .. code-block:: shell
 
-    $ source activate genicam
-
-If you're running on a Windows, just type the following command:
-
-.. code-block:: shell
-
-    > activate genicam
+    $ conda activate genicam
 
 If it works well then you will be able to find ``genicam`` in the shell prompt as follows:
 
@@ -410,7 +417,7 @@ Finally, to deactivate the environment, type the following command:
 
 .. code-block:: shell
 
-    $ deactivate
+    $ conda deactivate
 
 It's so easy.
 

@@ -83,11 +83,15 @@ Harvester's name was coming from the great Flemish painter, Pieter Bruegel the E
 
 Apart from anything else, we love its peaceful and friendly name. We hope you also like it ;-)
 
+----
+
 .. figure:: https://user-images.githubusercontent.com/8652625/47977284-8a356100-e0fa-11e8-9a24-be97a3fb0faf.jpg
     :align: center
     :alt: The Harvesters
 
     Pieter Bruegel the Elder (c. 1525-1530 – 9 September 1569)
+
+----
 
 ***************
 Important links

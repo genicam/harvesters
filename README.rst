@@ -18,7 +18,7 @@
     :align: center
     :alt: The Harvesters
 
-    Pieter Bruegel the Elder, The Harvesters, 1565, (c) 2000–2018 The Metropolitan Museum of Art
+    Pieter Bruegel the Elder, The Harvesters, 1565, (c) The Metropolitan Museum of Art
 
 ----
 

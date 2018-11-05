@@ -344,9 +344,81 @@ Harvester has been confirmed it works with the following 64-bit operating system
 * Windows 7
 * Windows 10
 
+*****************
+Installing Python
+*****************
+
+First, let's install Python. There are several options for you but I would like to introduce you Anaconda here. You can download Anaconda from the following URL:
+
+https://www.anaconda.com/download/
+
+Please find a 64-Bit graphical installer that fits your machine and download it. The installation process is straightforward but it might be a good idea to add the Anaconda Python executable directory to the ``PATH`` environment variable if you're sure that you're wiling to use the Python which you're going to use as your system Python. If you don't add it to the environment variable, you should not forget to specify the full path of the Python to create/delete/activate an environment.
+
+After installing a Python, let's create an isolated environment where does not interfere in your system. An environment is very helpful for developers because everything will be okay just deleting the environment if you completely corrupted it by accident. Please imagine a case where you corrupt the system-wide Python. It's obviously a nightmare and it will enforce you to spend some days to recover it so it is very recommended to work in an isolated environment when you need to develop something.
+
+Assume we have added the Anaconda Python executable directory to the ``PATH`` environment variable. To create an environment on a UNIX system, please type the following command; we name the environment ``genicam``:
+
+.. code-block:: shell
+
+    $ conda create -n genicam python=3.6
+
+We have created an environment ``genicam`` with Python ``3.6``. If you prefer to install another version, just change the version number above.
+
+After that, we activate the environment to work with Harvester. To activate the environment, please type the following command:
+
+.. code-block:: shell
+
+    $ source activate genicam
+
+If you're running on a Windows, just type the following command:
+
+.. code-block:: shell
+
+    > activate genicam
+
+If it works well then you will be able to find ``genicam`` in the shell prompt as follows:
+
+.. code-block:: shell
+
+    (genicam) kznr@Kazunaris-MacBook:~%
+
+Then let's check the version number of Python. To check the version number of Python, please type the following command:
+
+.. code-block:: shell
+
+    $ python --version
+
+You should be able to see the expected version number in its return as follows:
+
+.. code-block:: shell
+
+    Python 3.6.5 :: Anaconda, Inc.
+
+***************************
+Installing a GenTL Producer
+***************************
+
+Now we install a GenTL Producer that works with Harvester. Harvester can't acquire images without it.
+
+Today, many camera manufacturers and software vendors all over the world provide GenTL Producers to support image acquisition using GenICam compliant cameras. However, you should note that some GenTL Producers may block cameras from other competitors. Though it's perfectly legal but we recommend you here to use a GenTL Producer from MATRIX VISION as a one of reliable GenTL Producer for this tutorial because it doesn't block cameras from other competitors. However, **please respect their license and give them feedback immediately if you find something to be reported or something that you appreciate**. As an open source activity, we would like to pay our best respect to their products.
+
+You can get their SDK from the following URL; please download ``mvIMPACT_Acquire`` and install it.
+
+http://static.matrix-vision.com/mvIMPACT_Acquire/2.29.0/
+
+Once you installed their SDK, you can find the appropriate GenTL Producer just grepping ``*.cti``. Note that Harvester supports only 64-bit version of GenTL Producers as of November 2018.
+
+This is just for your information but you can find the list of other reliable GenTL Producers `here <https://github.com/genicam/harvesters#gentl-producers>`_.
+
 *************************
 Installing Harvester Core
 *************************
+
+Before installing Harvester, let's make sure that you are working in the environment that you created in the previous chapter.
+
+.. code-block:: shell
+
+    $ pip install harvesters
 
 You can install Harvester via PyPI invoking the following command; note that the package name is ``harvesters`` but not ``harvester``; unfortunately, the latter word had been reserved:
 

@@ -1228,7 +1228,7 @@ class ImageAcquirer:
     def __init__(
             self, *, parent=None, min_num_buffers=8, device=None,
             create_ds_at_connection=True, profiler=None, logger=None,
-            sleep_duration=_sleep_duration_default
+            sleep_duration=_sleep_duration_default, keep_latest=True
     ):
         """
 
@@ -1239,6 +1239,7 @@ class ImageAcquirer:
         :param profiler:
         :param logger:
         :param sleep_duration:
+        :param keep_latest: Set True if you want Harvester to keep the buffer acquired most recently. Setting False it will keep the oldest one until you fetch it.
         """
 
         #
@@ -1334,15 +1335,12 @@ class ImageAcquirer:
 
         #
         self._has_acquired_1st_image = False
+        self._is_acquiring_images = False
+        self._min_num_buffers = min_num_buffers
+        self._keep_latest = keep_latest
 
         #
         self._signal_stop_image_acquisition = None
-
-        #
-        self._is_acquiring_images = False
-
-        #
-        self._min_num_buffers = min_num_buffers
 
         #
         self._logger.info(
@@ -1429,6 +1427,14 @@ class ImageAcquirer:
     @property
     def statistics(self):
         return self._statistics
+
+    @property
+    def keep_latest(self):
+        return self._keep_latest
+
+    @keep_latest.setter
+    def keep_latest(self, value):
+        self._keep_latest = value
 
     def _setup_data_streams(self):
         #
@@ -1573,39 +1579,61 @@ class ImageAcquirer:
                             event_manager.parent.parent.id_
                         )
                     )
-                # We've got a new image so now we can reuse the buffer that
-                # we had kept.
-                with MutexLocker(self.thread_image_acquisition):
-                    if not self._is_acquiring_images:
-                        return
 
-                    if len(self._fetched_buffers) >= self._num_images_to_hold:
-                        # We have a buffer now so we queue it; it's discarded
-                        # before being used.
-                        buffer = self._fetched_buffers.pop(0)
-                        if _is_logging_buffer_manipulation:
-                            self._logger.debug(
-                                'Queued Buffer module #{0}'
-                                ' containing frame #{1}'
-                                ' to DataStream module {2}'
-                                ' of Device module {3}'
-                                '.'.format(
-                                    buffer.context,
-                                    buffer.frame_id,
-                                    buffer.parent.id_,
-                                    buffer.parent.parent.id_
+                if self.keep_latest:
+                    # We want to keep the latest ones:
+                    with MutexLocker(self.thread_image_acquisition):
+                        if not self._is_acquiring_images:
+                            return
+
+                        if len(self._fetched_buffers) >= self._num_images_to_hold:
+                            # Pick up the oldest one:
+                            buffer = self._fetched_buffers.pop(0)
+
+                            # Then discard/queue it:
+                            buffer.parent.queue_buffer(buffer)
+
+                            if _is_logging_buffer_manipulation:
+                                self._logger.debug(
+                                    'Queued Buffer module #{0}'
+                                    ' containing frame #{1}'
+                                    ' to DataStream module {2}'
+                                    ' of Device module {3}'
+                                    '.'.format(
+                                        buffer.context,
+                                        buffer.frame_id,
+                                        buffer.parent.id_,
+                                        buffer.parent.parent.id_
+                                    )
                                 )
-                            )
-                        buffer.parent.queue_buffer(buffer)
 
-                # Append the recently fetched buffer.
-                # Then one buffer remains for our client.
-                buffer = event_manager.buffer
+                    # Get the latest buffer:
+                    buffer = event_manager.buffer
 
-                self._fetched_buffers.append(buffer)
+                    # Then append it to the list which the user fetches later:
+                    self._fetched_buffers.append(buffer)
 
-                #
-                self._update_statistics(buffer)
+                    # Then update the statistics using the buffer:
+                    self._update_statistics(buffer)
+                else:
+                    # Get the latest buffer:
+                    buffer = event_manager.buffer
+
+                    # Then update the statistics using the buffer:
+                    self._update_statistics(buffer)
+
+                    # We want to keep the oldest ones:
+                    with MutexLocker(self.thread_image_acquisition):
+                        if not self._is_acquiring_images:
+                            return
+
+                        if len(self._fetched_buffers) >= self._num_images_to_hold:
+                            # We have not space to keep the latest one.
+                            # Discard/queue the latest buffer:
+                            buffer.parent.queue_buffer(buffer)
+                        else:
+                            # Just append it to the list:
+                            self._fetched_buffers.append(buffer)
 
             #
             if self._num_images_to_acquire >= 1:

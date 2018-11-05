@@ -25,7 +25,7 @@
 .. contents:: Table of Contents
     :depth: 2
 
-**Disclaimer**: All external pictures should have associated credits. If there are missing credits, please tell us, we will correct it. Similarly, all excerpts should be sourced. If not, this is an error and we will correct it as soon as you tell me.
+**Disclaimer**: All external pictures should have associated credits. If there are missing credits, please tell us, we will correct it. Similarly, all excerpts should be sourced. If not, this is an error and we will correct it as soon as you tell us.
 
 ############
 Dear readers

@@ -25,6 +25,8 @@
 .. contents:: Table of Contents
     :depth: 2
 
+**Disclaimer**: All external pictures should have associated credits. If there are missing credits, please tell us, we will correct it. Similarly, all excerpts should be sourced. If not, this is an error and we will correct it as soon as you tell me.
+
 ############
 Dear readers
 ############
@@ -85,11 +87,11 @@ Apart from anything else, we love its peaceful and friendly name. We hope you al
 
 ----
 
-.. figure:: https://user-images.githubusercontent.com/8652625/47977284-8a356100-e0fa-11e8-9a24-be97a3fb0faf.jpg
+.. figure:: https://user-images.githubusercontent.com/8652625/47978218-cae3a900-e0ff-11e8-8e8e-e7fc390f975a.jpg
     :align: center
-    :alt: The Harvesters
+    :alt: Pieter Bruegel the Elder
 
-    Pieter Bruegel the Elder (c. 1525-1530 – 9 September 1569)
+    Pieter Bruegel the Elder (c. 1525-1530 – 9 September 1569), (c) The British Museum
 
 ----
 

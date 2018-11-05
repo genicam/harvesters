@@ -322,7 +322,7 @@ System Requirements
 
 The following software modules are required to get Harvester working:
 
-* Either of Python 3.4, 3.5, 3.6, or 3.7 (Only 64bit versions are supported as of October 2018.)
+* Either of Python 3.4, 3.5, 3.6, or 3.7 (**Only 64bit versions** are supported as of October 2018.)
 
 In addition, please note that we don't supported Cygwin on Windows. This restriction is coming from a fact that the GenICam reference implementation has not supported it.
 
@@ -331,9 +331,9 @@ In addition, you will need the following items to let Harvester make something m
 * GenTL Producers
 * GenICam compliant machine vision cameras
 
-***************************
-Certified operating systems
-***************************
+*****************
+Operating systems
+*****************
 
 Harvester has been confirmed it works with the following 64-bit operating systems:
 

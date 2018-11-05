@@ -414,13 +414,9 @@ This is just for your information but you can find the list of other reliable Ge
 Installing Harvester Core
 *************************
 
-Before installing Harvester, let's make sure that you are working in the environment that you created in the previous chapter.
+Before installing Harvester, let's make sure that you are working in the environment that you created in `the previous chapter <https://github.com/genicam/harvesters#id18>`_.
 
-.. code-block:: shell
-
-    $ pip install harvesters
-
-You can install Harvester via PyPI invoking the following command; note that the package name is ``harvesters`` but not ``harvester``; unfortunately, the latter word had been reserved:
+After that, you can install Harvester via PyPI invoking the following command; note that the package name is ``harvesters`` but not ``harvester``; unfortunately, the latter word had been reserved:
 
 .. code-block:: shell
 

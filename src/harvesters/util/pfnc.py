@@ -88,9 +88,21 @@ def get_bits_per_pixel(data_format):
 
 
 mono_location_formats = [
+    #
     'Raw', 'Mono', 'R', 'G', 'B',
+    #
     'Mono8', 'Mono10', 'Mono12', 'Mono14', 'Mono16',
-    'Coord3D_A', 'Coord3D_B', 'Coord3D_C', 'Confidence',
+    #
+    'Coord3D_A', 'Coord3D_B', 'Coord3D_C',
+    'Coord3D_A8', 'Coord3D_B8', 'Coord3D_C8',
+    'Coord3D_A16', 'Coord3D_B16', 'Coord3D_C16',
+    'Coord3D_A32f', 'Coord3D_B32f', 'Coord3D_C32f',
+    'Coord3D_A10p', 'Coord3D_B10p', 'Coord3D_C10p',
+    'Coord3D_A12p', 'Coord3D_B12p', 'Coord3D_C12p',
+    #
+    'Confidence1',
+    'Confidence8', 'Confidence16', 'Confidence32f',
+
 ]
 
 lmn_444_location_formats = [
@@ -99,7 +111,11 @@ lmn_444_location_formats = [
     'RGB8', 'RGB10', 'RGB12', 'RGB14', 'RGB16',
     'BGR8', 'BGR10', 'BGR12', 'BGR14', 'BGR16',
     'RGB8Packed',
-    'Coord3D_ABC',
+    'Coord3D_ABC8', 'Coord3D_ABC8_Planar',
+    'Coord3D_ABC16', 'Coord3D_ABC16_Planar',
+    'Coord3D_ABC32f', 'Coord3D_ABC32f_Planar',
+    'Coord3D_ABC10p', 'Coord3D_ABC10p_Planar',
+    'Coord3D_ABC12p', 'Coord3D_ABC12p_Planar',
 ]
 
 lmn_422_location_formats = [
@@ -117,7 +133,11 @@ lmno_4444_location_formats = [
 ]
 
 lm_44_location_formats = [
-    'Coord3D_AC',
+    'Coord3D_AC', 'Coord3D_AC8', 'Coord3D_AC8_Planar',
+    'Coord3D_AC16', 'Coord3D_AC16_Planar',
+    'Coord3D_AC32f', 'Coord3D_AC32f_Planar',
+    'Coord3D_AC10p', 'Coord3D_AC10p_Planar',
+    'Coord3D_AC12p', 'Coord3D_AC12p_Planar',
 ]
 
 bayer_location_formats = [
@@ -143,7 +163,11 @@ uint8_formats = [
     #
     'BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8',
     #
-    'Confidence8'
+    'Coord3D_A8', 'Coord3D_B8', 'Coord3D_C8',
+    'Coord3D_ABC8', 'Coord3D_ABC8_Planar',
+    'Coord3D_AC8', 'Coord3D_AC8_Planar',
+    #
+    'Confidence8',
 ]
 
 uint16_formats = [
@@ -164,7 +188,23 @@ uint16_formats = [
     #
     'BayerGR16', 'BayerRG16', 'BayerGB16', 'BayerBG16',
     #
-    'Coord3D_C16'
+    'Coord3D_A16', 'Coord3D_B16', 'Coord3D_C16',
+    #
+    'Coord3D_ABC16', 'Coord3D_ABC16_Planar',
+    #
+    'Coord3D_AC16', 'Coord3D_AC16_Planar',
+    #
+    'Coord3D_A10p', 'Coord3D_B10p', 'Coord3D_C10p',
+    #
+    'Coord3D_A12p', 'Coord3D_B12p', 'Coord3D_C12p',
+    #
+    'Coord3D_ABC10p', 'Coord3D_ABC10p_Planar',
+    #
+    'Coord3D_ABC12p', 'Coord3D_ABC12p_Planar',
+    #
+    'Coord3D_AC10p', 'Coord3D_AC10p_Planar',
+    #
+    'Coord3D_AC12p', 'Coord3D_AC12p_Planar',
 ]
 
 uint32_formats = [
@@ -172,7 +212,12 @@ uint32_formats = [
 ]
 
 float32_formats = [
+    #
     'Coord3D_A32f', 'Coord3D_B32f', 'Coord3D_C32f',
+    #
+    'Coord3D_ABC32f', 'Coord3D_ABC32f_Planar',
+    #
+    'Coord3D_AC32f', 'Coord3D_AC32f_Planar',
 ]
 
 component_8bit_formats = [
@@ -185,7 +230,7 @@ component_8bit_formats = [
     #
     'BayerGR8', 'BayerGB8', 'BayerRG8', 'BayerBG8',
     #
-    'Confidence8'
+    'Confidence8',
 ]
 
 component_10bit_formats = [
@@ -227,7 +272,11 @@ component_16bit_formats = [
     #
     'BayerGR16', 'BayerRG16', 'BayerGB16', 'BayerBG16',
     #
-    'Coord3D_C16',
+    'Coord3D_A16', 'Coord3D_B16', 'Coord3D_C16',
+    #
+    'Coord3D_ABC16', 'Coord3D_ABC16_Planar',
+    #
+    'Coord3D_AC16', 'Coord3D_AC16_Planar',
 ]
 
 component_2d_formats = [
@@ -250,8 +299,22 @@ component_2d_formats = [
     #
     'BayerGR16', 'BayerRG16', 'BayerGB16', 'BayerBG16',
     #
+    'Coord3D_A8', 'Coord3D_B8', 'Coord3D_C8',
+    'Coord3D_ABC8', 'Coord3D_ABC8_Planar',
+    'Coord3D_AC8', 'Coord3D_AC8_Planar',
+    'Coord3D_A16', 'Coord3D_B16', 'Coord3D_C16',
+    'Coord3D_ABC16', 'Coord3D_ABC16_Planar',
+    'Coord3D_AC16', 'Coord3D_AC16_Planar',
     'Coord3D_A32f', 'Coord3D_B32f', 'Coord3D_C32f',
-    'Coord3D_C16',
+    'Coord3D_ABC32f', 'Coord3D_ABC32f_Planar',
+    'Coord3D_AC32f', 'Coord3D_AC32f_Planar',
+    'Coord3D_A10p', 'Coord3D_B10p', 'Coord3D_C10p',
+    'Coord3D_A12p', 'Coord3D_B12p', 'Coord3D_C12p',
+    'Coord3D_ABC10p', 'Coord3D_ABC10p_Planar',
+    'Coord3D_ABC12p', 'Coord3D_ABC12p_Planar',
+    'Coord3D_AC10p', 'Coord3D_AC10p_Planar',
+    'Coord3D_AC12p', 'Coord3D_AC12p_Planar',
+
     #
     'Confidence1', 'Confidence1p', 'Confidence8', 'Confidence16',
     'Confidence32f',

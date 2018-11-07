@@ -2207,7 +2207,7 @@ class Harvester:
 
     def remove_cti_file(self, file_path: str):
         """
-        Remove the specified CTI file from the CTI file list.
+        Removes the specified CTI file from the CTI file list.
 
         :param file_path: Set a file path to the target CTI file.
 

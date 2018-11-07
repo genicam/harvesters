@@ -318,7 +318,7 @@ Before start talking about the detail, let's take a look at some important termi
 
 The following diagram shows the hierarchy and relationship of the relevant modules:
 
-.. figure:: https://user-images.githubusercontent.com/8652625/46987708-50db8800-d130-11e8-90f3-29a0698e7d75.png
+.. figure:: https://user-images.githubusercontent.com/8652625/48105146-a3b0e700-e279-11e8-8a3f-f94372aeff37.png
     :align: center
     :alt: Module hierarchy
 

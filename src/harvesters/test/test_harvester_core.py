@@ -19,6 +19,7 @@
 
 
 # Standard library imports
+import time
 import unittest
 
 # Related third party imports
@@ -235,6 +236,66 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         # And destroy the ImageAcquirer:
         ia.destroy()
 
+    def test_num_fill_buffers(self):
+        if not self.is_running_with_default_target():
+            return
+
+        # Connect to the first camera in the list.
+        self.ia = self.harvester.create_image_acquirer(0)
+
+        #
+        num_images_to_acquire_default = 4
+
+        # Setup the camera before starting image acquisition.
+        self.setup_camera()
+
+        # Then start image acquisition.
+        self.ia.start_image_acquisition()
+
+        # Setup your equipment then trigger the camera.
+        self.generate_software_trigger()
+
+        #
+        self.ia.num_filled_buffers_to_hold = num_images_to_acquire_default
+
+        #
+        num_images_to_trigger = num_images_to_acquire_default
+
+        # Accumulate the number of filled buffers that the ImageAcquirer
+        # is holding:
+        while num_images_to_trigger > 0:
+            # Set up your equipment for the next image acquisition.
+            self.generate_software_trigger()
+            # We should have another reliable way to wait until the target
+            # gets ready.
+            time.sleep(0.01)
+            num_images_to_trigger -= 1
+
+        #
+        num_images_to_acquire = num_images_to_acquire_default
+
+        # Check the num_holding_filled_buffers is decreased every time
+        # a filled buffer is fetched:
+        while num_images_to_acquire > 0:
+            #
+            with self.ia.fetch_buffer():
+                #
+                self.assertEqual(
+                    self.ia.num_holding_filled_buffers,
+                    num_images_to_acquire - 1
+                )
+
+            num_images_to_acquire -= 1
+
+    def setup_camera(self):
+        self.ia.device.node_map.AcquisitionMode.value = 'Continuous'
+        self.ia.device.node_map.TriggerMode.value = 'On'
+        self.ia.device.node_map.TriggerSource.value = 'Software'
+
+    def generate_software_trigger(self):
+        # Trigger the camera because you have already setup your
+        # equipment for the upcoming image acquisition.
+        self.ia.device.node_map.TriggerSoftware.execute()
 
 if __name__ == '__main__':
     unittest.main()

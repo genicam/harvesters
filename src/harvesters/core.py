@@ -1228,7 +1228,8 @@ class ImageAcquirer:
     def __init__(
             self, *, parent=None, min_num_buffers=8, device=None,
             create_ds_at_connection=True, profiler=None, logger=None,
-            sleep_duration=_sleep_duration_default, keep_latest=True
+            sleep_duration=_sleep_duration_default, keep_latest=True,
+            num_filled_buffers_to_hold=1,
     ):
         """
 
@@ -1240,6 +1241,7 @@ class ImageAcquirer:
         :param logger:
         :param sleep_duration:
         :param keep_latest: Set True if you want Harvester to keep the buffer acquired most recently. Setting False it will keep the oldest one until you fetch it.
+        :param num_filled_buffers_to_hold: Set the number of images to hold until the client fetches.
         """
 
         #
@@ -1318,7 +1320,7 @@ class ImageAcquirer:
         signal.signal(signal.SIGINT, self._sigint_handler)
 
         #
-        self._num_images_to_hold = 1
+        self._num_filled_buffers_to_hold = num_filled_buffers_to_hold
 
         #
         self._num_images_to_acquire = -1
@@ -1331,7 +1333,7 @@ class ImageAcquirer:
 
         #
         self._announced_buffers = []
-        self._fetched_buffers = []
+        self._holding_filled_buffers = []
 
         #
         self._has_acquired_1st_image = False
@@ -1369,6 +1371,30 @@ class ImageAcquirer:
 
     def __del__(self):
         self.destroy()
+
+    @property
+    def min_num_buffers(self):
+        return self._min_num_buffers
+
+    @min_num_buffers.setter
+    def min_num_buffers(self, value):
+        self._min_num_buffers = value if \
+            value >= self._data_streams[0].buffer_announce_min else \
+            self._data_streams[0].buffer_announce_min
+
+    @property
+    def num_filled_buffers_to_hold(self):
+        return self._num_filled_buffers_to_hold
+
+    @num_filled_buffers_to_hold.setter
+    def num_filled_buffers_to_hold(self, value):
+        self._num_filled_buffers_to_hold = value if \
+            value <= self._min_num_buffers else \
+            self._min_num_buffers
+
+    @property
+    def num_holding_filled_buffers(self):
+        return len(self._holding_filled_buffers)
 
     @property
     def device(self):
@@ -1586,9 +1612,9 @@ class ImageAcquirer:
                         if not self._is_acquiring_images:
                             return
 
-                        if len(self._fetched_buffers) >= self._num_images_to_hold:
+                        if len(self._holding_filled_buffers) >= self._num_filled_buffers_to_hold:
                             # Pick up the oldest one:
-                            buffer = self._fetched_buffers.pop(0)
+                            buffer = self._holding_filled_buffers.pop(0)
 
                             # Then discard/queue it:
                             buffer.parent.queue_buffer(buffer)
@@ -1611,7 +1637,7 @@ class ImageAcquirer:
                     buffer = event_manager.buffer
 
                     # Then append it to the list which the user fetches later:
-                    self._fetched_buffers.append(buffer)
+                    self._holding_filled_buffers.append(buffer)
 
                     # Then update the statistics using the buffer:
                     self._update_statistics(buffer)
@@ -1627,13 +1653,13 @@ class ImageAcquirer:
                         if not self._is_acquiring_images:
                             return
 
-                        if len(self._fetched_buffers) >= self._num_images_to_hold:
+                        if len(self._holding_filled_buffers) >= self._num_filled_buffers_to_hold:
                             # We have not space to keep the latest one.
                             # Discard/queue the latest buffer:
                             buffer.parent.queue_buffer(buffer)
                         else:
                             # Just append it to the list:
-                            self._fetched_buffers.append(buffer)
+                            self._holding_filled_buffers.append(buffer)
 
             #
             if self._num_images_to_acquire >= 1:
@@ -1712,12 +1738,12 @@ class ImageAcquirer:
                 raise TimeoutException
             else:
                 with MutexLocker(self.thread_image_acquisition):
-                    if len(self._fetched_buffers) > 0:
+                    if len(self._holding_filled_buffers) > 0:
                         if is_raw:
-                            buffer = self._fetched_buffers.pop(0)
+                            buffer = self._holding_filled_buffers.pop(0)
                         else:
                             # Update the chunk data:
-                            _buffer = self._fetched_buffers.pop(0)
+                            _buffer = self._holding_filled_buffers.pop(0)
                             self._update_chunk_data(buffer=_buffer)
                             #
                             buffer = Buffer(
@@ -1929,7 +1955,7 @@ class ImageAcquirer:
                     )
                     _ = data_stream.revoke_buffer(buffer)
 
-        self._fetched_buffers.clear()
+        self._holding_filled_buffers.clear()
         self._announced_buffers.clear()
 
 

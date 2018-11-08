@@ -1228,7 +1228,7 @@ class ImageAcquirer:
     def __init__(
             self, *, parent=None, device=None,
             create_ds_at_connection=True, profiler=None, logger=None,
-            sleep_duration=_sleep_duration_default, keep_latest=True,
+            sleep_duration=_sleep_duration_default,
             num_filled_buffers_to_hold=1
     ):
         """
@@ -1239,7 +1239,6 @@ class ImageAcquirer:
         :param profiler:
         :param logger:
         :param sleep_duration:
-        :param keep_latest: Set True if you want Harvester to keep the buffer acquired most recently. Setting False it will keep the oldest one until you fetch it.
         :param num_filled_buffers_to_hold: Set the number of images to hold until the client fetches.
         """
 
@@ -1337,7 +1336,7 @@ class ImageAcquirer:
         #
         self._has_acquired_1st_image = False
         self._is_acquiring_images = False
-        self._keep_latest = keep_latest
+        self._keep_latest = True
 
         # Determine the default value:
         self._num_buffers_default = max(
@@ -1375,6 +1374,14 @@ class ImageAcquirer:
 
     def __del__(self):
         self.destroy()
+
+    @property
+    def keep_latest(self):
+        return self._keep_latest
+
+    @keep_latest.setter
+    def keep_latest(self, value):
+        self._keep_latest = value
 
     @property
     def num_buffers(self):

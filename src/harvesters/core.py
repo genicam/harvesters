@@ -1229,7 +1229,7 @@ class ImageAcquirer:
             self, *, parent=None, min_num_buffers=8, device=None,
             create_ds_at_connection=True, profiler=None, logger=None,
             sleep_duration=_sleep_duration_default, keep_latest=True,
-            num_filled_buffers_to_hold=1,
+            num_filled_buffers_to_hold=1
     ):
         """
 
@@ -1616,9 +1616,6 @@ class ImageAcquirer:
                             # Pick up the oldest one:
                             buffer = self._holding_filled_buffers.pop(0)
 
-                            # Then discard/queue it:
-                            buffer.parent.queue_buffer(buffer)
-
                             if _is_logging_buffer_manipulation:
                                 self._logger.debug(
                                     'Queued Buffer module #{0}'
@@ -1632,6 +1629,8 @@ class ImageAcquirer:
                                         buffer.parent.parent.id_
                                     )
                                 )
+                            # Then discard/queue it:
+                            buffer.parent.queue_buffer(buffer)
 
                     # Get the latest buffer:
                     buffer = event_manager.buffer

@@ -1340,7 +1340,7 @@ class ImageAcquirer:
 
         # Determine the default value:
         self._num_buffers_default = max(
-            8, self._data_streams[0].buffer_announce_min
+            16, self._data_streams[0].buffer_announce_min
         )
         self._num_buffers = self._num_buffers_default
 

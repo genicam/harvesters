@@ -236,7 +236,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         # And destroy the ImageAcquirer:
         ia.destroy()
 
-    def test_num_fill_buffers(self):
+    def test_num_holding_filled_buffers(self):
         if not self.is_running_with_default_target():
             return
 
@@ -259,17 +259,17 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         self.ia.num_filled_buffers_to_hold = num_images_to_acquire_default
 
         #
-        num_images_to_trigger = num_images_to_acquire_default
+        num_images_to_acquire = num_images_to_acquire_default
 
         # Accumulate the number of filled buffers that the ImageAcquirer
         # is holding:
-        while num_images_to_trigger > 0:
+        while num_images_to_acquire > 0:
             # Set up your equipment for the next image acquisition.
             self.generate_software_trigger()
             # We should have another reliable way to wait until the target
             # gets ready.
             time.sleep(0.01)
-            num_images_to_trigger -= 1
+            num_images_to_acquire -= 1
 
         #
         num_images_to_acquire = num_images_to_acquire_default

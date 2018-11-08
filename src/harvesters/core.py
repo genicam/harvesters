@@ -1226,7 +1226,7 @@ class ImageAcquirer:
     _specialized_tl_type = ['U3V', 'GEV']
 
     def __init__(
-            self, *, parent=None, min_num_buffers=8, device=None,
+            self, *, parent=None, device=None,
             create_ds_at_connection=True, profiler=None, logger=None,
             sleep_duration=_sleep_duration_default, keep_latest=True,
             num_filled_buffers_to_hold=1
@@ -1234,7 +1234,6 @@ class ImageAcquirer:
         """
 
         :param parent:
-        :param min_num_buffers:
         :param device:
         :param create_ds_at_connection:
         :param profiler:
@@ -1338,8 +1337,13 @@ class ImageAcquirer:
         #
         self._has_acquired_1st_image = False
         self._is_acquiring_images = False
-        self._min_num_buffers = min_num_buffers
         self._keep_latest = keep_latest
+
+        # Determine the default value:
+        self._num_buffers_default = max(
+            8, self._data_streams[0].buffer_announce_min
+        )
+        self._num_buffers = self._num_buffers_default
 
         #
         self._signal_stop_image_acquisition = None
@@ -1373,14 +1377,21 @@ class ImageAcquirer:
         self.destroy()
 
     @property
-    def min_num_buffers(self):
-        return self._min_num_buffers
+    def num_buffers(self):
+        return self._num_buffers
 
-    @min_num_buffers.setter
-    def min_num_buffers(self, value):
-        self._min_num_buffers = value if \
-            value >= self._data_streams[0].buffer_announce_min else \
-            self._data_streams[0].buffer_announce_min
+    @num_buffers.setter
+    def num_buffers(self, value):
+        #
+        if value >= self._num_buffers_default:
+            self._num_buffers = value
+        else:
+            raise ValueError(
+                'The number of buffers must be '
+                'greater than or equal to {0}'.format(
+                    self._num_buffers_default
+                )
+            )
 
     @property
     def num_filled_buffers_to_hold(self):
@@ -1388,9 +1399,16 @@ class ImageAcquirer:
 
     @num_filled_buffers_to_hold.setter
     def num_filled_buffers_to_hold(self, value):
-        self._num_filled_buffers_to_hold = value if \
-            value <= self._min_num_buffers else \
-            self._min_num_buffers
+        if 0 < value <= self._num_buffers:
+            self._num_filled_buffers_to_hold = value
+        else:
+            raise ValueError(
+                'The number of filled buffers to hold must be '
+                'greater than zero and '
+                'smaller than or equal to {0}'.format(
+                    self._num_buffers
+                )
+            )
 
     @property
     def num_holding_filled_buffers(self):
@@ -1507,7 +1525,7 @@ class ImageAcquirer:
             self._setup_data_streams()
 
         #
-        num_required_buffers = self._min_num_buffers
+        num_required_buffers = self._num_buffers
         for data_stream in self._data_streams:
             try:
                 num_buffers = data_stream.buffer_announce_min

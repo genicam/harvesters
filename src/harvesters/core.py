@@ -1229,7 +1229,6 @@ class ImageAcquirer:
             self, *, parent=None, device=None,
             create_ds_at_connection=True, profiler=None, logger=None,
             sleep_duration=_sleep_duration_default,
-            num_filled_buffers_to_hold=1
     ):
         """
 
@@ -1239,7 +1238,6 @@ class ImageAcquirer:
         :param profiler:
         :param logger:
         :param sleep_duration:
-        :param num_filled_buffers_to_hold: Set the number of images to hold until the client fetches.
         """
 
         #
@@ -1318,7 +1316,7 @@ class ImageAcquirer:
         signal.signal(signal.SIGINT, self._sigint_handler)
 
         #
-        self._num_filled_buffers_to_hold = num_filled_buffers_to_hold
+        self._num_filled_buffers_to_hold = 1
 
         #
         self._num_images_to_acquire = -1

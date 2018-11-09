@@ -1354,6 +1354,9 @@ class ImageAcquirer:
         #
         self._chunk_adapter = self._get_chunk_adapter(device=self._device)
 
+        # A callback method when it's called when a new buffer is delivered:
+        self._on_new_buffer_arrival = None
+
     @staticmethod
     def _get_chunk_adapter(*, device=None):
         if device.tl_type == 'U3V':
@@ -1371,6 +1374,14 @@ class ImageAcquirer:
 
     def __del__(self):
         self.destroy()
+
+    @property
+    def on_new_buffer_arrival(self):
+        return self._on_new_buffer_arrival
+
+    @on_new_buffer_arrival.setter
+    def on_new_buffer_arrival(self, value):
+        self._on_new_buffer_arrival = value
 
     @property
     def keep_latest(self):
@@ -1681,6 +1692,9 @@ class ImageAcquirer:
             #
             if self._num_images_to_acquire >= 1:
                 self._num_images_to_acquire -= 1
+
+            if self._on_new_buffer_arrival:
+                self._on_new_buffer_arrival()
 
             if self._num_images_to_acquire == 0:
                 #

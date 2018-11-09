@@ -67,6 +67,7 @@ class TestHarvesterCoreBase(unittest.TestCase):
         self._ia = None
         self._thread = None
         self._logger = get_logger(name='harvesters', level=DEBUG)
+        self._buffers = []
 
     def setUp(self):
         #

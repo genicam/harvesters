@@ -334,6 +334,53 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         # Check the number of buffers:
         self.assertEqual(16, self.ia.num_buffers)
 
+    def test_issue_61(self):
+        if not self.is_running_with_default_target():
+            return
+
+        # Connect to the first camera in the list.
+        self.ia = self.harvester.create_image_acquirer(0)
+
+        # Register a call back method:
+        self.ia.on_new_buffer_arrival = self._callback_on_new_buffer_arrival
+
+        # We turn software tirrger on:
+        self.setup_camera()
+
+        # We have not fetched any buffer:
+        self.assertEqual(0, len(self._buffers))
+
+        # Start image acquisition:
+        self.ia.start_image_acquisition()
+
+        # Trigger the target device:
+        num_images = self.ia.num_buffers
+        self.assertTrue(num_images > 0)
+
+        # Trigger the target device:
+        for _ in range(num_images):
+            self.generate_software_trigger()
+            # Note that we should have another reliable way to confirm
+            # FRAME_TRIGGER_WAIT.
+            time.sleep(0.01)
+
+        # If the callback method was called, then we should have the same
+        # number of buffers with num_images:
+        self.assertEqual(num_images, len(self._buffers))
+
+        # Release the buffers before stopping image acquisition:
+        for buffer in self._buffers:
+            buffer.queue()
+
+        self._buffers.clear()
+
+        # Then stop image acquisition:
+        self.ia.stop_image_acquisition()
+
+    def _callback_on_new_buffer_arrival(self):
+        # Fetch a buffer and keep it:
+        self._buffers.append(self.ia.fetch_buffer())
+
 
 if __name__ == '__main__':
     unittest.main()

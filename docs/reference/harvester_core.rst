@@ -7,7 +7,8 @@ API reference
   :show-inheritance:
   :inherited-members:
 
-.. autoclass:: harvesters.core.Component2D
+.. autoclass:: harvesters.core.Component2DImage
+
   :members:
   :show-inheritance:
   :inherited-members:

@@ -297,5 +297,16 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         # equipment for the upcoming image acquisition.
         self.ia.device.node_map.TriggerSoftware.execute()
 
+    def test_issue_60(self):
+        if not self.is_running_with_default_target():
+            return
+
+        # Connect to the first camera in the list.
+        self.ia = self.harvester.create_image_acquirer(0)
+
+        # Check the number of buffers:
+        self.assertEqual(16, self.ia.num_buffers)
+
+
 if __name__ == '__main__':
     unittest.main()

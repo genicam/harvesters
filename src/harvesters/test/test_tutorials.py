@@ -83,10 +83,14 @@ class TestTutorials2(unittest.TestCase):
         # Create a Harvester object:
         self.harvester = Harvester()
         
+        # The following block is just for administrative purpose;
+        # you should not include it in your code:
+        cti_file_path = get_cti_file_path()
+        if 'TLSimu.cti' not in cti_file_path:
+            return
+
         # Add a CTI file path:
-        self.harvester.add_cti_file(
-            get_cti_file_path()
-        )
+        self.harvester.add_cti_file(cti_file_path)
         self.harvester.update_device_info_list()
 
         # Connect to the first camera in the list:

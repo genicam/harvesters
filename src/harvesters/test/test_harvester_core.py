@@ -177,6 +177,9 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         ia.destroy()
 
     def test_timeout_on_fetching_buffer(self):
+        if not self.is_running_with_default_target():
+            return
+
         # Create an image acquirer:
         ia = self.harvester.create_image_acquirer(0)
 

@@ -1227,14 +1227,13 @@ class ImageAcquirer:
 
     def __init__(
             self, *, parent=None, device=None,
-            create_ds_at_connection=True, profiler=None, logger=None,
+            profiler=None, logger=None,
             sleep_duration=_sleep_duration_default,
     ):
         """
 
         :param parent:
         :param device:
-        :param create_ds_at_connection:
         :param profiler:
         :param logger:
         :param sleep_duration:
@@ -1290,7 +1289,7 @@ class ImageAcquirer:
         self._data_streams = []
         self._event_new_buffer_managers = []
 
-        self._create_ds_at_connection = create_ds_at_connection
+        self._create_ds_at_connection = True
         if self._create_ds_at_connection:
             self._setup_data_streams()
 

@@ -63,6 +63,13 @@ from harvesters.util.pfnc import lmn_444_location_formats, \
 _is_logging_buffer_manipulation = True if 'HARVESTERS_LOG_BUFFER_MANIPULATION' in os.environ else False
 _sleep_duration_default = 0.000001  # s
 
+#
+_env_var_xml_file_dir = 'HARVESTERS_XML_FILE_DIR'
+if _env_var_xml_file_dir in os.environ:
+    _xml_file_dir = os.getenv(_env_var_xml_file_dir)
+else:
+    _xml_file_dir = None
+
 
 class _SignalHandler:
     _event = None
@@ -2018,10 +2025,15 @@ def _get_port_connected_node_map(*, port=None, logger=None):
     content = content[1]
     file_content = io.BytesIO(content)
 
-    #
-    directory = os.path.dirname(__file__)
-    with open(os.path.join(directory, 'xml', file_name), 'w+b') as f:
-        f.write(content)
+    # Store the XML file if the client has specified a location:
+    if _xml_file_dir:
+        directory = _xml_file_dir
+        # Create the directory if it didn't exist:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        # Store the XML file:
+        with open(os.path.join(directory, file_name), 'w+b') as f:
+            f.write(content)
 
     # Let's check the reality.
     if zipfile.is_zipfile(file_content):

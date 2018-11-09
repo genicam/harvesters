@@ -1339,10 +1339,10 @@ class ImageAcquirer:
         self._keep_latest = True
 
         # Determine the default value:
-        self._num_buffers_default = max(
+        self._min_num_buffers = self._data_streams[0].buffer_announce_min
+        self._num_buffers = max(
             16, self._data_streams[0].buffer_announce_min
         )
-        self._num_buffers = self._num_buffers_default
 
         #
         self._signal_stop_image_acquisition = None
@@ -1390,13 +1390,13 @@ class ImageAcquirer:
     @num_buffers.setter
     def num_buffers(self, value):
         #
-        if value >= self._num_buffers_default:
+        if value >= self._min_num_buffers:
             self._num_buffers = value
         else:
             raise ValueError(
                 'The number of buffers must be '
                 'greater than or equal to {0}'.format(
-                    self._num_buffers_default
+                    self._min_num_buffers
                 )
             )
 

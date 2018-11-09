@@ -297,6 +297,30 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         # equipment for the upcoming image acquisition.
         self.ia.device.node_map.TriggerSoftware.execute()
 
+    def test_issue_59(self):
+        if not self.is_running_with_default_target():
+            return
+
+        # Connect to the first camera in the list.
+        self.ia = self.harvester.create_image_acquirer(0)
+
+        #
+        min = self.ia._data_streams[0].buffer_announce_min  # Warning: It's accessing a private member.
+        with self.assertRaises(ValueError):
+            self.ia.num_buffers = min - 1
+
+        #
+        max = self.ia.num_buffers
+        with self.assertRaises(ValueError):
+            self.ia.num_filled_buffers_to_hold = max + 1
+
+        #
+        self.ia.num_filled_buffers_to_hold = min
+        self.ia.num_filled_buffers_to_hold = max
+
+        #
+        self.ia.num_buffers = min
+
     def test_issue_60(self):
         if not self.is_running_with_default_target():
             return

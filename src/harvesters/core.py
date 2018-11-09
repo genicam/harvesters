@@ -1235,7 +1235,7 @@ class ImageAcquirer:
     def __init__(
             self, *, parent=None, device=None,
             profiler=None, logger=None,
-            sleep_duration=_sleep_duration_default,
+            sleep_duration=_sleep_duration_default
     ):
         """
 

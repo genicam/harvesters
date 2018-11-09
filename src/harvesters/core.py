@@ -1476,10 +1476,6 @@ class ImageAcquirer:
     def statistics(self):
         return self._statistics
 
-    @property
-    def keep_latest(self):
-        return self._keep_latest
-
     @keep_latest.setter
     def keep_latest(self, value):
         self._keep_latest = value

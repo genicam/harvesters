@@ -369,13 +369,19 @@ For Windows, please find a 64-Bit graphical installer that fits your machine and
 
 To not letting Anaconda Python interfere in your system Python, not adding Anaconda Python to the ``PATH`` and you should always launch ``Anaconda Prompt`` in the ``Anaconda3 (64-bit)`` folder from the Windows's start menu. It will automatically kick up the Anaconda Python so that you can immediately use the functionality that Anaconda provides you.
 
-On Linux machines, with the former reason, it might be a good idea to manually add your Anaconda Python to the ``PATH`` every time you begin a session to start work with Harvester. You can add your Anaconda Python typing the following command:
+On Linux machines, you can make it with the following steps. First, please type the following command. Invoking that command, you will be able to use the ``conda`` command which allows you to activate an environment; note that the following code has been modified for my setup on a macOS machine:
 
 .. code-block:: shell
 
-    PATH=path/to/Anaconda3/bin:$PATH
+    $ echo ". /Users/kznr/anaconda3/etc/profile.d/conda.sh" >> ~/.bash_profile
 
-However, there's nothing wrong with adding Anaconda Python to the ``PATH`` as long as you are sure that it doesn't interfer in your system Python. If you are sure there's no application that works with your system Python, just edit the ``.bashrc`` file or another equivalent file so that it adds the Anaconda Python directory to the ``PATH`` everytime you launch a session.
+Then activate the root environment:
+
+.. code-block:: shell
+
+    $ conda activate
+
+Now you can start working for installing Harvester.
 
 Creating an environment
 =======================

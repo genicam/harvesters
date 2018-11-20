@@ -847,6 +847,12 @@ Once you finished filling up each pixel with a set of RGB values, then you'll be
 
 You can download the standard document of PFNC at the `EMVA website <https://www.emva.org/standards-technology/genicam/genicam-downloads/>`_.
 
+##################################
+Manipulating GenICam feature nodes
+##################################
+
+To be documented.
+
 ################
 Acknowledgements
 ################

@@ -1235,7 +1235,8 @@ class ImageAcquirer:
     def __init__(
             self, *, parent=None, device=None,
             profiler=None, logger=None,
-            sleep_duration=_sleep_duration_default
+            sleep_duration=_sleep_duration_default,
+            file_path=None
     ):
         """
 
@@ -1244,6 +1245,7 @@ class ImageAcquirer:
         :param profiler:
         :param logger:
         :param sleep_duration:
+        :param file_path: (Optional) Set a path to camera description file which you want to load on the target node map instead of the one which the device declares.
         """
 
         #
@@ -1262,7 +1264,8 @@ class ImageAcquirer:
         #
         self._device = device
         self._device.node_map = _get_port_connected_node_map(
-            port=self.device.remote_port, logger=self._logger
+            port=self.device.remote_port, logger=self._logger,
+            file_path=file_path
         )  # Remote device's node map
         try:
             self._device.local_node_map = _get_port_connected_node_map(
@@ -2005,33 +2008,39 @@ class ImageAcquirer:
         self._announced_buffers.clear()
 
 
-def _get_port_connected_node_map(*, port=None, logger=None):
+def _get_port_connected_node_map(*, port=None, logger=None, file_path=None):
     #
     assert port
 
-    # Inquire it's URL information.
-    # TODO: Consider a case where len(url_info_list) > 1.
-    url = port.url_info_list[0].url
-    if logger:
-        logger.info('URL: {0}'.format(url))
+    if file_path:
+        file_name = os.path.basename(file_path)
+        with open(file_path, 'r+b') as f:
+            content = f.read()
+            file_content = io.BytesIO(content)
+    else:
+        # Inquire it's URL information.
+        # TODO: Consider a case where len(url_info_list) > 1.
+        url = port.url_info_list[0].url
+        if logger:
+            logger.info('URL: {0}'.format(url))
 
-    # And parse the URL.
-    location, others = url.split(':', 1)
-    file_name, address, size = others.split(';')
-    address = int(address, 16)
+        # And parse the URL.
+        location, others = url.split(':', 1)
+        file_name, address, size = others.split(';')
+        address = int(address, 16)
 
-    # It may specify the schema version.
-    delimiter = '?'
-    if delimiter in size:
-        size, _ = size.split(delimiter)
-    size = int(size, 16)
+        # It may specify the schema version.
+        delimiter = '?'
+        if delimiter in size:
+            size, _ = size.split(delimiter)
+        size = int(size, 16)
 
-    # Now we get the file content.
-    content = port.read(address, size)
+        # Now we get the file content.
+        content = port.read(address, size)
 
-    # But wait, we have to check if it's a zip file or not.
-    content = content[1]
-    file_content = io.BytesIO(content)
+        # But wait, we have to check if it's a zip file or not.
+        content = content[1]
+        file_content = io.BytesIO(content)
 
     # Store the XML file if the client has specified a location:
     if _xml_file_dir:
@@ -2158,7 +2167,7 @@ class Harvester:
             self, list_index=None, *, id_=None,
             vendor=None, model=None, tl_type=None, user_defined_name=None,
             serial_number=None, version=None,
-            sleep_duration=_sleep_duration_default
+            sleep_duration=_sleep_duration_default, file_path=None
         ):
         """
         Creates an image acquirer for the specified remote device and return
@@ -2173,6 +2182,7 @@ class Harvester:
         :param serial_number: (Optional) Set a serial number string of the target device.
         :param version: (Optional) Set a version number string of the target device.
         :param sleep_duration: (Optional) Set a sleep duration in second that is inserted after the image acquisition worker is executed.
+        :param file_path: (Optional) Set a path to camera description file which you want to load on the target node map instead of the one which the device declares.
 
         :return: An :class:`ImageAcquirer` object that associates with the specified device.
 
@@ -2254,7 +2264,8 @@ class Harvester:
             # Create an :class:`ImageAcquirer` object and return it.
             ia = ImageAcquirer(
                 parent=self, device=device, profiler=self._profiler,
-                logger=self._logger, sleep_duration=sleep_duration
+                logger=self._logger, sleep_duration=sleep_duration,
+                file_path=file_path
             )
             self._ias.append(ia)
 

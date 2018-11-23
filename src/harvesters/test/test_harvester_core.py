@@ -19,6 +19,7 @@
 
 
 # Standard library imports
+import os
 import time
 import unittest
 
@@ -380,6 +381,37 @@ class TestHarvesterCore(TestHarvesterCoreBase):
     def _callback_on_new_buffer_arrival(self):
         # Fetch a buffer and keep it:
         self._buffers.append(self.ia.fetch_buffer())
+
+    def test_issue_66(self):
+        if not self.is_running_with_default_target():
+            return
+
+        file_names = ['altered_plain.xml', 'altered_zip.zip']
+        expected_values = ['plain', 'zip']
+        for i, file_name in enumerate(file_names):
+            self._test_issue_66(
+                'issue_66_' + file_name, expected_values[i]
+            )
+
+    def _test_issue_66(self, file_name, expected_value):
+        #
+        import harvesters
+        package_dir = os.path.dirname(harvesters.__file__)
+        xml_dir = os.path.join(package_dir, 'test', 'xml')
+
+        # Connect to the first camera in the list.
+        self.ia = self.harvester.create_image_acquirer(
+            0, file_path=os.path.join(xml_dir, file_name)
+        )
+
+        # Compare DeviceModelNames:
+        self.assertEqual(
+            'Altered TLSimu (' + expected_value + ')',
+            self.ia.device.node_map.DeviceModelName.value
+        )
+
+        #
+        self.ia.destroy()
 
 
 if __name__ == '__main__':

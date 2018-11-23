@@ -1,0 +1,593 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- edited with XMLSpy v2007 sp2 (http://www.altova.com) by Stelz (STEMMER IMAGING GmbH) -->
+<RegisterDescription ModelName="TLSimu" 
+   VendorName="STEMMMERIMAGING" 
+   ToolTip="GenTL Simulator" 
+   StandardNameSpace="None" 
+   SchemaMajorVersion="1" 
+   SchemaMinorVersion="1" 
+   SchemaSubMinorVersion="0" 
+   MajorVersion="2" 
+   MinorVersion="0" 
+   SubMinorVersion="0" 
+   ProductGuid="193CBC2C-5755-4ada-AA67-F118D004A74D" 
+   VersionGuid="321DAFF5-A243-42ae-8B5D-B5BD18C31488" 
+     xmlns="http://www.genicam.org/GenApi/Version_1_1" 
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+     xsi:schemaLocation="http://www.genicam.org/GenApi/Version_1_1 ../../GenApi/GenApiSchema_Version_1_1.xsd">
+    <Category Name="Root">
+        <pFeature>DeviceControl</pFeature>
+        <pFeature>ImageFormatControl</pFeature>
+        <pFeature>AcquisitionControl</pFeature>
+        <pFeature>EventControl</pFeature>
+        <pFeature>EventTestHelper</pFeature>
+        <pFeature>TestEventRemoteDeviceData</pFeature>
+        <pFeature>ChunkDataControl</pFeature>
+        <pFeature>TransportLayerControl</pFeature>
+    </Category>
+    <Category Name="TransportLayerControl" NameSpace="Standard">
+        <DisplayName>Transport Layer Control</DisplayName>
+        <pFeature>PayloadSize</pFeature>
+    </Category>
+    <Category Name="ChunkDataControl" NameSpace="Standard">
+        <DisplayName>Chunk Data Control</DisplayName>
+        <pFeature>ChunkModeActive</pFeature>
+    </Category>
+    <Category Name="DeviceControl" NameSpace="Standard">
+        <ToolTip>Device Information provides descriptions of the CVB image source.</ToolTip>
+        <DisplayName>Device Control</DisplayName>
+        <pFeature>DeviceVendorName</pFeature>
+        <pFeature>DeviceModelName</pFeature>
+        <pFeature>ManufacturerInfo</pFeature>
+        <pFeature>DeviceVersion</pFeature>
+        <pFeature>DeviceSerialNumber</pFeature>
+        <pFeature>DeviceSFNCVersionMajor</pFeature>
+        <pFeature>DeviceSFNCVersionMinor</pFeature>
+    </Category>
+    <Category Name="ImageFormatControl">
+        <ToolTip>Features to control the size of the transmitted image.</ToolTip>
+        <DisplayName>Image Format Control</DisplayName>
+        <pFeature>Width</pFeature>
+        <pFeature>Height</pFeature>
+        <pFeature>PixelFormat</pFeature>
+    </Category>
+    <Category Name="AcquisitionControl">
+        <ToolTip>Features related to actual image acquisition including trigger mode.</ToolTip>
+        <DisplayName>Acquisition Control</DisplayName>
+        <pFeature>AcquisitionMode</pFeature>
+        <pFeature>AcquisitionStart</pFeature>
+        <pFeature>AcquisitionStop</pFeature>
+        <pFeature>TriggerMode</pFeature>
+        <pFeature>TriggerSoftware</pFeature>
+        <pFeature>TriggerSource</pFeature>
+    </Category>
+    <StringReg Name="DeviceVendorName" NameSpace="Standard">
+        <ToolTip>Manufacturer name</ToolTip>
+        <Description>Manufacturer name from bootstrap.</Description>
+        <DisplayName>Device Vendor Name</DisplayName>
+        <Visibility>Beginner</Visibility>
+        <Address>0x0</Address>
+        <Length>32</Length>
+        <AccessMode>RO</AccessMode>
+        <pPort>Device</pPort>
+    </StringReg>
+    <String Name="DeviceModelName" NameSpace="Standard">
+        <ToolTip>Model name</ToolTip>
+        <Description>Altered model name from bootstap.</Description>
+        <DisplayName>Device Model Name</DisplayName>
+        <Value>Altered TLSimu (plain)</Value>
+    </String>
+    <StringReg Name="ManufacturerInfo" NameSpace="Standard">
+        <ToolTip>Extended manufacturer information about the device.</ToolTip>
+        <Description>Manufacturer information from bootstrap.</Description>
+        <DisplayName>Manufacturer Info</DisplayName>
+        <Visibility>Beginner</Visibility>
+        <Address>0x40</Address>
+        <Length>32</Length>
+        <AccessMode>RO</AccessMode>
+        <pPort>Device</pPort>
+    </StringReg>
+    <StringReg Name="DeviceVersion" NameSpace="Standard">
+        <ToolTip>Version of the device.</ToolTip>
+        <Description>Version from bootstrap.</Description>
+        <DisplayName>Device Version</DisplayName>
+        <Visibility>Beginner</Visibility>
+        <Address>0x60</Address>
+        <Length>32</Length>
+        <AccessMode>RO</AccessMode>
+        <pPort>Device</pPort>
+    </StringReg>
+    <StringReg Name="DeviceSerialNumber" NameSpace="Standard">
+        <ToolTip>Serial number to identify a device.</ToolTip>
+        <Description>Serial number from bootstrap.</Description>
+        <DisplayName>Device Serial Number</DisplayName>
+        <Visibility>Beginner</Visibility>
+        <Address>0x80</Address>
+        <Length>16</Length>
+        <AccessMode>RO</AccessMode>
+        <pPort>Device</pPort>
+    </StringReg>
+    <IntReg Name="WidthReg">
+        <Visibility>Guru</Visibility>
+        <pIsLocked>DevTLLocked</pIsLocked>
+        <Address>0x104</Address>
+        <Length>4</Length>
+        <AccessMode>RW</AccessMode>
+        <pPort>Device</pPort>
+        <Sign>Unsigned</Sign>
+        <Endianess>LittleEndian</Endianess>
+    </IntReg>
+    <IntReg Name="HeightReg">
+        <Visibility>Guru</Visibility>
+        <pIsLocked>DevTLLocked</pIsLocked>
+        <Address>0x108</Address>
+        <Length>4</Length>
+        <AccessMode>RW</AccessMode>
+        <pPort>Device</pPort>
+        <Sign>Unsigned</Sign>
+        <Endianess>LittleEndian</Endianess>
+    </IntReg>
+    <IntReg Name="PixelFormatReg">
+        <Visibility>Guru</Visibility>
+        <pIsLocked>DevTLLocked</pIsLocked>
+        <Address>0x10C</Address>
+        <Length>4</Length>
+        <AccessMode>RO</AccessMode>
+        <pPort>Device</pPort>
+        <Sign>Unsigned</Sign>
+        <Endianess>LittleEndian</Endianess>
+    </IntReg>
+    <IntReg Name="PayloadSizeReg">
+        <Visibility>Guru</Visibility>
+        <pIsLocked>DevTLLocked</pIsLocked>
+        <Address>0x114</Address>
+        <Length>4</Length>
+        <AccessMode>RO</AccessMode>
+        <pPort>Device</pPort>
+        <pInvalidator>WidthReg</pInvalidator>
+        <pInvalidator>HeightReg</pInvalidator>
+        <pInvalidator>PixelFormatReg</pInvalidator>
+        <Sign>Unsigned</Sign>
+        <Endianess>LittleEndian</Endianess>
+    </IntReg>
+    <MaskedIntReg Name="AcquisitionEnabledReg">
+        <Visibility>Guru</Visibility>
+        <Address>0x100</Address>
+        <Length>4</Length>
+        <AccessMode>RW</AccessMode>
+        <pPort>Device</pPort>
+        <LSB>0</LSB>
+        <MSB>31</MSB>
+        <Sign>Unsigned</Sign>
+        <Endianess>LittleEndian</Endianess>
+    </MaskedIntReg>
+    <Enumeration Name="PixelFormat" NameSpace="Standard">
+        <ToolTip>Pixel Format as specified in GigE Vision standard</ToolTip>
+        <Description>Refer to the Pixel format section (p. 117)</Description>
+        <DisplayName>Pixel Format</DisplayName>
+        <Visibility>Beginner</Visibility>
+        <EnumEntry Name="Mono8" NameSpace="Standard">
+            <Value>17301505</Value>
+        </EnumEntry>
+        <EnumEntry Name="Mono8Signed" NameSpace="Standard">
+            <Value>17301506</Value>
+        </EnumEntry>
+        <EnumEntry Name="Mono10" NameSpace="Standard">
+            <Value>17825795</Value>
+        </EnumEntry>
+        <EnumEntry Name="Mono10Packed" NameSpace="Standard">
+            <Value>17563652</Value>
+        </EnumEntry>
+        <EnumEntry Name="Mono12" NameSpace="Standard">
+            <Value>17825797</Value>
+        </EnumEntry>
+        <EnumEntry Name="Mono12Packed" NameSpace="Standard">
+            <Value>17563654</Value>
+        </EnumEntry>
+        <EnumEntry Name="Mono16" NameSpace="Standard">
+            <Value>17825799</Value>
+        </EnumEntry>
+        <EnumEntry Name="BayerGR8" NameSpace="Standard">
+            <Value>17301512</Value>
+        </EnumEntry>
+        <EnumEntry Name="BayerRG8" NameSpace="Standard">
+            <Value>17301513</Value>
+        </EnumEntry>
+        <EnumEntry Name="BayerGB8" NameSpace="Standard">
+            <Value>17301514</Value>
+        </EnumEntry>
+        <EnumEntry Name="BayerBG8" NameSpace="Standard">
+            <Value>17301515</Value>
+        </EnumEntry>
+        <EnumEntry Name="BayerGR10" NameSpace="Standard">
+            <Value>17825804</Value>
+        </EnumEntry>
+        <EnumEntry Name="BayerRG10" NameSpace="Standard">
+            <Value>17825805</Value>
+        </EnumEntry>
+        <EnumEntry Name="BayerGB10" NameSpace="Standard">
+            <Value>17825806</Value>
+        </EnumEntry>
+        <EnumEntry Name="BayerBG10" NameSpace="Standard">
+            <Value>17825807</Value>
+        </EnumEntry>
+        <EnumEntry Name="BayerGR12" NameSpace="Standard">
+            <Value>17825808</Value>
+        </EnumEntry>
+        <EnumEntry Name="BayerRG12" NameSpace="Standard">
+            <Value>17825809</Value>
+        </EnumEntry>
+        <EnumEntry Name="BayerGB12" NameSpace="Standard">
+            <Value>17825810</Value>
+        </EnumEntry>
+        <EnumEntry Name="BayerBG12" NameSpace="Standard">
+            <Value>17825811</Value>
+        </EnumEntry>
+        <EnumEntry Name="RGB8" NameSpace="Standard">
+            <Value>0x2180014</Value>
+        </EnumEntry>
+        <EnumEntry Name="BGR8" NameSpace="Standard">
+            <Value>0x2180015</Value>
+        </EnumEntry>
+        <EnumEntry Name="RGBa8" NameSpace="Standard">
+            <Value>0x2180016</Value>
+        </EnumEntry>
+        <EnumEntry Name="BGRa8" NameSpace="Standard">
+            <Value>0x2180017</Value>
+        </EnumEntry>
+        <EnumEntry Name="RGB10Packed" NameSpace="Standard">
+            <Value>36700184</Value>
+        </EnumEntry>
+        <EnumEntry Name="BGR10Packed" NameSpace="Standard">
+            <Value>36700185</Value>
+        </EnumEntry>
+        <EnumEntry Name="RGB12Packed" NameSpace="Standard">
+            <Value>36700186</Value>
+        </EnumEntry>
+        <EnumEntry Name="BGR12Packed" NameSpace="Standard">
+            <Value>36700187</Value>
+        </EnumEntry>
+        <EnumEntry Name="RGB10V1Packed" NameSpace="Standard">
+            <Value>35651612</Value>
+        </EnumEntry>
+        <EnumEntry Name="RGB10V2Packed" NameSpace="Standard">
+            <Value>35651613</Value>
+        </EnumEntry>
+        <EnumEntry Name="YUV411Packed" NameSpace="Standard">
+            <Value>34340894</Value>
+        </EnumEntry>
+        <EnumEntry Name="YUV422Packed" NameSpace="Standard">
+            <Value>34603039</Value>
+        </EnumEntry>
+        <EnumEntry Name="YUV444Packed" NameSpace="Standard">
+            <Value>35127328</Value>
+        </EnumEntry>
+        <EnumEntry Name="RGB8Planar" NameSpace="Standard">
+            <Value>35127329</Value>
+        </EnumEntry>
+        <EnumEntry Name="RGB10Planar" NameSpace="Standard">
+            <Value>36700194</Value>
+        </EnumEntry>
+        <EnumEntry Name="RGB12Planar" NameSpace="Standard">
+            <Value>36700195</Value>
+        </EnumEntry>
+        <EnumEntry Name="RGB16Planar" NameSpace="Standard">
+            <Value>36700196</Value>
+        </EnumEntry>
+        <pValue>PixelFormatReg</pValue>
+    </Enumeration>
+        <Enumeration Name="AcquisitionMode" NameSpace="Standard">
+        <ToolTip>Sets the acquisition mode of the device.</ToolTip>
+        <Description>Sets the acquisition mode of the device. It defines mainly the number of frames to capture during an acquisition and the way the acquisition stops.</Description>
+        <DisplayName>Acquisition Mode</DisplayName>
+        <!--<pIsLocked>IsAcquisitionBusy</pIsLocked>-->
+        <Streamable>Yes</Streamable>
+        <EnumEntry Name="Continuous" NameSpace="Standard">
+        <ToolTip>Frames are captured continuously until stopped with the AcquisitionStop command.</ToolTip>
+        <Description>Configures the camera to start an infinite sequence of image acquisition with the AcquisitionStart command that must be stopped explicitly by the application with the AcquisitionStop command.</Description>
+        <DisplayName>Continuous</DisplayName>
+        <Value>0</Value>
+    </EnumEntry>
+    <EnumEntry Name="SingleFrame" NameSpace="Standard">
+        <ToolTip>One frame is captured</ToolTip>
+        <Description>One frame is captured. A new frame will be captured every time the AcquisitionStart command is executed. It is not necessary to execute AcquisitionStop command since the acquisition will be automatically stopped af the image is captured.</Description>
+        <DisplayName>Single Frame</DisplayName>
+        <Value>1</Value>
+        </EnumEntry>
+        <Value>0</Value>
+    </Enumeration>
+        <Command Name="AcquisitionStart" NameSpace="Standard">
+        <ToolTip>Starts the acquisition in the camera.</ToolTip>
+        <Description>Issues start command to the camera.</Description>
+        <DisplayName>Acquisition Start</DisplayName>
+        <Visibility>Beginner</Visibility>
+        <pValue>AcquisitionEnabledReg</pValue>
+        <CommandValue>1</CommandValue>
+    </Command>
+    <Command Name="AcquisitionStop" NameSpace="Standard">
+        <ToolTip>Stops the acquisition in the camera.</ToolTip>
+        <Description>Issues stop command to the camera.</Description>
+        <DisplayName>Acquisition Stop</DisplayName>
+        <Visibility>Beginner</Visibility>
+        <pValue>AcquisitionEnabledReg</pValue>
+        <CommandValue>2</CommandValue>
+    </Command>
+    <IntSwissKnife Name="NOT_TLParamsLocked">
+        <ToolTip>Negation of the TLParamsLocked</ToolTip>
+        <Visibility>Invisible</Visibility>
+        <pVariable Name="TLPL">TLParamsLocked</pVariable>
+        <Formula>(TLPL = 0) ? 1 : 0</Formula>
+    </IntSwissKnife>
+    <IntSwissKnife Name="DevTLLocked">
+        <ToolTip>Locks if TLParamsLocked or AcquisitionEnabled are true.</ToolTip>
+        <Visibility>Invisible</Visibility>
+        <pVariable Name="TLPL">TLParamsLocked</pVariable>
+        <pVariable Name="AE">AcquisitionEnabled</pVariable>
+        <Formula>((TLPL = 1) || (AE = 1)) ? 1 : 0</Formula>
+    </IntSwissKnife>
+    <IntSwissKnife Name="NOT_DevTLLocked">
+        <ToolTip>Negation of the DevTLLocked</ToolTip>
+        <Visibility>Invisible</Visibility>
+        <pVariable Name="DevTL">DevTLLocked</pVariable>
+        <Formula>(DevTL = 0) ? 1 : 0</Formula>
+    </IntSwissKnife>
+    <IntSwissKnife Name="NOT_AcquisitionEnabled">
+        <Description>Negation of the AcquisitionEnabled</Description>
+        <Visibility>Invisible</Visibility>
+        <pVariable Name="AE">AcquisitionEnabled</pVariable>
+        <Formula>(AE = 0) ? 1 : 0</Formula>
+    </IntSwissKnife>
+    <Enumeration Name="TriggerMode" NameSpace="Standard">
+      <!-- Recommended element -->
+      <ToolTip>Controls if the selected trigger is active.</ToolTip>
+      <Description>Controls if the selected trigger is active.</Description>
+      <DisplayName>Trigger Mode</DisplayName>
+      <Visibility>Beginner</Visibility>
+      <ImposedAccessMode>RW</ImposedAccessMode>
+      <EnumEntry Name="Off" NameSpace="Standard">
+        <ToolTip>Disables the selected trigger.</ToolTip>
+        <Description>Disables the selected trigger.</Description>
+        <DisplayName>Off</DisplayName>
+        <Value>0</Value>
+      </EnumEntry>
+      <EnumEntry Name="On" NameSpace="Standard">
+        <ToolTip>Enable the selected trigger.</ToolTip>
+        <Description>Enable the selected trigger.</Description>
+        <DisplayName>On</DisplayName>
+        <Value>1</Value>
+      </EnumEntry>
+      <pValue>TriggerModeReg</pValue>
+    </Enumeration>
+    <IntReg Name="TriggerModeReg">
+        <Visibility>Guru</Visibility>
+        <pIsLocked>DevTLLocked</pIsLocked>
+        <Address>0x120</Address>
+        <Length>4</Length>
+        <AccessMode>RW</AccessMode>
+        <pPort>Device</pPort>
+        <Sign>Unsigned</Sign>
+        <Endianess>LittleEndian</Endianess>
+    </IntReg>
+    <Command Name="TriggerSoftware" NameSpace="Standard">
+      <!-- Recommended element -->
+      <ToolTip>Generates an internal trigger.</ToolTip>
+      <Description>Generates an internal trigger. TriggerSource must be set to Software.</Description>
+      <DisplayName>Trigger Software</DisplayName>
+      <Visibility>Beginner</Visibility>
+      <ImposedAccessMode>RW</ImposedAccessMode>
+      <pValue>TriggerSoftwareReg</pValue>
+      <CommandValue>1</CommandValue>
+    </Command>
+    <IntReg Name="TriggerSoftwareReg">
+        <Visibility>Guru</Visibility>
+        <Address>0x124</Address>
+        <Length>4</Length>
+        <AccessMode>RW</AccessMode>
+        <pPort>Device</pPort>
+        <Sign>Unsigned</Sign>
+        <Endianess>LittleEndian</Endianess>
+    </IntReg>
+    <Enumeration Name="TriggerSource" NameSpace="Standard">
+      <!-- Recommended element -->
+      <ToolTip>Specifies the internal signal or physical input Line to use as the trigger source.</ToolTip>
+      <Description>Specifies the internal signal or physical input Line to use as the trigger source. The selected trigger must have its TriggerMode set to On.</Description>
+      <DisplayName>Trigger Source</DisplayName>
+      <Visibility>Beginner</Visibility>
+      <ImposedAccessMode>RW</ImposedAccessMode>
+      <EnumEntry Name="Software" NameSpace="Standard">
+        <ToolTip>Specifies that the trigger source will be generated by software using the TriggerSoftware command.</ToolTip>
+        <Description>Specifies that the trigger source will be generated by software using the TriggerSoftware command.</Description>
+        <DisplayName>Software</DisplayName>
+        <Value>0</Value>
+      </EnumEntry>
+      <pValue>TriggerSourceReg</pValue>
+    </Enumeration>
+    <IntReg Name="TriggerSourceReg">
+        <Visibility>Guru</Visibility>
+        <Address>0x128</Address>
+        <Length>4</Length>
+        <AccessMode>RO</AccessMode>
+        <pPort>Device</pPort>
+        <Sign>Unsigned</Sign>
+        <Endianess>LittleEndian</Endianess>
+    </IntReg>
+    <Integer Name="AcquisitionEnabled">
+        <Description>True (1) if acquisition is enabled; false (0) otherwise.</Description>
+        <Visibility>Invisible</Visibility>
+        <pValue>AcquisitionEnabledReg</pValue>
+        <pMin>AcquisitionEnabledReg</pMin>
+        <pMax>AcquisitionEnabledReg</pMax>
+        <Representation>Boolean</Representation>
+    </Integer>
+        <Integer Name="Width" NameSpace="Standard">
+        <ToolTip>Width of the image in pixels</ToolTip>
+        <Visibility>Beginner</Visibility>
+        <pValue>WidthReg</pValue>
+        <Min>8</Min>
+        <Max>4096</Max>
+        <Inc>4</Inc>
+        <Representation>Linear</Representation>
+    </Integer>
+    <Integer Name="Height" NameSpace="Standard">
+        <ToolTip>Height of the image in pixels</ToolTip>
+        <Visibility>Beginner</Visibility>
+        <pValue>HeightReg</pValue>
+        <Min>8</Min>
+        <Max>4096</Max>
+        <Inc>4</Inc>
+        <Representation>Linear</Representation>
+    </Integer>
+    <Integer Name="PayloadSize" NameSpace="Standard">
+        <ToolTip>Number of bytes per Image</ToolTip>
+        <Description>Image PayloadSize</Description>
+        <DisplayName>Payload Size</DisplayName>
+        <Visibility>Guru</Visibility>
+        <pValue>PayloadSizeReg</pValue>
+        <Representation>Linear</Representation>
+    </Integer>
+    <Integer Name="Locked">
+        <ToolTip>Indicates that a node is always locked.</ToolTip>
+        <Visibility>Invisible</Visibility>
+        <Value>1</Value>
+        <Min>1</Min>
+        <Max>1</Max>
+    </Integer>
+    <Integer Name="TLParamsLocked">
+        <ToolTip>Indicates whether the TLC locks features affecting image or packet size.</ToolTip>
+        <Visibility>Invisible</Visibility>
+        <Value>0</Value>
+        <Min>0</Min>
+        <Max>1</Max>
+    </Integer>
+    <StringReg Name="DeviceSFNCVersionMajor">
+        <DisplayName>Device SFNC Version Major</DisplayName>
+        <Visibility>Beginner</Visibility>
+        <Address>0x200</Address>
+        <Length>16</Length>
+        <AccessMode>RO</AccessMode>
+        <pPort>Device</pPort>
+    </StringReg>
+    <StringReg Name="DeviceSFNCVersionMinor">
+        <DisplayName>Device SFNC Version Minor</DisplayName>
+        <Visibility>Beginner</Visibility>
+        <Address>0x210</Address>
+        <Length>16</Length>
+        <AccessMode>RO</AccessMode>
+        <pPort>Device</pPort>
+    </StringReg>
+    <Boolean Name="ChunkModeActive" NameSpace="Standard">
+        <DisplayName>Chunk Mode Active</DisplayName>
+        <Visibility>Expert</Visibility>
+        <Streamable>No</Streamable>
+        <pValue>ChunkModeActiveReg</pValue>
+    </Boolean>
+    <MaskedIntReg Name="ChunkModeActiveReg">
+        <Visibility>Guru</Visibility>
+        <Address>0x320</Address>
+        <Length>4</Length>
+        <AccessMode>RW</AccessMode>
+        <pPort>Device</pPort>
+        <Bit>0</Bit>
+        <Endianess>LittleEndian</Endianess>
+    </MaskedIntReg>
+    <Port Name="Device">
+        <ToolTip>Port giving access to the CVB server.</ToolTip>
+        <SwapEndianess>Yes</SwapEndianess>      
+    </Port>
+    <!---->
+    <Category Name="EventTestHelper" NameSpace="Custom">
+        <DisplayName>Event Test Helper</DisplayName>
+        <pFeature>TestEventRemoteDeviceTarget</pFeature>
+    </Category>
+    <Category Name="EventControl" NameSpace="Standard">
+        <DisplayName>Event Control</DisplayName>
+        <Visibility>Expert</Visibility>
+        <pFeature>EventSelector</pFeature>
+        <pFeature>EventNotification</pFeature>
+    </Category>
+    <Category Name="TestEventRemoteDeviceData" NameSpace="Custom">
+        <DisplayName>Test Event Remote Device Data</DisplayName>
+        <Visibility>Expert</Visibility>
+        <pFeature>TestEventRemoteDevice</pFeature>
+        <pFeature>TestEventRemoteDeviceTimeStamp</pFeature>
+    </Category>
+    <Group Comment="EventControl">
+        <Enumeration Name="EventSelector" NameSpace="Standard">
+            <DisplayName>Event Selector</DisplayName>
+            <Visibility>Expert</Visibility>
+            <EnumEntry Name="TestEventRemoteDevice" NameSpace="Custom">
+                <DisplayName>Test Event Remote Device</DisplayName>
+                <Value>2345</Value>
+            </EnumEntry>
+            <Value>2345</Value>
+            <pSelected>EventNotification</pSelected>
+        </Enumeration>
+        <Enumeration Name="EventNotification" NameSpace="Standard">
+            <DisplayName>Event Notification</DisplayName>
+            <Visibility>Expert</Visibility>
+            <EnumEntry Name="Off" NameSpace="Standard">
+                <Value>0</Value>
+            </EnumEntry>
+            <EnumEntry Name="On" NameSpace="Standard">
+                <Value>1</Value>
+            </EnumEntry>
+            <pValue>r_EventNotification</pValue>
+        </Enumeration>
+        <IntReg Name="r_EventNotification" NameSpace="Custom">
+            <Address>0x300</Address>
+            <Length>4</Length>
+            <AccessMode>RW</AccessMode>
+            <pPort>Device</pPort>
+            <Cachable>NoCache</Cachable>
+            <Sign>Unsigned</Sign>
+            <Endianess>LittleEndian</Endianess>
+        </IntReg>
+    </Group>
+    <Group Comment="EventTestHelper">
+        <Integer Name="TestEventRemoteDeviceTarget" NameSpace="Custom">
+            <DisplayName>Test Event Remote Device Target</DisplayName>
+            <Visibility>Expert</Visibility>
+            <pValue>r_TestEventRemoteDeviceTarget</pValue>
+            <Min>0</Min>
+            <Max>1</Max>
+        </Integer>
+        <IntReg Name="r_TestEventRemoteDeviceTarget" NameSpace="Custom">
+            <Address>0x310</Address>
+            <Length>4</Length>
+            <AccessMode>RW</AccessMode>
+            <pPort>Device</pPort>
+            <Cachable>NoCache</Cachable>
+            <Sign>Unsigned</Sign>
+            <Endianess>LittleEndian</Endianess>
+        </IntReg>
+    </Group>
+    <!---->
+    <Group Comment="TestEventRemoteDeviceData">
+        <Integer Name="TestEventRemoteDevice" NameSpace="Standard">
+            <DisplayName>Test Event Remote Device</DisplayName>
+            <Visibility>Expert</Visibility>
+            <EventID>2345</EventID>
+            <ImposedAccessMode>RO</ImposedAccessMode>
+            <Value>2345</Value>
+            <Representation>PureNumber</Representation>
+        </Integer>
+        <Integer Name="TestEventRemoteDeviceTimeStamp" NameSpace="Custom">
+            <DisplayName>Time Stamp</DisplayName>
+            <Visibility>Expert</Visibility>
+            <pValue>r_TestEventRemoteDeviceTimeStamp</pValue>
+            <Representation>Linear</Representation>
+        </Integer>
+        <IntReg Name="r_TestEventRemoteDeviceTimeStamp" NameSpace="Custom">
+            <Address>0x0</Address>
+            <Length>4</Length>
+            <AccessMode>RW</AccessMode>
+            <pPort>PortEventRemoteDevice</pPort>
+            <Sign>Unsigned</Sign>
+            <Endianess>LittleEndian</Endianess>
+        </IntReg>
+    </Group>
+    <Port Name="PortEventRemoteDevice">
+        <EventID>2345</EventID>
+    </Port>
+</RegisterDescription>      
+   

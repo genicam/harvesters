@@ -22,13 +22,16 @@
 import os
 import time
 import unittest
+from urllib.parse import quote
 
 # Related third party imports
 from genicam2.gentl import TimeoutException
 
 # Local application/library specific imports
 from harvesters.test.base_harvester import TestHarvesterCoreBase
+from harvesters.core import _parse_description_file
 from harvesters.core import ImageAcquirer
+from harvesters.test.helper import get_package_dir
 
 
 class TestHarvesterCore(TestHarvesterCoreBase):
@@ -395,9 +398,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
 
     def _test_issue_66(self, file_name, expected_value):
         #
-        import harvesters
-        package_dir = os.path.dirname(harvesters.__file__)
-        xml_dir = os.path.join(package_dir, 'test', 'xml')
+        xml_dir = self._get_xml_dir()
 
         # Connect to the first camera in the list.
         self.ia = self.harvester.create_image_acquirer(
@@ -412,6 +413,48 @@ class TestHarvesterCore(TestHarvesterCoreBase):
 
         #
         self.ia.destroy()
+
+    def test_issue_67(self):
+        if not self.is_running_with_default_target():
+            return
+
+        file_names = ['altered_plain.xml', 'altered_zip.zip']
+        for i, file_name in enumerate(file_names):
+            self._test_issue_67(
+                'issue_67_' + file_name
+            )
+
+    def _test_issue_67(self, expected_file_name):
+        #
+        xml_dir = self._get_xml_dir()
+
+        #
+        url = 'file:///'
+        file_path = xml_dir + '/' + expected_file_name
+
+        # '\' -> '/'
+        file_path.replace('\\', '/')
+
+        # ':' -> '|'
+        file_path.replace(':', '|')
+
+        # ' ' -> '%20'
+        file_path = quote(file_path)
+
+        #
+        url += file_path
+
+        # Parse the URL:
+        file_name, _, _ = _parse_description_file(url=url)
+
+        # Compare file names:
+        self.assertEqual(
+            file_name, expected_file_name
+        )
+
+    @staticmethod
+    def _get_xml_dir():
+        return os.path.join(get_package_dir('harvesters'), 'test', 'xml')
 
 
 if __name__ == '__main__':

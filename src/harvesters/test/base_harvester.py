@@ -29,6 +29,7 @@ import unittest
 # Local application/library specific imports
 from harvesters.core import Harvester
 from harvesters.util.logging import get_logger
+from harvesters.test.helper import get_package_dir
 
 
 def get_cti_file_path():
@@ -48,7 +49,7 @@ def get_cti_file_path():
             )
         else:
             # Run tests with the default test target, TLSimu:
-            dir_name = os.path.dirname(genicam2.__file__)
+            dir_name = get_package_dir('genicam2')
             cti_file_path = os.path.join(dir_name, 'TLSimu.cti')
     
     return cti_file_path

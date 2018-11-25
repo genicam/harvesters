@@ -26,6 +26,7 @@ import signal
 import sys
 from threading import Lock, Thread, Event
 import time
+from urllib.parse import unquote
 import zipfile
 
 # Related third party imports
@@ -2008,39 +2009,104 @@ class ImageAcquirer:
         self._announced_buffers.clear()
 
 
-def _get_port_connected_node_map(*, port=None, logger=None, file_path=None):
+def _parse_description_file(*, port=None, url=None, file_path=None, logger=None):
     #
-    assert port
+    file_name = None
+    text = None
+    bytes_object = None
+    content = None
 
     if file_path:
         file_name = os.path.basename(file_path)
         with open(file_path, 'r+b') as f:
             content = f.read()
-            file_content = io.BytesIO(content)
+            bytes_object = io.BytesIO(content)
     else:
-        # Inquire it's URL information.
-        # TODO: Consider a case where len(url_info_list) > 1.
-        url = port.url_info_list[0].url
+        if url is None:
+            # Inquire it's URL information.
+            # TODO: Consider a case where len(url_info_list) > 1.
+            url = port.url_info_list[0].url
+
         if logger:
             logger.info('URL: {0}'.format(url))
 
         # And parse the URL.
         location, others = url.split(':', 1)
-        file_name, address, size = others.split(';')
-        address = int(address, 16)
+        location = location.lower()
 
-        # It may specify the schema version.
-        delimiter = '?'
-        if delimiter in size:
-            size, _ = size.split(delimiter)
-        size = int(size, 16)
+        if location == 'local':
+            file_name, address, size = others.split(';')
+            address = int(address, 16)
 
-        # Now we get the file content.
-        content = port.read(address, size)
+            # It may specify the schema version.
+            delimiter = '?'
+            if delimiter in size:
+                size, _ = size.split(delimiter)
+            size = int(size, 16)
 
-        # But wait, we have to check if it's a zip file or not.
-        content = content[1]
-        file_content = io.BytesIO(content)
+            # Now we get the file content.
+            content = port.read(address, size)
+
+            # But wait, we have to check if it's a zip file or not.
+            content = content[1]
+            bytes_object = io.BytesIO(content)
+
+        elif location == 'file':
+            # '///c|/program%20files/foo.xml' ->
+            # '///', 'c|/program%20files/foo.xml'
+            _, _file_path = others.split('///')
+
+            # 'c|/program%20files/foo.xml' -> 'c|/program files/foo.xml'
+            _file_path = unquote(_file_path)
+
+            # 'c|/program files/foo.xml' -> 'c:/program files/foo.xml')
+            _file_path.replace('|', ':')
+
+            # Extract the file name from the file path:
+            file_name = os.path.basename(_file_path)
+
+            #
+            with open(_file_path, 'r+b') as f:
+                content = f.read()
+                bytes_object = io.BytesIO(content)
+
+        elif location == 'http' or location == 'https':
+            raise NotImplementedError(
+                'Failed to parse URL {0}: Harvester has not supported '
+                'downloading a device description file from vendor '
+                'web site.'.format(url)
+            )
+        else:
+            raise LogicalErrorException(
+                'Failed to parse URL {0}: Unknown format.'.format(url)
+            )
+
+    # Let's check the reality.
+    if zipfile.is_zipfile(bytes_object):
+        # Yes, that's a zip file.
+        zipped_content = zipfile.ZipFile(bytes_object, 'r')
+
+        # Extract the file content from the zip file.
+        for file_info in zipped_content.infolist():
+            if pathlib.Path(
+                    file_info.filename).suffix.lower() == '.xml':
+                #
+                text = zipped_content.read(file_info)
+                break
+    else:
+        text = content
+
+    return file_name, text, bytes_object
+
+
+def _get_port_connected_node_map(*, port=None, logger=None, file_path=None):
+    #
+    assert port
+
+    #
+    file_name, text, bytes_object = _parse_description_file(
+        port=port, file_path=file_path, logger=logger
+    )
 
     # Store the XML file if the client has specified a location:
     if _xml_file_dir:
@@ -2050,26 +2116,13 @@ def _get_port_connected_node_map(*, port=None, logger=None, file_path=None):
             os.makedirs(directory)
         # Store the XML file:
         with open(os.path.join(directory, file_name), 'w+b') as f:
-            f.write(content)
-
-    # Let's check the reality.
-    if zipfile.is_zipfile(file_content):
-        # Yes, that's a zip file.
-        file_content = zipfile.ZipFile(file_content, 'r')
-
-        # Extract the file content from the zip file.
-        for file_info in file_content.infolist():
-            if pathlib.Path(
-                    file_info.filename).suffix.lower() == '.xml':
-                #
-                content = file_content.read(file_info).decode('utf8')
-                break
+            f.write(bytes_object.getvalue())
 
     # Instantiate a GenICam node map object.
     node_map = NodeMap()
 
     # Then load the XML file content on the node map object.
-    node_map.load_xml_from_string(content)
+    node_map.load_xml_from_string(text)
 
     # Instantiate a concrete port object of the remote device's
     # port.

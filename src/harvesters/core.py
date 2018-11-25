@@ -1268,31 +1268,35 @@ class ImageAcquirer:
             port=self.device.remote_port, logger=self._logger,
             file_path=file_path
         )  # Remote device's node map
+
+        #
         try:
             self._device.local_node_map = _get_port_connected_node_map(
                 port=self.device.local_port, logger=self._logger
             )  # Local device's node map
-        except RuntimeException as e:
+        except (RuntimeException, InvalidIdException, NotImplementedException) as e:
             self._logger.error(e, exc_info=True)
             self._device.local_node_map = None
 
         #
         self._interface = self._device.parent
+
         try:
             self._interface.local_node_map = _get_port_connected_node_map(
                 port=self._interface.port, logger=self._logger
             )
-        except RuntimeException as e:
+        except (RuntimeException, InvalidIdException, NotImplementedException) as e:
             self._logger.error(e, exc_info=True)
             self._interface.local_node_map = None
 
         #
         self._system = self._interface.parent
+
         try:
             self._system.local_node_map = _get_port_connected_node_map(
                 port=self._system.port, logger=self._logger
             )
-        except RuntimeException as e:
+        except (RuntimeException, InvalidIdException, NotImplementedException) as e:
             self._logger.error(e, exc_info=True)
             self._system.local_node_map = None
 

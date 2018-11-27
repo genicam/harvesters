@@ -130,9 +130,9 @@ The Harvester project has started since April 2018 and it's still under developm
     :align: center
 
     - - Company Name
-      - CoaXPress
-      - GigE Vision
-      - USB3 Vision
+      - Producer for CoaXPress
+      - Producer for GigE Vision
+      - Producer for USB3 Vision
       - Cameras
     - - `Active Silicon <https://www.activesilicon.com/>`_
       - Tested

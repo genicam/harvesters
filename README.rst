@@ -171,7 +171,7 @@ The Harvester project has started since April 2018 and it's still under developm
       - Tested
     - - `DAHENG VISION <http://en.daheng-image.com/main.html>`_
       - N/A
-      - \-
+      - Tested
       - Tested
       - Tested
     - - `Euresys <https://www.euresys.com/Homepage>`_

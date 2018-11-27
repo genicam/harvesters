@@ -240,7 +240,7 @@ The Harvester project has started since April 2018 and it's still under developm
       - Tested
       - N/A
     - - `Teledyne DALSA <http://www.teledynedalsa.com/en/products/imaging/cameras/>`_
-      - N/A
+      - \-
       - N/A
       - N/A
       - Tested

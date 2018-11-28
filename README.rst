@@ -123,7 +123,7 @@ Important links
 Development status
 ******************
 
-The Harvester project has started since April 2018 and it's still under development as of October 2018 but many developers and researchers over the world have already confirmed that it is actually usable with the popular GenTL Producers and GenICam compliant cameras from the following companies. We have realized the progress had been brought by all interested people's positive expectation in the machine vision market and we strongly believe it will sustain to the following years. Of course, we will never forget the importance of volunteer companies which provided us their products to test Harvester. Thank you very much! Harvester is here for you all! And again, Harvester is still under development so please check out the latest version when you make a try.
+The Harvester project has started since April 2018 and it's still under development as of October 2018 but many developers and researchers over the world have already confirmed that it is actually usable with the popular GenTL Producers and GenICam compliant cameras from the following companies. We have realized the progress had been brought by all interested people's positive expectation in the machine vision market and we strongly believe it will sustain to the following years. Of course, we will never forget the importance of volunteer companies which provided us their products to test Harvester. Thank you very much!
 
 .. list-table::
     :header-rows: 1
@@ -243,11 +243,6 @@ The Harvester project has started since April 2018 and it's still under developm
       - \-
       - N/A
       - N/A
-      - Tested
-    - - `Toshiba Teli Corporation <http://www.toshiba-teli.co.jp/en/products/industrial/index.htm>`_
-      - N/A
-      - N/A
-      - Tested
       - Tested
     - - `Vieworks <http://www.vieworks.com/eng/main.html>`_
       - \-

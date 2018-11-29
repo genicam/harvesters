@@ -148,7 +148,7 @@ The Harvester project has started since April 2018 and it's still under developm
       - \-
       - \-
       - \-
-      - \-
+      - Tested
     - - `Automation Technology <https://www.automationtechnology.de/cms/en/>`_
       - N/A
       - N/A

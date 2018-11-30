@@ -2170,7 +2170,8 @@ class Harvester:
             self, list_index=None, *, id_=None,
             vendor=None, model=None, tl_type=None, user_defined_name=None,
             serial_number=None, version=None,
-            sleep_duration=_sleep_duration_default, file_path=None
+            sleep_duration=_sleep_duration_default, file_path=None,
+            privilege='exclusive'
         ):
         """
         Creates an image acquirer for the specified remote device and return
@@ -2186,6 +2187,7 @@ class Harvester:
         :param version: (Optional) Set a version number string of the target device.
         :param sleep_duration: (Optional) Set a sleep duration in second that is inserted after the image acquisition worker is executed.
         :param file_path: (Optional) Set a path to camera description file which you want to load on the target node map instead of the one which the device declares.
+        :param privilege: (Optional) Set an access privilege. `exclusive`, `contorl`, and `read_only` are supported. The default is `exclusive`.
 
         :return: An :class:`ImageAcquirer` object that associates with the specified device.
 
@@ -2246,9 +2248,21 @@ class Harvester:
 
         # Then open it.
         try:
-            device.open(
-                DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
-            )
+            #
+            if privilege == 'exclusive':
+                _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
+            elif privilege == 'control':
+                _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_CONTROL
+            elif privilege == 'read_only':
+                _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_READONLY
+            else:
+                raise NotImplementedError(
+                    '{0} is not supported.'.format(privilege)
+                )
+
+            #
+            device.open(_privilege)
+
         except (
             NotInitializedException, InvalidHandleException,
             InvalidIdException, ResourceInUseException,

@@ -2026,10 +2026,9 @@ def _parse_description_file(*, port=None, url=None, file_path=None, logger=None)
         if url is None:
             # Inquire it's URL information.
             # TODO: Consider a case where len(url_info_list) > 1.
-            try:
+            if len(port.url_info_list) > 0:
                 url = port.url_info_list[0].url
-            except NotImplementedException as e:
-                logger.info(e, exc_info=True)
+            else:
                 return file_name, text, bytes_object
 
         if logger:

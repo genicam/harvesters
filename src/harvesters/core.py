@@ -1274,7 +1274,7 @@ class ImageAcquirer:
             self._device.local_node_map = _get_port_connected_node_map(
                 port=self.device.local_port, logger=self._logger
             )  # Local device's node map
-        except (RuntimeException, InvalidIdException, NotImplementedException) as e:
+        except RuntimeException as e:
             self._logger.error(e, exc_info=True)
             self._device.local_node_map = None
 
@@ -1285,7 +1285,7 @@ class ImageAcquirer:
             self._interface.local_node_map = _get_port_connected_node_map(
                 port=self._interface.port, logger=self._logger
             )
-        except (RuntimeException, InvalidIdException, NotImplementedException) as e:
+        except RuntimeException as e:
             self._logger.error(e, exc_info=True)
             self._interface.local_node_map = None
 
@@ -1296,7 +1296,7 @@ class ImageAcquirer:
             self._system.local_node_map = _get_port_connected_node_map(
                 port=self._system.port, logger=self._logger
             )
-        except (RuntimeException, InvalidIdException, NotImplementedException) as e:
+        except RuntimeException as e:
             self._logger.error(e, exc_info=True)
             self._system.local_node_map = None
 
@@ -2015,10 +2015,7 @@ class ImageAcquirer:
 
 def _parse_description_file(*, port=None, url=None, file_path=None, logger=None):
     #
-    file_name = None
-    text = None
-    bytes_object = None
-    content = None
+    file_name, text, bytes_object, content = None, None, None, None
 
     if file_path:
         file_name = os.path.basename(file_path)
@@ -2029,7 +2026,11 @@ def _parse_description_file(*, port=None, url=None, file_path=None, logger=None)
         if url is None:
             # Inquire it's URL information.
             # TODO: Consider a case where len(url_info_list) > 1.
-            url = port.url_info_list[0].url
+            try:
+                url = port.url_info_list[0].url
+            except NotImplementedException as e:
+                logger.info(e, exc_info=True)
+                return file_name, text, bytes_object
 
         if logger:
             logger.info('URL: {0}'.format(url))
@@ -2111,6 +2112,10 @@ def _get_port_connected_node_map(*, port=None, logger=None, file_path=None):
     file_name, text, bytes_object = _parse_description_file(
         port=port, file_path=file_path, logger=logger
     )
+
+    # There's no description file content to work with the node map:
+    if (file_name is None) and (text is None) and (bytes_object is None):
+        return None
 
     # Store the XML file if the client has specified a location:
     if _xml_file_dir:

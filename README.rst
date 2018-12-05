@@ -169,6 +169,11 @@ The Harvester project has started since April 2018 and it's still under developm
       - \-
       - N/A
       - Tested
+    - - `CRITICAL LINK <https://www.criticallink.com>`_
+      - N/A
+      - N/A
+      - \-
+      - Tested
     - - `DAHENG VISION <http://en.daheng-image.com/main.html>`_
       - N/A
       - Tested

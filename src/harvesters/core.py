@@ -1424,6 +1424,10 @@ class ImageAcquirer:
             )
 
     @property
+    def min_num_buffers(self):
+        return self._min_num_buffers
+
+    @property
     def num_filled_buffers_to_hold(self):
         return self._num_filled_buffers_to_hold
 

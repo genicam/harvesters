@@ -456,6 +456,17 @@ class TestHarvesterCore(TestHarvesterCoreBase):
     def _get_xml_dir():
         return os.path.join(get_package_dir('harvesters'), 'test', 'xml')
 
+    def test_issue_70(self):
+        if not self.is_running_with_default_target():
+            return
+
+        # Connect to the first camera in the list:
+        self.ia = self.harvester.create_image_acquirer(0)
+
+        # Then check the minimum buffer number that a client can ask
+        # the ImageAcquire object to prepare:
+        self.assertEqual(5, self.ia.min_num_buffers)
+
 
 if __name__ == '__main__':
     unittest.main()

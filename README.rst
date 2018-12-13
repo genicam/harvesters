@@ -158,7 +158,7 @@ The Harvester project has started since April 2018 and it's still under developm
     - - `Basler <https://www.baslerweb.com/>`_
       - N/A
       - N/A
-      - N/A
+      - Tested
       - Tested
     - - `Baumer Optronic <https://www.baumer.com/se/en/>`_
       - N/A

@@ -615,7 +615,9 @@ The following code block shows Harvester Core is running on IPython. An acquired
 
     In [14]: ia.destroy()
 
-    In [15]: quit
+    In [15]: h.reset()
+
+    In [16]: quit
     (genicam) kznr@Kazunaris-MacBook:~%
 
 ####################
@@ -747,14 +749,26 @@ And the following code disconnects the connecting device from the image acquirer
 
     ia.destroy()
 
-Now you can quit the program! Please not that the image acquirer also supports the ``with`` statement. So you may write program as follows:
+If you finished working with the ``Harvester`` object, then release the acquired resources calling the ``reset`` method:
 
 .. code-block:: python
 
-    with h.create_image_acquirer(0) as ia:
-        # Work, work, and work with the ia object.
+    h.reset()
 
-    # the ia object will automatically call the destroy method.
+Now you can quit the program! Please not that ``Harvester`` and ``ImageAcquirer`` also support the ``with`` statement. So you may write program as follows:
+
+.. code-block:: python
+
+    with Harvester() as h:
+        with h.create_image_acquirer(0) as ia:
+            # Work, work, and work with the ia object.
+            # The ia object will automatically call the destroy method
+            # once it goes out of the block.
+
+        # The h object will automatically call the reset method
+        # once it goes out of the block.
+
+This way prevents you forget to release the acquired external resources. If this notation doesn't block your use case then you should rely on the ``with`` statement.
 
 ***********************
 Reshaping a NumPy array

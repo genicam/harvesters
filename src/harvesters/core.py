@@ -1385,9 +1385,6 @@ class ImageAcquirer:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.__del__()
-
-    def __del__(self):
         self.destroy()
 
     @property
@@ -2196,9 +2193,6 @@ class Harvester:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.__del__()
-
-    def __del__(self):
         self.reset()
 
     @property

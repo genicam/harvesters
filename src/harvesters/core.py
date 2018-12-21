@@ -27,6 +27,7 @@ import sys
 from threading import Lock, Thread, Event
 import time
 from urllib.parse import unquote
+import weakref
 import zipfile
 
 # Related third party imports
@@ -1372,6 +1373,9 @@ class ImageAcquirer:
         # A callback method when it's called when a new buffer is delivered:
         self._on_new_buffer_arrival = None
 
+        #
+        self._finalizer = weakref.finalize(self, self._destroy)
+
     @staticmethod
     def _get_chunk_adapter(*, device=None):
         if device.tl_type == 'U3V':
@@ -1385,7 +1389,10 @@ class ImageAcquirer:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.destroy()
+        self._finalizer()
+
+    def destroy(self):
+        self._finalizer()
 
     @property
     def on_new_buffer_arrival(self):
@@ -1967,7 +1974,7 @@ class ImageAcquirer:
         if self._profiler:
             self._profiler.print_diff()
 
-    def destroy(self):
+    def _destroy(self):
         """
         Destroys the :class:`ImageAcquirer` object. Once you called this
         method, all allocated resources, including buffers and the remote
@@ -2189,11 +2196,17 @@ class Harvester:
         if self._profiler:
             self._profiler.print_diff()
 
+        #
+        self._finalizer = weakref.finalize(self, self._reset)
+
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.reset()
+        self._finalizer()
+
+    def reset(self):
+        self._finalizer()
 
     @property
     def cti_files(self):
@@ -2434,7 +2447,7 @@ class Harvester:
                     )
                 )
 
-    def reset(self):
+    def _reset(self):
         """
         Initializes the :class:`Harvester` object. Once you reset the
         :class:`Harvester` object, all allocated resources, including buffers
@@ -2444,7 +2457,7 @@ class Harvester:
         """
         #
         for ia in self._ias:
-            ia.destroy()
+            ia._destroy()
 
         self._ias.clear()
 

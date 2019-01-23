@@ -739,7 +739,7 @@ class Component2DImage(ComponentBase):
                 value = self._part.y_padding
             else:
                 value = self._buffer.padding_y
-        except InvalidParameterException:
+        except (InvalidParameterException, NotImplementedException):
             value = 0
         return value
 

@@ -498,7 +498,7 @@ class Component2DImage(ComponentBase):
     Represents a data component that is classified as
     :const:`PART_DATATYPE_2D_IMAGE` by the GenTL Standard.
     """
-    def __init__(self, *, buffer=None, part=None, node_map=None):
+    def __init__(self, *, buffer=None, part=None, node_map=None, logger=None):
         """
         :param buffer:
         :param part:
@@ -510,6 +510,8 @@ class Component2DImage(ComponentBase):
 
         #
         super().__init__(buffer=buffer)
+
+        self._logger = logger or get_logger(name=__name__)
 
         #
         self._part = part
@@ -581,6 +583,23 @@ class Component2DImage(ComponentBase):
             data_offset = 0
 
         # Convert the Python's built-in bytes array to a Numpy array:
+        if _is_logging_buffer_manipulation:
+            self._logger.debug(
+                'Component 2D image ('
+                'len(raw_buffer): {0}, '
+                'int(count): {1}, '
+                'dtype: {2}, '
+                'offset: {3}, '
+                'pixel format: {4}'
+                ')'.format(
+                    len(self._buffer.raw_buffer),
+                    int(count),
+                    dtype,
+                    data_offset,
+                    symbolic,
+                )
+            )
+
         self._data = np.frombuffer(
             self._buffer.raw_buffer,
             count=int(count),
@@ -965,8 +984,7 @@ class PayloadBase:
         """
         return self._buffer.payload_type
 
-    @staticmethod
-    def _build_component(buffer=None, part=None, node_map=None):
+    def _build_component(self, buffer=None, part=None, node_map=None):
         #
         if part:
             data_format = part.data_format
@@ -976,7 +994,7 @@ class PayloadBase:
         #
         symbolic = symbolics[data_format]
         if symbolic in component_2d_formats:
-            return Component2DImage(buffer=buffer, part=part, node_map=node_map)
+            return Component2DImage(buffer=buffer, part=part, node_map=node_map, logger=self._logger)
 
         return None
 

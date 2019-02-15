@@ -590,13 +590,17 @@ class Component2DImage(ComponentBase):
                 'int(count): {1}, '
                 'dtype: {2}, '
                 'offset: {3}, '
-                'pixel format: {4}'
+                'pixel format: {4},'
+                'x padding: {5},'
+                'y padding: {6}'
                 ')'.format(
                     len(self._buffer.raw_buffer),
                     int(count),
                     dtype,
                     data_offset,
                     symbolic,
+                    self.x_padding,
+                    self.y_padding,
                 )
             )
 

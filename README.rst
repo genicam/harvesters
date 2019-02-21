@@ -713,7 +713,7 @@ You can connect the same device passing more unique information to the method. I
 
 You can specify a target device using properties that are provided through the ``device_info_list`` property of the ``Harvester`` class object. Note that it is invalid if the specifiers gives you two ore more devices. Please specify sufficient information so that the combination gives you a qunique target device.
 
-We named the acquirer object ``ia`` in the above example but in a practical occasion, you may name it like ``ia_face_detection``.
+We named the image acquirer object ``ia`` in the above example but in a practical occasion, you may give it a purpose oriented name like ``ia_face_detection``. Note that a camera itself does NOT acquirer/receive images but it just transmits them. In a machine vision application, there should be two roles at least: One transmits images and the other acquires them. The ``ImageAcquirer`` class objects play the latter role and it holds a camera as the ``device`` object, the source of images.
 
 Anyway, then now we start image acquisition:
 

@@ -705,13 +705,15 @@ Or equivalently:
 
     ia = h.create_image_acquirer(list_index=0)
 
-You can connect the same device passing more unique information to the method such as:
+You can connect the same device passing more unique information to the method. In the following case, we specify a serial number of the target device:
 
 .. code-block:: python
 
-    mono_a = h.create_image_acquirer(serial_number='SN_InterfaceA_0')
+    ia = h.create_image_acquirer(serial_number='SN_InterfaceA_0')
 
-We named the acquirer object ``ia`` in the above example but in a practical occasion, you may name it like just ``camera``, ``mono_cam``, or ``face_detection_cam`` more specifically even though those entities don't acquire images by themselves but they transfer images that will be acquired by their image acquirer.
+You can specify a target device using properties that are provided through the ``device_info_list`` property of the ``Harvester`` class object. Note that it is invalid if the specifiers gives you two ore more devices. Please specify sufficient information so that the combination gives you a qunique target device.
+
+We named the acquirer object ``ia`` in the above example but in a practical occasion, you may name it like ``ia_face_detection``.
 
 Anyway, then now we start image acquisition:
 

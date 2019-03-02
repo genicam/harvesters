@@ -45,6 +45,7 @@ So everyone, there's no worry anymore. Keep having fun for working. Harvester ha
 Announcements
 #############
 
+- **Version 0.2.9**: Resolves issues `#76 <https://github.com/genicam/harvesters/issues/76>`_ and `#78 <https://github.com/genicam/harvesters/issues/78>`_.
 - **Version 0.2.8**: Resolves issues `#73 <https://github.com/genicam/harvesters/issues/73>`_ and `#75 <https://github.com/genicam/harvesters/issues/75>`_.
 - **Version 0.2.7**: Resolves issues `#70 <https://github.com/genicam/harvesters/issues/70>`_ and `#72 <https://github.com/genicam/harvesters/issues/72>`_.
 - **Version 0.2.6**: Resolves issues `#67 <https://github.com/genicam/harvesters/issues/67>`_ and `#68 <https://github.com/genicam/harvesters/issues/68>`_.

@@ -467,6 +467,23 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         # the ImageAcquire object to prepare:
         self.assertEqual(5, self.ia.min_num_buffers)
 
+    def test_issue_78(self):
+        if not self.is_running_with_default_target():
+            return
+
+        # The device_info_list must not turn empty even if a given key
+        # does not match to any candidate:
+        self._logger.info(self.harvester.device_info_list)
+        device_info_list = self.harvester.device_info_list.copy()
+        try:
+            self.harvester.create_image_acquirer(
+                serial_number='abcdefghijklmnopqrstuwxyz!#$%&=~|<>'
+            )
+        except ValueError:
+            self.assertEqual(
+                device_info_list, self.harvester.device_info_list
+            )
+
 
 if __name__ == '__main__':
     unittest.main()

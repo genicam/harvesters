@@ -2305,7 +2305,8 @@ class Harvester:
                 'user_defined_name', 'serial_number', 'version',
             ]
 
-            candidates = self.device_info_list
+            # Create a copy of the list. Do not use the original list:
+            candidates = self.device_info_list.copy()
 
             for key in keys:
                 key_value = eval(key)

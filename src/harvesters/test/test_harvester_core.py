@@ -348,7 +348,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         # Register a call back method:
         self.ia.on_new_buffer_arrival = self._callback_on_new_buffer_arrival
 
-        # We turn software tirrger on:
+        # We turn software trigger on:
         self.setup_camera()
 
         # We have not fetched any buffer:

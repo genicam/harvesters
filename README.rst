@@ -143,8 +143,8 @@ Note that we as the committee have not prepared any formal certification procedu
       - GenICam compliant cameras
     - - `Active Silicon <https://www.activesilicon.com/>`_
       - Worked
-      - Not tested
-      - Not tested
+      - Not applicable
+      - Not applicable
       - Not applicable
     - - `Adimec <https://www.adimec.com/>`_
       - Not applicable
@@ -263,8 +263,8 @@ Note that we as the committee have not prepared any formal certification procedu
       - Worked
     - - `Vieworks <http://www.vieworks.com/eng/main.html>`_
       - Not tested
-      - Not tested
-      - Not tested
+      - Not applicable
+      - Not applicable
       - Not tested
     - - `XIMEA <https://www.ximea.com/>`_
       - Not tested

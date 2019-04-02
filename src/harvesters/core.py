@@ -25,6 +25,7 @@ import pathlib
 import signal
 import sys
 from threading import Lock, Thread, Event
+from threading import current_thread, main_thread
 import time
 from urllib.parse import unquote
 import weakref
@@ -1347,10 +1348,14 @@ class ImageAcquirer:
         self._threads = []
         self._threads.append(self._thread_image_acquisition)
 
-        self._sigint_handler = _SignalHandler(
-            event=self._event, threads=self._threads, logger=self._logger
-        )
-        signal.signal(signal.SIGINT, self._sigint_handler)
+        # Create a signal handler if it's being run in the main thread:
+        self._sigint_handler = None
+        if current_thread() is main_thread():
+            self._sigint_handler = _SignalHandler(
+                event=self._event, threads=self._threads, logger=self._logger
+            )
+            signal.signal(signal.SIGINT, self._sigint_handler)
+            self._logger.info('Created a signal handler for SIGINT.')
 
         #
         self._num_filled_buffers_to_hold = 1

@@ -20,6 +20,9 @@
 
 # Standard library imports
 import os
+from queue import Queue, Empty
+import sys
+import threading
 import time
 import unittest
 from urllib.parse import quote
@@ -29,7 +32,9 @@ from genicam2.gentl import TimeoutException
 
 # Local application/library specific imports
 from harvesters.test.base_harvester import TestHarvesterCoreBase
+from harvesters.test.base_harvester import get_cti_file_path
 from harvesters.core import _parse_description_file
+from harvesters.core import Harvester
 from harvesters.core import ImageAcquirer
 from harvesters.test.helper import get_package_dir
 
@@ -483,6 +488,50 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             self.assertEqual(
                 device_info_list, self.harvester.device_info_list
             )
+
+
+class _TestIssue81(threading.Thread):
+    def __init__(self, message_queue=None, cti_file_path=None):
+        super().__init__()
+        self._message_queue = message_queue
+        self._cti_file_path = cti_file_path
+
+    def run(self):
+        h = Harvester()
+        h.add_cti_file(self._cti_file_path)
+        h.update_device_info_list()
+        try:
+            ia = h.create_image_acquirer(0)
+        except:
+            # Transfer the exception anyway:
+            self._message_queue.put(sys.exc_info())
+        else:
+            ia.start_image_acquisition()
+            ia.stop_image_acquisition()
+            ia.destroy()
+            h.reset()
+
+
+class TestIssue81(unittest.TestCase):
+    _cti_file_path = get_cti_file_path()
+    sys.path.append(_cti_file_path)
+
+    def test_issue_81(self):
+        message_queue = Queue()
+        t = _TestIssue81(
+            message_queue=message_queue, cti_file_path=self._cti_file_path
+        )
+        t.start()
+        t.join()
+        try:
+            result = message_queue.get(block=False)
+        except Empty:
+            # Nothing happened; everything is fine.
+            pass
+        else:
+            exception, message, backtrace = result
+            # Transfer the exception:
+            raise exception(message)
 
 
 if __name__ == '__main__':

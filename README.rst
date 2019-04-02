@@ -217,11 +217,10 @@ Note that we as the committee have not prepared any formal certification procedu
       - Not applicable
       - Worked
     - - `MACNICA Inc. <https://www.macnica.co.jp/en/top>`_
-      - Not applicable
-      - Worked
-      - Worked
-      - Worked
       - Not tested
+      - Not tested
+      - Worked
+      - Worked
     - - `MATRIX VISION <https://www.matrix-vision.com/home-en.html>`_
       - Not applicable
       - Worked

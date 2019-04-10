@@ -1635,9 +1635,13 @@ class ImageAcquirer:
 
         self._num_images_to_acquire = num_images_to_acquire
 
-        # We're ready to start image acquisition. Lock the device's transport
-        # layer related features:
-        self.device.node_map.TLParamsLocked.value = 1
+        try:
+            # We're ready to start image acquisition. Lock the device's
+            # transport layer related features:
+            self.device.node_map.TLParamsLocked.value = 1
+        except LogicalErrorException:
+            # SFNC < 2.0
+            pass
 
         # Start image acquisition.
         self._is_acquiring_images = True
@@ -1961,9 +1965,13 @@ class ImageAcquirer:
                 #
                 self.device.node_map.AcquisitionStop.execute()
 
-                # Unlock TLParamsLocked in order to allow full device
-                # configuration:
-                self.device.node_map.TLParamsLocked.value = 0
+                try:
+                    # Unlock TLParamsLocked in order to allow full device
+                    # configuration:
+                    self.device.node_map.TLParamsLocked.value = 0
+                except LogicalErrorException:
+                    # SFNC < 2.0
+                    pass
 
                 for data_stream in self._data_streams:
                     # Stop image acquisition.

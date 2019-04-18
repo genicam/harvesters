@@ -39,17 +39,17 @@ def get_cti_file_path():
         cti_file_path = os.getenv(name)
     else:
         try:
-            import genicam2
+            import genicam
         except ImportError:
-            # Failed to import genicam2 module; suggest the expected
+            # Failed to import genicam module; suggest the expected
             # solution to the client:
             raise ImportError(
                 'You must specify a target GenTL Producer either using '
-                'HARVESTERS_TEST_TARGET or installing genicam2 module.'
+                'HARVESTERS_TEST_TARGET or installing genicam module.'
             )
         else:
             # Run tests with the default test target, TLSimu:
-            dir_name = get_package_dir('genicam2')
+            dir_name = get_package_dir('genicam')
             cti_file_path = os.path.join(dir_name, 'TLSimu.cti')
     
     return cti_file_path

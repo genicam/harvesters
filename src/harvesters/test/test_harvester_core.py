@@ -28,7 +28,7 @@ import unittest
 from urllib.parse import quote
 
 # Related third party imports
-from genicam2.gentl import TimeoutException
+from genicam.gentl import TimeoutException
 
 # Local application/library specific imports
 from harvesters.test.base_harvester import TestHarvesterCoreBase

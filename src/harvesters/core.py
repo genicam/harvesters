@@ -34,19 +34,19 @@ import zipfile
 # Related third party imports
 import numpy as np
 
-from genicam2.genapi import NodeMap
-from genicam2.genapi import LogicalErrorException, RuntimeException
-from genicam2.genapi import ChunkAdapterGeneric, ChunkAdapterU3V, \
+from genicam.genapi import NodeMap
+from genicam.genapi import LogicalErrorException, RuntimeException
+from genicam.genapi import ChunkAdapterGeneric, ChunkAdapterU3V, \
     ChunkAdapterGEV
 
-from genicam2.gentl import TimeoutException, AccessDeniedException, \
+from genicam.gentl import TimeoutException, AccessDeniedException, \
     LoadLibraryException, InvalidParameterException, \
     NotImplementedException, NotAvailableException, ClosedException, \
     ResourceInUseException, ParsingChunkDataException, NoDataException, \
     NotInitializedException, InvalidHandleException, InvalidIdException, \
     ErrorException, InvalidBufferException
-from genicam2.gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
-from genicam2.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
+from genicam.gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
+from genicam.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
     PAYLOADTYPE_INFO_IDS
 
@@ -1406,11 +1406,11 @@ class ImageAcquirer:
     @staticmethod
     def _get_chunk_adapter(*, device=None):
         if device.tl_type == 'U3V':
-            return ChunkAdapterU3V(device.node_map.pointer)
+            return ChunkAdapterU3V(device.node_map)
         elif device.tl_type == 'GEV':
-            return ChunkAdapterGEV(device.node_map.pointer)
+            return ChunkAdapterGEV(device.node_map)
         else:
-            return ChunkAdapterGeneric(device.node_map.pointer)
+            return ChunkAdapterGeneric(device.node_map)
 
     def __enter__(self):
         return self

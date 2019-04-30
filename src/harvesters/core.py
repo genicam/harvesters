@@ -74,6 +74,120 @@ else:
     _xml_file_dir = None
 
 
+class Module:
+    def __init__(self, module=None, node_map=None, parent=None):
+        self._module = module
+        self._node_map = node_map
+        self._parent = parent
+
+    @property
+    def node_map(self):
+        return self._node_map
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @property
+    def port(self):
+        return self._module.port
+
+    def register_event(self, event_type=None):
+        return self._module.register_event(event_type)
+
+    def announce_buffer(self, buffer_token=None):
+        return self._module.announce_buffer(buffer_token)
+
+
+class DataStream(Module):
+    def __init__(self, module=None, node_map=None, parent=None):
+        super().__init__(module=module, node_map=node_map, parent=parent)
+
+    def open(self, data_stream_id=None):
+        self._module.open(data_stream_id)
+
+    @property
+    def id_(self):
+        return self._module.id_
+
+    @property
+    def buffer_announce_min(self):
+        return self._module.buffer_announce_min
+
+    @property
+    def defines_payload_size(self):
+        return self._module.defines_payload_size
+
+    def queue_buffer(self, announced_buffer=None):
+        self._module.queue_buffer(announced_buffer)
+
+    def start_acquisition(self, flags=None, num_images=None):
+        self._module.start_acquisition(flags, num_images)
+
+    def is_open(self):
+        return self._module.is_open()
+
+    def stop_acquisition(self, flags=None):
+        self._module.stop_acquisition(flags)
+
+    def revoke_buffer(self, buffer=None):
+        return self._module.revoke_buffer(buffer)
+
+    def flush_buffer_queue(self, operation=None):
+        self._module.flush_buffer_queue(operation)
+
+    def close(self):
+        self._module.close()
+
+
+class RemoteDevice(Module):
+    def __init__(self, module=None, node_map=None, parent=None):
+        super().__init__(module=module, node_map=node_map, parent=parent)
+
+    @property
+    def port(self):
+        return self._parent.remote_port
+
+
+class Device(Module):
+    def __init__(self, module=None, node_map=None, parent=None):
+        super().__init__(module=module, node_map=node_map, parent=parent)
+
+    @property
+    def data_stream_ids(self):
+        return self._module.data_stream_ids
+
+    def create_data_stream(self):
+        return self._module.create_data_stream()
+
+    @property
+    def id_(self):
+        return self._module.id_
+
+    @property
+    def tl_type(self):
+        return self._module.tl_type
+
+    def is_open(self):
+        return self._module.is_open()
+
+    def close(self):
+        self._module.close()
+
+    @property
+    def port(self):
+        return self._module.local_port
+
+class Interface(Module):
+    def __init__(self, module=None, node_map=None, parent=None):
+        super().__init__(module=module, node_map=node_map, parent=parent)
+
+
+class System(Module):
+    def __init__(self, module=None, node_map=None, parent=None):
+        super().__init__(module=module, node_map=node_map, parent=parent)
+
+
 class _SignalHandler:
     _event = None
     _threads = None
@@ -1287,42 +1401,55 @@ class ImageAcquirer:
         self._parent = parent
 
         #
-        self._device = device
-        self._device.node_map = _get_port_connected_node_map(
-            port=self.device.remote_port, logger=self._logger,
-            file_path=file_path
-        )  # Remote device's node map
+        interface = device.parent
+        system = interface.parent
 
         #
         try:
-            self._device.local_node_map = _get_port_connected_node_map(
-                port=self.device.local_port, logger=self._logger
+            node_map = _get_port_connected_node_map(
+                port=system.port, logger=self._logger
+            )
+        except RuntimeException as e:
+            self._logger.error(e, exc_info=True)
+        else:
+            self._system = System(module=system, node_map=node_map)
+
+        #
+        try:
+            node_map = _get_port_connected_node_map(
+                port=interface.port, logger=self._logger
+            )
+        except RuntimeException as e:
+            self._logger.error(e, exc_info=True)
+        else:
+            self._interface = Interface(
+                module=interface, node_map=node_map, parent=self._system
+            )
+
+        #
+        try:
+            node_map = _get_port_connected_node_map(
+                port=device.local_port, logger=self._logger
             )  # Local device's node map
         except RuntimeException as e:
             self._logger.error(e, exc_info=True)
-            self._device.local_node_map = None
+        else:
+            self._device = Device(
+                module=device, node_map=node_map, parent=self._interface
+            )
 
         #
-        self._interface = self._device.parent
-
         try:
-            self._interface.local_node_map = _get_port_connected_node_map(
-                port=self._interface.port, logger=self._logger
-            )
+            node_map=_get_port_connected_node_map(
+                port=device.remote_port, logger=self._logger,
+                file_path=file_path
+            )  # Remote device's node map
         except RuntimeException as e:
             self._logger.error(e, exc_info=True)
-            self._interface.local_node_map = None
-
-        #
-        self._system = self._interface.parent
-
-        try:
-            self._system.local_node_map = _get_port_connected_node_map(
-                port=self._system.port, logger=self._logger
+        else:
+            self._remote_device = RemoteDevice(
+                module=self._device, node_map=node_map, parent=self._device
             )
-        except RuntimeException as e:
-            self._logger.error(e, exc_info=True)
-            self._system.local_node_map = None
 
         #
         self._data_streams = []
@@ -1395,7 +1522,9 @@ class ImageAcquirer:
         )
 
         #
-        self._chunk_adapter = self._get_chunk_adapter(device=self._device)
+        self._chunk_adapter = self._get_chunk_adapter(
+            device=self.device, node_map=self.remote_device.node_map
+        )
 
         # A callback method when it's called when a new buffer is delivered:
         self._on_new_buffer_arrival = None
@@ -1404,13 +1533,13 @@ class ImageAcquirer:
         self._finalizer = weakref.finalize(self, self._destroy)
 
     @staticmethod
-    def _get_chunk_adapter(*, device=None):
+    def _get_chunk_adapter(*, device=None, node_map=None):
         if device.tl_type == 'U3V':
-            return ChunkAdapterU3V(device.node_map)
+            return ChunkAdapterU3V(node_map)
         elif device.tl_type == 'GEV':
-            return ChunkAdapterGEV(device.node_map)
+            return ChunkAdapterGEV(node_map)
         else:
-            return ChunkAdapterGeneric(device.node_map)
+            return ChunkAdapterGeneric(node_map)
 
     def __enter__(self):
         return self
@@ -1480,6 +1609,17 @@ class ImageAcquirer:
         return len(self._holding_filled_buffers)
 
     @property
+    def data_streams(self):
+        return self._data_streams
+
+    @property
+    def remote_device(self):
+        """
+        :return: The remote device.
+        """
+        return self._remote_device
+
+    @property
     def device(self):
         """
         :return: The proxy :class:`Device` module object of the connecting remote device.
@@ -1542,39 +1682,44 @@ class ImageAcquirer:
         self._keep_latest = value
 
     def _setup_data_streams(self):
-        #
         for i, stream_id in enumerate(self._device.data_stream_ids):
-            data_stream = self._device.create_data_stream()
+            #
+            _data_stream = self._device.create_data_stream()
+
             try:
-                data_stream.open(stream_id)
+                _data_stream.open(stream_id)
             except (
-                NotInitializedException, InvalidHandleException,
-                ResourceInUseException, InvalidIdException,
-                InvalidParameterException, AccessDeniedException,
-                NotAvailableException,
+                    NotInitializedException, InvalidHandleException,
+                    ResourceInUseException, InvalidIdException,
+                    InvalidParameterException, AccessDeniedException,
+                    NotAvailableException,
             ) as e:
                 self._logger.debug(e, exc_info=True)
             else:
                 self._logger.info(
                     'Opened DataStream module {0} of {1}.'.format(
-                        data_stream.id_, data_stream.parent.id_
+                        _data_stream.id_, _data_stream.parent.id_
                     )
                 )
-                try:
-                    data_stream.local_node_map = _get_port_connected_node_map(
-                        port=data_stream.port, logger=self._logger
-                    )
-                except RuntimeException as e:
-                    self._logger.error(e, exc_info=True)
-                    data_stream.local_node_map = None
 
+            try:
+                node_map = _get_port_connected_node_map(
+                    port=_data_stream.port, logger=self._logger
+                )
+            except RuntimeException as e:
+                self._logger.error(e, exc_info=True)
+            else:
+                self._data_streams.append(
+                    DataStream(
+                        module=_data_stream, node_map=node_map,
+                        parent=self._device
+                    )
+                )
                 # Create an Event Manager object for image acquisition.
-                event_token = data_stream.register_event(
+                event_token = self._data_streams[i].register_event(
                     EVENT_TYPE_LIST.EVENT_NEW_BUFFER
                 )
-
                 self._event_new_buffer_managers.append(EventManagerNewBuffer(event_token))
-                self._data_streams.append(data_stream)
 
     def start_image_acquisition(self):
         """
@@ -1599,7 +1744,7 @@ class ImageAcquirer:
             if data_stream.defines_payload_size():
                 buffer_size = data_stream.payload_size
             else:
-                buffer_size = self.device.node_map.PayloadSize.value
+                buffer_size = self.remote_device.node_map.PayloadSize.value
 
             raw_buffers = self._create_raw_buffers(
                 num_buffers, buffer_size
@@ -1619,13 +1764,13 @@ class ImageAcquirer:
 
         # Reset the number of images to acquire.
         try:
-            acq_mode = self.device.node_map.AcquisitionMode.value
+            acq_mode = self.remote_device.node_map.AcquisitionMode.value
             if acq_mode == 'Continuous':
                 num_images_to_acquire = -1
             elif acq_mode == 'SingleFrame':
                 num_images_to_acquire = 1
             elif acq_mode == 'MultiFrame':
-                num_images_to_acquire = self.device.node_map.AcquisitionFrameCount.value
+                num_images_to_acquire = self.remote_device.node_map.AcquisitionFrameCount.value
             else:
                 num_images_to_acquire = -1
         except LogicalErrorException as e:
@@ -1638,7 +1783,7 @@ class ImageAcquirer:
         try:
             # We're ready to start image acquisition. Lock the device's
             # transport layer related features:
-            self.device.node_map.TLParamsLocked.value = 1
+            self.remote_device.node_map.TLParamsLocked.value = 1
         except LogicalErrorException:
             # SFNC < 2.0
             pass
@@ -1657,7 +1802,7 @@ class ImageAcquirer:
             self.thread_image_acquisition.start()
 
         #
-        self.device.node_map.AcquisitionStart.execute()
+        self.remote_device.node_map.AcquisitionStart.execute()
 
         self._logger.info(
             '{0} started image acquisition.'.format(self._device.id_)
@@ -1840,7 +1985,7 @@ class ImageAcquirer:
                             #
                             buffer = Buffer(
                                 buffer=_buffer,
-                                node_map=self.device.node_map,
+                                node_map=self.remote_device.node_map,
                                 logger=self._logger
                             )
 
@@ -1963,12 +2108,12 @@ class ImageAcquirer:
 
             with MutexLocker(self.thread_image_acquisition):
                 #
-                self.device.node_map.AcquisitionStop.execute()
+                self.remote_device.node_map.AcquisitionStop.execute()
 
                 try:
                     # Unlock TLParamsLocked in order to allow full device
                     # configuration:
-                    self.device.node_map.TLParamsLocked.value = 0
+                    self.remote_device.node_map.TLParamsLocked.value = 0
                 except LogicalErrorException:
                     # SFNC < 2.0
                     pass
@@ -2625,7 +2770,7 @@ class Harvester:
             id_ = ia._device.id_
 
             #
-            if ia.device.node_map:
+            if ia.remote_device.node_map:
                 #
                 if ia._chunk_adapter:
                     ia._chunk_adapter.detach_buffer()

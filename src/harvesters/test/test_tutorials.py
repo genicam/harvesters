@@ -65,9 +65,9 @@ class TestTutorials(TestHarvesterCoreBase):
             num_images_to_acquire += 1
 
     def setup_camera(self):
-        self.ia.device.node_map.AcquisitionMode.value = 'Continuous'
-        self.ia.device.node_map.TriggerMode.value = 'On'
-        self.ia.device.node_map.TriggerSource.value = 'Software'
+        self.ia.remote_device.node_map.AcquisitionMode.value = 'Continuous'
+        self.ia.remote_device.node_map.TriggerMode.value = 'On'
+        self.ia.remote_device.node_map.TriggerSource.value = 'Software'
 
     def setup_equipment_and_trigger_camera(self):
         # Setup your equipment.
@@ -75,7 +75,7 @@ class TestTutorials(TestHarvesterCoreBase):
 
         # Trigger the camera because you have already setup your
         # equipment for the upcoming image acquisition.
-        self.ia.device.node_map.TriggerSoftware.execute()
+        self.ia.remote_device.node_map.TriggerSoftware.execute()
 
 
 class TestTutorials2(unittest.TestCase):

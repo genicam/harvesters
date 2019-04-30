@@ -575,13 +575,15 @@ The following code block shows Harvester Core is running on IPython. An acquired
 
     In [8]: ia = h.create_image_acquirer(0)
 
-    In [9]: ia.device.node_map.Width.value, ia.device.node_map.Height.value = 8, 8
+    In [9]: ia.remote_device.node_map.Width.value = 8
 
-    In [10]: ia.device.node_map.PixelFormat.value = 'Mono8'
+    In [10]: ia.remote_device.node_map.Height.value = 8
 
-    In [11]: ia.start_image_acquisition()
+    In [11]: ia.remote_device.node_map.PixelFormat.value = 'Mono8'
 
-    In [12]: with ia.fetch_buffer() as buffer:
+    In [12]: ia.start_image_acquisition()
+
+    In [13]: with ia.fetch_buffer() as buffer:
         ...:     # Let's create an alias of the 2D image component:
         ...:     component = buffer.payload.components[0]
         ...:
@@ -622,13 +624,13 @@ The following code block shows Harvester Core is running on IPython. An acquired
      [130 131 132 133 134 135 136 137]]
     AVE: 130.0, MIN: 123, MAX: 137
 
-    In [13]: ia.stop_image_acquisition()
+    In [14]: ia.stop_image_acquisition()
 
-    In [14]: ia.destroy()
+    In [15]: ia.destroy()
 
-    In [15]: h.reset()
+    In [16]: h.reset()
 
-    In [16]: quit
+    In [17]: quit
     (genicam) kznr@Kazunaris-MacBook:~%
 
 ####################

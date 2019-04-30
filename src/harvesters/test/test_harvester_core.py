@@ -203,8 +203,8 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             _ = ia.fetch_buffer(timeout=timeout)
 
         # Then we setup the device for software trigger mode:
-        ia.device.node_map.TriggerMode.value = 'On'
-        ia.device.node_map.TriggerSource.value = 'Software'
+        ia.remote_device.node_map.TriggerMode.value = 'On'
+        ia.remote_device.node_map.TriggerSource.value = 'Software'
 
         # We're ready to start image acquisition:
         ia.start_image_acquisition()
@@ -218,7 +218,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         buffer = None
         self.assertIsNone(buffer)
 
-        ia.device.node_map.TriggerSoftware.execute()
+        ia.remote_device.node_map.TriggerSoftware.execute()
         buffer = ia.fetch_buffer(timeout=timeout)
         self.assertIsNotNone(buffer)
         self._logger.info('{0}'.format(buffer))
@@ -300,14 +300,14 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             num_images_to_acquire -= 1
 
     def setup_camera(self):
-        self.ia.device.node_map.AcquisitionMode.value = 'Continuous'
-        self.ia.device.node_map.TriggerMode.value = 'On'
-        self.ia.device.node_map.TriggerSource.value = 'Software'
+        self.ia.remote_device.node_map.AcquisitionMode.value = 'Continuous'
+        self.ia.remote_device.node_map.TriggerMode.value = 'On'
+        self.ia.remote_device.node_map.TriggerSource.value = 'Software'
 
     def generate_software_trigger(self):
         # Trigger the camera because you have already setup your
         # equipment for the upcoming image acquisition.
-        self.ia.device.node_map.TriggerSoftware.execute()
+        self.ia.remote_device.node_map.TriggerSoftware.execute()
 
     def test_issue_59(self):
         if not self.is_running_with_default_target():
@@ -413,7 +413,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         # Compare DeviceModelNames:
         self.assertEqual(
             'Altered TLSimu (' + expected_value + ')',
-            self.ia.device.node_map.DeviceModelName.value
+            self.ia.remote_device.node_map.DeviceModelName.value
         )
 
         #

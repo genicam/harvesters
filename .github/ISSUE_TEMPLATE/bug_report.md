@@ -26,6 +26,7 @@ If applicable, add screenshots to help explain your problem.
 **Desktop (please complete the following information):**
  - OS: [e.g. macOS]
  - Python: [e.g. 3.7]
+ - Harvester: [e.g. 0.2.12]
  - GenTL Producer: [e.g. Comapny ABC]
  - Camera: [e.g. Company DEF]
 

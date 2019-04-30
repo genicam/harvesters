@@ -1,6 +1,9 @@
 ---
 name: Bug report
 about: Create a report to help us improve
+title: ''
+labels: ''
+assignees: ''
 
 ---
 
@@ -22,6 +25,9 @@ If applicable, add screenshots to help explain your problem.
 
 **Desktop (please complete the following information):**
  - OS: [e.g. macOS]
+ - Python: [e.g. 3.7]
+ - GenTL Producer: [e.g. Comapny ABC]
+ - Camera: [e.g. Company DEF]
 
 **Additional context**
 Add any other context about the problem here.

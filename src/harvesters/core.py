@@ -188,6 +188,76 @@ class System(Module):
         super().__init__(module=module, node_map=node_map, parent=parent)
 
 
+class DeviceInfo:
+    def __init__(self, device_info=None):
+        self._device_info = device_info
+
+    def create_device(self):
+        return self._device_info.create_device()
+
+    def __repr__(self):
+        properties = [
+            'id_',
+            'vendor',
+            'model',
+            'tl_type',
+            'user_defined_name',
+            'serial_number',
+            'version',
+        ]
+        results = []
+        for property in properties:
+            if property is '':
+                result = None
+            else:
+                try:
+                    result = eval('self._device_info.' + property)
+                except:
+                    result = None
+            results.append(result)
+
+        info = '('
+        delimiter = ', '
+        for i, r in enumerate(results):
+            if r:
+                r = '\'{0}\''.format(r)
+            else:
+                r = 'None'
+            info += '{0}={1}'.format(properties[i], r)
+            info += delimiter
+        info = info[:-len(delimiter)]
+        info += ')'
+        return info
+
+    @property
+    def id_(self):
+        return self._device_info.id_
+
+    @property
+    def vendor(self):
+        return self._device_info.vendor
+
+    @property
+    def model(self):
+        return self._device_info.model
+
+    @property
+    def tl_type(self):
+        return self._device_info.tl_type
+
+    @property
+    def user_defined_name(self):
+        return self._device_info.user_defined_name
+
+    @property
+    def serial_number(self):
+        return self._device_info.serial_number
+
+    @property
+    def version(self):
+        return self._device_info.version
+
+
 class _SignalHandler:
     _event = None
     _threads = None
@@ -2742,7 +2812,9 @@ class Harvester:
                         iface.update_device_info_list(self.timeout_for_update)
                         self._interfaces.append(iface)
                         for d_info in iface.device_info_list:
-                            self.device_info_list.append(d_info)
+                            self.device_info_list.append(
+                                DeviceInfo(device_info=d_info)
+                            )
 
         except LoadLibraryException as e:
             self._logger.error(e, exc_info=True)

@@ -66,13 +66,6 @@ from harvesters.util.pfnc import lmn_444_location_formats, \
 _is_logging_buffer_manipulation = True if 'HARVESTERS_LOG_BUFFER_MANIPULATION' in os.environ else False
 _sleep_duration_default = 0.000001  # s
 
-#
-_env_var_xml_file_dir = 'HARVESTERS_XML_FILE_DIR'
-if _env_var_xml_file_dir in os.environ:
-    _xml_file_dir = os.getenv(_env_var_xml_file_dir)
-else:
-    _xml_file_dir = None
-
 
 class _SignalHandler:
     _event = None
@@ -1287,16 +1280,24 @@ class ImageAcquirer:
         self._parent = parent
 
         #
+        env_var = 'HARVESTERS_XML_FILE_DIR'
+        if env_var in os.environ:
+            self._file_dir = os.getenv(env_var)
+        else:
+            self._file_dir = None
+
+        #
         self._device = device
         self._device.node_map = _get_port_connected_node_map(
             port=self.device.remote_port, logger=self._logger,
-            file_path=file_path
+            file_path=file_path, file_dir=self._file_dir
         )  # Remote device's node map
 
         #
         try:
             self._device.local_node_map = _get_port_connected_node_map(
-                port=self.device.local_port, logger=self._logger
+                port=self.device.local_port, logger=self._logger,
+                file_dir=self._file_dir
             )  # Local device's node map
         except RuntimeException as e:
             self._logger.error(e, exc_info=True)
@@ -1307,7 +1308,8 @@ class ImageAcquirer:
 
         try:
             self._interface.local_node_map = _get_port_connected_node_map(
-                port=self._interface.port, logger=self._logger
+                port=self._interface.port, logger=self._logger,
+                file_dir=self._file_dir
             )
         except RuntimeException as e:
             self._logger.error(e, exc_info=True)
@@ -1318,7 +1320,8 @@ class ImageAcquirer:
 
         try:
             self._system.local_node_map = _get_port_connected_node_map(
-                port=self._system.port, logger=self._logger
+                port=self._system.port, logger=self._logger,
+                file_dir=self._file_dir
             )
         except RuntimeException as e:
             self._logger.error(e, exc_info=True)
@@ -1562,7 +1565,8 @@ class ImageAcquirer:
                 )
                 try:
                     data_stream.local_node_map = _get_port_connected_node_map(
-                        port=data_stream.port, logger=self._logger
+                        port=data_stream.port, logger=self._logger,
+                        file_dir=self._file_dir
                     )
                 except RuntimeException as e:
                     self._logger.error(e, exc_info=True)
@@ -2059,7 +2063,7 @@ class ImageAcquirer:
         self._announced_buffers.clear()
 
 
-def _parse_description_file(*, port=None, url=None, file_path=None, logger=None):
+def _parse_description_file(*, port=None, url=None, file_path=None, logger=None, file_dir=None):
     #
     file_name, text, bytes_object, content = None, None, None, None
 
@@ -2100,6 +2104,16 @@ def _parse_description_file(*, port=None, url=None, file_path=None, logger=None)
             # But wait, we have to check if it's a zip file or not.
             content = content[1]
             bytes_object = io.BytesIO(content)
+
+            # Store the XML file if the client has specified a location:
+            if file_dir:
+                directory = file_dir
+                # Create the directory if it didn't exist:
+                if not os.path.exists(directory):
+                    os.makedirs(directory)
+                # Store the XML file:
+                with open(os.path.join(directory, file_name), 'w+b') as f:
+                    f.write(bytes_object.getvalue())
 
         elif location == 'file':
             # '///c|/program%20files/foo.xml' ->
@@ -2149,28 +2163,18 @@ def _parse_description_file(*, port=None, url=None, file_path=None, logger=None)
     return file_name, text, bytes_object
 
 
-def _get_port_connected_node_map(*, port=None, logger=None, file_path=None):
+def _get_port_connected_node_map(*, port=None, logger=None, file_path=None, file_dir=None):
     #
     assert port
 
     #
     file_name, text, bytes_object = _parse_description_file(
-        port=port, file_path=file_path, logger=logger
+        port=port, file_path=file_path, logger=logger, file_dir=file_dir
     )
 
     # There's no description file content to work with the node map:
     if (file_name is None) and (text is None) and (bytes_object is None):
         return None
-
-    # Store the XML file if the client has specified a location:
-    if _xml_file_dir:
-        directory = _xml_file_dir
-        # Create the directory if it didn't exist:
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-        # Store the XML file:
-        with open(os.path.join(directory, file_name), 'w+b') as f:
-            f.write(bytes_object.getvalue())
 
     # Instantiate a GenICam node map object.
     node_map = NodeMap()

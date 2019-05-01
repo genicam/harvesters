@@ -66,13 +66,6 @@ from harvesters.util.pfnc import lmn_444_location_formats, \
 _is_logging_buffer_manipulation = True if 'HARVESTERS_LOG_BUFFER_MANIPULATION' in os.environ else False
 _sleep_duration_default = 0.000001  # s
 
-#
-_env_var_xml_file_dir = 'HARVESTERS_XML_FILE_DIR'
-if _env_var_xml_file_dir in os.environ:
-    _xml_file_dir = os.getenv(_env_var_xml_file_dir)
-else:
-    _xml_file_dir = None
-
 
 class Module:
     def __init__(self, module=None, node_map=None, parent=None):
@@ -382,16 +375,11 @@ class ThreadBase:
         """
         raise NotImplementedError
 
-    @property
     def is_running(self):
         """
         :return: :const:`True` if the worker is still running. Otherwise :const:`False`.
         """
         return self._is_running
-
-    @is_running.setter
-    def is_running(self, value):
-        self._is_running = value
 
     @property
     def worker(self):
@@ -588,7 +576,7 @@ class _ThreadImpl(Thread):
 
     def stop(self):
         with self._base.mutex:
-            self._base.is_running = False
+            self._base._is_running = False
 
     def run(self):
         """
@@ -597,7 +585,7 @@ class _ThreadImpl(Thread):
         This method will be terminated once its parent's is_running
         property turns False.
         """
-        while self._base.is_running:
+        while self._base._is_running:
             if self._worker:
                 self._worker()
                 time.sleep(self._sleep_duration)
@@ -1183,7 +1171,10 @@ class PayloadBase:
         #
         symbolic = symbolics[data_format]
         if symbolic in component_2d_formats:
-            return Component2DImage(buffer=buffer, part=part, node_map=node_map, logger=self._logger)
+            return Component2DImage(
+                buffer=buffer, part=part, node_map=node_map,
+                logger=self._logger
+            )
 
         return None
 
@@ -1474,10 +1465,18 @@ class ImageAcquirer:
         interface = device.parent
         system = interface.parent
 
+        env_var = 'HARVESTERS_XML_FILE_DIR'
+        if env_var in os.environ:
+            self._file_dir = os.getenv(env_var)
+        else:
+            self._file_dir = None
+
+
         #
         try:
             node_map = _get_port_connected_node_map(
-                port=system.port, logger=self._logger
+                port=system.port, logger=self._logger,
+                file_dir=self._file_dir
             )
         except RuntimeException as e:
             self._logger.error(e, exc_info=True)
@@ -1487,7 +1486,8 @@ class ImageAcquirer:
         #
         try:
             node_map = _get_port_connected_node_map(
-                port=interface.port, logger=self._logger
+                port=interface.port, logger=self._logger,
+                file_dir=self._file_dir
             )
         except RuntimeException as e:
             self._logger.error(e, exc_info=True)
@@ -1499,7 +1499,8 @@ class ImageAcquirer:
         #
         try:
             node_map = _get_port_connected_node_map(
-                port=device.local_port, logger=self._logger
+                port=device.local_port, logger=self._logger,
+                file_dir=self._file_dir
             )  # Local device's node map
         except RuntimeException as e:
             self._logger.error(e, exc_info=True)
@@ -1512,7 +1513,7 @@ class ImageAcquirer:
         try:
             node_map=_get_port_connected_node_map(
                 port=device.remote_port, logger=self._logger,
-                file_path=file_path
+                file_path=file_path, file_dir=self._file_dir
             )  # Remote device's node map
         except RuntimeException as e:
             self._logger.error(e, exc_info=True)
@@ -1710,7 +1711,6 @@ class ImageAcquirer:
         """
         return self._system
 
-    @property
     def is_acquiring_images(self):
         """
         :return: :const:`True` if it's acquiring images. Otherwise :const:`False`.
@@ -1789,7 +1789,9 @@ class ImageAcquirer:
                 event_token = self._data_streams[i].register_event(
                     EVENT_TYPE_LIST.EVENT_NEW_BUFFER
                 )
-                self._event_new_buffer_managers.append(EventManagerNewBuffer(event_token))
+                self._event_new_buffer_managers.append(
+                    EventManagerNewBuffer(event_token)
+                )
 
     def start_image_acquisition(self):
         """
@@ -1884,7 +1886,7 @@ class ImageAcquirer:
     def _worker_image_acquisition(self):
         for event_manager in self._event_new_buffer_managers:
             try:
-                if self.is_acquiring_images:
+                if self.is_acquiring_images():
                     event_manager.update_event_data(
                         self._timeout_for_image_acquisition
                     )
@@ -2033,7 +2035,7 @@ class ImageAcquirer:
 
         :return: A :class:`Buffer` object.
         """
-        if not self.is_acquiring_images:
+        if not self.is_acquiring_images():
             raise TimeoutException
 
         watch_timeout = True if timeout > 0 else False
@@ -2168,12 +2170,12 @@ class ImageAcquirer:
 
         :return: None.
         """
-        if self.is_acquiring_images:
+        if self.is_acquiring_images():
             #
             self._is_acquiring_images = False
 
             #
-            if self.thread_image_acquisition.is_running:  # TODO
+            if self.thread_image_acquisition.is_running():  # TODO
                 self.thread_image_acquisition.stop()
 
             with MutexLocker(self.thread_image_acquisition):
@@ -2274,7 +2276,7 @@ class ImageAcquirer:
         self._announced_buffers.clear()
 
 
-def _parse_description_file(*, port=None, url=None, file_path=None, logger=None):
+def _parse_description_file(*, port=None, url=None, file_path=None, logger=None, file_dir=None):
     #
     file_name, text, bytes_object, content = None, None, None, None
 
@@ -2315,6 +2317,16 @@ def _parse_description_file(*, port=None, url=None, file_path=None, logger=None)
             # But wait, we have to check if it's a zip file or not.
             content = content[1]
             bytes_object = io.BytesIO(content)
+
+            # Store the XML file if the client has specified a location:
+            if file_dir:
+                directory = file_dir
+                # Create the directory if it didn't exist:
+                if not os.path.exists(directory):
+                    os.makedirs(directory)
+                # Store the XML file:
+                with open(os.path.join(directory, file_name), 'w+b') as f:
+                    f.write(bytes_object.getvalue())
 
         elif location == 'file':
             # '///c|/program%20files/foo.xml' ->
@@ -2364,28 +2376,18 @@ def _parse_description_file(*, port=None, url=None, file_path=None, logger=None)
     return file_name, text, bytes_object
 
 
-def _get_port_connected_node_map(*, port=None, logger=None, file_path=None):
+def _get_port_connected_node_map(*, port=None, logger=None, file_path=None, file_dir=None):
     #
     assert port
 
     #
     file_name, text, bytes_object = _parse_description_file(
-        port=port, file_path=file_path, logger=logger
+        port=port, file_path=file_path, logger=logger, file_dir=file_dir
     )
 
     # There's no description file content to work with the node map:
     if (file_name is None) and (text is None) and (bytes_object is None):
         return None
-
-    # Store the XML file if the client has specified a location:
-    if _xml_file_dir:
-        directory = _xml_file_dir
-        # Create the directory if it didn't exist:
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-        # Store the XML file:
-        with open(os.path.join(directory, file_name), 'w+b') as f:
-            f.write(bytes_object.getvalue())
 
     # Instantiate a GenICam node map object.
     node_map = NodeMap()

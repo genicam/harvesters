@@ -64,4 +64,4 @@ class ConcretePort(AbstractPort):
         self._port = None
 
     def get_access_mode(self):
-        return EAccessMode.RW if self.is_open else EAccessMode.NA
+        return EAccessMode.RW if self.is_open() else EAccessMode.NA

@@ -21,7 +21,9 @@
 # Standard library imports
 import os
 from queue import Queue, Empty
+from shutil import rmtree
 import sys
+from tempfile import gettempdir
 import threading
 import time
 import unittest
@@ -532,6 +534,40 @@ class TestIssue81(unittest.TestCase):
             exception, message, backtrace = result
             # Transfer the exception:
             raise exception(message)
+
+    def test_issue_85(self):
+        #
+        temp_dir = os.path.join(
+            gettempdir(), 'harvester', self.test_issue_85.__name__
+        )
+
+        #
+        if os.path.isdir(temp_dir):
+            rmtree(temp_dir)
+        os.makedirs(temp_dir)
+
+        #
+        env_var = 'HARVESTERS_XML_FILE_DIR'
+        original = None if os.environ else os.environ[env_var]
+
+        os.environ[env_var] = temp_dir
+
+        #
+        self.assertFalse(os.listdir(temp_dir))
+
+        #
+        with Harvester() as h:
+            h.add_cti_file(self._cti_file_path)
+            h.update_device_info_list()
+            with h.create_image_acquirer(0):
+                pass
+
+        #
+        if original:
+            os.environ[env_var] = original
+
+        #
+        self.assertTrue(os.listdir(temp_dir))
 
 
 if __name__ == '__main__':

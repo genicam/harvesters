@@ -191,16 +191,11 @@ class ThreadBase:
         """
         raise NotImplementedError
 
-    @property
     def is_running(self):
         """
         :return: :const:`True` if the worker is still running. Otherwise :const:`False`.
         """
         return self._is_running
-
-    @is_running.setter
-    def is_running(self, value):
-        self._is_running = value
 
     @property
     def worker(self):
@@ -397,7 +392,7 @@ class _ThreadImpl(Thread):
 
     def stop(self):
         with self._base.mutex:
-            self._base.is_running = False
+            self._base._is_running = False
 
     def run(self):
         """
@@ -406,7 +401,7 @@ class _ThreadImpl(Thread):
         This method will be terminated once its parent's is_running
         property turns False.
         """
-        while self._base.is_running:
+        while self._base._is_running:
             if self._worker:
                 self._worker()
                 time.sleep(self._sleep_duration)
@@ -1503,7 +1498,6 @@ class ImageAcquirer:
         """
         return self._system
 
-    @property
     def is_acquiring_images(self):
         """
         :return: :const:`True` if it's acquiring images. Otherwise :const:`False`.
@@ -1673,7 +1667,7 @@ class ImageAcquirer:
     def _worker_image_acquisition(self):
         for event_manager in self._event_new_buffer_managers:
             try:
-                if self.is_acquiring_images:
+                if self.is_acquiring_images():
                     event_manager.update_event_data(
                         self._timeout_for_image_acquisition
                     )
@@ -1822,7 +1816,7 @@ class ImageAcquirer:
 
         :return: A :class:`Buffer` object.
         """
-        if not self.is_acquiring_images:
+        if not self.is_acquiring_images():
             raise TimeoutException
 
         watch_timeout = True if timeout > 0 else False
@@ -1957,12 +1951,12 @@ class ImageAcquirer:
 
         :return: None.
         """
-        if self.is_acquiring_images:
+        if self.is_acquiring_images():
             #
             self._is_acquiring_images = False
 
             #
-            if self.thread_image_acquisition.is_running:  # TODO
+            if self.thread_image_acquisition.is_running():  # TODO
                 self.thread_image_acquisition.stop()
 
             with MutexLocker(self.thread_image_acquisition):

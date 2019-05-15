@@ -22,8 +22,7 @@
 import time
 
 # Related third party imports
-from genicam.gentl import InvalidParameterException, \
-    NotImplementedException, NotAvailableException, InvalidHandleException
+from genicam.gentl import GenericException
 
 # Local application/library specific imports
 
@@ -67,11 +66,10 @@ class Statistics:
     def _get_timestamp(buffer):
         try:
             timestamp = buffer.timestamp_ns
-        except (InvalidParameterException, NotImplementedException,
-                NotAvailableException):
+        except GenericException:
             try:
                 timestamp = buffer.timestamp
-            except (InvalidParameterException, NotAvailableException):
+            except GenericException:
                 timestamp = 0
 
         return timestamp
@@ -81,12 +79,10 @@ class Statistics:
         #
         try:
             _ = buffer.timestamp_ns
-        except (InvalidParameterException, NotImplementedException,
-                NotAvailableException, InvalidHandleException):
+        except GenericException:
             try:
                 frequency = buffer.parent.parent.timestamp_frequency
-            except (InvalidParameterException, NotImplementedException,
-                    NotAvailableException):
+            except GenericException:
                 return None
         else:
             frequency = 1000000000  # Hz

@@ -35,16 +35,14 @@ import zipfile
 import numpy as np
 
 from genicam.genapi import NodeMap
-from genicam.genapi import LogicalErrorException, RuntimeException
+from genicam.genapi import LogicalErrorException
 from genicam.genapi import ChunkAdapterGeneric, ChunkAdapterU3V, \
     ChunkAdapterGEV
 
-from genicam.gentl import TimeoutException, AccessDeniedException, \
-    LoadLibraryException, InvalidParameterException, \
-    NotImplementedException, NotAvailableException, ClosedException, \
-    ResourceInUseException, ParsingChunkDataException, NoDataException, \
-    NotInitializedException, InvalidHandleException, InvalidIdException, \
+from genicam.gentl import TimeoutException, \
+    NotImplementedException, ParsingChunkDataException, NoDataException, \
     ErrorException, InvalidBufferException
+from genicam.gentl import GenericException
 from genicam.gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
 from genicam.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
@@ -829,7 +827,7 @@ class Component2DImage(ComponentBase):
                 value = self._part.width
             else:
                 value = self._buffer.width
-        except InvalidParameterException:
+        except GenericException:
             value = self._node_map.Width.value
         return value
 
@@ -843,7 +841,7 @@ class Component2DImage(ComponentBase):
                 value = self._part.height
             else:
                 value = self._buffer.height
-        except InvalidParameterException:
+        except GenericException:
             value = self._node_map.Height.value
         return value
 
@@ -857,7 +855,7 @@ class Component2DImage(ComponentBase):
                 value = self._part.data_format
             else:
                 value = self._buffer.pixel_format
-        except InvalidParameterException:
+        except GenericException:
             value = self._node_map.PixelFormat.value
         return value
 
@@ -878,7 +876,7 @@ class Component2DImage(ComponentBase):
                 value = self._part.delivered_image_height
             else:
                 value = self._buffer.delivered_image_height
-        except InvalidParameterException:
+        except GenericException:
             value = 0
         return value
 
@@ -892,7 +890,7 @@ class Component2DImage(ComponentBase):
                 value = self._part.x_offset
             else:
                 value = self._buffer.offset_x
-        except InvalidParameterException:
+        except GenericException:
             value = self._node_map.OffsetX.value
         return value
 
@@ -906,7 +904,7 @@ class Component2DImage(ComponentBase):
                 value = self._part.y_offset
             else:
                 value = self._buffer.offset_y
-        except InvalidParameterException:
+        except GenericException:
             value = self._node_map.OffsetY.value
         return value
 
@@ -921,7 +919,7 @@ class Component2DImage(ComponentBase):
                 value = self._part.x_padding
             else:
                 value = self._buffer.padding_x
-        except InvalidParameterException:
+        except GenericException:
             value = 0
         return value
 
@@ -935,7 +933,7 @@ class Component2DImage(ComponentBase):
                 value = self._part.y_padding
             else:
                 value = self._buffer.padding_y
-        except (InvalidParameterException, NotImplementedException):
+        except GenericException:
             value = 0
         return value
 
@@ -1000,16 +998,15 @@ class Buffer:
         timestamp = 0
         try:
             timestamp = self._buffer.timestamp_ns
-        except (InvalidParameterException, NotImplementedException,
-                NotAvailableException):
+        except GenericException:
             try:
                 _ = self.timestamp_frequency
-            except InvalidParameterException:
+            except GenericException:
                 pass
             else:
                 try:
                     timestamp = self._buffer.timestamp
-                except (InvalidParameterException, NotAvailableException):
+                except GenericException:
                     timestamp = 0
 
         return timestamp
@@ -1024,15 +1021,13 @@ class Buffer:
 
         try:
             _ = self._buffer.timestamp_ns
-        except (InvalidParameterException, NotImplementedException,
-                NotAvailableException):
+        except GenericException:
             try:
                 frequency = self._buffer.parent.parent.timestamp_frequency
-            except (InvalidParameterException, NotImplementedException,
-                    NotAvailableException):
+            except GenericException:
                 try:
                     frequency = self._node_map.GevTimestampTickFrequency.value
-                except (LogicalErrorException, NotImplementedException):
+                except GenericException:
                     pass
 
         return frequency
@@ -1478,7 +1473,7 @@ class ImageAcquirer:
                 port=system.port, logger=self._logger,
                 file_dir=self._file_dir
             )
-        except RuntimeException as e:
+        except GenericException as e:
             self._logger.error(e, exc_info=True)
         else:
             self._system = System(module=system, node_map=node_map)
@@ -1489,7 +1484,7 @@ class ImageAcquirer:
                 port=interface.port, logger=self._logger,
                 file_dir=self._file_dir
             )
-        except RuntimeException as e:
+        except GenericException as e:
             self._logger.error(e, exc_info=True)
         else:
             self._interface = Interface(
@@ -1502,7 +1497,7 @@ class ImageAcquirer:
                 port=device.local_port, logger=self._logger,
                 file_dir=self._file_dir
             )  # Local device's node map
-        except RuntimeException as e:
+        except GenericException as e:
             self._logger.error(e, exc_info=True)
         else:
             self._device = Device(
@@ -1515,7 +1510,7 @@ class ImageAcquirer:
                 port=device.remote_port, logger=self._logger,
                 file_path=file_path, file_dir=self._file_dir
             )  # Remote device's node map
-        except RuntimeException as e:
+        except GenericException as e:
             self._logger.error(e, exc_info=True)
         else:
             self._remote_device = RemoteDevice(
@@ -1758,12 +1753,7 @@ class ImageAcquirer:
 
             try:
                 _data_stream.open(stream_id)
-            except (
-                    NotInitializedException, InvalidHandleException,
-                    ResourceInUseException, InvalidIdException,
-                    InvalidParameterException, AccessDeniedException,
-                    NotAvailableException,
-            ) as e:
+            except GenericException as e:
                 self._logger.debug(e, exc_info=True)
             else:
                 self._logger.info(
@@ -1776,7 +1766,7 @@ class ImageAcquirer:
                 node_map = _get_port_connected_node_map(
                     port=_data_stream.port, logger=self._logger
                 )
-            except RuntimeException as e:
+            except GenericException as e:
                 self._logger.error(e, exc_info=True)
             else:
                 self._data_streams.append(
@@ -1809,7 +1799,7 @@ class ImageAcquirer:
                 num_buffers = data_stream.buffer_announce_min
                 if num_buffers < num_required_buffers:
                     num_buffers = num_required_buffers
-            except InvalidParameterException as e:
+            except GenericException as e:
                 num_buffers = num_required_buffers
                 self._logger.debug(e, exc_info=True)
 
@@ -1845,7 +1835,7 @@ class ImageAcquirer:
                 num_images_to_acquire = self.remote_device.node_map.AcquisitionFrameCount.value
             else:
                 num_images_to_acquire = -1
-        except LogicalErrorException as e:
+        except GenericException as e:
             # The node doesn't exist.
             num_images_to_acquire = -1
             self._logger.debug(e, exc_info=True)
@@ -1856,7 +1846,7 @@ class ImageAcquirer:
             # We're ready to start image acquisition. Lock the device's
             # transport layer related features:
             self.remote_device.node_map.TLParamsLocked.value = 1
-        except LogicalErrorException:
+        except GenericException:
             # SFNC < 2.0
             pass
 
@@ -2013,7 +2003,7 @@ class ImageAcquirer:
                     )
                 else:
                     self._chunk_adapter.attach_buffer(buffer.raw_buffer)
-            except RuntimeException as e:
+            except GenericException as e:
                 # Failed to parse the chunk data. Something must be wrong.
                 self._logger.error(e, exc_info=True)
             else:
@@ -2186,7 +2176,7 @@ class ImageAcquirer:
                     # Unlock TLParamsLocked in order to allow full device
                     # configuration:
                     self.remote_device.node_map.TLParamsLocked.value = 0
-                except LogicalErrorException:
+                except GenericException:
                     # SFNC < 2.0
                     pass
 
@@ -2196,7 +2186,7 @@ class ImageAcquirer:
                         data_stream.stop_acquisition(
                             ACQ_STOP_FLAGS_LIST.ACQ_STOP_FLAGS_KILL
                         )
-                    except (ResourceInUseException, TimeoutException) as e:
+                    except GenericException as e:
                         self._logger.error(e, exc_info=True)
 
                     # Flash the queue for image acquisition process.
@@ -2547,7 +2537,7 @@ class Harvester:
                         try:
                             if key_value != eval('item.' + key):
                                 items_to_be_removed.append(item)
-                        except (AttributeError, NotAvailableException) as e:
+                        except GenericException as e:
                             # The candidate doesn't support the information.
                             self._logger.warn(e, exc_info=True)
                             pass
@@ -2588,12 +2578,7 @@ class Harvester:
             #
             device.open(_privilege)
 
-        except (
-            NotInitializedException, InvalidHandleException,
-            InvalidIdException, ResourceInUseException,
-            InvalidParameterException, NotImplementedException,
-            AccessDeniedException,
-        ) as e:
+        except GenericException as e:
             self._logger.debug(e, exc_info=True)
             # Just re-throw the exception. The decision should be made by
             # the client but not Harvester:
@@ -2667,12 +2652,7 @@ class Harvester:
             producer = GenTLProducer.create_producer()
             try:
                 producer.open(file_path)
-            except (
-                NotInitializedException, InvalidHandleException,
-                InvalidIdException, ResourceInUseException,
-                InvalidParameterException, NotImplementedException,
-                AccessDeniedException, ClosedException,
-            ) as e:
+            except GenericException as e:
                 self._logger.debug(e, exc_info=True)
             else:
                 self._producers.append(producer)
@@ -2687,11 +2667,7 @@ class Harvester:
             system = producer.create_system()
             try:
                 system.open()
-            except (
-                NotInitializedException, ResourceInUseException,
-                InvalidParameterException, AccessDeniedException,
-                ClosedException,
-            ) as e:
+            except GenericException as e:
                 self._logger.debug(e, exc_info=True)
             else:
                 self._systems.append(system)
@@ -2801,11 +2777,7 @@ class Harvester:
                     iface = i_info.create_interface()
                     try:
                         iface.open()
-                    except (
-                        NotInitializedException, ResourceInUseException,
-                        InvalidHandleException, InvalidHandleException,
-                        InvalidParameterException, AccessDeniedException,
-                    ) as e:
+                    except GenericException as e:
                         self._logger.debug(e, exc_info=True)
                     else:
                         self._logger.info(
@@ -2818,7 +2790,7 @@ class Harvester:
                                 DeviceInfo(device_info=d_info)
                             )
 
-        except LoadLibraryException as e:
+        except GenericException as e:
             self._logger.error(e, exc_info=True)
             self._has_revised_device_list = False
         else:

@@ -1747,19 +1747,19 @@ class ImageAcquirer:
                                 # Just append it to the list:
                                 self._holding_filled_buffers.append(buffer)
 
-                #
-                if self._num_images_to_acquire >= 1:
-                    self._num_images_to_acquire -= 1
-
-                if self._on_new_buffer_arrival:
-                    self._on_new_buffer_arrival()
-
-                if self._num_images_to_acquire == 0:
                     #
-                    if self.signal_stop_image_acquisition:
-                        self.signal_stop_image_acquisition.emit()
-            
-            else:
+                    if self._num_images_to_acquire >= 1:
+                        self._num_images_to_acquire -= 1
+
+                    if self._on_new_buffer_arrival:
+                        self._on_new_buffer_arrival()
+
+                    if self._num_images_to_acquire == 0:
+                        #
+                        if self.signal_stop_image_acquisition:
+                            self.signal_stop_image_acquisition.emit()
+
+                else:
                     # Discard/queue the latest buffer when incomplete
                     self._logger.debug('Acquired Buffer is Incomplete: {0}'.format(event_manager.buffer._is_incomplete()))
                     

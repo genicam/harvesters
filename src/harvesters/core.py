@@ -1676,86 +1676,102 @@ class ImageAcquirer:
             except TimeoutException as e:
                 continue
             else:
-                #
-                if _is_logging_buffer_manipulation:
-                    self._logger.debug(
-                        'Acquired Buffer module #{0}'
-                        ' containing frame #{1}'
-                        ' from DataStream module {2}'
-                        ' of Device module {3}'
-                        '.'.format(
-                            event_manager.buffer.context,
-                            event_manager.buffer.frame_id,
-                            event_manager.parent.id_,
-                            event_manager.parent.parent.id_
+                # check if buffer is incompleted 
+                if event_manager.buffer._is_incomplete() == False:
+                    #
+                    if _is_logging_buffer_manipulation:
+                        self._logger.debug(
+                            'Acquired Buffer module #{0}'
+                            ' containing frame #{1}'
+                            ' from DataStream module {2}'
+                            ' of Device module {3}'
+                            '.'.format(
+                                event_manager.buffer.context,
+                                event_manager.buffer.frame_id,
+                                event_manager.parent.id_,
+                                event_manager.parent.parent.id_
+                            )
                         )
-                    )
 
-                if self.keep_latest:
-                    # We want to keep the latest ones:
-                    with MutexLocker(self.thread_image_acquisition):
-                        if not self._is_acquiring_images:
-                            return
+                    if self.keep_latest:
+                        # We want to keep the latest ones:
+                        with MutexLocker(self.thread_image_acquisition):
+                            if not self._is_acquiring_images:
+                                return
 
-                        if len(self._holding_filled_buffers) >= self._num_filled_buffers_to_hold:
-                            # Pick up the oldest one:
-                            buffer = self._holding_filled_buffers.pop(0)
+                            if len(self._holding_filled_buffers) >= self._num_filled_buffers_to_hold:
+                                # Pick up the oldest one:
+                                buffer = self._holding_filled_buffers.pop(0)
 
-                            if _is_logging_buffer_manipulation:
-                                self._logger.debug(
-                                    'Queued Buffer module #{0}'
-                                    ' containing frame #{1}'
-                                    ' to DataStream module {2}'
-                                    ' of Device module {3}'
-                                    '.'.format(
-                                        buffer.context,
-                                        buffer.frame_id,
-                                        buffer.parent.id_,
-                                        buffer.parent.parent.id_
+                                if _is_logging_buffer_manipulation:
+                                    self._logger.debug(
+                                        'Queued Buffer module #{0}'
+                                        ' containing frame #{1}'
+                                        ' to DataStream module {2}'
+                                        ' of Device module {3}'
+                                        '.'.format(
+                                            buffer.context,
+                                            buffer.frame_id,
+                                            buffer.parent.id_,
+                                            buffer.parent.parent.id_
+                                        )
                                     )
-                                )
-                            # Then discard/queue it:
-                            buffer.parent.queue_buffer(buffer)
+                                # Then discard/queue it:
+                                buffer.parent.queue_buffer(buffer)
 
-                    # Get the latest buffer:
-                    buffer = event_manager.buffer
+                        # Get the latest buffer:
+                        buffer = event_manager.buffer
 
-                    # Then append it to the list which the user fetches later:
-                    self._holding_filled_buffers.append(buffer)
+                        # Then append it to the list which the user fetches later:
+                        self._holding_filled_buffers.append(buffer)
 
-                    # Then update the statistics using the buffer:
-                    self._update_statistics(buffer)
+                        # Then update the statistics using the buffer:
+                        self._update_statistics(buffer)
+                    else:
+                        # Get the latest buffer:
+                        buffer = event_manager.buffer
+
+                        # Then update the statistics using the buffer:
+                        self._update_statistics(buffer)
+
+                        # We want to keep the oldest ones:
+                        with MutexLocker(self.thread_image_acquisition):
+                            if not self._is_acquiring_images:
+                                return
+
+                            if len(self._holding_filled_buffers) >= self._num_filled_buffers_to_hold:
+                                # We have not space to keep the latest one.
+                                # Discard/queue the latest buffer:
+                                buffer.parent.queue_buffer(buffer)
+                            else:
+                                # Just append it to the list:
+                                self._holding_filled_buffers.append(buffer)
+
+                    #
+                    if self._num_images_to_acquire >= 1:
+                        self._num_images_to_acquire -= 1
+
+                    if self._on_new_buffer_arrival:
+                        self._on_new_buffer_arrival()
+
+                    if self._num_images_to_acquire == 0:
+                        #
+                        if self.signal_stop_image_acquisition:
+                            self.signal_stop_image_acquisition.emit()
+
                 else:
+                    # Discard/queue the latest buffer when incomplete
+                    self._logger.debug('Acquired Buffer is Incomplete: {0}'.format(event_manager.buffer._is_incomplete()))
+                    
                     # Get the latest buffer:
                     buffer = event_manager.buffer
-
-                    # Then update the statistics using the buffer:
-                    self._update_statistics(buffer)
 
                     # We want to keep the oldest ones:
                     with MutexLocker(self.thread_image_acquisition):
                         if not self._is_acquiring_images:
                             return
 
-                        if len(self._holding_filled_buffers) >= self._num_filled_buffers_to_hold:
-                            # We have not space to keep the latest one.
-                            # Discard/queue the latest buffer:
-                            buffer.parent.queue_buffer(buffer)
-                        else:
-                            # Just append it to the list:
-                            self._holding_filled_buffers.append(buffer)
-
-            #
-            if self._num_images_to_acquire >= 1:
-                self._num_images_to_acquire -= 1
-
-            if self._on_new_buffer_arrival:
-                self._on_new_buffer_arrival()
-
-            if self._num_images_to_acquire == 0:
-                #
-                if self.signal_stop_image_acquisition:
-                    self.signal_stop_image_acquisition.emit()
+                        buffer.parent.queue_buffer(buffer)
 
     def _update_chunk_data(self, buffer=None):
         try:

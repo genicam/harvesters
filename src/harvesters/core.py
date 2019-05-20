@@ -1676,8 +1676,8 @@ class ImageAcquirer:
             except TimeoutException as e:
                 continue
             else:
-                # check if buffer is incompleted 
-                if event_manager.buffer._is_incomplete() == False:
+                # Check if the delivered buffer is complete:
+                if event_manager.buffer.is_complete():
                     #
                     if _is_logging_buffer_manipulation:
                         self._logger.debug(
@@ -1761,17 +1761,22 @@ class ImageAcquirer:
 
                 else:
                     # Discard/queue the latest buffer when incomplete
-                    self._logger.debug('Acquired Buffer is Incomplete: {0}'.format(event_manager.buffer._is_incomplete()))
+                    self._logger.debug(
+                        'Acquired buffer is complete: {0}'.format(
+                            event_manager.buffer.is_complete()
+                        )
+                    )
                     
-                    # Get the latest buffer:
-                    buffer = event_manager.buffer
+                    # Queue the incomplete buffer; we have nothing to do
+                    # with it:
+                    data_stream = event_manager.buffer.parent
+                    data_stream.queue_buffer(event_manager.buffer)
 
-                    # We want to keep the oldest ones:
+                    #
                     with MutexLocker(self.thread_image_acquisition):
                         if not self._is_acquiring_images:
                             return
 
-                        buffer.parent.queue_buffer(buffer)
 
     def _update_chunk_data(self, buffer=None):
         try:

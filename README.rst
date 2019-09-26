@@ -103,8 +103,6 @@ Harvester's name was coming from the great Flemish painter, Pieter Bruegel the E
 
 Apart from anything else, we love its peaceful and friendly name. We hope you also like it ;-)
 
-----
-
 .. figure:: https://user-images.githubusercontent.com/8652625/40595190-1e16e90e-626e-11e8-9dc7-207d691c6d6d.jpg
     :align: center
     :alt: The Harvesters

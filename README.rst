@@ -9,16 +9,26 @@
 
 ----
 
+################################
+Motivation: Why Harvester Exists
+################################
+
 *Even though we just wanted to research image processing algorithms, why did we have to change our image acquisition library every time we change the camera that we use for the research?
 - Anonymous*
 
 ----
 
-.. figure:: https://user-images.githubusercontent.com/8652625/40595190-1e16e90e-626e-11e8-9dc7-207d691c6d6d.jpg
-    :align: center
-    :alt: The Harvesters
+######################
+Seeing and Recognition
+######################
 
-    Pieter Bruegel the Elder, The Harvesters, 1565, (c) The Metropolitan Museum of Art
+.. figure:: https://user-images.githubusercontent.com/8652625/65650928-c261cd00-e047-11e9-9ce3-972461c3e15d.jpg
+    :align: center
+    :alt: Ordo: Eastern Wolf
+
+    Katsura Muramatsu, Ordo: Eastern Wolf, 2018, (c) Katsura Muramatsu (http://hellerraum.nobody.jp)
+
+*When we talk to someone, we implicitly or explicitly try to find a piece of evidence in his/her eyes that he/she is alive. The same situation happens in a case where we face to a stuffed animal and the face, or especially the eyes play a much more important role rather than its fur or other parts. When people visit this place, the museum where I took photos of these stuffed animals, they would feel that they are seen by the animals rather than they see the animals. However, in fact, the eyes of the stuffed animals are made of glass or other materials such as plastic. So what did it make us realized that we were seen? The sceneries what reflect in the stuffed animals are from the places where the animals were coming from, such as the savannah in Africa, the conifer forest in Canada, or the alpine region in Scandinavia. Again, however, the scenery is just a collage with the image that was excerpted from old postcards so in general, nobody is sure if they had really seen those sceneries. The given stares and emotions in their eyes have lost and we just keep standing at in the atmosphere filled up with them. - Katsura Muramatsu*
 
 ----
 
@@ -97,11 +107,11 @@ Apart from anything else, we love its peaceful and friendly name. We hope you al
 
 ----
 
-.. figure:: https://user-images.githubusercontent.com/8652625/47978218-cae3a900-e0ff-11e8-8e8e-e7fc390f975a.jpg
+.. figure:: https://user-images.githubusercontent.com/8652625/40595190-1e16e90e-626e-11e8-9dc7-207d691c6d6d.jpg
     :align: center
-    :alt: Pieter Bruegel the Elder
+    :alt: The Harvesters
 
-    Pieter Bruegel the Elder (c. 1525-1530 – 9 September 1569), (c) The British Museum
+    Pieter Bruegel the Elder, The Harvesters, 1565, (c) The Metropolitan Museum of Art
 
 ----
 

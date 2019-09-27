@@ -13,7 +13,7 @@
 Why Harvester?
 ##############
 
-*"Even though we just wanted to research image processing algorithms, why did we have to change our image acquisition library every time we swap the camera that we use for the research? We just want to keep using a loyal image acquisition library even if we swapped the cameras. The library is Harvester. Harvester does the job and have made our lives easier." - Anonymous*
+*"Even though we just wanted to research image processing algorithms, why did we have to change our image acquisition library every time we swap the camera that we use for the research? We just want to keep using a loyal image acquisition library even if we swapped the cameras. The library is Harvester. Harvester does the job and has made our lives easier." - Anonymous*
 
 ######################
 Seeing and Recognition

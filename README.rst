@@ -25,7 +25,7 @@ Seeing and Recognition
     :align: center
     :alt: Ordo: Eastern Wolf
 
-    Katsura Muramatsu, Ordo: Eastern Wolf (2018)
+    Ordo: Eastern Wolf (Katsura Muramatsu, 2018)
 
     © Katsura Muramatsu All Rights Reserved (http://hellerraum.nobody.jp)
 

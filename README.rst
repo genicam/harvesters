@@ -9,24 +9,23 @@
 
 ----
 
-################################
-Motivation: Why Harvester Exists
-################################
+##############
+Why Harvester?
+##############
 
-*"Even though we just wanted to research image processing algorithms, why did we have to change our image acquisition library every time we change the camera that we use for the research?"
-- Anonymous*
+*"Even though we just wanted to research image processing algorithms, why did we have to change our image acquisition library every time we swap the camera that we use for the research? We just want to keep using a loyal image acquisition library even if we swapped the cameras. The library is Harvester. Harvester does the job and have made our lives easier." - Anonymous*
 
 ######################
 Seeing and Recognition
 ######################
+
+*"When we talk to someone, we implicitly or explicitly try to find a piece of evidence in his/her eyes that he/she is alive. The same situation happens in a case where we face to a stuffed animal and the face, or especially the eyes play a much more important role rather than its fur or other parts. When people visit this place, the museum where I took photos of these stuffed animals, they would feel that they are seen by the animals rather than they see the animals. However, in fact, the eyes of the stuffed animals are made of glass or other materials such as plastic. So what did it make us realized that we were seen? The sceneries what reflect in the stuffed animals are from the places where the animals were coming from, such as the savannah in Africa, the conifer forest in Canada, or the alpine region in Scandinavia. Again, however, the scenery is just a collage with the image that was excerpted from old postcards so in general, nobody is sure if they had really seen those sceneries. The stares and emotions that we gave in their eyes have lost their ways and we just keep standing in the atmosphere filled up with the echo of them." - Katsura Muramatsu*
 
 .. figure:: https://user-images.githubusercontent.com/8652625/65650928-c261cd00-e047-11e9-9ce3-972461c3e15d.jpg
     :align: center
     :alt: Ordo: Eastern Wolf
 
     Katsura Muramatsu, Ordo: Eastern Wolf, 2018, (c) Katsura Muramatsu (http://hellerraum.nobody.jp)
-
-*"When we talk to someone, we implicitly or explicitly try to find a piece of evidence in his/her eyes that he/she is alive. The same situation happens in a case where we face to a stuffed animal and the face, or especially the eyes play a much more important role rather than its fur or other parts. When people visit this place, the museum where I took photos of these stuffed animals, they would feel that they are seen by the animals rather than they see the animals. However, in fact, the eyes of the stuffed animals are made of glass or other materials such as plastic. So what did it make us realized that we were seen? The sceneries what reflect in the stuffed animals are from the places where the animals were coming from, such as the savannah in Africa, the conifer forest in Canada, or the alpine region in Scandinavia. Again, however, the scenery is just a collage with the image that was excerpted from old postcards so in general, nobody is sure if they had really seen those sceneries. The stares and emotions that we gave in their eyes have lost their ways and we just keep standing in the atmosphere filled up with the echo of them." - Katsura Muramatsu*
 
 ----
 

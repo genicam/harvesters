@@ -16,7 +16,7 @@ Why Harvester?
 *"Even though we just wanted to research image processing algorithms, why did we have to change our image acquisition library every time we swap the camera that we use for the research? We just want to keep using a loyal image acquisition library even if we swapped the cameras. The library is Harvester. Harvester does the job and has made our lives easier." - Anonymous*
 
 ######################
-Seeing and Recognition
+Seeing and Expectation 
 ######################
 
 The following is a short column that was written by a photographer, Katsura Muramatsu. The column was originally dedicated to her exhibition called "Natura naturans" but she kindly allowed us to post the column for this project. It would give us an opportunity to thinking about seeing and the expectation we have in its back. To me, at least, they sound like prerequisites we implicitly have when we do machine vision.

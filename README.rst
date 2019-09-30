@@ -27,7 +27,9 @@ The following is a short column that was written by one of my favorite photograp
     :align: center
     :alt: Ordo: Eastern Wolf
 
-    Title: "Ordo: Eastern Wolf" (2018) © Katsura Muramatsu All Rights Reserved (http://hellerraum.nobody.jp)
+    Title: "Ordo: Eastern Wolf" (2018)
+    
+    © Katsura Muramatsu All Rights Reserved (http://hellerraum.nobody.jp)
 
 ----
 

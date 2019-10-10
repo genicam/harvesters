@@ -241,6 +241,11 @@ Note that we as the committee have not prepared any formal certification procedu
       - Worked
       - Worked
       - Worked
+    - - `Matrox Imaging <https://matrox.com/en/>`_
+      - Worked
+      - Not applicable
+      - Not applicable
+      - Not applicable
     - - `OMRON SENTECH <https://sentech.co.jp/en/>`_
       - Not tested
       - Not tested

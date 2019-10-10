@@ -80,7 +80,7 @@ setuptools.setup(
     # Location where the package may be downloaded:
     download_url='https://pypi.org/project/harvesters/',
     # A list of required Python modules:
-    install_requires=['genicam2', 'numpy'],
+    install_requires=['genicam2', 'numpy', 'Pillow'],
     #
     license='Apache Software License V2.0',
     # A detailed description of the package:

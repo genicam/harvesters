@@ -31,6 +31,8 @@ from urllib.parse import unquote
 import weakref
 import zipfile
 
+from PIL import Image
+
 # Related third party imports
 import numpy as np
 
@@ -1261,7 +1263,7 @@ class ImageAcquirer:
             self, *, parent=None, device=None,
             profiler=None, logger=None,
             sleep_duration=_sleep_duration_default,
-            file_path=None
+            file_path=None, save_path=None
     ):
         """
 
@@ -1271,6 +1273,7 @@ class ImageAcquirer:
         :param logger:
         :param sleep_duration:
         :param file_path: (Optional) Set a path to camera description file which you want to load on the target node map instead of the one which the device declares.
+        :param save_path: (Optional) Set a path to save images to when recording.
         """
 
         #
@@ -1376,7 +1379,11 @@ class ImageAcquirer:
         #
         self._has_acquired_1st_image = False
         self._is_acquiring_images = False
+        self._is_recording = False
         self._keep_latest = True
+
+        #
+        self.img_count = 0  # For naming saved images
 
         # Determine the default value:
         self._min_num_buffers = self._data_streams[0].buffer_announce_min
@@ -1402,6 +1409,13 @@ class ImageAcquirer:
 
         #
         self._finalizer = weakref.finalize(self, self._destroy)
+
+        self._save_path = save_path
+        if not save_path:
+            default_save_path = os.path.join(os.path.expanduser('~'), 'Harvesters')
+            if not os.path.exists(default_save_path):
+                os.mkdir(default_save_path)
+            self._save_path = default_save_path
 
     @staticmethod
     def _get_chunk_adapter(*, device=None):
@@ -1506,6 +1520,28 @@ class ImageAcquirer:
         :return: :const:`True` if it's acquiring images. Otherwise :const:`False`.
         """
         return self._is_acquiring_images
+
+    @property
+    def is_recording(self):
+        """
+        :return: :const:`True` if it's saving all images. Otherwise :const:`False`.
+        """
+        return self._is_recording
+
+    @is_recording.setter
+    def is_recording(self, enable):
+        self._is_recording = enable
+
+    @property
+    def save_path(self):
+        """
+        :return: Absolute path to where images will be saved if recording.
+        """
+        return self._save_path
+
+    @save_path.setter
+    def save_path(self, path):
+        self._save_path = path
 
     @property
     def timeout_for_image_acquisition(self):
@@ -1758,6 +1794,14 @@ class ImageAcquirer:
                 #
                 if self.signal_stop_image_acquisition:
                     self.signal_stop_image_acquisition.emit()
+
+            #   Save to disk
+            if self.is_recording and 'buffer' in locals():
+                image = Image.frombytes("L", (buffer.width, buffer.height), buffer.raw_buffer)
+                file_name = time.strftime("[%Y.%m.%d]_[%H.%M.%S]" + "Image" + str(self.img_count) + '.bmp')
+                file_name = os.path.join(self.save_path, file_name)
+                image.save(file_name, format='bmp')
+                self.img_count += 1
 
     def _update_chunk_data(self, buffer=None):
         try:

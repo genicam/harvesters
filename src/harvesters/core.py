@@ -1377,10 +1377,22 @@ class ImageAcquirer:
         self._keep_latest = True
 
         # Determine the default value:
-        self._min_num_buffers = self._data_streams[0].buffer_announce_min
-        self._num_buffers = max(
-            16, self._data_streams[0].buffer_announce_min
-        )
+        num_buffers_default = 16
+        try:
+            self._min_num_buffers = self._data_streams[0].buffer_announce_min
+        except InvalidParameterException as e:
+            # In general, a GenTL Producer should not raise the
+            # InvalidParameterException to the inquiry for
+            # STREAM_INFO_BUF_ANNOUNCE_MIN because it is totally legal
+            # but we have observed a fact that there is at least one on
+            # the market. As a workaround we involve this try-except block:
+            self._logger.debug(e, exc_info=True)
+            self._min_num_buffers = num_buffers_default
+            self._num_buffers = num_buffers_default
+        else:
+            self._num_buffers = max(
+                num_buffers_default, self._min_num_buffers
+            )
 
         #
         self._signal_stop_image_acquisition = None

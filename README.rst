@@ -950,6 +950,14 @@ If ``Foo`` is a Command node, then you can execute the command with the followin
 
 There you can dive much more deeper in the GenICam GenApi but the description above would be sufficient for a general use.
 
+Ah, one more thing. You may want to know the available GenICam feature nodes in the target device. In such a case, you can probe them calling the ``dir`` function as follows:
+
+.. code-block:: python
+
+    dir(ia.device.node_map)
+
+You should be able to find (probably) familiar feature names in the output.
+
 ################
 Acknowledgements
 ################

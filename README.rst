@@ -9,16 +9,35 @@
 
 ----
 
-*Even though we just wanted to research image processing algorithms, why did we have to change our image acquisition library every time we change the camera that we use for the research?
-- Anonymous*
+##############
+Why Harvester?
+##############
 
-----
+*"Even though we just wanted to research image processing algorithms, why did we have to change our image acquisition library every time we swap the camera that we use for the research? We just want to keep using a loyal image acquisition library even if we swapped the cameras. The library is Harvester. Harvester does the job and has made our lives easier." - Anonymous*
 
-.. figure:: https://user-images.githubusercontent.com/8652625/40595190-1e16e90e-626e-11e8-9dc7-207d691c6d6d.jpg
+#####################################
+Show Us What You Did Using Harvester!
+#####################################
+
+To demonstrate the ability of Harvester, I would like to introduce the brilliant works that you made in public. Please send some screenshots with your description of the work to me, Kazunari (who.is.kazunari@gmail.com). I have not yet decided on the location to show your works but I am planning to make it anyway! If you achieved something paying enough amount of effort, there always be value what other people learn from it!
+
+######################
+Seeing and Recognition
+######################
+
+The following is a short column that was written by one of my favorite photographers/philosophers, Katsura Muramatsu. Even though the column was exclusively dedicated to her exhibition called *"Natura naturans"*, she generously allowed me to excerpt the column for this Harvester project. It would give us an opportunity to thinking about seeing and recognition we regularly do. To me, at least, they sound like a habit on which we unconsciously premise when we do machine vision: We tend to see only what we want to see. Of course, I would like to take the fact in a positive way though.
+
+*"When we talk to someone, we implicitly or explicitly try to find a piece of evidence in his/her eyes that he/she is alive. The same situation happens in a case where we face to a stuffed animal and the face, or especially the eyes play a much more important role rather than its fur or other parts. When people visit this place, the museum where I took photos of these stuffed animals, they would feel that they are seen by the animals rather than they see the animals. However, in fact, the eyes of the stuffed animals are made of glass or other materials such as plastic. So why did fee feel that we were seen? The sceneries what reflect in the stuffed animals are from the places where the animals were coming from, such as the savannah in Africa, the conifer forest in Canada, or the alpine region in Scandinavia. Again, however, the scenery in their eyes are just a collage made of the image that was excerpted from old postcards. So nobody is sure if they had really seen those sceneries. The look we cast on their eyes, and emotions we had, have lost their ways and remain in their eyes as an echo. In such a vacant atmosphere, we do not have anything to do and just keep standing there listening to the echo." - Katsura Muramatsu*
+
+.. figure:: https://user-images.githubusercontent.com/8652625/65650928-c261cd00-e047-11e9-9ce3-972461c3e15d.jpg
     :align: center
-    :alt: The Harvesters
+    :alt: Ordo: Eastern Wolf
 
-    Pieter Bruegel the Elder, The Harvesters, 1565, (c) The Metropolitan Museum of Art
+    Title: "Ordo: Eastern Wolf" (2018)
+    
+    © Katsura Muramatsu All Rights Reserved
+
+    http://hellerraum.nobody.jp
 
 ----
 
@@ -28,7 +47,7 @@
 **Disclaimer**: All external pictures should have associated credits. If there are missing credits, please tell us, we will correct it. Similarly, all excerpts should be sourced. If not, this is an error and we will correct it as soon as you tell us.
 
 ############
-Dear readers
+Dear Readers
 ############
 
 Hello everyone. I'm Kazunari, the author of Harvester.
@@ -45,6 +64,7 @@ So everyone, there's no worry anymore. Keep having fun for working. Harvester ha
 Announcements
 #############
 
+- **Version 0.2.13**: Resolves issues `#88 <https://github.com/genicam/harvesters/issues/88>`_, `#89 <https://github.com/genicam/harvesters/issues/89>`_, `#90 <https://github.com/genicam/harvesters/issues/90>`_, and `#95 <https://github.com/genicam/harvesters/issues/95>`_.
 - **Version 0.2.12**: Resolves issue `#84 <https://github.com/genicam/harvesters/issues/84>`_.
 - **Version 0.2.11**: Resolves issue `#82 <https://github.com/genicam/harvesters/issues/82>`_.
 - **Version 0.2.10**: Resolves issue `#81 <https://github.com/genicam/harvesters/issues/81>`_.
@@ -76,7 +96,7 @@ You can freely use, modify, distribute Harvester under `Apache License-2.0 <http
 Currently, Harvester is being developed by the motivated contributors from all over the world.
 
 ****************
-Asking questions
+Asking Questions
 ****************
 
 We have opened a chat room for you. Please don't hesitate to leave your message any time when you get a question regarding Harvester!
@@ -88,7 +108,7 @@ We have also prepared an FAQ page. Perhaps your issue could be resolved just rea
 https://github.com/genicam/harvesters/wiki/FAQ
 
 ************************************
-Harvester... where is the name from?
+Harvester... Where Is The Name From?
 ************************************
 
 Harvester's name was coming from the great Flemish painter, Pieter Bruegel the Elder's painting so-called "The Harvesters". You can see the painting in the top of this page. Harvesters harvest a crop every season that has been fully grown and the harvested crop is passed to the consumers. On the other hand, image acquisition libraries acquire images as their crop and the images are passed to the following processes. We found the similarity between them and decided to name our library Harvester.
@@ -97,16 +117,16 @@ Apart from anything else, we love its peaceful and friendly name. We hope you al
 
 ----
 
-.. figure:: https://user-images.githubusercontent.com/8652625/47978218-cae3a900-e0ff-11e8-8e8e-e7fc390f975a.jpg
+.. figure:: https://user-images.githubusercontent.com/8652625/40595190-1e16e90e-626e-11e8-9dc7-207d691c6d6d.jpg
     :align: center
-    :alt: Pieter Bruegel the Elder
+    :alt: The Harvesters
 
-    Pieter Bruegel the Elder (c. 1525-1530 – 9 September 1569), (c) The British Museum
+    Pieter Bruegel the Elder, The Harvesters, 1565, (c) The Metropolitan Museum of Art
 
 ----
 
 ***************
-Important links
+Important Links
 ***************
 
 .. list-table::
@@ -127,7 +147,7 @@ Important links
       - https://github.com/genicam/harvesters
 
 ******************
-Development status
+Development Status
 ******************
 
 The Harvester project has started since April 2018 and it's still under development as of October 2018 but many developers and researchers over the world have already confirmed that it is actually usable with the popular GenTL Producers and GenICam compliant cameras from the following companies. We have realized the progress had been brought by all interested people's positive expectation in the machine vision market and we strongly believe it will sustain to the following years. Of course, we will never forget the importance of volunteer companies which provided us their products to test Harvester. Thank you very much!
@@ -228,6 +248,11 @@ Note that we as the committee have not prepared any formal certification procedu
       - Worked
       - Worked
       - Worked
+    - - `Matrox Imaging <https://matrox.com/en/>`_
+      - Worked
+      - Not applicable
+      - Not applicable
+      - Not applicable
     - - `OMRON SENTECH <https://sentech.co.jp/en/>`_
       - Not tested
       - Not tested
@@ -371,7 +396,7 @@ In addition, you will need the following items to let Harvester make something m
 * GenICam compliant machine vision cameras
 
 *****************
-Operating systems
+Operating Systems
 *****************
 
 Harvester has been confirmed it works with the following 64-bit operating systems:
@@ -382,6 +407,8 @@ Harvester has been confirmed it works with the following 64-bit operating system
 * Ubuntu 14.04
 * Windows 7
 * Windows 10
+
+Note that it's just a snapshot at a moment. If you are curious to know the reality, just make a try because Harvester is for free!
 
 *****************
 Installing Python
@@ -409,7 +436,7 @@ Then activate the root environment:
 
 Now you can start working for installing Harvester.
 
-Creating an environment
+Creating an Environment
 =======================
 
 After installing a Python, let's create an isolated environment where does not interfere in your system. An environment is very helpful for developers because everything will be okay just deleting the environment if you completely corrupted it by accident. Please imagine a case where you corrupt the system-wide Python. It's obviously a nightmare and it will enforce you to spend some days to recover it so it is very recommended to work in an isolated environment when you need to develop something.
@@ -521,7 +548,7 @@ You'll be able to download the these language binding runtime libraries from the
 If you don't have to care about the display rate for visualizing acquired images, the combination of Harvester Core and `Matplotlib <https://matplotlib.org>`_ might be a realistic option for that purpose.
 
 *********************************
-Tasks Harvester Core does for you
+Tasks Harvester Core Does for You
 *********************************
 
 The main features of Harvester Core are listed as follows:
@@ -535,12 +562,14 @@ Note that the second item implies you can involve multiple types of transport la
 On the other hand, Harvester Core could be considered as a simplified version of the GenTL-Python Binding; actually, Harvester Core hides it in its back and shows only intuitive interfaces to its clients. Harvester Core just offers you a relationship between you and a device. Nothing more. We say it again, just you and a device. If you need to manipulate more relevant GenTL modules or have to achieve something over a hardcore way, then you should directly work with the GenTL-Python Binding.
 
 ******************************************
-Pixel formats that Harvester Core supports
+Pixel Formats That Harvester Core Supports
 ******************************************
 
 Currently, Harvester Core supports the following pixel formats that are defined by the Pixel Format Naming Convention:
 
     ``Mono8``, ``Mono10``, ``Mono12``, ``Mono16``, ``RGB8``, ``RGBa8``, ``BayerRG8``, ``BayerGR8``, ``BayerBG8``, ``BayerGB8``, ``BayerRG16``, ``BayerGR16``, ``BayerBG16``, ``BayerGB16``
+
+Note that Harvester does not support packed formats which allow multiple elements of information reside in a byte data.
 
 ###########
 Screenshots
@@ -788,7 +817,7 @@ Now you can quit the program! Please not that ``Harvester`` and ``ImageAcquirer`
 This way prevents you forget to release the acquired external resources. If this notation doesn't block your use case then you should rely on the ``with`` statement.
 
 ***********************
-Reshaping a NumPy array
+Reshaping a NumPy Array
 ***********************
 
 We have learned how to acquire images from a target device through an ``ImageAcquirer`` class object. In this section, we will learn how to reshape the acquired image into another that can be used by your application.
@@ -887,17 +916,57 @@ Once you finished filling up each pixel with a set of RGB values, then you'll be
 You can download the standard document of PFNC at the `EMVA website <https://www.emva.org/standards-technology/genicam/genicam-downloads/>`_.
 
 ##################################
-Manipulating GenICam feature nodes
+Manipulating GenICam Feature Nodes
 ##################################
 
-To be documented.
+Probably almost of the Harvester users would be interested in manipulating GenIcam feature nodes through Harvester. Let's assume that we are going to control a GenICam feature node called ``Foo``.
+
+To get the value of ``Foo``, we code as follows:
+
+.. code-block:: python
+
+    a = ia.device.node_map.Foo.value
+
+On the other hand, if ``Foo`` is an Integer node then we code as follows to set a value:
+
+.. code-block:: python
+
+    ia.device.node_map.Foo.value = 42
+
+If ``Foo`` is a Boolean node, then you code as follows:
+
+.. code-block:: python
+
+    ia.device.node_map.Foo.value = True
+
+Or if ``Foo`` is an Enumeration node, then you code as follows; it also works for a case where Foo is a String node:
+
+.. code-block:: python
+
+    ia.device.node_map.Foo.value = 'Bar'
+
+If ``Foo`` is a Command node, then you can execute the command with the following
+
+.. code-block:: python
+
+    ia.device.node_map.Foo.execute()
+
+There you can dive much more deeper in the GenICam GenApi but the description above would be sufficient for a general use.
+
+Ah, one more thing. You may want to know the available GenICam feature nodes in the target device. In such a case, you can probe them calling the ``dir`` function as follows:
+
+.. code-block:: python
+
+    dir(ia.device.node_map)
+
+You should be able to find (probably) familiar feature names in the output.
 
 ################
 Acknowledgements
 ################
 
 *********************
-Open source resources
+Open Source Resources
 *********************
 
 Harvester Core uses the following open source libraries/resources:
@@ -926,4 +995,4 @@ The initial idea about Harvester suddenly came up to a software engineer, Kazuna
 
 The following individuals have directly or indirectly contributed to the development activity of Harvester or encouraged the developers by their thoughtful warm words; they are our respectable wonderful colleagues:
 
-Rod Barman, Stefan Battmer, David Beek, Jan Becvar, David Bernecker, Chris Beynon, Eric Bourbonnais, Benedikt Busch, George Chamberlain, Thomas Detjen, Friedrich Dierks, Dana Diezemann, Emile Dodin, Reynold Dodson, Sascha Dorenbeck, Jozsa Elod, Erik Eloff, Katie Ensign, Andreas Ertl, James Falconer, Werner Feith, Maciej Gara, Andreas Gau, Sebastien Gendreau, Francois Gobeil, Werner Goeman, Jean-Paul Goglio, Markus Grebing, Eric Gross, Ioannis Hadjicharalambous, Uwe Hagmaier, Tim Handschack, Christopher Hartmann, Reinhard Heister, Gerhard Helfrich, Jochem Herrmann, Heiko Hirschmueller, Tom Hopfner, David Hoese, Karsten Ingeman Christensen, Severi Jaaskelainen, Mattias Johannesson, Mark Jones, Mattias Josefsson, Martin Kersting, Stephan Kieneke, Tom Kirchner, Lutz Koschorreck, Frank Krehl, Maarten Kuijk, Max Larin, Ralf Lay, Min Liu, Sergey Loginonvskikh, Thomas Lueck, Alain Marchand, Rocco Matano, Masahide Matsubara, Stephane Maurice, Robert McCurrach, Mike Miethig, Thies Moeller, Roman Moie, Marcel Naggatz, Hartmut Nebelung, Damian Nesbitt, Quang Nhan Nguyen, Klaus-Henning Noffz, Neerav Patel, Jan Pech, Merlin Plock, Joerg Preckwinkel, Benjamin Pussacq, Dave Reaves, Thomas Reuter, Gordon Rice, Andreas Rittinger, Ryan Robe, Nicolas P. Rougier, Felix Ruess, Matthias Schaffland, Michael Schmidt, Jan Scholze, Martin Schwarzbauer, Rupert Stelz, Madhura Suresh, Chendra Hadi Suryanto, Andrew Wei Chuen Tan, Timo Teifel, Albert Theuwissen, Laval Tremblay, Tim Vlaar, Silvio Voitzsch, Stefan Von Weihe, Frederik Voncken, Roman Wagner, Ansger Waschki, Anne Wendel, Michael Williamson, Jean-Michel Wintgens, Manfred Wuetschner, Jang Xu, Christoph Zierl, Sebastian Yap, and Juraj Zopp
+Rod Barman, Stefan Battmer, David Beek, Jan Becvar, David Bernecker, Chris Beynon, Eric Bourbonnais, Benedikt Busch, George Chamberlain, Thomas Detjen, Friedrich Dierks, Dana Diezemann, Emile Dodin, Reynold Dodson, Sascha Dorenbeck, Jozsa Elod, Erik Eloff, Katie Ensign, Andreas Ertl, James Falconer, Werner Feith, Maciej Gara, Andreas Gau, Sebastien Gendreau, Francois Gobeil, Werner Goeman, Jean-Paul Goglio, Markus Grebing, Eric Gross, Ioannis Hadjicharalambous, Uwe Hagmaier, Tim Handschack, Christopher Hartmann, Reinhard Heister, Gerhard Helfrich, Jochem Herrmann, Heiko Hirschmueller, Tom Hopfner, David Hoese, Karsten Ingeman Christensen, Severi Jaaskelainen, Mattias Johannesson, Mark Jones, Mattias Josefsson, Martin Kersting, Stephan Kieneke, Tom Kirchner, Lutz Koschorreck, Frank Krehl, Maarten Kuijk, Max Larin, Ralf Lay, Min Liu, Sergey Loginonvskikh, Thomas Lueck, Alain Marchand, Rocco Matano, Masahide Matsubara, Stephane Maurice, Robert McCurrach, Mike Miethig, Thies Moeller, Roman Moie, Katsura Muramatsu, Marcel Naggatz, Hartmut Nebelung, Damian Nesbitt, Quang Nhan Nguyen, Klaus-Henning Noffz, Neerav Patel, Jan Pech, Merlin Plock, Joerg Preckwinkel, Benjamin Pussacq, Dave Reaves, Thomas Reuter, Gordon Rice, Andreas Rittinger, Ryan Robe, Nicolas P. Rougier, Felix Ruess, Matthias Schaffland, Michael Schmidt, Jan Scholze, Martin Schwarzbauer, Rupert Stelz, Madhura Suresh, Chendra Hadi Suryanto, Andrew Wei Chuen Tan, Timo Teifel, Albert Theuwissen, Laval Tremblay, Tim Vlaar, Silvio Voitzsch, Stefan Von Weihe, Frederik Voncken, Roman Wagner, Ansger Waschki, Anne Wendel, Michael Williamson, Jean-Michel Wintgens, Manfred Wuetschner, Jang Xu, Christoph Zierl, Sebastian Yap, and Juraj Zopp

@@ -267,8 +267,6 @@ We have also prepared an FAQ page. Perhaps your issue could be resolved just rea
 
 https://github.com/genicam/harvesters/wiki/FAQ
 
-----
-
 ***************
 Important Links
 ***************

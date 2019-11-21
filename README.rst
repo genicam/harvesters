@@ -1,3 +1,9 @@
+.. figure:: https://user-images.githubusercontent.com/8652625/40595190-1e16e90e-626e-11e8-9dc7-207d691c6d6d.jpg
+    :align: center
+    :alt: The Harvesters
+
+    Pieter Bruegel the Elder, The Harvesters, 1565, (c) The Metropolitan Museum of Art
+
 .. image:: https://readthedocs.org/projects/harvesters/badge/?version=latest
     :target: https://harvesters.readthedocs.io/en/latest/?badge=latest
 
@@ -53,18 +59,12 @@ Apart from anything else, we love its peaceful and friendly name. We hope you al
 
 ----
 
-.. figure:: https://user-images.githubusercontent.com/8652625/40595190-1e16e90e-626e-11e8-9dc7-207d691c6d6d.jpg
-    :align: center
-    :alt: The Harvesters
-
-    Pieter Bruegel the Elder, The Harvesters, 1565, (c) The Metropolitan Museum of Art
-
-----
-
 .. contents:: Table of Contents
     :depth: 2
 
 **Disclaimer**: All external pictures should have associated credits. If there are missing credits, please tell us, we will correct it. Similarly, all excerpts should be sourced. If not, this is an error and we will correct it as soon as you tell us.
+
+----
 
 ******************
 Development Status

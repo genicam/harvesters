@@ -7,6 +7,9 @@
 .. image:: https://img.shields.io/pypi/pyversions/harvesters.svg
     :target: https://img.shields.io/pypi/pyversions/harvesters.svg
 
+.. image:: https://zenodo.org/badge/133908095.svg
+   :target: https://zenodo.org/badge/latestdoi/133908095
+
 ----
 
 ############

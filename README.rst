@@ -282,6 +282,8 @@ Important Links
       - https://gitter.im/genicam-harvester/chatroom
     - - Documentation
       - https://harvesters.readthedocs.io/en/latest/
+    - - Digital Object Identifier
+        https://zenodo.org/record/3554804#.Xd4HSi2B01I
     - - EMVA website
       - https://www.emva.org/standards-technology/genicam/genicam-downloads/
     - - Harvester GUI

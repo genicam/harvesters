@@ -283,7 +283,7 @@ Important Links
     - - Documentation
       - https://harvesters.readthedocs.io/en/latest/
     - - Digital Object Identifier
-        https://zenodo.org/record/3554804#.Xd4HSi2B01I
+      - https://zenodo.org/record/3554804#.Xd4HSi2B01I
     - - EMVA website
       - https://www.emva.org/standards-technology/genicam/genicam-downloads/
     - - Harvester GUI
@@ -794,7 +794,6 @@ This way prevents you forget to release the acquired external resources. If this
 ***********************************
 Reshaping a NumPy Array as an Image
 ***********************************
-***********************
 
 We have learned how to acquire images from a target device through an ``ImageAcquirer`` class object. In this section, we will learn how to reshape the acquired image into another that can be used by your application.
 

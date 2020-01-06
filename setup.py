@@ -46,7 +46,8 @@ if sys.version_info in supported_versions:
 with open('README.rst', 'r',encoding='utf-8_sig') as fh:
     __doc__ = fh.read()
 
-description = 'Image acquisition library for GenICam compliant cameras & GenTL Producers (Maintained by volunteers of the official GenICam committee)'
+description = 'GenICam Compliant Python Image Acquisition Library for Machine
+Vision Researchers'
 
 # Determine the base directory:
 base_dir = os.path.dirname(__file__)

@@ -1,3 +1,9 @@
+.. figure:: https://user-images.githubusercontent.com/8652625/40595190-1e16e90e-626e-11e8-9dc7-207d691c6d6d.jpg
+    :align: center
+    :alt: The Harvesters
+
+    Pieter Bruegel the Elder, The Harvesters, 1565, (c) The Metropolitan Museum of Art
+
 .. image:: https://readthedocs.org/projects/harvesters/badge/?version=latest
     :target: https://harvesters.readthedocs.io/en/latest/?badge=latest
 
@@ -7,84 +13,32 @@
 .. image:: https://img.shields.io/pypi/pyversions/harvesters.svg
     :target: https://img.shields.io/pypi/pyversions/harvesters.svg
 
-----
-
-##############
-Why Harvester?
-##############
-
-*"Even though we just wanted to research image processing algorithms, why did we have to change our image acquisition library every time we swap the camera that we use for the research? We just want to keep using a loyal image acquisition library even if we swapped the cameras. The library is Harvester. Harvester does the job and has made our lives easier." - Anonymous*
-
-#####################################
-Show Us What You Did Using Harvester!
-#####################################
-
-To demonstrate the ability of Harvester, I would like to introduce the brilliant works that you made in public. Please send some screenshots with your description of the work to me, Kazunari (who.is.kazunari@gmail.com). I have not yet decided on the location to show your works but I am planning to make it anyway! If you achieved something paying enough amount of effort, there always be value what other people learn from it!
-
-######################
-Seeing and Recognition
-######################
-
-The following is a short column that was written by one of my favorite photographers/philosophers, Katsura Muramatsu. Even though the column was exclusively dedicated to her exhibition called *"Natura naturans"*, she generously allowed me to excerpt the column for this Harvester project. It would give us an opportunity to thinking about seeing and recognition we regularly do. To me, at least, they sound like a habit on which we unconsciously premise when we do machine vision: We tend to see only what we want to see. Of course, I would like to take the fact in a positive way though.
-
-*"When we talk to someone, we implicitly or explicitly try to find a piece of evidence in his/her eyes that he/she is alive. The same situation happens in a case where we face to a stuffed animal and the face, or especially the eyes play a much more important role rather than its fur or other parts. When people visit this place, the museum where I took photos of these stuffed animals, they would feel that they are seen by the animals rather than they see the animals. However, in fact, the eyes of the stuffed animals are made of glass or other materials such as plastic. So why did fee feel that we were seen? The sceneries what reflect in the stuffed animals are from the places where the animals were coming from, such as the savannah in Africa, the conifer forest in Canada, or the alpine region in Scandinavia. Again, however, the scenery in their eyes are just a collage made of the image that was excerpted from old postcards. So nobody is sure if they had really seen those sceneries. The look we cast on their eyes, and emotions we had, have lost their ways and remain in their eyes as an echo. In such a vacant atmosphere, we do not have anything to do and just keep standing there listening to the echo." - Katsura Muramatsu*
-
-.. figure:: https://user-images.githubusercontent.com/8652625/65650928-c261cd00-e047-11e9-9ce3-972461c3e15d.jpg
-    :align: center
-    :alt: Ordo: Eastern Wolf
-
-    Title: "Ordo: Eastern Wolf" (2018)
-    
-    © Katsura Muramatsu All Rights Reserved
-
-    http://hellerraum.nobody.jp
+.. image:: https://zenodo.org/badge/133908095.svg
+   :target: https://zenodo.org/badge/latestdoi/133908095
 
 ----
 
-.. contents:: Table of Contents
-    :depth: 2
-
-**Disclaimer**: All external pictures should have associated credits. If there are missing credits, please tell us, we will correct it. Similarly, all excerpts should be sourced. If not, this is an error and we will correct it as soon as you tell us.
-
 ############
-Dear Readers
+Introduction
 ############
 
-Hello everyone. I'm Kazunari, the author of Harvester.
+Hello everyone. I'm Kazunari, the author of Harvester and a technical contributor to GenICam.
 
-Since I opened the source code of Harvester in May 2018, so many people visited our website and left their very positive messages about Harvester. The number was much more than I expected what I had in the beginning and it truly was one of the exciting experiences I ever had in my professional career.
+Since I opened the source code of Harvester in May 2018, so many people tried out that and gave me very positive feedback that improves Harvester. The number of feedback and the number of people who I discussed with was much more than I expected what I had in the beginning and it truly was one of the exciting experiences I ever had in my professional career.
 
-The original motivation that drove myself to develop Harvester was I didn't know how to develop any image acquisition consumer library though I had been involved in the machine vision market for some reasonable years. Until I got the idea of Harvester, I had to learn and adapt to popular proprietary 3rd party image acquisition libraries from scratch every time even though I just wanted to get an image to manipulate it; to be honest, I had felt it's a bit ridiculous and that exactly was the place where Harvester should came: I needed a unified image acquisition library. In addition, I also needed Python to gain the productivity.
+The original motivation that drove me to develop Harvester was like this: Until I got the idea of Harvester, I had to learn and adapt to popular proprietary 3rd party image acquisition/processing libraries from scratch every time even though I just wanted to acquire an image. To be honest, I had felt it's a bit annoying. A straightforward solution to the issue was to have a unified image acquisition library. In addition, as a guy who likes to work with Python, I wanted to make it a Python module to boost productivity.
 
-I believe that Harvester can help you to concentrate on image processing that you really have to be responsible for. Of course, you may have to implement the algorithm again using other proprietary libraries to optimize the performance. However, Harvester doesn't intend to take the place of such superior libraries because they were designed for exactly that purpose. Harvester just wants to shorten the time you spend to realize your brilliant ideas as much as possible. With this meaning, Harvester can be considered as a tool which helps you to quickly iterate the prototyping process. Note that it is vital for designers because the prototyping process defines the basic quality of the final product. Fortunately, Harvester has got firm support from the high-quality GenTL Producers in the market. It means you can smoothly start working with any GenICam compliant cameras that you may want to work with.
+I believe that Harvester can help you to concentrate on image processing that you really have to be responsible for. Of course, you would have to implement the algorithm again using other sophisticated and powerful proprietary libraries to optimize the performance in reality. However, (this is very important so let me stress this) Harvester is just a productive sandbox that encapsulates the image acquisition process and does not intend to take the place of such superior image processing libraries because they were designed for exactly that purpose. Harvester just wants to shorten the time you spend to realize your brilliant ideas as much as possible. With this meaning, Harvester can be considered as a tool that helps you to quickly iterate the prototyping process. Note that it is vital for designers because the prototyping process defines the basic quality of the final product. Fortunately, Harvester has got firm support from the high-quality GenTL Producers on the market. It means you can smoothly start working with any GenICam compliant cameras that you may want to work with.
 
-So everyone, there's no worry anymore. Keep having fun for working. Harvester has got your back.
+So, everyone, there's no worry anymore. Keep having fun working. Harvester has got your back.
 
-#############
-Announcements
-#############
+Greetings, Kazunari Kudo.
 
-- **Version 0.2.13**: Resolves issues `#88 <https://github.com/genicam/harvesters/issues/88>`_, `#89 <https://github.com/genicam/harvesters/issues/89>`_, `#90 <https://github.com/genicam/harvesters/issues/90>`_, and `#95 <https://github.com/genicam/harvesters/issues/95>`_.
-- **Version 0.2.12**: Resolves issue `#84 <https://github.com/genicam/harvesters/issues/84>`_.
-- **Version 0.2.11**: Resolves issue `#82 <https://github.com/genicam/harvesters/issues/82>`_.
-- **Version 0.2.10**: Resolves issue `#81 <https://github.com/genicam/harvesters/issues/81>`_.
-- **Version 0.2.9**: Resolves issues `#76 <https://github.com/genicam/harvesters/issues/76>`_ and `#78 <https://github.com/genicam/harvesters/issues/78>`_.
-- **Version 0.2.8**: Resolves issues `#73 <https://github.com/genicam/harvesters/issues/73>`_ and `#75 <https://github.com/genicam/harvesters/issues/75>`_.
-- **Version 0.2.7**: Resolves issues `#70 <https://github.com/genicam/harvesters/issues/70>`_ and `#72 <https://github.com/genicam/harvesters/issues/72>`_.
-- **Version 0.2.6**: Resolves issues `#67 <https://github.com/genicam/harvesters/issues/67>`_ and `#68 <https://github.com/genicam/harvesters/issues/68>`_.
-- **Version 0.2.5**: Resolves issue `#63 <https://github.com/genicam/harvesters/issues/63>`_.
-- **Version 0.2.4**: Resolves issue `#64 <https://github.com/genicam/harvesters/issues/64>`_.
-- **Version 0.2.3**: Resolves issues `#57 <https://github.com/genicam/harvesters/issues/57>`_, `#58 <https://github.com/genicam/harvesters/issues/58>`_, `#59 <https://github.com/genicam/harvesters/issues/59>`_, `#60 <https://github.com/genicam/harvesters/issues/60>`_, `#61 <https://github.com/genicam/harvesters/issues/61>`_, and `#62 <https://github.com/genicam/harvesters/issues/62>`_.
-- **Version 0.2.2**: Resolves issue `#56 <https://github.com/genicam/harvesters/issues/56>`_.
-- **Version 0.2.1**: Resolves issue `#55 <https://github.com/genicam/harvesters/issues/55>`_.
-- **Version 0.2.0**: Resolves issue `#53 <https://github.com/genicam/harvesters/issues/53>`_.
-- **Version 0.1.0**: Note that this version will be deprecated and the following versions will be incompatible with any of ``0.1.n`` versions.
+**************************
+Harvester as Python Module
+**************************
 
-###############
-About Harvester
-###############
-
-Harvester was created to be a friendly image acquisition library for all people who those want to learn computer/machine vision. Harvester consists of two Python libraries, Harvester Core and Harvester GUI, and technically speaking, each library is responsible for the following tasks:
+Techincally speaking, Harvester consists of two Python modules, Harvester Core and Harvester GUI, and technically speaking, each library is responsible for the following tasks:
 
 - Harvester Core: Image acquisition & device manipulation
 - Harvester GUI: Image data visualization
@@ -95,21 +49,9 @@ You can freely use, modify, distribute Harvester under `Apache License-2.0 <http
 
 Currently, Harvester is being developed by the motivated contributors from all over the world.
 
-****************
-Asking Questions
-****************
-
-We have opened a chat room for you. Please don't hesitate to leave your message any time when you get a question regarding Harvester!
-
-https://gitter.im/genicam-harvester/chatroom
-
-We have also prepared an FAQ page. Perhaps your issue could be resolved just reading through it.
-
-https://github.com/genicam/harvesters/wiki/FAQ
-
-************************************
-Harvester... Where Is The Name From?
-************************************
+***********************
+Where Is The Name From?
+***********************
 
 Harvester's name was coming from the great Flemish painter, Pieter Bruegel the Elder's painting so-called "The Harvesters". You can see the painting in the top of this page. Harvesters harvest a crop every season that has been fully grown and the harvested crop is passed to the consumers. On the other hand, image acquisition libraries acquire images as their crop and the images are passed to the following processes. We found the similarity between them and decided to name our library Harvester.
 
@@ -117,34 +59,12 @@ Apart from anything else, we love its peaceful and friendly name. We hope you al
 
 ----
 
-.. figure:: https://user-images.githubusercontent.com/8652625/40595190-1e16e90e-626e-11e8-9dc7-207d691c6d6d.jpg
-    :align: center
-    :alt: The Harvesters
+.. contents:: Table of Contents
+    :depth: 2
 
-    Pieter Bruegel the Elder, The Harvesters, 1565, (c) The Metropolitan Museum of Art
+**Disclaimer**: All external pictures should have associated credits. If there are missing credits, please tell us, we will correct it. Similarly, all excerpts should be sourced. If not, this is an error and we will correct it as soon as you tell us.
 
 ----
-
-***************
-Important Links
-***************
-
-.. list-table::
-
-    - - Chat room
-      - https://gitter.im/genicam-harvester/chatroom
-    - - Documentation
-      - https://harvesters.readthedocs.io/en/latest/
-    - - EMVA website
-      - https://www.emva.org/standards-technology/genicam/genicam-downloads/
-    - - Harvester GUI
-      - https://github.com/genicam/harvesters_gui
-    - - Issue tracker
-      - https://github.com/genicam/harvesters/issues
-    - - PyPI
-      - https://pypi.org/project/harvesters/
-    - - Source repository
-      - https://github.com/genicam/harvesters
 
 ******************
 Development Status
@@ -299,7 +219,6 @@ Note that we as the committee have not prepared any formal certification procedu
       - Not tested
       - Not tested
 
-
 Please don't hesitate to tell us if you have tested Harvester with your GenTL Producer or GenICam compliant device. We will add your company/organization name to the list.
 
 ***********
@@ -313,6 +232,70 @@ https://github.com/genicam/harvesters_gui
 .. image:: https://user-images.githubusercontent.com/8652625/43035346-c84fe404-8d28-11e8-815f-2df66cbbc6d0.png
     :align: center
     :alt: Image data visualizer
+
+*************
+Announcements
+*************
+
+- **Version 0.2.18**: Resolves issue `#103 <https://github.com/genicam/harvesters/issues/103>`_.
+- **Version 0.2.17**: Resolves issue `#100 <https://github.com/genicam/harvesters/issues/100>`_.
+- **Version 0.2.16**: Resolves issue `#98 <https://github.com/genicam/harvesters/issues/98>`_. No changes in the functionality.
+- **Version 0.2.15**: Resolves issue `#97 <https://github.com/genicam/harvesters/issues/97>`_. No changes in the functionality.
+- **Version 0.2.14**: Resolves issue `#96 <https://github.com/genicam/harvesters/issues/96>`_. No changes in the functionality.
+- **Version 0.2.13**: Resolves issues `#88 <https://github.com/genicam/harvesters/issues/88>`_, `#89 <https://github.com/genicam/harvesters/issues/89>`_, `#90 <https://github.com/genicam/harvesters/issues/90>`_, and `#95 <https://github.com/genicam/harvesters/issues/95>`_.
+- **Version 0.2.12**: Resolves issue `#84 <https://github.com/genicam/harvesters/issues/84>`_.
+- **Version 0.2.11**: Resolves issue `#82 <https://github.com/genicam/harvesters/issues/82>`_.
+- **Version 0.2.10**: Resolves issue `#81 <https://github.com/genicam/harvesters/issues/81>`_.
+- **Version 0.2.9**: Resolves issues `#76 <https://github.com/genicam/harvesters/issues/76>`_ and `#78 <https://github.com/genicam/harvesters/issues/78>`_.
+- **Version 0.2.8**: Resolves issues `#73 <https://github.com/genicam/harvesters/issues/73>`_ and `#75 <https://github.com/genicam/harvesters/issues/75>`_.
+- **Version 0.2.7**: Resolves issues `#70 <https://github.com/genicam/harvesters/issues/70>`_ and `#72 <https://github.com/genicam/harvesters/issues/72>`_.
+- **Version 0.2.6**: Resolves issues `#67 <https://github.com/genicam/harvesters/issues/67>`_ and `#68 <https://github.com/genicam/harvesters/issues/68>`_.
+- **Version 0.2.5**: Resolves issue `#63 <https://github.com/genicam/harvesters/issues/63>`_.
+- **Version 0.2.4**: Resolves issue `#64 <https://github.com/genicam/harvesters/issues/64>`_.
+- **Version 0.2.3**: Resolves issues `#57 <https://github.com/genicam/harvesters/issues/57>`_, `#58 <https://github.com/genicam/harvesters/issues/58>`_, `#59 <https://github.com/genicam/harvesters/issues/59>`_, `#60 <https://github.com/genicam/harvesters/issues/60>`_, `#61 <https://github.com/genicam/harvesters/issues/61>`_, and `#62 <https://github.com/genicam/harvesters/issues/62>`_.
+- **Version 0.2.2**: Resolves issue `#56 <https://github.com/genicam/harvesters/issues/56>`_.
+- **Version 0.2.1**: Resolves issue `#55 <https://github.com/genicam/harvesters/issues/55>`_.
+- **Version 0.2.0**: Resolves issue `#53 <https://github.com/genicam/harvesters/issues/53>`_.
+- **Version 0.1.0**: Note that this version will be deprecated and the following versions will be incompatible with any of ``0.1.n`` versions.
+
+################
+Online Resources
+################
+
+****************
+Asking Questions
+****************
+
+We have opened a chat room for you. Please don't hesitate to leave your message any time when you get a question regarding Harvester!
+
+https://gitter.im/genicam-harvester/chatroom
+
+We have also prepared an FAQ page. Perhaps your issue could be resolved just reading through it.
+
+https://github.com/genicam/harvesters/wiki/FAQ
+
+***************
+Important Links
+***************
+
+.. list-table::
+
+    - - Chat room
+      - https://gitter.im/genicam-harvester/chatroom
+    - - Documentation
+      - https://harvesters.readthedocs.io/en/latest/
+    - - Digital Object Identifier
+      - https://zenodo.org/record/3554804#.Xd4HSi2B01I
+    - - EMVA website
+      - https://www.emva.org/standards-technology/genicam/genicam-downloads/
+    - - Harvester GUI
+      - https://github.com/genicam/harvesters_gui
+    - - Issue tracker
+      - https://github.com/genicam/harvesters/issues
+    - - PyPI
+      - https://pypi.org/project/harvesters/
+    - - Source repository
+      - https://github.com/genicam/harvesters
 
 ***************
 GenTL Producers
@@ -374,9 +357,9 @@ The following diagram shows the hierarchy and relationship of the relevant modul
     :align: center
     :alt: Module hierarchy
 
-############
-Installation
-############
+###############
+Getting Started
+###############
 
 In this section, we will learn how to instruct procedures to get Harvester work.
 
@@ -394,10 +377,6 @@ In addition, you will need the following items to let Harvester make something m
 
 * GenTL Producers
 * GenICam compliant machine vision cameras
-
-*****************
-Operating Systems
-*****************
 
 Harvester has been confirmed it works with the following 64-bit operating systems:
 
@@ -535,9 +514,9 @@ Getting back to the original topic, you could install the latest development ver
 
     $ git clone https://github.com/genicam/harvesters.git && cd harvesters && python setup.py install
 
-################################
-How does Harvester Core help us?
-################################
+#######################
+Working with Harveseter
+#######################
 
 Harvester Core is an image acquisition engine. No GUI. You can use it as an image acquisition library which acquires images from GenTL Producers through the GenTL-Python Binding and controls the target device (it's typically a camera) through the GenApi-Python Binding.
 
@@ -570,10 +549,6 @@ Currently, Harvester Core supports the following pixel formats that are defined 
     ``Mono8``, ``Mono10``, ``Mono12``, ``Mono16``, ``RGB8``, ``RGBa8``, ``BayerRG8``, ``BayerGR8``, ``BayerBG8``, ``BayerGB8``, ``BayerRG16``, ``BayerGR16``, ``BayerBG16``, ``BayerGB16``
 
 Note that Harvester does not support packed formats which allow multiple elements of information reside in a byte data.
-
-###########
-Screenshots
-###########
 
 *************************
 Harvester Core on IPython
@@ -664,9 +639,13 @@ The following code block shows Harvester Core is running on IPython. An acquired
     In [17]: quit
     (genicam) kznr@Kazunaris-MacBook:~%
 
-####################
-Using Harvester Core
-####################
+######################
+The Harvester Workflow
+######################
+
+****************
+Acquiring Images
+****************
 
 First, let's import Harvester:
 
@@ -816,9 +795,9 @@ Now you can quit the program! Please not that ``Harvester`` and ``ImageAcquirer`
 
 This way prevents you forget to release the acquired external resources. If this notation doesn't block your use case then you should rely on the ``with`` statement.
 
-***********************
-Reshaping a NumPy Array
-***********************
+***********************************
+Reshaping a NumPy Array as an Image
+***********************************
 
 We have learned how to acquire images from a target device through an ``ImageAcquirer`` class object. In this section, we will learn how to reshape the acquired image into another that can be used by your application.
 
@@ -915,9 +894,9 @@ Once you finished filling up each pixel with a set of RGB values, then you'll be
 
 You can download the standard document of PFNC at the `EMVA website <https://www.emva.org/standards-technology/genicam/genicam-downloads/>`_.
 
-##################################
+**********************************
 Manipulating GenICam Feature Nodes
-##################################
+**********************************
 
 Probably almost of the Harvester users would be interested in manipulating GenIcam feature nodes through Harvester. Let's assume that we are going to control a GenICam feature node called ``Foo``.
 
@@ -961,9 +940,9 @@ Ah, one more thing. You may want to know the available GenICam feature nodes in 
 
 You should be able to find (probably) familiar feature names in the output.
 
-################
-Acknowledgements
-################
+########
+Appendix
+########
 
 *********************
 Open Source Resources
@@ -987,12 +966,30 @@ Harvester Core uses the following open source libraries/resources:
 
   | https://github.com/warner/python-versioneer
 
-*******
-Credits
-*******
+***************
+Acknowledgement
+***************
 
 The initial idea about Harvester suddenly came up to a software engineer, Kazunari Kudo's head in the early April of year 2018 and he immediately decided to bring the first prototype to the International Vision Standards Meeting, IVSM in short, that was going to be held in Frankfurt am Main in the following early May. During the Frankfurt IVSM, interested engineers tried out Harvester and confirmed it really worked using commercial machine vision cameras provided by well-known machine vision camera manufacturers in the world. Having that fact, the attendees of the IVSM warmly welcomed Harvester.
 
 The following individuals have directly or indirectly contributed to the development activity of Harvester or encouraged the developers by their thoughtful warm words; they are our respectable wonderful colleagues:
 
 Rod Barman, Stefan Battmer, David Beek, Jan Becvar, David Bernecker, Chris Beynon, Eric Bourbonnais, Benedikt Busch, George Chamberlain, Thomas Detjen, Friedrich Dierks, Dana Diezemann, Emile Dodin, Reynold Dodson, Sascha Dorenbeck, Jozsa Elod, Erik Eloff, Katie Ensign, Andreas Ertl, James Falconer, Werner Feith, Maciej Gara, Andreas Gau, Sebastien Gendreau, Francois Gobeil, Werner Goeman, Jean-Paul Goglio, Markus Grebing, Eric Gross, Ioannis Hadjicharalambous, Uwe Hagmaier, Tim Handschack, Christopher Hartmann, Reinhard Heister, Gerhard Helfrich, Jochem Herrmann, Heiko Hirschmueller, Tom Hopfner, David Hoese, Karsten Ingeman Christensen, Severi Jaaskelainen, Mattias Johannesson, Mark Jones, Mattias Josefsson, Martin Kersting, Stephan Kieneke, Tom Kirchner, Lutz Koschorreck, Frank Krehl, Maarten Kuijk, Max Larin, Ralf Lay, Min Liu, Sergey Loginonvskikh, Thomas Lueck, Alain Marchand, Rocco Matano, Masahide Matsubara, Stephane Maurice, Robert McCurrach, Mike Miethig, Thies Moeller, Roman Moie, Katsura Muramatsu, Marcel Naggatz, Hartmut Nebelung, Damian Nesbitt, Quang Nhan Nguyen, Klaus-Henning Noffz, Neerav Patel, Jan Pech, Merlin Plock, Joerg Preckwinkel, Benjamin Pussacq, Dave Reaves, Thomas Reuter, Gordon Rice, Andreas Rittinger, Ryan Robe, Nicolas P. Rougier, Felix Ruess, Matthias Schaffland, Michael Schmidt, Jan Scholze, Martin Schwarzbauer, Rupert Stelz, Madhura Suresh, Chendra Hadi Suryanto, Andrew Wei Chuen Tan, Timo Teifel, Albert Theuwissen, Laval Tremblay, Tim Vlaar, Silvio Voitzsch, Stefan Von Weihe, Frederik Voncken, Roman Wagner, Ansger Waschki, Anne Wendel, Michael Williamson, Jean-Michel Wintgens, Manfred Wuetschner, Jang Xu, Christoph Zierl, Sebastian Yap, and Juraj Zopp
+
+******************************
+Column: Seeing and Recognition
+******************************
+
+The following is a short column that was written by one of my favorite photographers/philosophers, Katsura Muramatsu. Even though the column was exclusively dedicated to her exhibition called "Natura naturans", she generously allowed me to excerpt the column for this Harvester project. It would give us an opportunity to thinking about seeing and recognition we regularly do. To me, at least, they sound like a habit on which we unconsciously premise when we do machine vision: We tend to see everything in a way that we want to interpret. Of course, I would like to take the fact in a positive way though.
+
+*"When we talk to someone, we implicitly or explicitly try to find a piece of evidence in his/her eyes that he/she is alive. The same situation happens in a case where we face a stuffed animal and the face, or especially the eyes play a much more important role rather than its fur or other parts. When people visit this place, the museum where I took photos of these stuffed animals, they would feel that they are seen by the animals rather than they see the animals even though the animals are not alive anymore. In fact, the eyes of the stuffed animals are made of glass or other materials such as plastic. I frequently ask myself why we felt that we were seen through their eyes made of those materials." - Katsura Muramatsu*
+
+.. figure:: https://user-images.githubusercontent.com/8652625/65650928-c261cd00-e047-11e9-9ce3-972461c3e15d.jpg
+    :align: center
+    :alt: Ordo: Eastern Wolf
+
+    Title: "Ordo: Eastern Wolf" (2018)
+    
+    © Katsura Muramatsu All Rights Reserved
+
+    http://hellerraum.nobody.jp

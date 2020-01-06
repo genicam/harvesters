@@ -312,6 +312,9 @@ As of today, we have tested Harvester with the following GenTL Producers and it 
     - - Company Name
       - SDK Name
       - Camera Manufacture Free
+    - - Basler AG
+      - `Pylon <https://www.baslerweb.com/en/products/software/basler-pylon-camera-software-suite/>`_
+      - No
     - - Baumer Optronic
       - `Baumer GAPI SDK <https://www.baumer.com/ae/en/product-overview/image-processing-identification/software/baumer-gapi-sdk/c/14174>`_
       - No

@@ -40,7 +40,7 @@ Harvester as Python Module
 
 Techincally speaking, Harvester consists of two Python modules, Harvester Core and Harvester GUI, and technically speaking, each library is responsible for the following tasks:
 
-- Harvester Core: Image acquisition & device manipulation
+- Harvester Core: Image acquisition & remote device manipulation
 - Harvester GUI: Image data visualization
 
 Harvester consumes image acquisition libraries, so-called GenTL Producers. Just grabbing a GenTL Producer and GenICam compliant machine vision cameras, then Harvester will supply you the acquired image data as `numpy <http://www.numpy.org>`_ array to make your image processing task productive.
@@ -354,7 +354,7 @@ Before start talking about the detail, let's take a look at some important termi
 
 * **Harvester GUI**: A part of Harvester that works as a graphical user interface of Harvester Core.
 
-* **A GenICam compliant device**: It's typically a camera. Just involving the GenICam reference implementation, it offers consumers a way to dynamically configure/control the target devices.
+* **A GenICam compliant device**: It's typically a camera. Just involving the GenICam reference implementation, it offers consumers a way to dynamically configure/control the target remote devices.
 
 The following diagram shows the hierarchy and relationship of the relevant modules:
 
@@ -523,7 +523,7 @@ Getting back to the original topic, you could install the latest development ver
 Working with Harveseter
 #######################
 
-Harvester Core is an image acquisition engine. No GUI. You can use it as an image acquisition library which acquires images from GenTL Producers through the GenTL-Python Binding and controls the target device (it's typically a camera) through the GenApi-Python Binding.
+Harvester Core is an image acquisition engine. No GUI. You can use it as an image acquisition library which acquires images from GenTL Producers through the GenTL-Python Binding and controls the target remote device (it's typically a camera) through the GenApi-Python Binding.
 
 Harvester Core works as a minimalistic front-end for image acquisition. Just importing it from your Python script, you should immediately be able to set images on your table.
 
@@ -539,11 +539,11 @@ The main features of Harvester Core are listed as follows:
 
 * Image acquisition through GenTL Producers
 * Multiple loading of GenTL Producers in a single Python script
-* GenICam feature node manipulation of the target device
+* GenICam feature node manipulation of the target remote device
 
-Note that the second item implies you can involve multiple types of transport layers in your Python script. Each transport layer has own advantages and disadvantages and you should choose appropriate transport layers following your application's requirement. You just need to acquire images for some purposes and the GenTL Producers deliver the images somehow. It truly is the great benefit of the GenTL Standard! And of course, not only GenTL Producers but Harvester Core offer you a way to manipulate multiple devices in a single Python script with an intuitive manner.
+Note that the second item implies you can involve multiple types of transport layers in your Python script. Each transport layer has own advantages and disadvantages and you should choose appropriate transport layers following your application's requirement. You just need to acquire images for some purposes and the GenTL Producers deliver the images somehow. It truly is the great benefit of the GenTL Standard! And of course, not only GenTL Producers but Harvester Core offer you a way to manipulate multiple remote devices in a single Python script with an intuitive manner.
 
-On the other hand, Harvester Core could be considered as a simplified version of the GenTL-Python Binding; actually, Harvester Core hides it in its back and shows only intuitive interfaces to its clients. Harvester Core just offers you a relationship between you and a device. Nothing more. We say it again, just you and a device. If you need to manipulate more relevant GenTL modules or have to achieve something over a hardcore way, then you should directly work with the GenTL-Python Binding.
+On the other hand, Harvester Core could be considered as a simplified version of the GenTL-Python Binding; actually, Harvester Core hides it in its back and shows only intuitive interfaces to its clients. Harvester Core just offers you a relationship between you and a remote device. Nothing more. We say it again, just you and a remote device. If you need to manipulate more relevant GenTL modules or have to achieve something over a hardcore way, then you should directly work with the GenTL-Python Binding.
 
 ******************************************
 Pixel Formats That Harvester Core Supports
@@ -599,10 +599,10 @@ The following code block shows Harvester Core is running on IPython. An acquired
         ...:     component = buffer.payload.components[0]
         ...:
         ...:     # Note that the number of components can be vary. If your
-        ...:     # target device transmits a multi-part information, then you'd
-        ...:     # get two or more components in the payload. However, now we're
-        ...:     # working with a device that transmits only a 2D image. So we
-        ...:     # manipulate only index 0 of the list object, compoenents.
+        ...:     # target remote device transmits a multi-part information, then
+        ...:     # you'd get two or more components in the payload. However, now
+        ...:     # we're working with a remote device that transmits only a 2D image.
+        ...:     # So we manipulate only index 0 of the list object, components.
         ...:
         ...:     # Let's see the acquired data in 1D:
         ...:     _1d = component.data
@@ -697,14 +697,14 @@ In a contrary sense, you can remove a specific CTI file that you have added with
 
     h.remove_cti_file('path/to/gentl_producer.cti')
 
-And now yol have to update the list of devices; it fills up your device
-information list and you'll select a device to control from the list:
+And now yol have to update the list of remote devices; it fills up your device
+information list and you'll select a remote device to control from the list:
 
 .. code-block:: python
 
     h.update_device_info_list()
 
-The following code will let you know the devices that you can control:
+The following code will let you know the remote devices that you can control:
 
 .. code-block:: python
 
@@ -719,7 +719,7 @@ Our friendly GenTL Producer, so called TLSimu, gives you the following informati
      (unique_id='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_0', version='1.2.3'),
      (unique_id='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_1', version='1.2.3')]
 
-And you create an image acquirer object specifying a target device. The image acquirer does the image acquisition task for you. In the following example it's trying to create an acquirer object of the first candidate device in the device information list:
+And you create an image acquirer object specifying a target remote device. The image acquirer does the image acquisition task for you. In the following example it's trying to create an acquirer object of the first candidate remote device in the device information list:
 
 .. code-block:: python
 
@@ -731,15 +731,15 @@ Or equivalently:
 
     ia = h.create_image_acquirer(list_index=0)
 
-You can connect the same device passing more unique information to the method. In the following case, we specify a serial number of the target device:
+You can connect the same remote device passing more unique information to the method. In the following case, we specify a serial number of the target remote device:
 
 .. code-block:: python
 
     ia = h.create_image_acquirer(serial_number='SN_InterfaceA_0')
 
-You can specify a target device using properties that are provided through the ``device_info_list`` property of the ``Harvester`` class object. Note that it is invalid if the specifiers gives you two ore more devices. Please specify sufficient information so that the combination gives you a qunique target device.
+You can specify a target remote device using properties that are provided through the ``device_info_list`` property of the ``Harvester`` class object. Note that it is invalid if the specifiers gives you two ore more remote devices. Please specify sufficient information so that the combination gives you a unique target remote device.
 
-We named the image acquirer object ``ia`` in the above example but in a practical occasion, you may give it a purpose oriented name like ``ia_face_detection``. Note that a camera itself does NOT acquirer/receive images but it just transmits them. In a machine vision application, there should be two roles at least: One transmits images and the other acquires them. The ``ImageAcquirer`` class objects play the latter role and it holds a camera as the ``device`` object, the source of images.
+We named the image acquirer object ``ia`` in the above example but in a practical occasion, you may give it a purpose oriented name like ``ia_face_detection``. Note that a camera itself does NOT acquirer/receive images but it just transmits them. In a machine vision application, there should be two roles at least: One transmits images and the other acquires them. The ``ImageAcquirer`` class objects play the latter role and it holds a camera as the ``remote_device`` object, the source of images.
 
 Anyway, then now we start image acquisition:
 
@@ -773,7 +773,7 @@ Okay, then you would stop image acquisition with the following code:
 
     ia.stop_image_acquisition()
 
-And the following code disconnects the connecting device from the image acquirer; you'll have to create an image acquirer object again when you have to work with a device:
+And the following code disconnects the connecting remote device from the image acquirer; you'll have to create an image acquirer object again when you have to work with a remote device:
 
 .. code-block:: python
 
@@ -804,7 +804,7 @@ This way prevents you forget to release the acquired external resources. If this
 Reshaping a NumPy Array as an Image
 ***********************************
 
-We have learned how to acquire images from a target device through an ``ImageAcquirer`` class object. In this section, we will learn how to reshape the acquired image into another that can be used by your application.
+We have learned how to acquire images from a target remote device through an ``ImageAcquirer`` class object. In this section, we will learn how to reshape the acquired image into another that can be used by your application.
 
 First, you should know that Harvester Core returns you an image as a 1D NumPy array.
 
@@ -909,39 +909,39 @@ To get the value of ``Foo``, we code as follows:
 
 .. code-block:: python
 
-    a = ia.device.node_map.Foo.value
+    a = ia.remote_device.node_map.Foo.value
 
 On the other hand, if ``Foo`` is an Integer node then we code as follows to set a value:
 
 .. code-block:: python
 
-    ia.device.node_map.Foo.value = 42
+    ia.remote_device.node_map.Foo.value = 42
 
 If ``Foo`` is a Boolean node, then you code as follows:
 
 .. code-block:: python
 
-    ia.device.node_map.Foo.value = True
+    ia.remote_device.node_map.Foo.value = True
 
 Or if ``Foo`` is an Enumeration node, then you code as follows; it also works for a case where Foo is a String node:
 
 .. code-block:: python
 
-    ia.device.node_map.Foo.value = 'Bar'
+    ia.remote_device.node_map.Foo.value = 'Bar'
 
 If ``Foo`` is a Command node, then you can execute the command with the following
 
 .. code-block:: python
 
-    ia.device.node_map.Foo.execute()
+    ia.remote_device.node_map.Foo.execute()
 
 There you can dive much more deeper in the GenICam GenApi but the description above would be sufficient for a general use.
 
-Ah, one more thing. You may want to know the available GenICam feature nodes in the target device. In such a case, you can probe them calling the ``dir`` function as follows:
+Ah, one more thing. You may want to know the available GenICam feature nodes in the target remote physical device. In such a case, you can probe them calling the ``dir`` function as follows:
 
 .. code-block:: python
 
-    dir(ia.device.node_map)
+    dir(ia.remote_device.node_map)
 
 You should be able to find (probably) familiar feature names in the output.
 

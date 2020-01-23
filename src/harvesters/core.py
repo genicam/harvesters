@@ -105,9 +105,12 @@ class DataStream(Module):
     def buffer_announce_min(self):
         return self._module.buffer_announce_min
 
-    @property
     def defines_payload_size(self):
-        return self._module.defines_payload_size
+        return self._module.defines_payload_size()
+
+    @property
+    def payload_size(self):
+        return self._module.payload_size
 
     def queue_buffer(self, announced_buffer=None):
         self._module.queue_buffer(announced_buffer)
@@ -168,6 +171,7 @@ class Device(Module):
     @property
     def port(self):
         return self._module.local_port
+
 
 class Interface(Module):
     def __init__(self, module=None, node_map=None, parent=None):

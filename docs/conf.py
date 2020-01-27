@@ -373,7 +373,7 @@ intersphinx_mapping = {
 }
 
 # List up the module to be mocked.
-autodoc_mock_imports = ['genicam2', 'numpy']
+autodoc_mock_imports = ['genicam', 'numpy']
 
 def skip(app, what, name, obj, skip, options):
     if name == "__init__":

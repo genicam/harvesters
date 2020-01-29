@@ -35,7 +35,7 @@ from genicam.gentl import TimeoutException
 # Local application/library specific imports
 from harvesters.test.base_harvester import TestHarvesterCoreBase
 from harvesters.test.base_harvester import get_cti_file_path
-from harvesters.core import _parse_description_file
+from harvesters.core import _retrieve_file_path
 from harvesters.core import Harvester
 from harvesters.core import ImageAcquirer
 from harvesters.test.helper import get_package_dir
@@ -452,11 +452,12 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         url += file_path
 
         # Parse the URL:
-        file_name, _, _ = _parse_description_file(url=url)
+        retrived_file_path = _retrieve_file_path(url=url)
 
         # Compare file names:
         self.assertEqual(
-            file_name, expected_file_name
+            os.path.basename(retrived_file_path),
+            expected_file_name
         )
 
     @staticmethod
@@ -535,6 +536,20 @@ class TestIssue81(unittest.TestCase):
             # Transfer the exception:
             raise exception(message)
 
+
+class TestIssue85(unittest.TestCase):
+    _cti_file_path = get_cti_file_path()
+    sys.path.append(_cti_file_path)
+
+    def setUp(self) -> None:
+        #
+        self.env_var = 'HARVESTERS_XML_FILE_DIR'
+        self.original = None if os.environ else os.environ[self.env_var]
+
+    def tearDown(self) -> None:
+        if self.original:
+            os.environ[self.env_var] = self.original
+
     def test_issue_85(self):
         #
         temp_dir = os.path.join(
@@ -547,10 +562,7 @@ class TestIssue81(unittest.TestCase):
         os.makedirs(temp_dir)
 
         #
-        env_var = 'HARVESTERS_XML_FILE_DIR'
-        original = None if os.environ else os.environ[env_var]
-
-        os.environ[env_var] = temp_dir
+        os.environ[self.env_var] = temp_dir
 
         #
         self.assertFalse(os.listdir(temp_dir))
@@ -560,14 +572,9 @@ class TestIssue81(unittest.TestCase):
             h.add_cti_file(self._cti_file_path)
             h.update_device_info_list()
             with h.create_image_acquirer(0):
-                pass
-
-        #
-        if original:
-            os.environ[env_var] = original
-
-        #
-        self.assertTrue(os.listdir(temp_dir))
+                # Check if XML files have been stored in the expected
+                # directory:
+                self.assertTrue(os.listdir(temp_dir))
 
 
 if __name__ == '__main__':

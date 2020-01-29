@@ -2390,9 +2390,6 @@ def _save_file(*, file_dir=None, file_name=None, binary_data=None):
     bytes_io = io.BytesIO(binary_data)
 
     if file_dir is not None and file_name is not None:
-        #
-        print('f = {0}, d = {1}'.format(file_name, file_dir))
-
         # Create the directory if it didn't exist:
         if not os.path.exists(file_dir):
             os.makedirs(file_dir)

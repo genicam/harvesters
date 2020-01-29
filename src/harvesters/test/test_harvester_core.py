@@ -35,7 +35,7 @@ from genicam.gentl import TimeoutException
 # Local application/library specific imports
 from harvesters.test.base_harvester import TestHarvesterCoreBase
 from harvesters.test.base_harvester import get_cti_file_path
-from harvesters.core import _retrieve_file_path
+from harvesters.core import _parse_description_file
 from harvesters.core import Harvester
 from harvesters.core import ImageAcquirer
 from harvesters.test.helper import get_package_dir
@@ -425,22 +425,13 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         if not self.is_running_with_default_target():
             return
 
-        expected_names = ['altered_plain.xml', 'altered_zip.zip']
-        for expected_name in expected_names:
-            #
-            _expected_name = 'issue_67_' + expected_name
-            file_path = self._test_issue_67(
-                expected_file_name=_expected_name
-
-            )
-            #
-            file_name = os.path.basename(file_path)
-            # Compare file names:
-            self.assertEqual(
-                file_name, _expected_name
+        file_names = ['altered_plain.xml', 'altered_zip.zip']
+        for i, file_name in enumerate(file_names):
+            self._test_issue_67(
+                'issue_67_' + file_name
             )
 
-    def _test_issue_67(self, *, expected_file_name=None):
+    def _test_issue_67(self, expected_file_name):
         #
         xml_dir = self._get_xml_dir()
 
@@ -461,7 +452,12 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         url += file_path
 
         # Parse the URL:
-        return _retrieve_file_path(url=url)
+        file_name, _, _ = _parse_description_file(url=url)
+
+        # Compare file names:
+        self.assertEqual(
+            file_name, expected_file_name
+        )
 
     @staticmethod
     def _get_xml_dir():

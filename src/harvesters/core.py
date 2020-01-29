@@ -2385,10 +2385,19 @@ def _parse_description_file(*, port=None, url=None, file_path=None, logger=None,
                 'Failed to parse URL {0}: Unknown format.'.format(url)
             )
 
-    # Let's check the reality.
-    if zipfile.is_zipfile(bytes_object):
-        # Yes, that's a zip file.
-        zipped_content = zipfile.ZipFile(bytes_object, 'r')
+    return file_path
+
+def _save_file(*, file_dir=None, file_name=None, binary_data=None):
+    #
+    assert binary_data
+
+    #
+    bytes_io = io.BytesIO(binary_data)
+
+    if file_dir is not None and file_name is not None:
+        # Create the directory if it didn't exist:
+        if not os.path.exists(file_dir):
+            os.makedirs(file_dir)
 
         # Extract the file content from the zip file.
         for file_info in zipped_content.infolist():

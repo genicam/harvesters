@@ -42,6 +42,7 @@ from harvesters.test.helper import get_package_dir
 
 
 class TestHarvesterCore(TestHarvesterCoreBase):
+    sleep_duration = 0.5  # Time to keep sleeping [s]
 
     def test_basic_usage_1(self):
         """
@@ -282,7 +283,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             self.generate_software_trigger()
             # We should have another reliable way to wait until the target
             # gets ready.
-            time.sleep(0.01)
+            time.sleep(self.sleep_duration)
             num_images_to_acquire -= 1
 
         #
@@ -373,7 +374,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             self.generate_software_trigger()
             # Note that we should have another reliable way to confirm
             # FRAME_TRIGGER_WAIT.
-            time.sleep(0.01)
+            time.sleep(self.sleep_duration)
 
         # If the callback method was called, then we should have the same
         # number of buffers with num_images:

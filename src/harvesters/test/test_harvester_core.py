@@ -452,11 +452,11 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         url += file_path
 
         # Parse the URL:
-        retrived_file_path = _retrieve_file_path(url=url)
+        retrieved_file_path = _retrieve_file_path(url=url)
 
         # Compare file names:
         self.assertEqual(
-            os.path.basename(retrived_file_path),
+            os.path.basename(retrieved_file_path),
             expected_file_name
         )
 

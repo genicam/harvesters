@@ -539,6 +539,20 @@ class TestIssue81(unittest.TestCase):
             # Transfer the exception:
             raise exception(message)
 
+
+class TestIssue85(unittest.TestCase):
+    _cti_file_path = get_cti_file_path()
+    sys.path.append(_cti_file_path)
+
+    def setUp(self) -> None:
+        #
+        self.env_var = 'HARVESTERS_XML_FILE_DIR'
+        self.original = None if os.environ else os.environ[self.env_var]
+
+    def tearDown(self) -> None:
+        if self.original:
+            os.environ[self.env_var] = self.original
+
     def test_issue_85(self):
         #
         temp_dir = os.path.join(
@@ -551,10 +565,7 @@ class TestIssue81(unittest.TestCase):
         os.makedirs(temp_dir)
 
         #
-        env_var = 'HARVESTERS_XML_FILE_DIR'
-        original = None if os.environ else os.environ[env_var]
-
-        os.environ[env_var] = temp_dir
+        os.environ[self.env_var] = temp_dir
 
         #
         self.assertFalse(os.listdir(temp_dir))
@@ -564,14 +575,9 @@ class TestIssue81(unittest.TestCase):
             h.add_cti_file(self._cti_file_path)
             h.update_device_info_list()
             with h.create_image_acquirer(0):
-                pass
-
-        #
-        if original:
-            os.environ[env_var] = original
-
-        #
-        self.assertTrue(os.listdir(temp_dir))
+                # Check if XML files have been stored in the expected
+                # directory:
+                self.assertTrue(os.listdir(temp_dir))
 
 
 if __name__ == '__main__':

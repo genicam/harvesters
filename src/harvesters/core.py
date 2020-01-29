@@ -2385,39 +2385,35 @@ def _retrieve_file_path(*, port=None, url=None, file_path=None, logger=None, xml
 def _save_file(*, file_dir=None, file_name=None, binary_data=None):
     #
     assert binary_data
+    assert file_name
 
     #
     bytes_io = io.BytesIO(binary_data)
 
-    if file_dir is not None and file_name is not None:
+    if file_dir is not None:
         # Create the directory if it didn't exist:
         if not os.path.exists(file_dir):
             os.makedirs(file_dir)
-
-        #
-        file_path = os.path.join(file_dir, file_name)
-
-        #
-        mode = 'w+'
-        data_to_write = bytes_content = bytes_io.getvalue()
-        if pathlib.Path(file_path).suffix.lower() == '.zip':
-            mode += 'b'
-        else:
-            data_to_write = bytes_content.decode()
-            pos = data_to_write.find('\x00')
-            data_to_write = data_to_write[:pos]
-        #
-        with open(file_path, mode) as f:
-            f.write(data_to_write)
     else:
-        temp_file = tempfile.NamedTemporaryFile(
+        file_dir = tempfile.mkdtemp(
             prefix=datetime.now().strftime('%Y%m%d%H%M%S_'),
-            delete=False
         )
-        temp_file.write(bytes_io.getvalue())
-        temp_file.seek(0)
-        temp_file.close()
-        file_path = temp_file.name
+
+    #
+    file_path = os.path.join(file_dir, file_name)
+
+    #
+    mode = 'w+'
+    data_to_write = bytes_content = bytes_io.getvalue()
+    if pathlib.Path(file_path).suffix.lower() == '.zip':
+        mode += 'b'
+    else:
+        data_to_write = bytes_content.decode()
+        pos = data_to_write.find('\x00')
+        data_to_write = data_to_write[:pos]
+    #
+    with open(file_path, mode) as f:
+        f.write(data_to_write)
 
     return file_path
 

@@ -235,7 +235,8 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         # Create an image acquirer:
         ia = self.harvester.create_image_acquirer(0)
 
-        # It's not necessary but we stop image acquisition first:
+        # It's not necessary but we stop image acquisition first;
+        #
         ia.stop_image_acquisition()
 
         # Then start it:
@@ -255,62 +256,85 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         if not self.is_running_with_default_target():
             return
 
-        # Connect to the first camera in the list.
+        # Connect to the first camera in the list:
         self.ia = self.harvester.create_image_acquirer(0)
 
-        #
-        num_images_to_acquire_default = 4
-
-        # Setup the camera before starting image acquisition.
+        # Setup the camera before starting image acquisition:
         self.setup_camera()
 
-        # Then start image acquisition.
-        self.ia.start_image_acquisition()
-
-        # Setup your equipment then trigger the camera.
-        self.generate_software_trigger()
-
         #
-        self.ia.num_filled_buffers_to_hold = num_images_to_acquire_default
+        tests = [
+            self._test_issue_120_1
+        ]
+        for test in tests:
+            for num_images in [1, 2, 4, 8]:
+                #
+                self.ia.num_filled_buffers_to_hold = num_images
 
-        #
-        num_images_to_acquire = num_images_to_acquire_default
+                # Start image acquisition:
+                self.ia.start_image_acquisition()
 
-        # Accumulate the number of filled buffers that the ImageAcquirer
-        # is holding:
-        while num_images_to_acquire > 0:
-            # Set up your equipment for the next image acquisition.
-            self.generate_software_trigger()
-            # We should have another reliable way to wait until the target
-            # gets ready.
-            time.sleep(self.sleep_duration)
-            num_images_to_acquire -= 1
+                # Run a test:
+                test(num_images)
 
-        #
-        num_images_to_acquire = num_images_to_acquire_default
+                # Stop image acquisition:
+                self.ia.stop_image_acquisition()
 
-        # Check the num_holding_filled_buffers is decreased every time
+    def _test_issue_120_1(self, num_images):
+        # Make sure num_holding_filled_buffers is incremented every trigger:
+        for i in range(num_images):
+            #
+            self.assertEqual(
+                self.ia.num_holding_filled_buffers, i
+            )
+
+            # Trigger it:
+            self.generate_software_trigger(sleep_s=self.sleep_duration)
+
+            # Not it must be incremented:
+            self.assertEqual(
+                self.ia.num_holding_filled_buffers, i + 1
+            )
+
+        # Trigger it again, we know it's redundant compared to the
+        # maximum capacity:
+        self.generate_software_trigger(sleep_s=self.sleep_duration)
+
+        # Make sure num_holding_filled_buffers does not exceed
+        # num_filled_buffers_to_hold:
+        self.assertEqual(
+            self.ia.num_filled_buffers_to_hold,
+            self.ia.num_holding_filled_buffers
+        )
+
+        # Make sure num_holding_filled_buffers is decreased every time
         # a filled buffer is fetched:
-        while num_images_to_acquire > 0:
+        for i in range(num_images):
+            #
+            self.assertEqual(
+                self.ia.num_holding_filled_buffers,
+                num_images - i
+            )
             #
             with self.ia.fetch_buffer():
                 #
                 self.assertEqual(
                     self.ia.num_holding_filled_buffers,
-                    num_images_to_acquire - 1
+                    num_images - (i + 1)
                 )
-
-            num_images_to_acquire -= 1
 
     def setup_camera(self):
         self.ia.remote_device.node_map.AcquisitionMode.value = 'Continuous'
         self.ia.remote_device.node_map.TriggerMode.value = 'On'
         self.ia.remote_device.node_map.TriggerSource.value = 'Software'
 
-    def generate_software_trigger(self):
+    def generate_software_trigger(self, sleep_s=0.):
         # Trigger the camera because you have already setup your
         # equipment for the upcoming image acquisition.
         self.ia.remote_device.node_map.TriggerSoftware.execute()
+        #
+        if sleep_s > 0:
+            time.sleep(sleep_s)
 
     def test_issue_59(self):
         if not self.is_running_with_default_target():
@@ -371,10 +395,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
 
         # Trigger the target device:
         for _ in range(num_images):
-            self.generate_software_trigger()
-            # Note that we should have another reliable way to confirm
-            # FRAME_TRIGGER_WAIT.
-            time.sleep(self.sleep_duration)
+            self.generate_software_trigger(sleep_s=self.sleep_duration)
 
         # If the callback method was called, then we should have the same
         # number of buffers with num_images:

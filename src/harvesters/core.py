@@ -2410,7 +2410,9 @@ def _save_file(*, file_dir=None, file_name=None, binary_data=None):
     else:
         data_to_write = bytes_content.decode()
         pos = data_to_write.find('\x00')
-        data_to_write = data_to_write[:pos]
+        if pos != -1:
+            # Found a \x00:
+            data_to_write = data_to_write[:pos]
     #
     with open(file_path, mode) as f:
         f.write(data_to_write)

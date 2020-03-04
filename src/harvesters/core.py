@@ -305,58 +305,42 @@ class _SignalHandler:
 
 
 class ThreadBase:
-    """
-    By default, :class:`ImageAcquirer` class internally uses Python's
-    built-in :mod:`threading` module. However, you may want to use your
-    preferred threading module such as :class:`QThread` of PyQt for some
-    technical reasons. To allow us your preferred threading module, Harvester
-    provides you a base proxy class to allow you implementing your threading
-    functionality.
-    """
-    def __init__(self, *, mutex=None, logger=None):
-        """
-
-        :param mutex:
-        :param logger:
-        """
-
-        #
-        self._logger = logger or get_logger(name=__name__)
-
+    def __init__(self, *, logger=None, mutex=None):
         #
         super().__init__()
-
         #
-        self._is_running = False
+        self._logger = logger or get_logger(name=__name__)
+        #
         self._mutex = mutex
+        self._is_running = False
 
     def start(self):
-        """
-
-        :return: None.
-        """
-
-        self._is_running = True
-        self._start()
+        self._internal_start()
         self._logger.debug(
             'Started thread {:0X}.'.format(self.id_)
         )
 
-    def _start(self):
+    def _internal_start(self):
         """
         This method is abstract and should be reimplemented in any sub-class.
 
-        Starts its worker running.
+        Releases the acquired mutex.
 
         :return: None.
         """
         raise NotImplementedError
 
     def stop(self):
+        self._internal_stop()
+        self._logger.debug(
+            'Stopped thread {:0X}.'.format(self.id_)
+        )
+
+    def _internal_stop(self):
         """
         This method is abstract and should be reimplemented in any sub-class.
 
-        Stops its worker running.
+        Releases the acquired mutex.
 
         :return: None.
         """
@@ -384,32 +368,9 @@ class ThreadBase:
 
     def is_running(self):
         """
-        :return: :const:`True` if the worker is still running. Otherwise :const:`False`.
-        """
-        return self._is_running
-
-    @property
-    def worker(self):
-        """
         This method is abstract and should be reimplemented in any sub-class.
 
-        :return: None.
-        """
-        raise NotImplementedError
-
-    @worker.setter
-    def worker(self, obj):
-        """
-        This method is abstract and should be reimplemented in any sub-class.
-
-        :return: None.
-        """
-        raise NotImplementedError
-
-    @property
-    def mutex(self):
-        """
-        This method is abstract and should be reimplemented in any sub-class.
+        Releases the acquired mutex.
 
         :return: None.
         """
@@ -428,16 +389,12 @@ class ThreadBase:
 class MutexLocker:
     def __init__(self, thread: ThreadBase=None):
         """
-
         :param thread:
         """
-
         #
         assert thread
-
         #
         super().__init__()
-
         #
         self._thread = thread
         self._locked_mutex = None
@@ -460,90 +417,102 @@ class MutexLocker:
         self._thread.release()
 
 
-class _BuiltInThread(ThreadBase):
-    def __init__(self, *, mutex=None, worker=None, logger=None,
-                 sleep_duration=_sleep_duration_default,
-                 num_buffers_to_hold=None):
-        """
-
-        :param mutex:
-        :param worker:
-        :param logger:
-        :param sleep_duration:
-        """
-
+class ImageAcquisitionThreadBase(ThreadBase):
+    def __init__(self, *, mutex=None, logger=None, image_acquire=None):
+        #
+        assert image_acquire
         #
         super().__init__(mutex=mutex, logger=logger)
-
         #
-        self._thread = None
-        self._worker = worker
-        self._sleep_duration = sleep_duration
-        self._queue = Queue(maxsize=num_buffers_to_hold)
+        self._ia = image_acquire
+        self._worker = self._ia.worker_image_acquisition
+        self._sleep_duration = self._ia.sleep_duration
+        self._context = Queue(maxsize=self._ia.num_filled_buffers_to_hold)
 
     @property
     def queue(self):
-        return self._queue
+        """
+        This method is abstract and should be reimplemented in any sub-class.
 
-    def _start(self):
-        # Create a Thread object. The object is not reusable.
-        self._thread = _ThreadImpl(
-            base=self, worker=self._worker,
+        :return: None.
+        """
+        raise NotImplementedError
+
+
+class _ImageAcquisitionThread(ImageAcquisitionThreadBase):
+    def __init__(self, *, image_acquire=None, logger=None):
+        """
+        :param mutex:
+        :param worker:
+        :param logger:
+        """
+        #
+        assert image_acquire
+        #
+        super().__init__(
+            mutex=Lock(), logger=logger, image_acquire=image_acquire
+        )
+
+        #
+        self._thread = None
+        self._is_running = False
+
+    def _internal_start(self):
+        """
+
+        :return: None.
+        """
+        self._thread = _NativeThread(
+            thread_owner=self, worker=self._worker,
             sleep_duration=self._sleep_duration,
-            queue=self._queue
+            context=self._context
         )
 
         # Start running its worker method.
+        self._is_running = True
         self._thread.start()
 
-    def stop(self):
+    def _internal_stop(self):
         #
         if self._thread is None:
             return
 
         # Prepare to terminate the worker method.
         self._thread.stop()
+        self._is_running = False
 
         # Wait until the run methods is terminated.
         self._thread.join()
 
-        self._logger.debug(
-            'Stopped thread {:0X}.'.format(self._thread.id_)
-        )
-
     def acquire(self):
         #
-        if self._thread is None:
+        if self._thread:
+            return self._thread.acquire()
+        else:
             return None
-
-        #
-        return self._thread.acquire()
 
     def release(self):
         #
-        if self._thread is None:
+        if self._thread:
+            self._thread.release()
+        else:
             return
-
-        #
-        self._thread.release()
 
     @property
     def worker(self):
         #
-        if self._thread is None:
+        if self._thread:
+            return self._thread.worker
+        else:
             return None
-
-        #
-        return self._thread.worker
 
     @worker.setter
     def worker(self, obj):
         #
-        if self._thread is None:
+        if self._thread:
+            self._thread.worker = obj
+        else:
             return
-
-        #
-        self._thread.worker = obj
 
     @property
     def mutex(self):
@@ -553,29 +522,36 @@ class _BuiltInThread(ThreadBase):
     def id_(self):
         return self._thread.id_
 
+    def is_running(self):
+        return self._is_running
 
-class _ThreadImpl(Thread):
-    def __init__(self, base=None, worker=None,
+    @property
+    def queue(self):
+        return self._context
+
+
+class _NativeThread(Thread):
+    def __init__(self, thread_owner=None, worker=None,
                  sleep_duration=_sleep_duration_default,
-                 queue=None):
+                 context=None):
         """
 
-        :param base:
+        :param thread_owner:
         :param worker:
         :param sleep_duration:
         """
 
         #
-        assert base
+        assert thread_owner
 
         #
         super().__init__(daemon=self._is_interactive())
 
         #
         self._worker = worker
-        self._base = base
+        self._thread_owner = thread_owner
         self._sleep_duration = sleep_duration
-        self._queue = queue
+        self._context = context
 
     @staticmethod
     def _is_interactive():
@@ -591,8 +567,8 @@ class _ThreadImpl(Thread):
             return False
 
     def stop(self):
-        with self._base.mutex:
-            self._base._is_running = False
+        with self._thread_owner.mutex:
+            self._thread_owner._is_running = False
 
     def run(self):
         """
@@ -601,16 +577,20 @@ class _ThreadImpl(Thread):
         This method will be terminated once its parent's is_running
         property turns False.
         """
-        while self._base._is_running:
+        while self._thread_owner.is_running():
             if self._worker:
-                self._worker(self._queue)
+                self._worker(self._context)
                 time.sleep(self._sleep_duration)
 
     def acquire(self):
-        return self._base.mutex.acquire()
+        return self._thread_owner.mutex.acquire()
 
     def release(self):
-        self._base.mutex.release()
+        self._thread_owner.mutex.release()
+
+    @property
+    def id_(self):
+        return self.ident
 
     @property
     def worker(self):
@@ -621,8 +601,9 @@ class _ThreadImpl(Thread):
         self._worker = obj
 
     @property
-    def id_(self):
-        return self.ident
+    def mutex(self):
+        return self._mutex
+
 
 
 class ComponentBase:
@@ -1445,14 +1426,8 @@ class ImageAcquirer:
     _event = Event()
     _specialized_tl_type = ['U3V', 'GEV']
 
-    def _create_thread_object(self):
-        return _BuiltInThread(
-            mutex=Lock(),
-            worker=self._worker_image_acquisition,
-            logger=self._logger,
-            sleep_duration=self._sleep_duration,
-            num_buffers_to_hold=self._num_filled_buffers_to_hold
-        )
+    def _create_acquisition_thread(self):
+        return _ImageAcquisitionThread(image_acquire=self, logger=self._logger)
 
     def __init__(
             self, *, parent=None, device=None,
@@ -1560,7 +1535,7 @@ class ImageAcquirer:
 
         #
         self._sleep_duration = sleep_duration
-        self._thread_image_acquisition = self._create_thread_object()
+        self._thread_image_acquisition = self._create_acquisition_thread()
 
         # Prepare handling the SIGINT event:
         self._threads = []
@@ -1690,6 +1665,10 @@ class ImageAcquirer:
             )
 
     @property
+    def sleep_duration(self):
+        return self._sleep_duration
+
+    @property
     def min_num_buffers(self):
         return self._min_num_buffers
 
@@ -1711,7 +1690,7 @@ class ImageAcquirer:
                 )
 
             # Create a thread object again:
-            self._thread_image_acquisition = self._create_thread_object()
+            self._thread_image_acquisition = self._create_acquisition_thread()
 
             # Move the buffers back to the newly created Queue object:
             while len(buffers) > 0:
@@ -1791,7 +1770,7 @@ class ImageAcquirer:
     @thread_image_acquisition.setter
     def thread_image_acquisition(self, obj):
         self._thread_image_acquisition = obj
-        self._thread_image_acquisition.worker = self._worker_image_acquisition
+        self._thread_image_acquisition.worker = self.worker_image_acquisition
 
     @property
     def signal_stop_image_acquisition(self):
@@ -1942,7 +1921,7 @@ class ImageAcquirer:
         if self._profiler:
             self._profiler.print_diff()
 
-    def _worker_image_acquisition(self, queue=None):
+    def worker_image_acquisition(self, context=None):
         for event_manager in self._event_new_buffer_managers:
             try:
                 if self.is_acquiring_images():
@@ -1954,6 +1933,7 @@ class ImageAcquirer:
             except TimeoutException:
                 continue
             else:
+                _now = datetime.now().timestamp()
                 # Check if the delivered buffer is complete:
                 if event_manager.buffer.is_complete():
                     #
@@ -1971,13 +1951,14 @@ class ImageAcquirer:
                             )
                         )
 
+                    queue = context if context else None
                     if self.keep_latest:
                         # We want to keep the latest ones:
                         with MutexLocker(self.thread_image_acquisition):
                             if not self._is_acquiring_images:
                                 return
 
-                            if queue.full():
+                            if queue and queue.full():
                                 # Pick up the oldest one:
                                 buffer = queue.get()
 
@@ -2001,7 +1982,8 @@ class ImageAcquirer:
                         buffer = event_manager.buffer
 
                         # Then append it to the list which the user fetches later:
-                        queue.put(buffer)
+                        if queue:
+                            queue.put(buffer)
 
                         # Then update the statistics using the buffer:
                         self._update_statistics(buffer)
@@ -2108,7 +2090,7 @@ class ImageAcquirer:
                 """
                 pass
 
-    def fetch_buffer(self, *, timeout=0, is_raw=False, cycle_s=0):
+    def fetch_buffer(self, *, timeout=0, is_raw=False, cycle_s=None):
         """
         Fetches an available :class:`Buffer` object that has been filled up with a single image and returns it.
 
@@ -2119,28 +2101,23 @@ class ImageAcquirer:
         :return: A :class:`Buffer` object.
 
         """
-
         #
         if not self.is_acquiring_images():
             # Does not make any sense. Raise TimeoutException:
             raise TimeoutException
 
-        watch_timeout = True if timeout > 0 else False
-        buffer = None
-        base = time.time()
-
         #
-        if cycle_s > 0:
+        if cycle_s:
             # Use the specified cycle:
             _cycle_s = cycle_s
         else:
-            if self._fetching_cycle_s:
-                # Use the cycle that is calculated by AcquisitionFrameRate:
-                _cycle_s = self._fetching_cycle_s
-            else:
-                # Use the library default value:
-                _cycle_s = 0.001
+            # Use the library default value:
+            _cycle_s = 0.0001
 
+        watch_timeout = True if timeout > 0 else False
+        buffer = None
+
+        base = time.time()
         while buffer is None:
             if watch_timeout and (time.time() - base) > timeout:
                 # Expired the suggested period; give it up:
@@ -2380,8 +2357,9 @@ class ImageAcquirer:
         self._announced_buffers.clear()
 
         # Flush the queue; we don't need the buffers anymore:
-        while not self.thread_image_acquisition.queue.empty():
-            _ = self.thread_image_acquisition.queue.get_nowait()
+        if self.thread_image_acquisition.queue:
+            while not self.thread_image_acquisition.queue.empty():
+                _ = self.thread_image_acquisition.queue.get_nowait()
 
 
 def _retrieve_file_path(*, port=None, url=None, file_path=None, logger=None, xml_dir=None):

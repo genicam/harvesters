@@ -30,9 +30,7 @@ from threading import current_thread, main_thread
 import time
 from urllib.parse import unquote
 import weakref
-import zipfile
 import tempfile
-from zipfile import BadZipFile
 
 # Related third party imports
 import numpy as np
@@ -204,12 +202,12 @@ class DeviceInfo:
             'version',
         ]
         results = []
-        for property in properties:
-            if property is '':
+        for _property in properties:
+            if _property is '':
                 result = None
             else:
                 try:
-                    result = eval('self._device_info.' + property)
+                    result = eval('self._device_info.' + _property)
                 except:
                     result = None
             results.append(result)

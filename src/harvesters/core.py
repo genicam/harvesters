@@ -455,7 +455,6 @@ class _ImageAcquisitionThread(ImageAcquisitionThreadBase):
 
         #
         self._thread = None
-        self._is_running = False
 
     def _internal_start(self):
         """

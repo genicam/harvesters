@@ -437,7 +437,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         xml_dir = self._get_xml_dir()
 
         #
-        url = 'file:///'
+        url = 'file://'
         file_path = xml_dir + '/' + expected_file_name
 
         # '\' -> '/'
@@ -459,6 +459,20 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         self.assertEqual(
             os.path.basename(retrieved_file_path),
             expected_file_name
+        )
+
+    def test_issue_121(self):
+        #
+        expected_file_path = '/Foo.xml'
+
+        #
+        url = 'file://' + expected_file_path
+        retrieved_file_path = _retrieve_file_path(url=url)
+
+        # Compare file names:
+        self.assertEqual(
+            retrieved_file_path,
+            expected_file_path
         )
 
     @staticmethod

@@ -28,7 +28,7 @@ import sys
 from threading import Lock, Thread, Event
 from threading import current_thread, main_thread
 import time
-from urllib.parse import unquote
+from urllib.parse import urlparse
 import weakref
 import tempfile
 
@@ -2351,18 +2351,7 @@ def _retrieve_file_path(*, port=None, url=None, file_path=None, logger=None, xml
             )
 
         elif location == 'file':
-            # '///c|/program%20files/foo.xml' ->
-            # '///', 'c|/program%20files/foo.xml'
-            _, _file_path = others.split('///')
-
-            # 'c|/program%20files/foo.xml' -> 'c|/program files/foo.xml'
-            _file_path = unquote(_file_path)
-
-            # 'c|/program files/foo.xml' -> 'c:/program files/foo.xml')
-            _file_path.replace('|', ':')
-
-            # Now we get a file path that we daily use:
-            file_path = _file_path
+            file_path = urlparse(url).path
 
         elif location == 'http' or location == 'https':
             raise NotImplementedError(

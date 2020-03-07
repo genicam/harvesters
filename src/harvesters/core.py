@@ -53,7 +53,7 @@ from genicam.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
 from harvesters._private.core.port import ConcretePort
 from harvesters._private.core.statistics import Statistics
 from harvesters.util.logging import get_logger
-from harvesters.util.pfnc import symbolics
+from harvesters.util.pfnc import dict_by_names, dict_by_ints
 from harvesters.util.pfnc import uint16_formats, uint32_formats, \
     float32_formats, uint8_formats
 from harvesters.util.pfnc import component_2d_formats
@@ -869,7 +869,7 @@ class Component2DImage(ComponentBase):
         """
         :return: The data type of the data component as string.
         """
-        return symbolics[self.data_format_value]
+        return dict_by_ints[self.data_format_value]
 
     @property
     def delivered_image_height(self):
@@ -1163,13 +1163,26 @@ class PayloadBase:
 
     def _build_component(self, buffer=None, part=None, node_map=None):
         #
-        if part:
-            data_format = part.data_format
-        else:
-            data_format = buffer.pixel_format
+        try:
+            if part:
+                data_format = part.data_format
+            else:
+                data_format = buffer.pixel_format
+        except GenericException:
+            # As a workaround, we are going to retrive a data format
+            # value from the remote device node map; note that there
+            # could be a case where the value is not synchronized with
+            # the delivered buffer; in addition, note that it:
+            if node_map:
+                name = node_map.PixelFormat.value
+                if name in dict_by_names:
+                    data_format = dict_by_names[name]
+                else:
+                    raise
+            else:
+                raise
 
-        #
-        symbolic = symbolics[data_format]
+        symbolic = dict_by_ints[data_format]
         if symbolic in component_2d_formats:
             return Component2DImage(
                 buffer=buffer, part=part, node_map=node_map,

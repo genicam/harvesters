@@ -30,11 +30,9 @@ import sys
 from threading import Lock, Thread, Event
 from threading import current_thread, main_thread
 import time
-from urllib.parse import unquote
+from urllib.parse import urlparse
 import weakref
-import zipfile
 import tempfile
-from zipfile import BadZipFile
 
 # Related third party imports
 import numpy as np
@@ -57,7 +55,7 @@ from genicam.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
 from harvesters._private.core.port import ConcretePort
 from harvesters._private.core.statistics import Statistics
 from harvesters.util.logging import get_logger
-from harvesters.util.pfnc import symbolics
+from harvesters.util.pfnc import dict_by_names, dict_by_ints
 from harvesters.util.pfnc import uint16_formats, uint32_formats, \
     float32_formats, uint8_formats
 from harvesters.util.pfnc import component_2d_formats
@@ -206,12 +204,12 @@ class DeviceInfo:
             'version',
         ]
         results = []
-        for property in properties:
-            if property is '':
+        for _property in properties:
+            if _property is '':
                 result = None
             else:
                 try:
-                    result = eval('self._device_info.' + property)
+                    result = eval('self._device_info.' + _property)
                 except:
                     result = None
             results.append(result)
@@ -862,7 +860,7 @@ class Component2DImage(ComponentBase):
         """
         :return: The data type of the data component as string.
         """
-        return symbolics[self.data_format_value]
+        return dict_by_ints[self.data_format_value]
 
     @property
     def delivered_image_height(self):
@@ -1156,13 +1154,26 @@ class PayloadBase:
 
     def _build_component(self, buffer=None, part=None, node_map=None):
         #
-        if part:
-            data_format = part.data_format
-        else:
-            data_format = buffer.pixel_format
+        try:
+            if part:
+                data_format = part.data_format
+            else:
+                data_format = buffer.pixel_format
+        except GenericException:
+            # As a workaround, we are going to retrive a data format
+            # value from the remote device node map; note that there
+            # could be a case where the value is not synchronized with
+            # the delivered buffer; in addition, note that it:
+            if node_map:
+                name = node_map.PixelFormat.value
+                if name in dict_by_names:
+                    data_format = dict_by_names[name]
+                else:
+                    raise
+            else:
+                raise
 
-        #
-        symbolic = symbolics[data_format]
+        symbolic = dict_by_ints[data_format]
         if symbolic in component_2d_formats:
             return Component2DImage(
                 buffer=buffer, part=part, node_map=node_map,
@@ -2409,18 +2420,7 @@ def _retrieve_file_path(*, port=None, url=None, file_path=None, logger=None, xml
             )
 
         elif location == 'file':
-            # '///c|/program%20files/foo.xml' ->
-            # '///', 'c|/program%20files/foo.xml'
-            _, _file_path = others.split('///')
-
-            # 'c|/program%20files/foo.xml' -> 'c|/program files/foo.xml'
-            _file_path = unquote(_file_path)
-
-            # 'c|/program files/foo.xml' -> 'c:/program files/foo.xml')
-            _file_path.replace('|', ':')
-
-            # Now we get a file path that we daily use:
-            file_path = _file_path
+            file_path = urlparse(url).path
 
         elif location == 'http' or location == 'https':
             raise NotImplementedError(
@@ -2466,7 +2466,9 @@ def _save_file(*, file_dir=None, file_name=None, binary_data=None):
     else:
         data_to_write = bytes_content.decode()
         pos = data_to_write.find('\x00')
-        data_to_write = data_to_write[:pos]
+        if pos != -1:
+            # Found a \x00:
+            data_to_write = data_to_write[:pos]
     #
     with open(file_path, mode) as f:
         f.write(data_to_write)

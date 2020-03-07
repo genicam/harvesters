@@ -27,7 +27,8 @@ from harvesters.util._pfnc import symbolics as _symbolics
 
 #
 symbolics = _symbolics
-
+dict_by_ints = symbolics
+dict_by_names = {n: i for i, n in symbolics.items()}
 
 # 32-bit value layout
 # |31            24|23            16|15            08|07            00|

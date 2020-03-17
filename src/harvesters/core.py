@@ -2402,6 +2402,8 @@ def _retrieve_file_path(*, port=None, url=None, file_path=None, logger=None, xml
         if location == 'local':
             file_name, address, size = others.split(';')
             address = int(address, 16)
+            # Remove optional /// after local: See section 4.1.2 in GenTL v1.4 Standard
+            file_name = file_name.lstrip('/')
 
             # It may specify the schema version.
             delimiter = '?'

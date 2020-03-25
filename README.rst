@@ -579,9 +579,9 @@ The following code block shows Harvester Core is running on IPython. An acquired
 
     In [3]: h = Harvester()
 
-    In [4]: h.add_cti_file('/Users/kznr/dev/genicam/bin/Maci64_x64/TLSimu.cti')
+    In [4]: h.add_file('/Users/kznr/dev/genicam/bin/Maci64_x64/TLSimu.cti')
 
-    In [5]: h.update_device_info_list()
+    In [5]: h.update()
 
     In [6]: len(h.device_info_list)
     Out[6]: 4
@@ -597,7 +597,7 @@ The following code block shows Harvester Core is running on IPython. An acquired
 
     In [11]: ia.remote_device.node_map.PixelFormat.value = 'Mono8'
 
-    In [12]: ia.start_image_acquisition()
+    In [12]: ia.start_acquisition()
 
     In [13]: with ia.fetch_buffer() as buffer:
         ...:     # Let's create an alias of the 2D image component:
@@ -640,7 +640,7 @@ The following code block shows Harvester Core is running on IPython. An acquired
      [130 131 132 133 134 135 136 137]]
     AVE: 130.0, MIN: 123, MAX: 137
 
-    In [14]: ia.stop_image_acquisition()
+    In [14]: ia.stop_acquisition()
 
     In [15]: ia.destroy()
 
@@ -681,13 +681,13 @@ Producer:
     # read "I pointed out a CTI file but Harvester says the image doesn't
     # exist (Part 2)."
 
-    h.add_cti_file('path/to/gentl_producer.cti')
+    h.add_file('path/to/gentl_producer.cti')
 
-Note that you can add **one or more CTI files** on a single Harvester Core object. To add another CTI file, just repeat calling ``add_cti_file`` method passing another target CTI file:
+Note that you can add **one or more CTI files** on a single Harvester Core object. To add another CTI file, just repeat calling ``add_file`` method passing another target CTI file:
 
 .. code-block:: python
 
-    h.add_cti_file('path/to/another_gentl_producer.cti')
+    h.add_file('path/to/another_gentl_producer.cti')
 
 And the following code will let you know the CTI files that have been loaded
 on the Harvester object:
@@ -700,14 +700,14 @@ In a contrary sense, you can remove a specific CTI file that you have added with
 
 .. code-block:: python
 
-    h.remove_cti_file('path/to/gentl_producer.cti')
+    h.remove_file('path/to/gentl_producer.cti')
 
 And now yol have to update the list of remote devices; it fills up your device
 information list and you'll select a remote device to control from the list:
 
 .. code-block:: python
 
-    h.update_device_info_list()
+    h.update()
 
 The following code will let you know the remote devices that you can control:
 
@@ -750,7 +750,7 @@ Anyway, then now we start image acquisition:
 
 .. code-block:: python
 
-    ia.start_image_acquisition()
+    ia.start_acquisition()
 
 Once you started image acquisition, you should definitely want to get an image. Images are delivered to the acquirer allocated buffers. To fetch a buffer that has been filled up with an image, you can have 2 options; the first option is to use the ``with`` statement:
 
@@ -776,7 +776,7 @@ Okay, then you would stop image acquisition with the following code:
 
 .. code-block:: python
 
-    ia.stop_image_acquisition()
+    ia.stop_acquisition()
 
 And the following code disconnects the connecting remote device from the image acquirer; you'll have to create an image acquirer object again when you have to work with a remote device:
 

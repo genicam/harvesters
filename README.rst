@@ -287,8 +287,6 @@ Important Links
 
 .. list-table::
 
-    - - Chat room
-      - https://gitter.im/genicam-harvester/chatroom
     - - Documentation
       - https://harvesters.readthedocs.io/en/latest/
     - - Digital Object Identifier

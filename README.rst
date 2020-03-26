@@ -53,9 +53,9 @@ Currently, Harvester is being developed by the motivated contributors from all o
 Where Is The Name From?
 ***********************
 
-Harvester's name was coming from the great Flemish painter, Pieter Bruegel the Elder's painting so-called "The Harvesters". You can see the painting in the top of this page. Harvesters harvest a crop every season that has been fully grown and the harvested crop is passed to the consumers. On the other hand, image acquisition libraries acquire images as their crop and the images are passed to the following processes. We found the similarity between them and decided to name our library Harvester.
+Harvester's name is from the great Flemish painter, Pieter Bruegel the Elder's painting so-called "The Harvesters". You can see the painting in the top of this page. Harvesters harvest a crop every season that has been fully grown and the harvested crop is passed to the consumers. On the other hand, image acquisition libraries acquire images as their crop and the images are passed to the following processes. We found the similarity between them and decided to name our library Harvester.
 
-Apart from anything else, we love its peaceful and friendly name. We hope you also like it ;-)
+Apart from anything else, we love its peaceful and friendly name.
 
 ----
 
@@ -273,13 +273,13 @@ Online Resources
 Asking Questions
 ****************
 
-We have opened a chat room for you. Please don't hesitate to leave your message any time when you get a question regarding Harvester!
-
-https://gitter.im/genicam-harvester/chatroom
-
-We have also prepared an FAQ page. Perhaps your issue could be resolved just reading through it.
+We have prepared an FAQ page. Perhaps your issue could be resolved just reading through it:
 
 https://github.com/genicam/harvesters/wiki/FAQ
+
+If any article was not mentioning about the issue you are facing, please try to visit the following page and check if there's a ticket that is relevant to the issue. If nothing has been mentioned, feel free to create an issue ticket so that we can help you:
+
+https://github.com/genicam/harvesters/issues
 
 ***************
 Important Links
@@ -577,9 +577,9 @@ The following code block shows Harvester Core is running on IPython. An acquired
 
     In [3]: h = Harvester()
 
-    In [4]: h.add_cti_file('/Users/kznr/dev/genicam/bin/Maci64_x64/TLSimu.cti')
+    In [4]: h.add_file('/Users/kznr/dev/genicam/bin/Maci64_x64/TLSimu.cti')
 
-    In [5]: h.update_device_info_list()
+    In [5]: h.update()
 
     In [6]: len(h.device_info_list)
     Out[6]: 4
@@ -595,7 +595,7 @@ The following code block shows Harvester Core is running on IPython. An acquired
 
     In [11]: ia.remote_device.node_map.PixelFormat.value = 'Mono8'
 
-    In [12]: ia.start_image_acquisition()
+    In [12]: ia.start_acquisition()
 
     In [13]: with ia.fetch_buffer() as buffer:
         ...:     # Let's create an alias of the 2D image component:
@@ -638,7 +638,7 @@ The following code block shows Harvester Core is running on IPython. An acquired
      [130 131 132 133 134 135 136 137]]
     AVE: 130.0, MIN: 123, MAX: 137
 
-    In [14]: ia.stop_image_acquisition()
+    In [14]: ia.stop_acquisition()
 
     In [15]: ia.destroy()
 
@@ -679,13 +679,13 @@ Producer:
     # read "I pointed out a CTI file but Harvester says the image doesn't
     # exist (Part 2)."
 
-    h.add_cti_file('path/to/gentl_producer.cti')
+    h.add_file('path/to/gentl_producer.cti')
 
-Note that you can add **one or more CTI files** on a single Harvester Core object. To add another CTI file, just repeat calling ``add_cti_file`` method passing another target CTI file:
+Note that you can add **one or more CTI files** on a single Harvester Core object. To add another CTI file, just repeat calling ``add_file`` method passing another target CTI file:
 
 .. code-block:: python
 
-    h.add_cti_file('path/to/another_gentl_producer.cti')
+    h.add_file('path/to/another_gentl_producer.cti')
 
 And the following code will let you know the CTI files that have been loaded
 on the Harvester object:
@@ -698,14 +698,14 @@ In a contrary sense, you can remove a specific CTI file that you have added with
 
 .. code-block:: python
 
-    h.remove_cti_file('path/to/gentl_producer.cti')
+    h.remove_file('path/to/gentl_producer.cti')
 
 And now yol have to update the list of remote devices; it fills up your device
 information list and you'll select a remote device to control from the list:
 
 .. code-block:: python
 
-    h.update_device_info_list()
+    h.update()
 
 The following code will let you know the remote devices that you can control:
 
@@ -748,7 +748,7 @@ Anyway, then now we start image acquisition:
 
 .. code-block:: python
 
-    ia.start_image_acquisition()
+    ia.start_acquisition()
 
 Once you started image acquisition, you should definitely want to get an image. Images are delivered to the acquirer allocated buffers. To fetch a buffer that has been filled up with an image, you can have 2 options; the first option is to use the ``with`` statement:
 
@@ -774,7 +774,7 @@ Okay, then you would stop image acquisition with the following code:
 
 .. code-block:: python
 
-    ia.stop_image_acquisition()
+    ia.stop_acquisition()
 
 And the following code disconnects the connecting remote device from the image acquirer; you'll have to create an image acquirer object again when you have to work with a remote device:
 

@@ -45,7 +45,7 @@ class TestTutorials(TestHarvesterCoreBase):
         self.setup_camera()
 
         # Then start image acquisition.
-        self.ia.start_image_acquisition()
+        self.ia.start_acquisition()
 
         # Setup your equipment then trigger the camera.
         self.setup_equipment_and_trigger_camera()
@@ -79,39 +79,69 @@ class TestTutorials(TestHarvesterCoreBase):
 
 
 class TestTutorials2(unittest.TestCase):
-    def test_traversable_tutorial(self):
-        # Create a Harvester object:
-        self.harvester = Harvester()
-        
+    def setUp(self) -> None:
         # The following block is just for administrative purpose;
         # you should not include it in your code:
-        cti_file_path = get_cti_file_path()
-        if 'TLSimu.cti' not in cti_file_path:
-            return
+        self.cti_file_path = get_cti_file_path()
+        if 'TLSimu.cti' not in self.cti_file_path:
+            self.skipTest('The target is not TLSimu.')
 
+        # Create a Harvester object:
+        self.harvester = Harvester()
+
+    def tearDown(self) -> None:
+        #
+        self.harvester.reset()
+
+    def test_traversable_tutorial(self):
         # Add a CTI file path:
-        self.harvester.add_cti_file(cti_file_path)
-        self.harvester.update_device_info_list()
+        self.harvester.add_file(self.cti_file_path)
+        self.harvester.update()
 
         # Connect to the first camera in the list:
-        self.ia = self.harvester.create_image_acquirer(0)
+        ia = self.harvester.create_image_acquirer(0)
 
         #
         num_images_to_acquire = 0
 
         # Then start image acquisition:
-        self.ia.start_image_acquisition()
+        ia.start_acquisition()
 
         while num_images_to_acquire < 100:
             #
-            with self.ia.fetch_buffer() as buffer:
+            with ia.fetch_buffer() as buffer:
                 # self.do_something(buffer)
                 pass
 
             num_images_to_acquire += 1
 
         # We don't need the ImageAcquirer object. Destroy it:
-        self.ia.destroy()
+        ia.destroy()
+
+    def test_ticket_127(self):
+        #
+        self.harvester.add_cti_file(self.cti_file_path)
+        self.harvester.remove_cti_file(self.cti_file_path)
+
+        #
+        self.harvester.add_cti_file(self.cti_file_path)
+        self.harvester.remove_cti_files()
+
+        #
+        self.harvester.add_cti_file(self.cti_file_path)
+        self.assertIsNotNone(self.harvester.cti_files)
+
+        #
+        self.harvester.update_device_info_list()
+
+        # Connect to the first camera in the list:
+        ia = self.harvester.create_image_acquirer(0)
+
+        #
+        ia.start_image_acquisition()
+        self.assertTrue(ia.is_acquiring_images())
+        ia.stop_image_acquisition()
+        self.assertFalse(ia.is_acquiring_images())
 
 
 if __name__ == '__main__':

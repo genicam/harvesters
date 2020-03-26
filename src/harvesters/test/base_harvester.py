@@ -76,8 +76,8 @@ class TestHarvesterCoreBase(unittest.TestCase):
 
         #
         self._harvester = Harvester(logger=self._logger)
-        self._harvester.add_file(self._cti_file_path)
-        self._harvester.update()
+        self._harvester.add_cti_file(self._cti_file_path)
+        self._harvester.update_device_info_list()
 
     def tearDown(self):
         #

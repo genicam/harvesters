@@ -53,9 +53,9 @@ Currently, Harvester is being developed by the motivated contributors from all o
 Where Is The Name From?
 ***********************
 
-Harvester's name was coming from the great Flemish painter, Pieter Bruegel the Elder's painting so-called "The Harvesters". You can see the painting in the top of this page. Harvesters harvest a crop every season that has been fully grown and the harvested crop is passed to the consumers. On the other hand, image acquisition libraries acquire images as their crop and the images are passed to the following processes. We found the similarity between them and decided to name our library Harvester.
+Harvester's name is from the great Flemish painter, Pieter Bruegel the Elder's painting so-called "The Harvesters". You can see the painting in the top of this page. Harvesters harvest a crop every season that has been fully grown and the harvested crop is passed to the consumers. On the other hand, image acquisition libraries acquire images as their crop and the images are passed to the following processes. We found the similarity between them and decided to name our library Harvester.
 
-Apart from anything else, we love its peaceful and friendly name. We hope you also like it ;-)
+Apart from anything else, we love its peaceful and friendly name.
 
 ----
 
@@ -273,13 +273,13 @@ Online Resources
 Asking Questions
 ****************
 
-We have opened a chat room for you. Please don't hesitate to leave your message any time when you get a question regarding Harvester!
-
-https://gitter.im/genicam-harvester/chatroom
-
-We have also prepared an FAQ page. Perhaps your issue could be resolved just reading through it.
+We have prepared an FAQ page. Perhaps your issue could be resolved just reading through it:
 
 https://github.com/genicam/harvesters/wiki/FAQ
+
+If any article was not mentioning about the issue you are facing, please try to visit the following page and check if there's a ticket that is relevant to the issue. If nothing has been mentioned yet, feel free to create an issue ticket so that we can support you:
+
+https://github.com/genicam/harvesters/issues
 
 ***************
 Important Links

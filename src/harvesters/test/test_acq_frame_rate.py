@@ -75,7 +75,7 @@ class TestTutorials(TestHarvesterCoreBase):
         )
 
         # Then start image acquisition.
-        self.ia.start_acquisition()
+        self.ia.start_image_acquisition()
 
         # Run the image acquisition thread:
         thread = ThreadImageAcquisitionStatistics(
@@ -85,7 +85,7 @@ class TestTutorials(TestHarvesterCoreBase):
         thread.join()
 
         # Stop image acquisition:
-        self.ia.stop_acquisition()
+        self.ia.stop_image_acquisition()
 
         # Destroy the image acquirer:
         self.ia.destroy()

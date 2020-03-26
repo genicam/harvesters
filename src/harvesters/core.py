@@ -31,6 +31,7 @@ from threading import Lock, Thread, Event
 from threading import current_thread, main_thread
 import time
 from urllib.parse import urlparse
+from warnings import warn
 import weakref
 import tempfile
 
@@ -66,6 +67,21 @@ from harvesters.util.pfnc import lmn_444_location_formats, \
 
 _is_logging_buffer_manipulation = True if 'HARVESTERS_LOG_BUFFER_MANIPULATION' in os.environ else False
 _sleep_duration_default = 0.000001  # s
+
+
+def _deprecated(deprecated: object, alternative: object) -> None:
+    #
+    items = []
+    for obj in (deprecated, alternative):
+        items.append(obj.__name__ + '()' if callable(obj) else obj)
+
+    keys = {'deprecated': 0, 'alternative': 1}
+    warn(
+        '{0} will be deprecated shortly. Use {1} instead.'.format(
+            items[keys['deprecated']], items[keys['alternative']]
+        ),
+        DeprecationWarning, stacklevel=3
+    )
 
 
 class Module:
@@ -600,7 +616,6 @@ class _NativeThread(Thread):
     @property
     def mutex(self):
         return self._mutex
-
 
 
 class ComponentBase:
@@ -1478,7 +1493,6 @@ class ImageAcquirer:
         else:
             self._xml_dir = None
 
-
         #
         try:
             node_map = _get_port_connected_node_map(
@@ -1759,6 +1773,10 @@ class ImageAcquirer:
         return self._system
 
     def is_acquiring_images(self):
+        _deprecated(self.is_acquiring_images, self.is_acquiring)
+        return self.is_acquiring()
+
+    def is_acquiring(self):
         """
         :return: :const:`True` if it's acquiring images. Otherwise :const:`False`.
         """
@@ -1836,6 +1854,10 @@ class ImageAcquirer:
                 )
 
     def start_image_acquisition(self):
+        _deprecated(self.start_image_acquisition, self.start_acquisition)
+        self.start_acquisition()
+
+    def start_acquisition(self):
         """
         Starts image acquisition.
 
@@ -1934,7 +1956,7 @@ class ImageAcquirer:
     def worker_image_acquisition(self, context=None):
         for event_manager in self._event_new_buffer_managers:
             try:
-                if self.is_acquiring_images():
+                if self.is_acquiring():
                     event_manager.update_event_data(
                         self._timeout_for_image_acquisition
                     )
@@ -2257,6 +2279,10 @@ class ImageAcquirer:
             )
 
     def stop_image_acquisition(self):
+        _deprecated(self.stop_image_acquisition, self.stop_acquisition)
+        self.stop_acquisition()
+
+    def stop_acquisition(self):
         """
         Stops image acquisition.
 
@@ -2580,6 +2606,11 @@ class Harvester:
 
     @property
     def cti_files(self):
+        _deprecated('cti_files', 'files')
+        return self.files
+
+    @property
+    def files(self):
         """
         :return: A :class:`list` object containing :class:`str` objects.
         """
@@ -2730,6 +2761,10 @@ class Harvester:
         return ia
 
     def add_cti_file(self, file_path: str):
+        _deprecated(self.add_cti_file, self.add_file)
+        self.add_file(file_path)
+
+    def add_file(self, file_path: str):
         """
         Adds a CTI file to work with to the CTI file list.
 
@@ -2749,6 +2784,10 @@ class Harvester:
             )
 
     def remove_cti_file(self, file_path: str):
+        _deprecated(self.remove_cti_file, self.remove_file)
+        self.remove_file(file_path)
+
+    def remove_file(self, file_path: str):
         """
         Removes the specified CTI file from the CTI file list.
 
@@ -2763,6 +2802,10 @@ class Harvester:
             )
 
     def remove_cti_files(self):
+        _deprecated(self.remove_cti_files, self.remove_files)
+        self.remove_files()
+
+    def remove_files(self):
         """
         Removes all CTI files in the CTI file list.
 
@@ -2820,7 +2863,7 @@ class Harvester:
 
         #
         self._logger.info('Started resetting the Harvester object.')
-        self.remove_cti_files()
+        self.remove_files()
         self._release_gentl_producers()
 
         if self._profiler:
@@ -2883,6 +2926,10 @@ class Harvester:
         self._logger.info('Discarded the device information list.')
 
     def update_device_info_list(self):
+        _deprecated(self.update_device_info_list, self.update)
+        self.update()
+
+    def update(self):
         """
         Updates the device information list. You'll have to call this method
         every time you added CTI files or plugged/unplugged devices.
@@ -2935,7 +2982,7 @@ class Harvester:
         id_ = None
         if ia.device:
             #
-            ia.stop_image_acquisition()
+            ia.stop_acquisition()
 
             #
             ia._release_data_streams()

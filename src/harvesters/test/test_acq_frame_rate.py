@@ -75,7 +75,7 @@ class TestTutorials(TestHarvesterCoreBase):
         )
 
         # Then start image acquisition.
-        self.ia.start_acquisition()
+        self.ia.start_acquisition(enable_callback=True)
 
         # Run the image acquisition thread:
         thread = ThreadImageAcquisitionStatistics(

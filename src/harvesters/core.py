@@ -1787,8 +1787,7 @@ class ImageAcquirer:
 
     @timeout_for_image_acquisition.setter
     def timeout_for_image_acquisition(self, ms):
-        with self.thread_image_acquisition:
-            self._timeout_for_image_acquisition = ms
+        self._timeout_for_image_acquisition = ms
 
     @property
     def thread_image_acquisition(self):
@@ -2201,8 +2200,8 @@ class ImageAcquirer:
                                 )
                             )
 
-                            # Get the latest buffer:
-                            _buffer = event_manager.buffer
+                    # Get the latest buffer:
+                    _buffer = event_manager.buffer
 
         if _buffer:
             #

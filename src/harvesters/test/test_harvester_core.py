@@ -272,7 +272,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
                 self.ia.num_filled_buffers_to_hold = num_images
 
                 # Start image acquisition:
-                self.ia.start_acquisition(enable_callback=True)
+                self.ia.start_acquisition(run_in_background=True)
 
                 # Run a test:
                 test(num_images)
@@ -382,7 +382,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         self.assertEqual(0, len(self._buffers))
 
         # Start image acquisition:
-        self.ia.start_acquisition(enable_callback=True)
+        self.ia.start_acquisition(run_in_background=True)
 
         # Trigger the target device:
         num_images = self.ia.num_buffers

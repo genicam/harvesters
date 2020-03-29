@@ -431,29 +431,7 @@ class MutexLocker:
         self._thread.release()
 
 
-class ImageAcquisitionThreadBase(ThreadBase):
-    def __init__(self, *, mutex=None, logger=None, image_acquire=None):
-        #
-        assert image_acquire
-        #
-        super().__init__(mutex=mutex, logger=logger)
-        #
-        self._ia = image_acquire
-        self._worker = self._ia.worker_image_acquisition
-        self._sleep_duration = self._ia.sleep_duration
-        self._queue = Queue(maxsize=self._ia.num_filled_buffers_to_hold)
-
-    @property
-    def queue(self):
-        """
-        This method is abstract and should be reimplemented in any sub-class.
-
-        :return: None.
-        """
-        raise NotImplementedError
-
-
-class _ImageAcquisitionThread(ImageAcquisitionThreadBase):
+class _ImageAcquisitionThread(ThreadBase):
     def __init__(self, *, image_acquire=None, logger=None):
         """
         :param mutex:
@@ -464,10 +442,13 @@ class _ImageAcquisitionThread(ImageAcquisitionThreadBase):
         assert image_acquire
         #
         super().__init__(
-            mutex=Lock(), logger=logger, image_acquire=image_acquire
+            mutex=Lock(), logger=logger
         )
 
         #
+        self._ia = image_acquire
+        self._worker = self._ia.worker_image_acquisition
+        self._sleep_duration = self._ia.sleep_duration
         self._thread = None
 
     def _internal_start(self):
@@ -477,8 +458,7 @@ class _ImageAcquisitionThread(ImageAcquisitionThreadBase):
         """
         self._thread = _NativeThread(
             thread_owner=self, worker=self._worker,
-            sleep_duration=self._sleep_duration,
-            queue=self._queue
+            sleep_duration=self._sleep_duration
         )
 
         # Start running its worker method.
@@ -538,15 +518,10 @@ class _ImageAcquisitionThread(ImageAcquisitionThreadBase):
     def is_running(self):
         return self._is_running
 
-    @property
-    def queue(self):
-        return self._queue
-
 
 class _NativeThread(Thread):
     def __init__(self, thread_owner=None, worker=None,
-                 sleep_duration=_sleep_duration_default,
-                 queue=None):
+                 sleep_duration=_sleep_duration_default):
         """
 
         :param thread_owner:
@@ -564,7 +539,6 @@ class _NativeThread(Thread):
         self._worker = worker
         self._thread_owner = thread_owner
         self._sleep_duration = sleep_duration
-        self._queue = queue
 
     @staticmethod
     def _is_interactive():
@@ -592,7 +566,7 @@ class _NativeThread(Thread):
         """
         while self._thread_owner.is_running():
             if self._worker:
-                self._worker(self._queue)
+                self._worker()
                 time.sleep(self._sleep_duration)
 
     def acquire(self):
@@ -1555,6 +1529,7 @@ class ImageAcquirer:
 
         #
         self._num_filled_buffers_to_hold = 1
+        self._queue = Queue(maxsize=self._num_filled_buffers_to_hold)
 
         #
         self._sleep_duration = sleep_duration
@@ -1707,18 +1682,18 @@ class ImageAcquirer:
 
             # Move the stored buffers to the temporary list object:
             buffers = []
-            while not self.thread_image_acquisition.queue.empty():
+            while not self._queue.empty():
                 buffers.append(
-                    self.thread_image_acquisition.queue.get_nowait()
+                    self._queue.get_nowait()
                 )
 
-            # Create a thread object again:
-            self._thread_image_acquisition = self._create_acquisition_thread()
+            # Newly create a Queue object:
+            self._queue = Queue(maxsize=self._num_filled_buffers_to_hold)
 
             # Move the buffers back to the newly created Queue object:
             while len(buffers) > 0:
                 try:
-                    self.thread_image_acquisition.queue.put(buffers.pop(0))
+                    self._queue.put(buffers.pop(0))
                 except Full as e:
                     # Can't put it because the queue is full.
                     # Discard the buffer:
@@ -1728,16 +1703,12 @@ class ImageAcquirer:
 
         else:
             raise ValueError(
-                'The number of filled buffers to hold must be '
-                'greater than zero and '
-                'smaller than or equal to {0}'.format(
-                    self._num_buffers
-                )
+                'The number of filled buffers to hold must be > 0.'
             )
 
     @property
     def num_holding_filled_buffers(self):
-        return self.thread_image_acquisition.queue.qsize()
+        return self._queue.qsize()
 
     @property
     def data_streams(self):
@@ -1847,15 +1818,15 @@ class ImageAcquirer:
                     EventManagerNewBuffer(event_token)
                 )
 
-    def start_image_acquisition(self, enable_callback=False):
+    def start_image_acquisition(self, run_in_background=False):
         _deprecated(self.start_image_acquisition, self.start_acquisition)
-        self.start_acquisition(enable_callback=enable_callback)
+        self.start_acquisition(run_in_background=run_in_background)
 
-    def start_acquisition(self, enable_callback=False):
+    def start_acquisition(self, run_in_background=False):
         """
         Starts image acquisition.
 
-        :param enable_callback: Set `True` if you want to get a callback when an image is delivered.
+        :param run_in_background: Set `True` if you want to let the ImageAcquire keep acquiring images in the background and the images you get calling `fetch_buffer` will be from the ImageAcquirer. Otherwise, the images will directly come from the target GenTL Producer.
 
         :return: None.
         """
@@ -1936,7 +1907,7 @@ class ImageAcquirer:
             )
 
         #
-        if enable_callback:
+        if run_in_background:
             if self.thread_image_acquisition:
                 self.thread_image_acquisition.start()
 
@@ -1950,7 +1921,11 @@ class ImageAcquirer:
         if self._profiler:
             self._profiler.print_diff()
 
-    def worker_image_acquisition(self, context=None):
+    def worker_image_acquisition(self):
+        #
+        queue = self._queue
+
+        #
         for event_manager in self._event_new_buffer_managers:
             try:
                 if self.is_acquiring():
@@ -1962,7 +1937,6 @@ class ImageAcquirer:
             except TimeoutException:
                 continue
             else:
-                _now = datetime.now().timestamp()
                 # Check if the delivered buffer is complete:
                 if event_manager.buffer.is_complete():
                     #
@@ -1979,15 +1953,14 @@ class ImageAcquirer:
                                 event_manager.parent.parent.id_
                             )
                         )
-
-                    queue = context if context else None
+                    #
                     if self.buffer_handling_mode == 'OldestFirstOverwrite':
                         # We want to keep the latest ones:
                         with MutexLocker(self.thread_image_acquisition):
                             if not self._is_acquiring:
                                 return
 
-                            if queue and queue.full():
+                            if queue.full():
                                 # Pick up the oldest one:
                                 _buffer = queue.get()
 
@@ -2007,15 +1980,15 @@ class ImageAcquirer:
                                 # Then discard/queue it:
                                 _buffer.parent.queue_buffer(_buffer)
 
-                        # Get the latest buffer:
-                        _buffer = event_manager.buffer
+                            # Get the latest buffer:
+                            _buffer = event_manager.buffer
 
-                        # Then append it to the list which the user fetches later:
-                        if queue:
+                            # Then append it to the list which the user fetches
+                            # later:
                             queue.put(_buffer)
 
-                        # Then update the statistics using the buffer:
-                        self._update_statistics(_buffer)
+                            # Then update the statistics using the buffer:
+                            self._update_statistics(_buffer)
                     else:
                         # Get the latest buffer:
                         _buffer = event_manager.buffer
@@ -2039,13 +2012,7 @@ class ImageAcquirer:
                                 if queue:
                                     queue.put(_buffer)
 
-                    buffer = Buffer(
-                        buffer=_buffer,
-                        node_map=self.remote_device.node_map,
-                        logger=self._logger
-                    )
-
-                    #
+                    # Call the registered callback:
                     if self._on_new_buffer_arrival:
                         self._on_new_buffer_arrival()
 
@@ -2154,19 +2121,18 @@ class ImageAcquirer:
 
             while _buffer is None:
                 # Expired the suggested period; give it up:
+                """
                 if watch_timeout and (time.time() - base) > timeout:
                     raise TimeoutException
+                """
 
                 with MutexLocker(self.thread_image_acquisition):
                     try:
-                        _buffer = self.thread_image_acquisition.queue.get(
+                        _buffer = self._queue.get(
                             block=True, timeout=_cycle_s
                         )
                     except Empty:
                         continue
-            #
-            #if not self.thread_image_acquisition.queue.empty():
-            #    _buffer = self.thread_image_acquisition.queue.get()
         else:
             # Case #2:
             #

@@ -42,7 +42,7 @@ from harvesters.test.helper import get_package_dir
 
 
 class TestHarvesterCore(TestHarvesterCoreBase):
-    sleep_duration = 0.5  # Time to keep sleeping [s]
+    sleep_duration = 1  # Time to keep sleeping [s]
 
     def test_basic_usage_1(self):
         """
@@ -272,7 +272,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
                 self.ia.num_filled_buffers_to_hold = num_images
 
                 # Start image acquisition:
-                self.ia.start_acquisition()
+                self.ia.start_acquisition(run_in_background=True)
 
                 # Run a test:
                 test(num_images)
@@ -291,7 +291,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             # Trigger it:
             self.generate_software_trigger(sleep_s=self.sleep_duration)
 
-            # Not it must be incremented:
+            # It must be incremented:
             self.assertEqual(
                 self.ia.num_holding_filled_buffers, i + 1
             )
@@ -344,21 +344,16 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         self.ia = self.harvester.create_image_acquirer(0)
 
         #
-        min = self.ia._data_streams[0].buffer_announce_min  # Warning: It's accessing a private member.
+        min = self.ia._data_streams[0].buffer_announce_min
         with self.assertRaises(ValueError):
             self.ia.num_buffers = min - 1
 
         #
-        max = self.ia.num_buffers
         with self.assertRaises(ValueError):
-            self.ia.num_filled_buffers_to_hold = max + 1
+            self.ia.num_filled_buffers_to_hold = 0
 
         #
         self.ia.num_filled_buffers_to_hold = min
-        self.ia.num_filled_buffers_to_hold = max
-
-        #
-        self.ia.num_buffers = min
 
     def test_issue_60(self):
         if not self.is_running_with_default_target():
@@ -387,7 +382,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         self.assertEqual(0, len(self._buffers))
 
         # Start image acquisition:
-        self.ia.start_acquisition()
+        self.ia.start_acquisition(run_in_background=True)
 
         # Trigger the target device:
         num_images = self.ia.num_buffers

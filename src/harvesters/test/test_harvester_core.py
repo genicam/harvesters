@@ -523,6 +523,17 @@ class TestHarvesterCore(TestHarvesterCoreBase):
                 device_info_list, self.harvester.device_info_list
             )
 
+    def test_issue_130_1(self):
+        #
+        self.ia = self.harvester.create_image_acquirer(0)
+        #
+        self.ia.start_acquisition(run_in_background=False)
+        #
+        with self.ia.fetch_buffer() as buffer:
+            self.assertIsNotNone(buffer)
+        #
+        self.ia.stop_acquisition()
+
 
 class _TestIssue81(threading.Thread):
     def __init__(self, message_queue=None, cti_file_path=None):

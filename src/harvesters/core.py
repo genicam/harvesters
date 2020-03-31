@@ -1415,6 +1415,37 @@ class PayloadMultiPart(PayloadBase):
         return ret
 
 
+class Callback:
+    def __init__(self):
+        """
+        Is a base class that is used to implement a callback functionality.
+        """
+        super().__init__()
+        self._context = None
+
+    @property
+    def context(self):
+        """
+        A context object that is passed to the callback method when it's called.
+        :return:
+        """
+        return self._context
+
+    @context.setter
+    def context(self, obj):
+        self._context = obj
+
+    def callback(self, context):
+        """
+        This method is abstract and should be reimplemented in any sub-class.
+
+        Is called when a specific condition is met.
+
+        :return: None.
+        """
+        raise NotImplementedError
+
+
 class ImageAcquirer:
     """
     Manages everything you need to acquire images from the connecting device.
@@ -2014,7 +2045,9 @@ class ImageAcquirer:
 
                     # Call the registered callback:
                     if self._on_new_buffer_arrival:
-                        self._on_new_buffer_arrival()
+                        self._on_new_buffer_arrival.callback(
+                            context=self._on_new_buffer_arrival.context
+                        )
 
                     #
                     self._update_num_images_to_acquire()

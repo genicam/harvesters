@@ -36,6 +36,7 @@ from genicam.gentl import TimeoutException
 from harvesters.test.base_harvester import TestHarvesterCoreBase
 from harvesters.test.base_harvester import get_cti_file_path
 from harvesters.core import _retrieve_file_path
+from harvesters.core import Callback
 from harvesters.core import Harvester
 from harvesters.core import ImageAcquirer
 from harvesters.test.helper import get_package_dir
@@ -365,6 +366,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         # Check the number of buffers:
         self.assertEqual(16, self.ia.num_buffers)
 
+    @unittest.skip('It has been obsolete; see issue #141.')
     def test_issue_61(self):
         if not self.is_running_with_default_target():
             return
@@ -534,6 +536,47 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         #
         self.ia.stop_acquisition()
 
+    def test_issue_141(self):
+        if not self.is_running_with_default_target():
+            return
+
+        # Connect to the first camera in the list.
+        self.ia = self.harvester.create_image_acquirer(0)
+
+        # Register a call back method:
+        callback_tester = MyCallback(ia=self.ia, buffers=self._buffers)
+        self.ia.on_new_buffer_arrival = callback_tester
+
+        # We turn software trigger on:
+        self.setup_camera()
+
+        # We have not fetched any buffer:
+        self.assertEqual(0, len(callback_tester.buffers))
+
+        # Start image acquisition:
+        self.ia.start_acquisition(run_in_background=True)
+
+        # Trigger the target device:
+        num_images = self.ia.num_buffers
+        self.assertTrue(num_images > 0)
+
+        # Trigger the target device:
+        for _ in range(num_images):
+            self.generate_software_trigger(sleep_s=self.sleep_duration)
+
+        # If the callback method was called, then we should have the same
+        # number of buffers with num_images:
+        self.assertEqual(num_images, len(callback_tester.buffers))
+
+        # Release the buffers before stopping image acquisition:
+        for buffer in callback_tester.buffers:
+            buffer.queue()
+
+        callback_tester.buffers.clear()
+
+        # Then stop image acquisition:
+        self.ia.stop_acquisition()
+
 
 class _TestIssue81(threading.Thread):
     def __init__(self, message_queue=None, cti_file_path=None):
@@ -617,6 +660,20 @@ class TestIssue85(unittest.TestCase):
                 # Check if XML files have been stored in the expected
                 # directory:
                 self.assertTrue(os.listdir(temp_dir))
+
+
+class MyCallback(Callback):
+    def __init__(self, ia: ImageAcquirer, buffers: list):
+        super().__init__()
+        self._ia = ia
+        self._buffers = buffers
+
+    def callback(self, context):
+        self._buffers.append(self._ia.fetch_buffer())
+
+    @property
+    def buffers(self):
+        return self._buffers
 
 
 if __name__ == '__main__':

@@ -1592,7 +1592,7 @@ class Callback:
         on the path.
 
         :getter: Returns the associative context object.
-        :setter: Set a :class:`Callback` object to use as callback.
+        :setter: Set an associative context object.
         :type: object
         """
         return self._context
@@ -2421,9 +2421,9 @@ class ImageAcquirer:
         """
         Fetches an available :class:`Buffer` object that has been filled up with a single image and returns it.
 
-        :param timeout: Set the period [s] that defines the expiration for an available buffer delivery; if no buffer is fetched within the period then TimeoutException will be raised.
+        :param timeout: Set the period that defines the expiration for an available buffer delivery; if no buffer is fetched within the period then TimeoutException will be raised. The unit is [s].
         :param is_raw: Set :const:`True` if you need a raw GenTL Buffer module; note that you'll have to manipulate the object by yourself.
-        :param cycle_s: Set the cycle [s] that defines how frequently check if a buffer is available.
+        :param cycle_s: Set the cycle that defines how frequently check if a buffer is available. The unit is [s].
 
         :return: A :class:`Buffer` object.
 

@@ -2736,10 +2736,8 @@ class ImageAcquirer:
         self._announced_buffers.clear()
 
         # Flush the queue; we don't need the buffers anymore:
-        if self.thread_image_acquisition.is_running() and \
-                self.thread_image_acquisition.queue:
-            while not self.thread_image_acquisition.queue.empty():
-                _ = self.thread_image_acquisition.queue.get_nowait()
+        while not self._queue.empty():
+            _ = self._queue.get_nowait()
 
 
 def _retrieve_file_path(*, port=None, url=None, file_path=None, logger=None, xml_dir=None):

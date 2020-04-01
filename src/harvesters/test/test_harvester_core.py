@@ -668,7 +668,7 @@ class _Callback(Callback):
         self._ia = ia
         self._buffers = buffers
 
-    def callback(self, context):
+    def emit(self, context):
         self._buffers.append(self._ia.fetch_buffer())
 
     @property

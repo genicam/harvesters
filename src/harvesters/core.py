@@ -1601,10 +1601,9 @@ class Callback:
     def context(self, obj):
         self._context = obj
 
-    def callback(self, context) -> None:
+    def emit(self, context) -> None:
         """
-        Is called when a specific condition is met. It's usuall called by
-        an :class:`ImageAcquirer` object.
+        Is called when a specific condition is met.
 
         This method is abstract and should be reimplemented in any sub-class.
 
@@ -2343,7 +2342,7 @@ class ImageAcquirer:
 
                     # Call the registered callback:
                     if self._on_new_buffer_arrival:
-                        self._on_new_buffer_arrival.callback(
+                        self._on_new_buffer_arrival.emit(
                             context=self._on_new_buffer_arrival.context
                         )
 
@@ -2529,7 +2528,7 @@ class ImageAcquirer:
         if self._num_images_to_acquire == 0:
             #
             if self.callback_stop_acquisition:
-                self.callback_stop_acquisition.callback()
+                self.callback_stop_acquisition.emit()
 
     def _update_statistics(self, buffer):
         #

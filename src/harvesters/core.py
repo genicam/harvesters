@@ -1782,7 +1782,7 @@ class ImageAcquirer:
             )
 
         #
-        self._signal_stop_image_acquisition = None
+        self._signal_stop_acquisition = None
 
         #
         self._logger.info(
@@ -2065,16 +2065,32 @@ class ImageAcquirer:
     @property
     def signal_stop_image_acquisition(self):
         """
-
-        :getter:
-        :setter:
-        :type:
+        Will be deprecated shortly.
         """
-        return self._signal_stop_image_acquisition
+        return self.signal_stop_acquisition
 
     @signal_stop_image_acquisition.setter
-    def signal_stop_image_acquisition(self, obj):
-        self._signal_stop_image_acquisition = obj
+    def signal_stop_image_acquisition(self, obj: Optional[Callback]):
+        """
+        Will be deprecated shortly.
+        """
+        self.signal_stop_acquisition = obj
+
+    @property
+    def signal_stop_acquisition(self):
+        """
+        A callback object that is used when a user need to know the timing
+        where image acquisition stopped.
+
+        :getter: Returns a callback object.
+        :setter: Set a callback object.
+        :type: :class:`Callback`
+        """
+        return self._signal_stop_acquisition
+
+    @signal_stop_acquisition.setter
+    def signal_stop_acquisition(self, obj):
+        self._signal_stop_acquisition = obj
 
     @property
     def statistics(self) -> Statistics:
@@ -2512,8 +2528,8 @@ class ImageAcquirer:
         #
         if self._num_images_to_acquire == 0:
             #
-            if self.signal_stop_image_acquisition:
-                self.signal_stop_image_acquisition.emit()
+            if self.signal_stop_acquisition:
+                self.signal_stop_acquisition.callback()
 
     def _update_statistics(self, buffer):
         #

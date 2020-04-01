@@ -37,7 +37,7 @@ import weakref
 import tempfile
 
 # Related third party imports
-import numpy as np
+import numpy
 
 from genicam.genapi import NodeMap
 from genicam.genapi import LogicalErrorException, RuntimeException
@@ -733,12 +733,12 @@ class ComponentBase:
         return self._buffer.source_id
 
     @property
-    def data(self) -> Optional[np.ndarray]:
+    def data(self) -> Optional[numpy.ndarray]:
         """
         The raw image data.
 
         :getter: Returns the raw image data.
-        :type: :class:`np.ndarray`
+        :type: :class:`numpy.ndarray`
         """
         return self._data
 
@@ -864,14 +864,14 @@ class Component2DImage(ComponentBase):
                 )
             )
 
-        self._data = np.frombuffer(
+        self._data = numpy.frombuffer(
             self._buffer.raw_buffer,
             count=int(count),
             dtype=dtype,
             offset=data_offset
         )
 
-    def represent_pixel_location(self) -> Optional[np.ndarray]:
+    def represent_pixel_location(self) -> Optional[numpy.ndarray]:
         """
         Returns a NumPy array that represents the 2D pixel location,
         which is defined by PFNC, of the original image data.
@@ -880,6 +880,7 @@ class Component2DImage(ComponentBase):
         original image to another format.
 
         :return: A NumPy array that represents the 2D pixel location.
+        :rtype: numpy.ndarray
         """
         if self.data is None:
             return None

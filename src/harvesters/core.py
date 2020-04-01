@@ -105,9 +105,6 @@ class Module:
     def register_event(self, event_type=None):
         return self._module.register_event(event_type)
 
-    def announce_buffer(self, buffer_token=None):
-        return self._module.announce_buffer(buffer_token)
-
 
 class DataStream(Module):
     def __init__(self, module=None, node_map=None, parent=None):
@@ -151,6 +148,9 @@ class DataStream(Module):
 
     def close(self):
         self._module.close()
+
+    def announce_buffer(self, buffer_token=None) -> Buffer_:
+        return self._module.announce_buffer(buffer_token)
 
 
 class RemoteDevice(Module):
@@ -2716,7 +2716,7 @@ class Harvester:
         if self.device_info_list is None:
             # TODO: Throw an exception to tell clients that there's no
             # device to connect.
-            return
+            return None
 
         # Instantiate a GenTL Device module.
         if list_index is not None:

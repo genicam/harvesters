@@ -30,6 +30,7 @@ import sys
 from threading import Lock, Thread, Event
 from threading import current_thread, main_thread
 import time
+from typing import List, Optional
 from urllib.parse import urlparse
 from warnings import warn
 import weakref
@@ -51,6 +52,8 @@ from genicam.gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
 from genicam.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
     PAYLOADTYPE_INFO_IDS
+from genicam.gentl import EventToken, Port, PIXELFORMAT_NAMESPACE_IDS
+from genicam.gentl import Buffer as Buffer_
 
 # Local application/library specific imports
 from harvesters._private.core.port import ConcretePort
@@ -92,55 +95,137 @@ class Module:
 
     @property
     def node_map(self):
+        """
+        The GenICam feature node map that belongs to the owner object.
+
+        :getter: Returns the node map.
+        :type: NodeMap
+        """
         return self._node_map
 
     @property
     def parent(self):
+        """
+        The parent GenTL entity.
+
+        :getter: Returns the parent GenTL entity.
+        :type: Module
+        """
         return self._parent
 
     @property
-    def port(self):
+    def port(self) -> Port:
+        """
+        The port object of the GenTL entity.
+
+        :getter: Returns the port object of the GenTL entity.
+        :type: Port
+        """
+
         return self._module.port
 
-    def register_event(self, event_type=None):
+    def register_event(self, event_type=None) -> EventToken:
+        """
+        Registers an even that is defined by the GenTL standard.
+
+        :param event_type: Set an event type to register.
+        :return: Returns an event token that is used to retrieve the event.
+        :type: EventToken
+        """
         return self._module.register_event(event_type)
 
 
 class DataStream(Module):
-    def __init__(self, module=None, node_map=None, parent=None):
+    def __init__(self,
+                 module: Optional[Module] = None,
+                 node_map: Optional[NodeMap] = None,
+                 parent: Optional[Module] = None):
         super().__init__(module=module, node_map=node_map, parent=parent)
 
-    def open(self, data_stream_id=None):
+    def open(self, data_stream_id: str = None) -> None:
+        """
+        Opens the GenTL data stream entity.
+
+        :param data_stream_id: Set a data stream ID to open.
+        :return: None
+        """
         self._module.open(data_stream_id)
 
     @property
     def id_(self):
+        """
+        The ID of the GenTL entity.
+
+        :getter: Returns the ID of the given GenTL entity.
+        :type: str
+        """
         return self._module.id_
 
     @property
     def buffer_announce_min(self):
+        """
+        The minimum number that is required to run image acquisition.
+
+        :getter: Returns the minimum number that is required to run image acquisition.
+        :type: int
+        """
         return self._module.buffer_announce_min
 
-    def defines_payload_size(self):
+    def defines_payload_size(self) -> bool:
+        """
+        Returns the truth value of a proposition: The target GenTL Producer defines payload size.
+        :return: The truth value.
+        """
         return self._module.defines_payload_size()
 
     @property
-    def payload_size(self):
+    def payload_size(self) -> int:
+        """
+        The size [Bytes] of the payload.
+
+        :getter: Returns the size [Bytes] of the payload.
+        :type: int
+        """
         return self._module.payload_size
 
-    def queue_buffer(self, announced_buffer=None):
+    def queue_buffer(self, announced_buffer: Buffer_ = None) -> None:
+        """
+        Queues the announced buffer for the image acquisition.
+
+        :param announced_buffer:
+        :return:
+        """
         self._module.queue_buffer(announced_buffer)
 
-    def start_acquisition(self, flags=None, num_images=None):
+    def start_acquisition(self, flags=None, num_images=None) -> None:
+        """
+        Starts image acuiqisition.
+
+        :param flags:
+        :param num_images:
+        :return: None.
+        """
         self._module.start_acquisition(flags, num_images)
 
-    def is_open(self):
+    def is_open(self) -> bool:
         return self._module.is_open()
 
     def stop_acquisition(self, flags=None):
+        """
+        Stops image acquisition.
+
+        :param flags:
+        :return:
+        """
         self._module.stop_acquisition(flags)
 
     def revoke_buffer(self, buffer=None):
+        """
+        Revoks the specified buffer from the queue.
+
+        :param buffer: Set a :class:`Buffer` object to revoke.
+        :return: :class:`Buffer`
+        """
         return self._module.revoke_buffer(buffer)
 
     def flush_buffer_queue(self, operation=None):
@@ -319,6 +404,11 @@ class _SignalHandler:
 
 
 class ThreadBase:
+    """
+    Is a base class that is used to implement a thread that users want to
+    use. For example, in general, PyQt application should implement a
+    thread using QThread instead of Python's built-in Thread class.
+    """
     def __init__(self, *, logger=None, mutex=None):
         #
         super().__init__()
@@ -336,9 +426,9 @@ class ThreadBase:
 
     def _internal_start(self):
         """
-        This method is abstract and should be reimplemented in any sub-class.
-
         Releases the acquired mutex.
+
+        This method is abstract and should be reimplemented in any sub-class.
 
         :return: None.
         """
@@ -352,9 +442,9 @@ class ThreadBase:
 
     def _internal_stop(self):
         """
-        This method is abstract and should be reimplemented in any sub-class.
-
         Releases the acquired mutex.
+
+        This method is abstract and should be reimplemented in any sub-class.
 
         :return: None.
         """
@@ -362,19 +452,19 @@ class ThreadBase:
 
     def acquire(self):
         """
-        This method is abstract and should be reimplemented in any sub-class.
-
         Acquires a mutex.
 
-        :return: None.
+        This method is abstract and should be reimplemented in any sub-class.
+
+        :return: An acquired :class:`MutexLocker` object.
         """
         raise NotImplementedError
 
     def release(self):
         """
-        This method is abstract and should be reimplemented in any sub-class.
-
         Releases the acquired mutex.
+
+        This method is abstract and should be reimplemented in any sub-class.
 
         :return: None.
         """
@@ -382,20 +472,22 @@ class ThreadBase:
 
     def is_running(self):
         """
+        Returns the truth value of a proposition: The thread is running.
+
         This method is abstract and should be reimplemented in any sub-class.
 
-        Releases the acquired mutex.
-
-        :return: None.
+        :return: :const:`True` if the thread is running. Otherwise it returns :const:`False`.
         """
         raise NotImplementedError
 
     @property
-    def id_(self):
+    def id_(self) -> int:
         """
+        Is the thread ID.
+
         This method is abstract and should be reimplemented in any sub-class.
 
-        :return: None.
+        :return: A thread ID.
         """
         raise NotImplementedError
 
@@ -434,8 +526,8 @@ class MutexLocker:
 class _ImageAcquisitionThread(ThreadBase):
     def __init__(self, *, image_acquire=None, logger=None):
         """
-        :param mutex:
-        :param worker:
+
+        :param image_acquire:
         :param logger:
         """
         #
@@ -591,6 +683,7 @@ class _NativeThread(Thread):
     def mutex(self):
         return self._thread_owner.mutex
 
+
 class ComponentBase:
     """
     Is a base class of various data component types.
@@ -610,30 +703,42 @@ class ComponentBase:
         self._data = None
 
     @property
-    def data_format(self):
+    def data_format(self) -> str:
         """
-        :return: The data type of the data component.
+        The type of the data component.
+
+        :getter: The type of the data component.
+        :type: str
         """
         return self._buffer.data_format
 
     @property
-    def data_format_namespace(self):
+    def data_format_namespace(self) -> PIXELFORMAT_NAMESPACE_IDS:
         """
-        :return: The data type namespace of the data component.
+        The data type namespace of the data component.
+
+        :getter: Returns the data type namespace of the data component.
+        :type: :class:`genicam.gentl.PIXELFORMAT_NAMESPACE_IDS`
         """
         return self._buffer.data_format
 
     @property
-    def source_id(self):
+    def source_id(self) -> int:
         """
-        :return: The source ID of the data component.
+        The source ID of the data component.
+
+        :getter: Returns the source ID of the data component.
+        :type: int
         """
         return self._buffer.source_id
 
     @property
-    def data(self):
+    def data(self) -> Optional[np.ndarray]:
         """
-        :return: The component data.
+        The raw image data.
+
+        :getter: Returns the raw image data.
+        :type: :class:`np.ndarray`
         """
         return self._data
 
@@ -766,7 +871,7 @@ class Component2DImage(ComponentBase):
             offset=data_offset
         )
 
-    def represent_pixel_location(self):
+    def represent_pixel_location(self) -> Optional[np.ndarray]:
         """
         Returns a NumPy array that represents the 2D pixel location,
         which is defined by PFNC, of the original image data.
@@ -786,9 +891,12 @@ class Component2DImage(ComponentBase):
         )
 
     @property
-    def num_components_per_pixel(self):
+    def num_components_per_pixel(self) -> float:
         """
-        :return: The number of data components per pixel.
+        The number of data components per pixel.
+
+        :getter: Returns the number of data components per pixel.
+        :type: float
         """
         return self._num_components_per_pixel
 
@@ -802,9 +910,12 @@ class Component2DImage(ComponentBase):
         )
 
     @property
-    def width(self):
+    def width(self) -> int:
         """
-        :return: The width of the data component in the buffer in number of pixels.
+        The width of the data component in the buffer in number of pixels.
+
+        :getter: Returns the width of the data component in the buffer in number of pixels.
+        :type: int
         """
         try:
             if self._part:
@@ -816,9 +927,12 @@ class Component2DImage(ComponentBase):
         return value
 
     @property
-    def height(self):
+    def height(self) -> int:
         """
-        :return: The height of the data component in the buffer in number of pixels.
+        The height of the data component in the buffer in number of pixels.
+
+        :getter: Returns the height of the data component in the buffer in number of pixels.
+        :type: int
         """
         try:
             if self._part:
@@ -830,9 +944,12 @@ class Component2DImage(ComponentBase):
         return value
 
     @property
-    def data_format_value(self):
+    def data_format_value(self) -> int:
         """
-        :return: The data type of the data component as integer value.
+        The data type of the data component as integer value.
+
+        :getter: Returns the data type of the data component as integer value.
+        :type: int
         """
         try:
             if self._part:
@@ -844,16 +961,22 @@ class Component2DImage(ComponentBase):
         return value
 
     @property
-    def data_format(self):
+    def data_format(self) -> str:
         """
-        :return: The data type of the data component as string.
+        The data type of the data component as string.
+
+        :getter: Returns the data type of the data component as string.
+        :type: str
         """
         return dict_by_ints[self.data_format_value]
 
     @property
-    def delivered_image_height(self):
+    def delivered_image_height(self) -> int:
         """
-        :return: The image height of the data component.
+        The image height of the data component.
+
+        :getter: Returns the image height of the data component.
+        :type: int
         """
         try:
             if self._part:
@@ -865,9 +988,12 @@ class Component2DImage(ComponentBase):
         return value
 
     @property
-    def x_offset(self):  # TODO: Check the naming convention.
+    def x_offset(self) -> int:
         """
-        :return: The X offset of the data in the buffer in number of pixels from the image origin to handle areas of interest.
+        The X offset of the data in the buffer in number of pixels from the image origin to handle areas of interest.
+
+        :getter: Returns the X offset of the data in the buffer in number of pixels from the image origin to handle areas of interest.
+        :type: int
         """
         try:
             if self._part:
@@ -879,9 +1005,12 @@ class Component2DImage(ComponentBase):
         return value
 
     @property
-    def y_offset(self):
+    def y_offset(self) -> int:
         """
-        :return: The Y offset of the data in the buffer in number of pixels from the image origin to handle areas of interest.
+        The Y offset of the data in the buffer in number of pixels from the image origin to handle areas of interest.
+
+        :getter: Returns the Y offset of the data in the buffer in number of pixels from the image origin to handle areas of interest.
+        :type: int
         """
         try:
             if self._part:
@@ -893,10 +1022,12 @@ class Component2DImage(ComponentBase):
         return value
 
     @property
-    def x_padding(self):
+    def x_padding(self) -> int:
         """
-        Returns
-        :return: The X padding of the data component in the buffer in number of pixels.
+        The X padding of the data component in the buffer in number of pixels.
+
+        :getter: Returns the X padding of the data component in the buffer in number of pixels.
+        :type: int
         """
         try:
             if self._part:
@@ -908,9 +1039,12 @@ class Component2DImage(ComponentBase):
         return value
 
     @property
-    def y_padding(self):
+    def y_padding(self) -> int:
         """
-        :return: The Y padding of the data component in the buffer in number of pixels.
+        The Y padding of the data component in the buffer in number of pixels.
+
+        :getter: Returns the Y padding of the data component in the buffer in number of pixels.
+        :type: int
         """
         try:
             if self._part:
@@ -968,16 +1102,22 @@ class Buffer:
         return '{0}'.format(self.payload.__repr__())
 
     @property
-    def timestamp_ns(self):
+    def timestamp_ns(self) -> int:
         """
-        :return: The timestamp in nano-second.
+        The timestamp. The unit is [ns].
+
+        :getter: Returns the timestamp.
+        :type: int
         """
         return self._buffer.timestamp_ns
 
     @property
-    def timestamp(self):
+    def timestamp(self) -> int:
         """
-        :return: The timestamp in the TL specific unit.
+        The timestamp. The unit is GenTL Producer dependent.
+
+        :getter: Returns the timestamp.
+        :type: int
         """
         timestamp = 0
         try:
@@ -996,9 +1136,12 @@ class Buffer:
         return timestamp
 
     @property
-    def timestamp_frequency(self):
+    def timestamp_frequency(self) -> int:
         """
-        :return: The timestamp frequency which is used to represent a timestamp.
+        The timestamp tick frequency which is used to represent a timestamp. The unit is [Hz].
+
+        :getter: Returns the timestamp tick frequency which is used to represent a timestamp.
+        :type: int
         """
         #
         frequency = 1000000000  # Hz
@@ -1019,7 +1162,10 @@ class Buffer:
     @property
     def payload_type(self):
         """
-        :return: The payload type that the :class:`Buffer` object contains.
+        The payload type that the :class:`Buffer` object contains.
+
+        :getter: Returns the payload type that the :class:`Buffer` object contains.
+        :type: TODO
         """
 
         return self._buffer.payload_type
@@ -1027,7 +1173,10 @@ class Buffer:
     @property
     def payload(self):
         """
-        :return: A containing object which derives from :class:`PayloadBase` class.
+        A containing object which derives from :class:`PayloadBase` class.
+
+        :getter: Returns the containing object which derives from :class:`PayloadBase` class.
+        :type: :class:`PayloadBase`
         """
         return self._payload
 
@@ -1113,9 +1262,10 @@ class Buffer:
 class PayloadBase:
     """
     Is a base class of various payload types. The types are defined by the
-    GenTL Standard.
+    GenTL Standard. In general, you should not have to design a class that
+    derives from this base class.
     """
-    def __init__(self, *, buffer=None, logger=None):
+    def __init__(self, *, buffer: Buffer = None, logger=None):
         """
         :param buffer:
         :param logger:
@@ -1135,8 +1285,10 @@ class PayloadBase:
     @property
     def payload_type(self):
         """
-        TODO:
-        :return:
+        The type of the payload.
+
+        :getter: Returns the type of the payload.
+        :type: :class:`genicam.gentl.PAYLOADTYPE_INFO_IDS`
         """
         return self._buffer.payload_type
 
@@ -1173,14 +1325,18 @@ class PayloadBase:
     @property
     def components(self):
         """
-        :return: A :class:`list` containing objects that derive from :const:`ComponentBase` class.
+        A :class:`list` containing objects that derive from :const:`ComponentBase` class.
+
+        :getter: Returns a :class:`list` containing objects that derive from :const:`ComponentBase` class.
+        :type: ComponentBase
         """
         return self._components
 
 
 class PayloadUnknown(PayloadBase):
     """
-    Represents a payload that is classified as :const:`PAYLOAD_TYPE_UNKNOWN`
+    Represents a payload that is classified as
+    :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_UNKNOWN`
     by the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
@@ -1204,7 +1360,8 @@ class PayloadUnknown(PayloadBase):
 
 class PayloadImage(PayloadBase):
     """
-    Represents a payload that is classified as :const:`PAYLOAD_TYPE_IMAGE` by
+    Represents a payload that is classified as
+    :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE` by
     the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
@@ -1238,7 +1395,8 @@ class PayloadImage(PayloadBase):
 
 class PayloadRawData(PayloadBase):
     """
-    Represents a payload that is classified as :const:`PAYLOAD_TYPE_RAW_DATA`
+    Represents a payload that is classified as
+    :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_RAW_DATA`
     by the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
@@ -1262,17 +1420,11 @@ class PayloadRawData(PayloadBase):
 
 class PayloadFile(PayloadBase):
     """
-    Represents a payload that is classified as :const:`PAYLOAD_TYPE_FILE` by
+    Represents a payload that is classified as
+    :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_FILE` by
     the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
-        """
-
-        :param buffer:
-        :param node_map:
-        :param logger:
-        """
-
         #
         assert buffer
         assert node_map
@@ -1286,7 +1438,8 @@ class PayloadFile(PayloadBase):
 
 class PayloadJPEG(PayloadBase):
     """
-    Represents a payload that is classified as :const:`PAYLOAD_TYPE_JPEG` by
+    Represents a payload that is classified as
+    :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG` by
     the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
@@ -1310,7 +1463,8 @@ class PayloadJPEG(PayloadBase):
 
 class PayloadJPEG2000(PayloadBase):
     """
-    Represents a payload that is classified as :const:`PAYLOAD_TYPE_JPEG2000`
+    Represents a payload that is classified as
+    :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG2000`
     by the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
@@ -1334,7 +1488,8 @@ class PayloadJPEG2000(PayloadBase):
 
 class PayloadH264(PayloadBase):
     """
-    Represents a payload that is classified as :const:`PAYLOAD_TYPE_H264` by
+    Represents a payload that is classified as
+    :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_H264` by
     the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
@@ -1359,7 +1514,8 @@ class PayloadH264(PayloadBase):
 class PayloadChunkOnly(PayloadBase):
     """
     Represents a payload that is classified as
-    :const:`PAYLOAD_TYPE_CHUNK_ONLY` by the GenTL Standard.
+    :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_ONLY`
+    by the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         #
@@ -1376,7 +1532,8 @@ class PayloadChunkOnly(PayloadBase):
 class PayloadMultiPart(PayloadBase):
     """
     Represents a payload that is classified as
-    :const:`PAYLOAD_TYPE_MULTI_PART` by the GenTL Standard.
+    :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART`
+    by the GenTL Standard.
     """
     def __init__(self, *, buffer=None, node_map=None, logger=None):
         """
@@ -1416,18 +1573,27 @@ class PayloadMultiPart(PayloadBase):
 
 
 class Callback:
-    def __init__(self):
+    """
+    Is used as a base class to implement user defined callback behavior.
+    """
+    def __init__(self, context: Optional[object] = None):
         """
         Is a base class that is used to implement a callback functionality.
         """
         super().__init__()
-        self._context = None
+        self._context = context
 
     @property
-    def context(self):
+    def context(self) -> object:
         """
-        A context object that is passed to the callback method when it's called.
-        :return:
+        A context object that is passed to the callback method when it's
+        called. It's not necessary to use it and it could be :const:`None`
+        but you may want to manipulate the object that holds a context
+        on the path.
+
+        :getter: Returns the associative context object.
+        :setter: Set a :class:`Callback` object to use as callback.
+        :type: object
         """
         return self._context
 
@@ -1435,11 +1601,12 @@ class Callback:
     def context(self, obj):
         self._context = obj
 
-    def callback(self, context):
+    def callback(self, context) -> None:
         """
-        This method is abstract and should be reimplemented in any sub-class.
+        Is called when a specific condition is met. It's usuall called by
+        an :class:`ImageAcquirer` object.
 
-        Is called when a specific condition is met.
+        This method is abstract and should be reimplemented in any sub-class.
 
         :return: None.
         """
@@ -1462,7 +1629,7 @@ class ImageAcquirer:
             self, *, parent=None, device=None,
             profiler=None, logger=None,
             sleep_duration=_sleep_duration_default,
-            file_path=None
+            file_path: Optional[str] = None
     ):
         """
 
@@ -1471,7 +1638,7 @@ class ImageAcquirer:
         :param profiler:
         :param logger:
         :param sleep_duration:
-        :param file_path: (Optional) Set a path to camera description file which you want to load on the target node map instead of the one which the device declares.
+        :param file_path: Set a path to camera description file which you want to load on the target node map instead of the one which the device declares.
         """
 
         #
@@ -1657,11 +1824,25 @@ class ImageAcquirer:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._finalizer()
 
-    def destroy(self):
+    def destroy(self) -> None:
+        """
+        Resets itself; releases all preserved external resources such as
+        buffers or the connected remote device.
+
+        :return: None
+        """
         self._finalizer()
 
     @property
-    def on_new_buffer_arrival(self):
+    def on_new_buffer_arrival(self) -> Callback:
+        """
+        A :class:`Callback` object that is used when a new buffer is
+        delivered.
+
+        :getter: Returns the :class:`Callback` object that is used when a new buffer is delivered.
+        :setter: Set a :class:`Callback` object to use.
+        :type: Callback
+        """
         return self._on_new_buffer_arrival
 
     @on_new_buffer_arrival.setter
@@ -1669,7 +1850,12 @@ class ImageAcquirer:
         self._on_new_buffer_arrival = value
 
     @property
-    def buffer_handling_mode(self):
+    def buffer_handling_mode(self) -> str:
+        """
+
+        :getter:
+        :type: str
+        """
         return self._buffer_handling_mode
 
     @buffer_handling_mode.setter
@@ -1677,7 +1863,15 @@ class ImageAcquirer:
         self._buffer_handling_mode = value
 
     @property
-    def num_buffers(self):
+    def num_buffers(self) -> int:
+        """
+        The number of buffers that is prepared for the image acquisition
+        process. The buffers will be announced to the target GenTL Producer.
+
+        :getter: Returns the number of buffers to be prepared for the image acquisition process.
+        :setter: Set a number of buffers to be prepared.
+        :type: int
+        """
         return self._num_buffers
 
     @num_buffers.setter
@@ -1694,15 +1888,41 @@ class ImageAcquirer:
             )
 
     @property
-    def sleep_duration(self):
+    def sleep_duration(self) -> float:
+        """
+        The duration that lets the image acquisition thread sleeps at
+        every execution. The unit is [ms].
+
+        :getter: Returns the duration that lets the image acquisition thread sleeps at every execution.
+        :type: float
+        """
         return self._sleep_duration
 
     @property
-    def min_num_buffers(self):
+    def min_num_buffers(self) -> int:
+        """
+        The minimum number of the buffers for image acquisition. You have to
+        set a value to :meth:`num_buffers` so that is greater than or equal
+        to this.
+
+        :getter: Returns the minimum number of buffers for image acquisiton.
+        :type: int
+        """
         return self._min_num_buffers
 
     @property
-    def num_filled_buffers_to_hold(self):
+    def num_filled_buffers_to_hold(self) -> int:
+        """
+        The number of buffers that is used for a case where the image
+        acquisition process runs in the background. You will fetch buffers
+        from the buffers when you call the :meth:`fetch_buffer` method in a
+        case you started the image acquisition passing :const:`True` to
+        :data:`run_in_background` of the :meth:`start_acquisition` method.
+
+        :getter: The number of buffers that is used for a case where the image acquisition process runs in the background.
+        :setter: Set a number of buffers that is used for a case where the image acquisition process runs in the background.
+        :type: int
+        """
         return self._num_filled_buffers_to_hold
 
     @num_filled_buffers_to_hold.setter
@@ -1738,47 +1958,82 @@ class ImageAcquirer:
             )
 
     @property
-    def num_holding_filled_buffers(self):
+    def num_holding_filled_buffers(self) -> int:
+        """
+        The number of available buffers, i.e., the buffers that contain
+        images.
+
+        :getter: Returns the number of available buffers.
+        :type: int
+        """
         return self._queue.qsize()
 
     @property
-    def data_streams(self):
+    def data_streams(self) -> List[DataStream]:
+        """
+        A list of GenTL :class:`DataStream` objects that the
+        :class:`ImageAcquire` object is working with.
+
+        :getter: Returns the associative :class:`DataStream` object.
+        :type: The associative :class:`DataStream` object.
+        """
         return self._data_streams
 
     @property
-    def remote_device(self):
+    def remote_device(self) -> RemoteDevice:
         """
-        :return: The remote device.
+        The remote GenTL :class:`Device` object, typically a camera, that the
+        :class:`ImageAcquire` object is working with.
+
+        :getter: Returns the associative :class:`Device` object.
+        :type: RemoteDevice
         """
         return self._remote_device
 
     @property
-    def device(self):
+    def device(self) -> Device:
         """
-        :return: The proxy :class:`Device` module object of the connecting remote device.
+        The local GenTL :class:`Device: proxy object that the
+        :class:`ImageAcquire` object is working with.
+
+        :getter: Returns the associative :class:`Device` object.
+        :type: Device
         """
         return self._device
 
     @property
-    def interface(self):
+    def interface(self) -> Interface:
         """
-        :return: The parent :class:`Interface` module object of the connecting remote device.
+        The GenTL :class:`Interface` object that the
+        :class:`ImageAcquire` object is working with.
+
+        :getter: Returns the associative :class:`Interface` object.
+        :type: Interface
         """
         return self._interface
 
     @property
     def system(self):
         """
-        :return: The parent :class:`System` module object of the connecting remote device.
+        The GenTL :class:`System` object that the
+        :class:`ImageAcquire` object is working with.
+
+        :getter: Returns the associative :class:`System` object.
+        :type: System
         """
         return self._system
 
     def is_acquiring_images(self):
+        """
+        Will be deprecated shortly.
+        """
         _deprecated(self.is_acquiring_images, self.is_acquiring)
         return self.is_acquiring()
 
-    def is_acquiring(self):
+    def is_acquiring(self) -> bool:
         """
+        Returns the truth value of a proposition: It's acquiring images.
+
         :return: :const:`True` if it's acquiring images. Otherwise :const:`False`.
         """
         return self._is_acquiring
@@ -1793,6 +2048,13 @@ class ImageAcquirer:
 
     @property
     def thread_image_acquisition(self):
+        """
+        A thread object that runs image acquisition.
+
+        :getter: Returns a thread object that runs image acquisition.
+        :setter: Set a thread object that derives from the :class:`ThreadBase` class.
+        :type: :class:`ThreadBase`
+        """
         return self._thread_image_acquisition
 
     @thread_image_acquisition.setter
@@ -1802,6 +2064,12 @@ class ImageAcquirer:
 
     @property
     def signal_stop_image_acquisition(self):
+        """
+
+        :getter:
+        :setter:
+        :type:
+        """
         return self._signal_stop_image_acquisition
 
     @signal_stop_image_acquisition.setter
@@ -1809,7 +2077,13 @@ class ImageAcquirer:
         self._signal_stop_image_acquisition = obj
 
     @property
-    def statistics(self):
+    def statistics(self) -> Statistics:
+        """
+        The statistics about image acquisition.
+
+        :getter: Returns the statistics about image acquisition.
+        :type: :class:`Statistics`
+        """
         return self._statistics
 
     def _setup_data_streams(self):
@@ -1850,10 +2124,13 @@ class ImageAcquirer:
                 )
 
     def start_image_acquisition(self, run_in_background=False):
+        """
+        Will be deprecated shortly.
+        """
         _deprecated(self.start_image_acquisition, self.start_acquisition)
         self.start_acquisition(run_in_background=run_in_background)
 
-    def start_acquisition(self, run_in_background=False):
+    def start_acquisition(self, run_in_background: bool = False) -> None:
         """
         Starts image acquisition.
 
@@ -1952,7 +2229,12 @@ class ImageAcquirer:
         if self._profiler:
             self._profiler.print_diff()
 
-    def worker_image_acquisition(self):
+    def worker_image_acquisition(self) -> None:
+        """
+        The worker method of the image acquisition task.
+
+        :return: None
+        """
         #
         queue = self._queue
 
@@ -2120,7 +2402,7 @@ class ImageAcquirer:
                 """
                 pass
 
-    def fetch_buffer(self, *, timeout=0, is_raw=False, cycle_s=None):
+    def fetch_buffer(self, *, timeout=0, is_raw=False, cycle_s=None) -> Optional[Buffer]:
         """
         Fetches an available :class:`Buffer` object that has been filled up with a single image and returns it.
 
@@ -2321,10 +2603,13 @@ class ImageAcquirer:
             )
 
     def stop_image_acquisition(self):
+        """
+        Will be deprecated shortly.
+        """
         _deprecated(self.stop_image_acquisition, self.stop_acquisition)
         self.stop_acquisition()
 
-    def stop_acquisition(self):
+    def stop_acquisition(self) -> None:
         """
         Stops image acquisition.
 
@@ -2644,34 +2929,57 @@ class Harvester:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._finalizer()
 
-    def reset(self):
+    def reset(self) -> None:
+        """
+        Resets the Harvester object to the initial state.
+        """
         self._finalizer()
 
     @property
     def cti_files(self):
+        """
+        Will be deprecated shortly.
+        """
         _deprecated('cti_files', 'files')
         return self.files
 
     @property
-    def files(self):
+    def files(self) -> List[str]:
         """
-        :return: A :class:`list` object containing :class:`str` objects.
+        A :class:`list` object containing :class:`str` objects.
+
+        :getter: Returns a :class:`list` object containing :class:`str` objects.
+        :type: list[str]
         """
         return self._cti_files
 
     @property
-    def device_info_list(self):
+    def device_info_list(self) -> List[DeviceInfo]:
         """
-        :return: A :class:`list` object containing :class:`DeviceInfo` objects
+        A :class:`list` object containing :class:`DeviceInfo` objects.
+
+        :getter: Returns a :class:`list` object containing :class:`DeviceInfo` objects.
+        :type: list[DeviceInfo]
         """
         return self._device_info_list
 
     @property
-    def timeout_for_update(self):
+    def timeout_for_update(self) -> int:
+        """
+        The duration that is used as the time limit for the device enumeration process. The unit is [ms].
+
+        :getter: Returns the duration that is used as the time limit for the device enumeration process.
+        :setter: Set a timeout value.
+        :type: int
+        """
         return self._timeout_for_update
 
     @timeout_for_update.setter
-    def timeout_for_update(self, ms):
+    def timeout_for_update(self, ms) -> None:
+        """
+        :param ms: Set a timeout value for the device enumeration process in milli seconds.
+        :return:
+        """
         self._timeout_for_update = ms
 
     @property
@@ -2683,27 +2991,33 @@ class Harvester:
         self._has_revised_device_list = value
 
     def create_image_acquirer(
-            self, list_index=None, *, id_=None,
-            vendor=None, model=None, tl_type=None, user_defined_name=None,
-            serial_number=None, version=None,
-            sleep_duration=_sleep_duration_default, file_path=None,
-            privilege='exclusive'
+            self, list_index: Optional[int] = None, *,
+            id_: Optional[str] = None,
+            vendor: Optional[str] = None,
+            model: Optional[str] = None,
+            tl_type: Optional[str] = None,
+            user_defined_name: Optional[str] = None,
+            serial_number: Optional[str] = None,
+            version: Optional[str] = None,
+            sleep_duration: Optional[float] = _sleep_duration_default,
+            file_path: Optional[str] = None,
+            privilege: str = 'exclusive'
         ):
         """
         Creates an image acquirer for the specified remote device and return
         the created :class:`ImageAcquirer` object.
 
-        :param list_index: (Optional) Set an item index of the list of :class:`DeviceInfo` objects.
-        :param id_: (Optional) Set an index of the device information list.
-        :param vendor: (Optional) Set a vendor name of the target device.
-        :param model: (Optional) Set a model name of the target device.
-        :param tl_type: (Optional) Set a transport layer type of the target device.
-        :param user_defined_name: (Optional) Set a user defined name string of the target device.
-        :param serial_number: (Optional) Set a serial number string of the target device.
-        :param version: (Optional) Set a version number string of the target device.
-        :param sleep_duration: (Optional) Set a sleep duration in second that is inserted after the image acquisition worker is executed.
-        :param file_path: (Optional) Set a path to camera description file which you want to load on the target node map instead of the one which the device declares.
-        :param privilege: (Optional) Set an access privilege. `exclusive`, `contorl`, and `read_only` are supported. The default is `exclusive`.
+        :param list_index: Set an item index of the list of :class:`DeviceInfo` objects.
+        :param id_: Set an index of the device information list.
+        :param vendor: Set a vendor name of the target device.
+        :param model: Set a model name of the target device.
+        :param tl_type: Set a transport layer type of the target device.
+        :param user_defined_name: Set a user defined name string of the target device.
+        :param serial_number: Set a serial number string of the target device.
+        :param version: Set a version number string of the target device.
+        :param sleep_duration: Set a sleep duration in second that is inserted after the image acquisition worker is executed.
+        :param file_path: Set a path to camera description file which you want to load on the target node map instead of the one which the device declares.
+        :param privilege: Set an access privilege. `exclusive`, `contorl`, and `read_only` are supported. The default is `exclusive`.
 
         :return: An :class:`ImageAcquirer` object that associates with the specified device.
 
@@ -2804,12 +3118,15 @@ class Harvester:
         return ia
 
     def add_cti_file(self, file_path: str):
+        """
+        Will be deprecated shortly.
+        """
         _deprecated(self.add_cti_file, self.add_file)
         self.add_file(file_path)
 
-    def add_file(self, file_path: str):
+    def add_file(self, file_path: str) -> None:
         """
-        Adds a CTI file to work with to the CTI file list.
+        Adds a CTI file as one of GenTL Producers to work with.
 
         :param file_path: Set a file path to the target CTI file.
 
@@ -2827,12 +3144,15 @@ class Harvester:
             )
 
     def remove_cti_file(self, file_path: str):
+        """
+        Will be deprecated shortly.
+        """
         _deprecated(self.remove_cti_file, self.remove_file)
         self.remove_file(file_path)
 
-    def remove_file(self, file_path: str):
+    def remove_file(self, file_path: str) -> None:
         """
-        Removes the specified CTI file from the CTI file list.
+        Removes the specified CTI file from the list.
 
         :param file_path: Set a file path to the target CTI file.
 
@@ -2845,12 +3165,15 @@ class Harvester:
             )
 
     def remove_cti_files(self):
+        """
+        Will be deprecated shortly.
+        """
         _deprecated(self.remove_cti_files, self.remove_files)
         self.remove_files()
 
-    def remove_files(self):
+    def remove_files(self) -> None:
         """
-        Removes all CTI files in the CTI file list.
+        Removes all CTI files in the list.
 
         :return: None.
         """
@@ -2969,13 +3292,17 @@ class Harvester:
         self._logger.info('Discarded the device information list.')
 
     def update_device_info_list(self):
+        """
+        Will be deprecated shortly.
+        """
         _deprecated(self.update_device_info_list, self.update)
         self.update()
 
-    def update(self):
+    def update(self) -> None:
         """
-        Updates the device information list. You'll have to call this method
-        every time you added CTI files or plugged/unplugged devices.
+        Updates the list that holds available devices. You'll have to call
+        this method every time you added CTI files or plugged/unplugged
+        devices.
 
         :return: None.
         """

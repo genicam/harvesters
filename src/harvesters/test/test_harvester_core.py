@@ -544,7 +544,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         self.ia = self.harvester.create_image_acquirer(0)
 
         # Register a call back method:
-        callback_tester = MyCallback(ia=self.ia, buffers=self._buffers)
+        callback_tester = _Callback(ia=self.ia, buffers=self._buffers)
         self.ia.on_new_buffer_arrival = callback_tester
 
         # We turn software trigger on:
@@ -662,7 +662,7 @@ class TestIssue85(unittest.TestCase):
                 self.assertTrue(os.listdir(temp_dir))
 
 
-class MyCallback(Callback):
+class _Callback(Callback):
     def __init__(self, ia: ImageAcquirer, buffers: list):
         super().__init__()
         self._ia = ia

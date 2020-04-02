@@ -1830,7 +1830,7 @@ class ImageAcquirer:
             )
 
         #
-        self._callback_stop_acquisition = None
+        self._on_stop_acquisition = None
 
         #
         self._logger.info(
@@ -1845,7 +1845,7 @@ class ImageAcquirer:
         )
 
         # A callback method when it's called when a new buffer is delivered:
-        self._on_new_buffer_arrival = None
+        self._on_new_buffer_available = None
 
         #
         self._finalizer = weakref.finalize(self, self.destroy)
@@ -1923,21 +1923,41 @@ class ImageAcquirer:
         if self._profiler:
             self._profiler.print_diff()
 
+        if self._callback_on_destroy:
+            self._callback_on_destroy.emit(context=self)
+
     @property
-    def on_new_buffer_arrival(self) -> Callback:
+    def on_new_buffer_arrival(self):
         """
-        A :class:`Callback` object that is used when a new buffer is
-        delivered.
+        Will be deprecated shortly.
+        """
+        _deprecated(
+            'on_new_buffer_arrival', 'callback_on_new_buffer_available'
+        )
+        return self.callback_on_new_buffer_available
+
+    @on_new_buffer_arrival.setter
+    def on_new_buffer_arrival(self, obj) -> None:
+        _deprecated(
+            'on_new_buffer_arrival', 'callback_on_new_buffer_available'
+        )
+        self.callback_on_new_buffer_available = obj
+
+    @property
+    def callback_on_new_buffer_available(self) -> Callback:
+        """
+        The callback that is emitted when a new buffer turned available.
 
         :getter: Returns itself.
         :setter: Overwrites itself with the given value.
         :type: Callback
         """
-        return self._on_new_buffer_arrival
+        return self._on_new_buffer_available
 
-    @on_new_buffer_arrival.setter
-    def on_new_buffer_arrival(self, obj) -> None:
-        self._on_new_buffer_arrival = obj
+    @callback_on_new_buffer_available.setter
+    def callback_on_new_buffer_available(
+            self, obj: Optional[Callback] = None):
+        self._on_new_buffer_available = obj
 
     @property
     def buffer_handling_mode(self) -> str:
@@ -2167,17 +2187,17 @@ class ImageAcquirer:
         """
         Will be deprecated shortly.
         """
-        return self.callback_stop_acquisition
+        return self.on_stop_acquisition
 
     @signal_stop_image_acquisition.setter
     def signal_stop_image_acquisition(self, obj):
         """
         Will be deprecated shortly.
         """
-        self.callback_stop_acquisition = obj
+        self.on_stop_acquisition = obj
 
     @property
-    def callback_stop_acquisition(self):
+    def on_stop_acquisition(self):
         """
         A callback object that is used when a user need to know the timing
         where image acquisition stopped.
@@ -2186,11 +2206,11 @@ class ImageAcquirer:
         :setter: Overwrites itself with the given value.
         :type: :class:`Callback`
         """
-        return self._callback_stop_acquisition
+        return self._on_stop_acquisition
 
-    @callback_stop_acquisition.setter
-    def callback_stop_acquisition(self, obj):
-        self._callback_stop_acquisition = obj
+    @on_stop_acquisition.setter
+    def on_stop_acquisition(self, obj):
+        self._on_stop_acquisition = obj
 
     @property
     def statistics(self) -> Statistics:
@@ -2442,8 +2462,10 @@ class ImageAcquirer:
                                     queue.put(_buffer)
 
                     # Call the registered callback:
-                    if self._on_new_buffer_arrival:
-                        self._on_new_buffer_arrival.emit()
+                    if self._on_new_buffer_available:
+                        self._on_new_buffer_available.emit(
+                            context=self
+                        )
 
                     #
                     self._update_num_images_to_acquire()
@@ -2628,8 +2650,8 @@ class ImageAcquirer:
         #
         if self._num_images_to_acquire == 0:
             #
-            if self.callback_stop_acquisition:
-                self.callback_stop_acquisition.emit()
+            if self.on_stop_acquisition:
+                self.on_stop_acquisition.emit(context=self)
 
     def _update_statistics(self, buffer) -> None:
         #

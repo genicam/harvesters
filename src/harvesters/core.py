@@ -89,9 +89,9 @@ def _deprecated(deprecated: object, alternative: object) -> None:
 
 
 class Module:
-    def __init__(self,
-                 module=None,
-                 node_map: Optional[NodeMap] = None, parent=None):
+    def __init__(
+            self, module=None,
+            node_map: Optional[NodeMap] = None, parent=None):
         self._module = module
         self._node_map = node_map
         self._parent = parent
@@ -139,10 +139,11 @@ class Module:
 
 
 class DataStream(Module):
-    def __init__(self,
-                 module: Optional[Module] = None,
-                 node_map: Optional[NodeMap] = None,
-                 parent: Optional[Module] = None):
+    def __init__(
+            self,
+            module: Optional[Module] = None,
+            node_map: Optional[NodeMap] = None,
+            parent: Optional[Module] = None):
         super().__init__(module=module, node_map=node_map, parent=parent)
 
     def open(self, data_stream_id: str = None) -> None:
@@ -215,7 +216,9 @@ class DataStream(Module):
 
     def is_open(self) -> bool:
         """
-        Returns the truth value of a proposition: The DataStream entity has been opened.
+        Returns the truth value of a proposition: The DataStream entity has
+        been opened.
+
         :return: :const:`True` if it's been opened. Otherwise :const:`False`.
         :rtype: bool
         """
@@ -268,8 +271,8 @@ class DataStream(Module):
 
 
 class RemoteDevice(Module):
-    def __init__(self,
-                 module=None, node_map: NodeMap = None, parent=None):
+    def __init__(
+            self, module=None, node_map: NodeMap = None, parent=None):
         super().__init__(module=module, node_map=node_map, parent=parent)
 
     @property
@@ -308,16 +311,16 @@ class Device(Module):
 
 
 class Interface(Module):
-    def __init__(self,
-                 module=None, node_map: Optional[NodeMap] = None,
-                 parent=None):
+    def __init__(
+            self, module=None, node_map: Optional[NodeMap] = None,
+            parent=None):
         super().__init__(module=module, node_map=node_map, parent=parent)
 
 
 class System(Module):
-    def __init__(self,
-                 module=None,
-                 node_map: Optional[NodeMap] = None, parent=None):
+    def __init__(
+            self,
+            module=None, node_map: Optional[NodeMap] = None, parent=None):
         super().__init__(module=module, node_map=node_map, parent=parent)
 
 
@@ -395,8 +398,9 @@ class _SignalHandler:
     _event = None
     _threads = None
 
-    def __init__(self, *,
-                 event=None, threads=None, logger: Optional[Logger] = None):
+    def __init__(
+            self, *,
+            event=None, threads=None, logger: Optional[Logger] = None):
         #
         self._logger = logger or get_logger(name=__name__)
 
@@ -798,9 +802,10 @@ class Component2DImage(ComponentBase):
     Represents a data component that is classified as
     :const:`PART_DATATYPE_2D_IMAGE` by the GenTL Standard.
     """
-    def __init__(self, *,
-                 buffer=None, part=None, node_map: Optional[NodeMap] = None,
-                 logger: Optional[Logger] = None):
+    def __init__(
+            self, *,
+            buffer=None, part=None, node_map: Optional[NodeMap] = None,
+            logger: Optional[Logger] = None):
         """
         :param buffer:
         :param part:
@@ -1033,7 +1038,8 @@ class Component2DImage(ComponentBase):
     @property
     def x_offset(self) -> int:
         """
-        The X offset of the data in the buffer in number of pixels from the image origin to handle areas of interest.
+        The X offset of the data in the buffer in number of pixels from the
+        image origin to handle areas of interest.
 
         :getter: Returns itself.
         :type: int
@@ -1050,7 +1056,8 @@ class Component2DImage(ComponentBase):
     @property
     def y_offset(self) -> int:
         """
-        The Y offset of the data in the buffer in number of pixels from the image origin to handle areas of interest.
+        The Y offset of the data in the buffer in number of pixels from the
+        image origin to handle areas of interest.
 
         :getter: Returns itself.
         :type: int
@@ -1108,9 +1115,10 @@ class Buffer:
     Note that it will never be necessary to create this object by yourself
     in general.
     """
-    def __init__(self, *,
-                 buffer=None, node_map: Optional[NodeMap] = None,
-                 logger: Optional[Logger] = None):
+    def __init__(
+            self, *,
+            buffer=None, node_map: Optional[NodeMap] = None,
+            logger: Optional[Logger] = None):
         """
         :param buffer:
         :param node_map:
@@ -1183,7 +1191,8 @@ class Buffer:
     @property
     def timestamp_frequency(self) -> int:
         """
-        The timestamp tick frequency which is used to represent a timestamp. The unit is [Hz].
+        The timestamp tick frequency which is used to represent a timestamp.
+        The unit is [Hz].
 
         :getter: Returns itself.
         :type: int
@@ -1254,9 +1263,10 @@ class Buffer:
         self._buffer.parent.queue_buffer(self._buffer)
 
     @staticmethod
-    def _build_payload(*,
-                       buffer=None, node_map: Optional[NodeMap] = None,
-                       logger: Optional[Logger] = None):
+    def _build_payload(
+            *,
+            buffer=None, node_map: Optional[NodeMap] = None,
+            logger: Optional[Logger] = None):
         #
         assert buffer
         assert node_map
@@ -1268,7 +1278,8 @@ class Buffer:
                 buffer=buffer, node_map=node_map, logger=logger
             )
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE or \
-                buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_DATA:
+                buffer.payload_type == \
+                PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_DATA:
             payload = PayloadImage(
                 buffer=buffer, node_map=node_map, logger=logger
             )
@@ -1312,9 +1323,10 @@ class PayloadBase:
     GenTL Standard. In general, you should not have to design a class that
     derives from this base class.
     """
-    def __init__(self, *,
-                 buffer: Optional[Buffer] = None,
-                 logger: Optional[Logger] = None):
+    def __init__(
+            self, *,
+            buffer: Optional[Buffer] = None,
+            logger: Optional[Logger] = None):
         """
         :param buffer:
         :param logger:
@@ -1341,9 +1353,9 @@ class PayloadBase:
         """
         return self._buffer.payload_type
 
-    def _build_component(self,
-                         buffer=None, part=None,
-                         node_map: Optional[NodeMap] = None):
+    def _build_component(
+            self,
+            buffer=None, part=None, node_map: Optional[NodeMap] = None):
         #
         try:
             if part:
@@ -1376,7 +1388,8 @@ class PayloadBase:
     @property
     def components(self):
         """
-        A :class:`list` containing objects that derive from :const:`ComponentBase` class.
+        A :class:`list` containing objects that derive from
+        :const:`ComponentBase` class.
 
         :getter: Returns itself.
         :type: ComponentBase
@@ -1390,10 +1403,11 @@ class PayloadUnknown(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_UNKNOWN`
     by the GenTL Standard.
     """
-    def __init__(self, *,
-                 buffer: Optional[Buffer] = None,
-                 node_map: Optional[NodeMap] = None,
-                 logger: Optional[Logger] = None):
+    def __init__(
+            self, *,
+            buffer: Optional[Buffer] = None,
+            node_map: Optional[NodeMap] = None,
+            logger: Optional[Logger] = None):
         """
 
         :param buffer:
@@ -1418,10 +1432,11 @@ class PayloadImage(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE` by
     the GenTL Standard.
     """
-    def __init__(self, *,
-                 buffer: Optional[Buffer] = None,
-                 node_map: Optional[NodeMap] = None,
-                 logger: Optional[Logger] = None):
+    def __init__(
+            self, *,
+            buffer: Optional[Buffer] = None,
+            node_map: Optional[NodeMap] = None,
+            logger: Optional[Logger] = None):
         """
 
         :param buffer:
@@ -1456,10 +1471,11 @@ class PayloadRawData(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_RAW_DATA`
     by the GenTL Standard.
     """
-    def __init__(self, *,
-                 buffer: Optional[Buffer] = None,
-                 node_map: Optional[NodeMap] = None,
-                 logger: Optional[Logger] = None):
+    def __init__(
+            self, *,
+            buffer: Optional[Buffer] = None,
+            node_map: Optional[NodeMap] = None,
+            logger: Optional[Logger] = None):
         """
 
         :param buffer:
@@ -1484,10 +1500,11 @@ class PayloadFile(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_FILE` by
     the GenTL Standard.
     """
-    def __init__(self, *,
-                 buffer: Optional[Buffer] = None,
-                 node_map: Optional[NodeMap] = None,
-                 logger: Optional[Logger] = None):
+    def __init__(
+            self, *,
+            buffer: Optional[Buffer] = None,
+            node_map: Optional[NodeMap] = None,
+            logger: Optional[Logger] = None):
         #
         assert buffer
         assert node_map
@@ -1505,10 +1522,11 @@ class PayloadJPEG(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG` by
     the GenTL Standard.
     """
-    def __init__(self, *,
-                 buffer: Optional[Buffer] = None,
-                 node_map: Optional[NodeMap] = None,
-                 logger: Optional[Logger] = None):
+    def __init__(
+            self, *,
+            buffer: Optional[Buffer] = None,
+            node_map: Optional[NodeMap] = None,
+            logger: Optional[Logger] = None):
         """
 
         :param buffer:
@@ -1533,10 +1551,11 @@ class PayloadJPEG2000(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG2000`
     by the GenTL Standard.
     """
-    def __init__(self, *,
-                 buffer: Optional[Buffer] = None,
-                 node_map: Optional[NodeMap] = None,
-                 logger: Optional[Logger] = None):
+    def __init__(
+            self, *,
+            buffer: Optional[Buffer] = None,
+            node_map: Optional[NodeMap] = None,
+            logger: Optional[Logger] = None):
         """
 
         :param buffer:
@@ -1561,10 +1580,11 @@ class PayloadH264(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_H264` by
     the GenTL Standard.
     """
-    def __init__(self, *,
-                 buffer: Optional[Buffer] = None,
-                 node_map: Optional[NodeMap] = None,
-                 logger: Optional[Logger] = None):
+    def __init__(
+            self, *,
+            buffer: Optional[Buffer] = None,
+            node_map: Optional[NodeMap] = None,
+            logger: Optional[Logger] = None):
         """
 
         :param buffer:
@@ -1589,10 +1609,11 @@ class PayloadChunkOnly(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_ONLY`
     by the GenTL Standard.
     """
-    def __init__(self, *,
-                 buffer: Optional[Buffer] = None,
-                 node_map: Optional[NodeMap] = None,
-                 logger: Optional[Logger] = None):
+    def __init__(
+            self, *,
+            buffer: Optional[Buffer] = None,
+            node_map: Optional[NodeMap] = None,
+            logger: Optional[Logger] = None):
         #
         assert buffer
         assert node_map
@@ -1610,9 +1631,10 @@ class PayloadMultiPart(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART`
     by the GenTL Standard.
     """
-    def __init__(self, *,
-                 buffer=None, node_map: Optional[NodeMap] = None,
-                 logger: Optional[Logger] = None):
+    def __init__(
+            self, *,
+            buffer=None, node_map: Optional[NodeMap] = None,
+            logger: Optional[Logger] = None):
         """
 
         :param buffer:
@@ -2310,7 +2332,8 @@ class ImageAcquirer:
             elif acq_mode == 'SingleFrame':
                 num_images_to_acquire = 1
             elif acq_mode == 'MultiFrame':
-                num_images_to_acquire = self.remote_device.node_map.AcquisitionFrameCount.value
+                num_images_to_acquire = \
+                    self.remote_device.node_map.AcquisitionFrameCount.value
             else:
                 num_images_to_acquire = -1
         except GenericException as e:
@@ -2525,11 +2548,13 @@ class ImageAcquirer:
                 """
                 pass
 
-    def fetch_buffer(self, *,
-                     timeout: float = 0, is_raw: bool = False,
-                     cycle_s: float = None) -> Optional[Buffer]:
+    def fetch_buffer(
+            self, *,
+            timeout: float = 0, is_raw: bool = False,
+            cycle_s: float = None) -> Optional[Buffer]:
         """
-        Fetches an available :class:`Buffer` object that has been filled up with a single image and returns it.
+        Fetches an available :class:`Buffer` object that has been filled up
+        with a single image and returns it.
 
         :param timeout: Set the period that defines the expiration for an available buffer delivery; if no buffer is fetched within the period then TimeoutException will be raised. The unit is [s].
         :param is_raw: Set :const:`True` if you need a raw GenTL Buffer module; note that you'll have to manipulate the object by yourself.
@@ -2684,10 +2709,10 @@ class ImageAcquirer:
         # Then returns the list.
         return _buffer_tokens
 
-    def _announce_buffers(self,
-                          data_stream: DataStream = None,
-                          _buffer_tokens: List[BufferToken] = None
-                          ) -> List[Buffer]:
+    def _announce_buffers(
+            self,
+            data_stream: DataStream = None,
+            _buffer_tokens: List[BufferToken] = None) -> List[Buffer]:
         #
         assert data_stream
 
@@ -2713,10 +2738,10 @@ class ImageAcquirer:
         # Then return the list of announced Buffer objects.
         return announced_buffers
 
-    def _queue_announced_buffers(self,
-                                 data_stream: Optional[DataStream] = None,
-                                 buffers: Optional[List[Buffer]] = None
-                                 ) -> None:
+    def _queue_announced_buffers(
+            self,
+            data_stream: Optional[DataStream] = None,
+            buffers: Optional[List[Buffer]] = None) -> None:
         #
         assert data_stream
 
@@ -2844,12 +2869,13 @@ class ImageAcquirer:
             _ = self._queue.get_nowait()
 
 
-def _retrieve_file_path(*,
-                        port: Optional[Port] = None,
-                        url: Optional[str] = None,
-                        file_path: Optional[str] = None,
-                        logger: Optional[Logger] = None,
-                        xml_dir: Optional[str] = None):
+def _retrieve_file_path(
+        *,
+        port: Optional[Port] = None,
+        url: Optional[str] = None,
+        file_path: Optional[str] = None,
+        logger: Optional[Logger] = None,
+        xml_dir: Optional[str] = None):
     #
     _logger = logger or get_logger(name=__name__)
 
@@ -2879,7 +2905,8 @@ def _retrieve_file_path(*,
         if location == 'local':
             file_name, address, size = others.split(';')
             address = int(address, 16)
-            # Remove optional /// after local: See section 4.1.2 in GenTL v1.4 Standard
+            # Remove optional /// after local: See section 4.1.2 in GenTL
+            # v1.4 Standard
             file_name = file_name.lstrip('/')
 
             # It may specify the schema version.
@@ -2917,10 +2944,11 @@ def _retrieve_file_path(*,
     return file_path
 
 
-def _save_file(*,
-               file_dir: Optional[str] = None,
-               file_name: Optional[str] = None,
-               binary_data=None):
+def _save_file(
+        *,
+        file_dir: Optional[str] = None,
+        file_name: Optional[str] = None,
+        binary_data=None):
     #
     assert binary_data
     assert file_name
@@ -2958,11 +2986,12 @@ def _save_file(*,
     return file_path
 
 
-def _get_port_connected_node_map(*,
-                                 port: Optional[Port] = None,
-                                 logger: Optional[Logger] = None,
-                                 file_path: Optional[str] = None,
-                                 xml_dir: Optional[str] = None):
+def _get_port_connected_node_map(
+        *,
+        port: Optional[Port] = None,
+        logger: Optional[Logger] = None,
+        file_path: Optional[str] = None,
+        xml_dir: Optional[str] = None):
     #
     assert port
 
@@ -3025,8 +3054,9 @@ class Harvester:
     this class.
     """
     #
-    def __init__(self, *,
-                 profile=False, logger: Optional[Logger] = None):
+    def __init__(
+            self, *,
+            profile=False, logger: Optional[Logger] = None):
         """
 
         :param profile:
@@ -3117,7 +3147,8 @@ class Harvester:
     @property
     def timeout_for_update(self) -> int:
         """
-        The duration that is used as the time limit for the device enumeration process. The unit is [ms].
+        The duration that is used as the time limit for the device
+        enumeration process. The unit is [ms].
 
         :getter: Returns itself.
         :setter: Overwrites itself with the given value.
@@ -3127,10 +3158,6 @@ class Harvester:
 
     @timeout_for_update.setter
     def timeout_for_update(self, ms: Optional[int] = 0) -> None:
-        """
-        :param ms: Set a timeout value for the device enumeration process in milli seconds.
-        :return:
-        """
         self._timeout_for_update = ms
 
     @property

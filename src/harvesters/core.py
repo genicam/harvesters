@@ -21,6 +21,7 @@
 # Standard library imports
 from datetime import datetime
 import io
+from logging import Logger
 import os
 import pathlib
 from queue import Queue
@@ -99,7 +100,7 @@ class Module:
         The GenICam feature node map that belongs to the owner object.
 
         :getter: Returns the node map.
-        :type: NodeMap
+        :type: genicam.genapi.NodeMap
         """
         return self._node_map
 
@@ -116,9 +117,9 @@ class Module:
     @property
     def port(self) -> Port:
         """
-        The port object of the GenTL entity.
+        The GenTL Port entity that belongs to the GenTL entity.
 
-        :getter: Returns the port object of the GenTL entity.
+        :getter: Returns the port object of the given GenTL entity.
         :type: Port
         """
 
@@ -164,7 +165,7 @@ class DataStream(Module):
     @property
     def buffer_announce_min(self):
         """
-        The minimum number that is required to run image acquisition.
+        The minimum number that is required to run image acquisition process.
 
         :getter: Returns the minimum number that is required to run image acquisition.
         :type: int
@@ -173,7 +174,9 @@ class DataStream(Module):
 
     def defines_payload_size(self) -> bool:
         """
-        Returns the truth value of a proposition: The target GenTL Producer defines payload size.
+        Returns the truth value of a proposition: The target GenTL Producer
+        defines payload size.
+
         :return: The truth value.
         """
         return self._module.defines_payload_size()
@@ -181,25 +184,26 @@ class DataStream(Module):
     @property
     def payload_size(self) -> int:
         """
-        The size [Bytes] of the payload.
+        The size of the payload. The unit is [Bytes].
 
-        :getter: Returns the size [Bytes] of the payload.
+        :getter: Returns the size the payload.
         :type: int
         """
         return self._module.payload_size
 
     def queue_buffer(self, announced_buffer: Buffer_ = None) -> None:
         """
-        Queues the announced buffer for the image acquisition.
+        Queues the announced buffer to the input buffer pool of the image
+        acquisition engine.
 
         :param announced_buffer:
-        :return:
+        :return: None
         """
         self._module.queue_buffer(announced_buffer)
 
     def start_acquisition(self, flags=None, num_images=None) -> None:
         """
-        Starts image acuiqisition.
+        Starts image acquisition.
 
         :param flags:
         :param num_images:
@@ -208,6 +212,11 @@ class DataStream(Module):
         self._module.start_acquisition(flags, num_images)
 
     def is_open(self) -> bool:
+        """
+        Returns the truth value of a proposition: The DataStream entity has been opened.
+        :return: :const:`True` if it's been opened. Otherwise :const:`False`.
+        :rtype: bool
+        """
         return self._module.is_open()
 
     def stop_acquisition(self, flags=None):
@@ -215,26 +224,44 @@ class DataStream(Module):
         Stops image acquisition.
 
         :param flags:
-        :return:
+        :return: None
         """
         self._module.stop_acquisition(flags)
 
     def revoke_buffer(self, buffer=None):
         """
-        Revoks the specified buffer from the queue.
+        Revokes the specified buffer from the queue.
 
-        :param buffer: Set a :class:`Buffer` object to revoke.
-        :return: :class:`Buffer`
+        :param buffer: Set an announced :class:`Buffer` object to revoke.
+        :return: The revoked buffer object.
+        :rtype: :class:`Buffer`
         """
         return self._module.revoke_buffer(buffer)
 
-    def flush_buffer_queue(self, operation=None):
+    def flush_buffer_queue(self, operation=None) -> None:
+        """
+        Flushes the queue.
+
+        :param operation: Set an operation to execute.
+        :return: None
+        """
         self._module.flush_buffer_queue(operation)
 
-    def close(self):
+    def close(self) -> None:
+        """
+        Closes the given DataStream entity.
+        :return:  None
+        """
         self._module.close()
 
     def announce_buffer(self, buffer_token=None) -> Buffer_:
+        """
+        Announces the give buffer.
+
+        :param buffer_token: Set a buffer to announce.
+        :return: An announced buffer.
+        :type: :class:`Buffer_`
+        """
         return self._module.announce_buffer(buffer_token)
 
 
@@ -361,7 +388,8 @@ class _SignalHandler:
     _event = None
     _threads = None
 
-    def __init__(self, *, event=None, threads=None, logger=None):
+    def __init__(self, *,
+                 event=None, threads=None, logger: Optional[Logger] = None):
         #
         self._logger = logger or get_logger(name=__name__)
 
@@ -409,7 +437,7 @@ class ThreadBase:
     use. For example, in general, PyQt application should implement a
     thread using QThread instead of Python's built-in Thread class.
     """
-    def __init__(self, *, logger=None, mutex=None):
+    def __init__(self, *, logger: Optional[Logger] = None, mutex=None):
         #
         super().__init__()
         #
@@ -524,7 +552,7 @@ class MutexLocker:
 
 
 class _ImageAcquisitionThread(ThreadBase):
-    def __init__(self, *, image_acquire=None, logger=None):
+    def __init__(self, *, image_acquire=None, logger: Optional[Logger] = None):
         """
 
         :param image_acquire:
@@ -758,7 +786,9 @@ class Component2DImage(ComponentBase):
     Represents a data component that is classified as
     :const:`PART_DATATYPE_2D_IMAGE` by the GenTL Standard.
     """
-    def __init__(self, *, buffer=None, part=None, node_map=None, logger=None):
+    def __init__(self, *,
+                 buffer=None, part=None, node_map=None,
+                 logger: Optional[Logger] = None):
         """
         :param buffer:
         :param part:
@@ -1066,7 +1096,9 @@ class Buffer:
     Note that it will never be necessary to create this object by yourself
     in general.
     """
-    def __init__(self, *, buffer=None, node_map=None, logger=None):
+    def __init__(self, *,
+                 buffer=None, node_map=None,
+                 logger: Optional[Logger] = None):
         """
         :param buffer:
         :param node_map:
@@ -1210,7 +1242,9 @@ class Buffer:
         self._buffer.parent.queue_buffer(self._buffer)
 
     @staticmethod
-    def _build_payload(*, buffer=None, node_map=None, logger=None):
+    def _build_payload(*,
+                       buffer=None, node_map=None,
+                       logger: Optional[Logger] = None):
         #
         assert buffer
         assert node_map
@@ -1266,7 +1300,9 @@ class PayloadBase:
     GenTL Standard. In general, you should not have to design a class that
     derives from this base class.
     """
-    def __init__(self, *, buffer: Buffer = None, logger=None):
+    def __init__(self, *,
+                 buffer: Buffer = None,
+                 logger: Optional[Logger] = None):
         """
         :param buffer:
         :param logger:
@@ -1340,7 +1376,9 @@ class PayloadUnknown(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_UNKNOWN`
     by the GenTL Standard.
     """
-    def __init__(self, *, buffer=None, node_map=None, logger=None):
+    def __init__(self, *,
+                 buffer=None, node_map=None,
+                 logger: Optional[Logger] = None):
         """
 
         :param buffer:
@@ -1365,7 +1403,9 @@ class PayloadImage(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE` by
     the GenTL Standard.
     """
-    def __init__(self, *, buffer=None, node_map=None, logger=None):
+    def __init__(self, *,
+                 buffer=None, node_map=None,
+                 logger: Optional[Logger] = None):
         """
 
         :param buffer:
@@ -1400,7 +1440,7 @@ class PayloadRawData(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_RAW_DATA`
     by the GenTL Standard.
     """
-    def __init__(self, *, buffer=None, node_map=None, logger=None):
+    def __init__(self, *, buffer=None, node_map=None, logger: Optional[Logger] = None):
         """
 
         :param buffer:
@@ -1425,7 +1465,9 @@ class PayloadFile(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_FILE` by
     the GenTL Standard.
     """
-    def __init__(self, *, buffer=None, node_map=None, logger=None):
+    def __init__(self, *,
+                 buffer=None, node_map=None,
+                 logger: Optional[Logger] = None):
         #
         assert buffer
         assert node_map
@@ -1443,7 +1485,9 @@ class PayloadJPEG(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG` by
     the GenTL Standard.
     """
-    def __init__(self, *, buffer=None, node_map=None, logger=None):
+    def __init__(self, *,
+                 buffer=None, node_map=None,
+                 logger: Optional[Logger] = None):
         """
 
         :param buffer:
@@ -1468,7 +1512,9 @@ class PayloadJPEG2000(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG2000`
     by the GenTL Standard.
     """
-    def __init__(self, *, buffer=None, node_map=None, logger=None):
+    def __init__(self, *,
+                 buffer=None, node_map=None,
+                 logger: Optional[Logger] = None):
         """
 
         :param buffer:
@@ -1493,7 +1539,9 @@ class PayloadH264(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_H264` by
     the GenTL Standard.
     """
-    def __init__(self, *, buffer=None, node_map=None, logger=None):
+    def __init__(self, *,
+                 buffer=None, node_map=None,
+                 logger: Optional[Logger] = None):
         """
 
         :param buffer:
@@ -1518,7 +1566,9 @@ class PayloadChunkOnly(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_ONLY`
     by the GenTL Standard.
     """
-    def __init__(self, *, buffer=None, node_map=None, logger=None):
+    def __init__(self, *,
+                 buffer=None, node_map=None,
+                 logger: Optional[Logger] = None):
         #
         assert buffer
         assert node_map
@@ -1536,7 +1586,9 @@ class PayloadMultiPart(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART`
     by the GenTL Standard.
     """
-    def __init__(self, *, buffer=None, node_map=None, logger=None):
+    def __init__(self, *,
+                 buffer=None, node_map=None,
+                 logger: Optional[Logger] = None):
         """
 
         :param buffer:
@@ -1623,11 +1675,13 @@ class ImageAcquirer:
     _specialized_tl_type = ['U3V', 'GEV']
 
     def _create_acquisition_thread(self):
-        return _ImageAcquisitionThread(image_acquire=self, logger=self._logger)
+        return _ImageAcquisitionThread(
+            image_acquire=self, logger=self._logger
+        )
 
     def __init__(
             self, *, parent=None, device=None,
-            profiler=None, logger=None,
+            profiler=None, logger: Optional[Logger] = None,
             sleep_duration=_sleep_duration_default,
             file_path: Optional[str] = None
     ):
@@ -2740,7 +2794,9 @@ class ImageAcquirer:
             _ = self._queue.get_nowait()
 
 
-def _retrieve_file_path(*, port=None, url=None, file_path=None, logger=None, xml_dir=None):
+def _retrieve_file_path(*,
+                        port=None, url=None, file_path=None,
+                        logger: Optional[Logger] = None, xml_dir=None):
     #
     _logger = logger or get_logger(name=__name__)
 
@@ -2846,7 +2902,9 @@ def _save_file(*, file_dir=None, file_name=None, binary_data=None):
     return file_path
 
 
-def _get_port_connected_node_map(*, port=None, logger=None, file_path=None, xml_dir=None):
+def _get_port_connected_node_map(*,
+                                 port=None, logger: Optional[Logger] =None,
+                                 file_path=None, xml_dir=None):
     #
     assert port
 
@@ -2899,7 +2957,7 @@ class Harvester:
     this class.
     """
     #
-    def __init__(self, *, profile=False, logger=None):
+    def __init__(self, *, profile=False, logger: Optional[Logger] = None):
         """
 
         :param profile:
@@ -2960,7 +3018,7 @@ class Harvester:
     @property
     def files(self) -> List[str]:
         """
-        A :class:`list` object containing :class:`str` objects.
+        A list of associative CTI files.
 
         :getter: Returns a :class:`list` object containing :class:`str` objects.
         :type: list[str]
@@ -2970,9 +3028,9 @@ class Harvester:
     @property
     def device_info_list(self) -> List[DeviceInfo]:
         """
-        A :class:`list` object containing :class:`DeviceInfo` objects.
+        A list of available device information.
 
-        :getter: Returns a :class:`list` object containing :class:`DeviceInfo` objects.
+        :getter: Returns a list of available device information.
         :type: list[DeviceInfo]
         """
         return self._device_info_list

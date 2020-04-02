@@ -24,6 +24,7 @@ from queue import Queue, Empty
 from shutil import rmtree
 import sys
 from tempfile import gettempdir
+from typing import Optional
 import threading
 import time
 import unittest
@@ -668,7 +669,7 @@ class _Callback(Callback):
         self._ia = ia
         self._buffers = buffers
 
-    def emit(self, context):
+    def emit(self, context: Optional[object] = None) -> None:
         self._buffers.append(self._ia.fetch_buffer())
 
     @property

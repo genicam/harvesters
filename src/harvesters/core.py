@@ -31,7 +31,7 @@ import sys
 from threading import Lock, Thread, Event
 from threading import current_thread, main_thread
 import time
-from typing import List, Optional
+from typing import Any, List, Optional
 from urllib.parse import urlparse
 from warnings import warn
 import weakref
@@ -562,7 +562,9 @@ class MutexLocker:
 
 
 class _ImageAcquisitionThread(ThreadBase):
-    def __init__(self, *, image_acquire=None, logger: Optional[Logger] = None):
+    def __init__(
+            self, *,
+            image_acquire=None, logger: Optional[Logger] = None):
         """
 
         :param image_acquire:
@@ -1229,7 +1231,7 @@ class Buffer:
         the buffer is queued, the :class:`Buffer` object will be obsolete.
         You'll have nothing to do with it.
 
-        Note that you have to return the ownership of the fetched buffers to
+        Note that you have to return _the ownership of the fetched buffers to
         the :class:`ImageAcquirer` object before stopping image acquisition
         calling this method because the :class:`ImageAcquirer` object tries
         to clear the self-allocated buffers when it stops image acquisition.
@@ -1651,31 +1653,6 @@ class Callback:
     """
     Is used as a base class to implement user defined callback behavior.
     """
-    def __init__(self, context: Optional[object] = None):
-        """
-        Is a base class that is used to implement a callback functionality.
-        """
-        super().__init__()
-        self._context = context
-
-    @property
-    def context(self) -> object:
-        """
-        A context object that is passed to the callback method when it's
-        called. It's not necessary to use it and it could be :const:`None`
-        but you may want to manipulate the object that holds a context
-        on the path.
-
-        :getter: Returns itself.
-        :setter: Overwrites itself with the given value.
-        :type: object
-        """
-        return self._context
-
-    @context.setter
-    def context(self, obj):
-        self._context = obj
-
     def emit(self, context: Optional[object] = None) -> None:
         """
         Is called when a specific condition is met.
@@ -1702,14 +1679,13 @@ class ImageAcquirer:
         )
 
     def __init__(
-            self, *, parent=None, device=None,
+            self, *, device=None,
             profiler=None, logger: Optional[Logger] = None,
             sleep_duration: float = _sleep_duration_default,
             file_path: Optional[str] = None
     ):
         """
 
-        :param parent:
         :param device:
         :param profiler:
         :param logger:
@@ -1721,14 +1697,10 @@ class ImageAcquirer:
         self._logger = logger or get_logger(name=__name__)
 
         #
-        assert parent
         assert device
 
         #
         super().__init__()
-
-        #
-        self._parent = parent
 
         #
         interface = device.parent
@@ -1876,7 +1848,7 @@ class ImageAcquirer:
         self._on_new_buffer_arrival = None
 
         #
-        self._finalizer = weakref.finalize(self, self._destroy)
+        self._finalizer = weakref.finalize(self, self.destroy)
 
         #
         try:
@@ -1884,6 +1856,19 @@ class ImageAcquirer:
         except AttributeError:
             self._afr = None
         self._fetching_cycle_s = None
+
+        #
+        self._callback_on_destroy = None
+
+    @property
+    def callback_on_destroy(self):
+        return self._callback_on_destroy
+
+    @callback_on_destroy.setter
+    def callback_on_destroy(self, obj: Callback = None):
+        if obj:
+            assert callable(obj)
+        self._callback_on_destroy = obj
 
     @staticmethod
     def _get_chunk_adapter(*, device=None, node_map: Optional[NodeMap]=None):
@@ -1902,12 +1887,41 @@ class ImageAcquirer:
 
     def destroy(self) -> None:
         """
-        Resets itself; releases all preserved external resources such as
+        Destroys itself; releases all preserved external resources such as
         buffers or the connected remote device.
 
         :return: None
         """
-        self._finalizer()
+        id_ = None
+        if self.device:
+            #
+            self.stop_acquisition()
+            #
+            self._release_data_streams()
+            #
+            id_ = self._device.id_
+            #
+            if self.remote_device.node_map:
+                self.device.node_map.disconnect()
+            #
+            if self._device.is_open():
+                self._device.close()
+
+        self._device = None
+
+        #
+        if id_:
+            self._logger.info(
+                'Destroyed the ImageAcquirer object which {0} '
+                'had belonged to.'.format(id_)
+            )
+        else:
+            self._logger.info(
+                'Destroyed an ImageAcquirer.'
+            )
+
+        if self._profiler:
+            self._profiler.print_diff()
 
     @property
     def on_new_buffer_arrival(self) -> Callback:
@@ -2429,9 +2443,7 @@ class ImageAcquirer:
 
                     # Call the registered callback:
                     if self._on_new_buffer_arrival:
-                        self._on_new_buffer_arrival.emit(
-                            context=self._on_new_buffer_arrival.context
-                        )
+                        self._on_new_buffer_arrival.emit()
 
                     #
                     self._update_num_images_to_acquire()
@@ -2782,18 +2794,6 @@ class ImageAcquirer:
         if self._profiler:
             self._profiler.print_diff()
 
-    def _destroy(self) -> None:
-        """
-        Destroys the :class:`ImageAcquirer` object. Once you called this
-        method, all allocated resources, including buffers and the remote
-        device, are released.
-
-        :return: None.
-        """
-        # Ask its parent to destroy it:
-        if self._device:
-            self._parent._destroy_image_acquirer(self)
-
     def _release_data_streams(self) -> None:
         #
         self._release_buffers()
@@ -3000,6 +3000,16 @@ def _get_port_connected_node_map(*,
     return node_map
 
 
+class _CallbackDestroyImageAcquirer(Callback):
+    def __init__(self, harvester):
+        self._harvester = harvester
+
+    def emit(self, context: Optional[ImageAcquirer] = None) -> None:
+        context.destroy()
+        if context in self._harvester.image_acquirers:
+            self._harvester.image_acquirers.remove(context)
+
+
 class Harvester:
     """
     Is the class that works for you as Harvester Core. Everything begins with
@@ -3044,6 +3054,16 @@ class Harvester:
 
         #
         self._finalizer = weakref.finalize(self, self._reset)
+
+    @property
+    def image_acquirers(self):
+        """
+        The ImageAcquire objects.
+
+        :getter: Returns its value.
+        :type: ImageAcquire
+        """
+        return self._ias
 
     def __enter__(self):
         return self
@@ -3228,7 +3248,7 @@ class Harvester:
 
             # Create an :class:`ImageAcquirer` object and return it.
             ia = ImageAcquirer(
-                parent=self, device=device, profiler=self._profiler,
+                device=device, profiler=self._profiler,
                 logger=self._logger, sleep_duration=sleep_duration,
                 file_path=file_path
             )
@@ -3345,7 +3365,7 @@ class Harvester:
         """
         #
         for ia in self._ias:
-            ia._destroy()
+            ia.destroy()
 
         self._ias.clear()
 
@@ -3465,66 +3485,6 @@ class Harvester:
 
         #
         self._logger.info('Updated the device information list.')
-
-    def _destroy_image_acquirer(self, ia: ImageAcquirer):
-        """
-        Releases all external resources including the controlling device.
-        """
-
-        id_ = None
-        if ia.device:
-            #
-            ia.stop_acquisition()
-
-            #
-            ia._release_data_streams()
-
-            #
-            id_ = ia._device.id_
-
-            #
-            if ia.remote_device.node_map:
-                #
-                if ia._chunk_adapter:
-                    ia._chunk_adapter.detach_buffer()
-                    ia._chunk_adapter = None
-                    self._logger.info(
-                        'Detached a buffer from the chunk adapter of {0}.'.format(
-                            id_
-                        )
-                    )
-
-                ia.device.node_map.disconnect()
-                self._logger.info(
-                    'Disconnected the port from the NodeMap of {0}.'.format(
-                        id_
-                    )
-                )
-
-            #
-            if ia._device.is_open():
-                ia._device.close()
-                self._logger.info(
-                    'Closed Device module, {0}.'.format(id_)
-                )
-
-        ia._device = None
-
-        #
-        if id_:
-            self._logger.info(
-                'Destroyed the ImageAcquirer object which {0} '
-                'had belonged to.'.format(id_)
-            )
-        else:
-            self._logger.info(
-                'Destroyed an ImageAcquirer.'
-            )
-
-        if self._profiler:
-            self._profiler.print_diff()
-
-        self._ias.remove(ia)
 
 
 if __name__ == '__main__':

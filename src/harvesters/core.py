@@ -1851,13 +1851,6 @@ class ImageAcquirer:
         self._finalizer = weakref.finalize(self, self.destroy)
 
         #
-        try:
-            self._afr = self._remote_device.node_map.AcquisitionFrameRate
-        except AttributeError:
-            self._afr = None
-        self._fetching_cycle_s = None
-
-        #
         self._callback_on_destroy = None
 
     @property
@@ -2277,12 +2270,6 @@ class ImageAcquirer:
         if not self._create_ds_at_connection:
             self._setup_data_streams()
 
-        # Update the expected cycle to fetch a buffer:
-        if self._afr and self._afr.value != 0:
-            self._fetching_cycle_s = 1 / self._afr.value
-        else:
-            self._fetching_cycle_s = None
-
         #
         num_required_buffers = self._num_buffers
         for data_stream in self._data_streams:
@@ -2432,8 +2419,8 @@ class ImageAcquirer:
                             # Get the latest buffer:
                             _buffer = event_manager.buffer
 
-                            # Then append it to the list which the user fetches
-                            # later:
+                            # Then append it to the list which the user
+                            # fetches later:
                             queue.put(_buffer)
 
                             # Then update the statistics using the buffer:

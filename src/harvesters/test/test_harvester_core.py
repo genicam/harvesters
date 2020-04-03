@@ -544,39 +544,71 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         # Connect to the first camera in the list.
         self.ia = self.harvester.create_image_acquirer(0)
 
-        # Register a call back method:
-        callback_tester = _Callback(ia=self.ia, buffers=self._buffers)
-        self.ia.on_new_buffer_arrival = callback_tester
-
         # We turn software trigger on:
         self.setup_camera()
 
-        # We have not fetched any buffer:
-        self.assertEqual(0, len(callback_tester.buffers))
+        # Create a callback:
+        self.callback_tester = _Callback(ia=self.ia, buffers=self._buffers)
 
+        # Trigger the target device:
+        self.num_images = self.ia.num_buffers
+        self.assertTrue(self.num_images > 0)
+
+        #
+        tests = [
+            self._test_141_with_callback, self._test_141_without_callback
+        ]
+        for test in tests:
+            # We have not yet fetched any buffer:
+            self.assertEqual(0, len(self.callback_tester.buffers))
+
+            # Run a sub-test:
+            test()
+
+            # Then stop image acquisition:
+            self.ia.stop_acquisition()
+
+    def _test_141_with_callback(self):
+        # Add it to the image acquire so that it can get notified when the
+        # event happened:
+        self.ia.add_callback(
+            ImageAcquirer.Events.ON_NEW_BUFFER,
+            self.callback_tester
+        )
+        
+        #
+        self._test_141_body()
+
+        # If the callback method was called, then we should have the same
+        # number of buffers with num_images:
+        self.assertEqual(
+            self.ia.num_buffers, len(self.callback_tester.buffers)
+        )
+
+        # Release the buffers before stopping image acquisition:
+        while len(self.callback_tester.buffers) != 0:
+            buffer = self.callback_tester.buffers.pop(-1)
+            buffer.queue()
+
+    def _test_141_without_callback(self):
+        # Remove all callbacks to not any callback work:
+        self.ia.remove_callbacks()
+        
+        #
+        self._test_141_body()
+        
+        # The list must be empty because the emit method has not been called:
+        self.assertEqual(
+            0, len(self.callback_tester.buffers)
+        )
+
+    def _test_141_body(self):
         # Start image acquisition:
         self.ia.start_acquisition(run_in_background=True)
 
         # Trigger the target device:
-        num_images = self.ia.num_buffers
-        self.assertTrue(num_images > 0)
-
-        # Trigger the target device:
-        for _ in range(num_images):
+        for _ in range(self.num_images):
             self.generate_software_trigger(sleep_s=self.sleep_duration)
-
-        # If the callback method was called, then we should have the same
-        # number of buffers with num_images:
-        self.assertEqual(num_images, len(callback_tester.buffers))
-
-        # Release the buffers before stopping image acquisition:
-        for buffer in callback_tester.buffers:
-            buffer.queue()
-
-        callback_tester.buffers.clear()
-
-        # Then stop image acquisition:
-        self.ia.stop_acquisition()
 
 
 class _TestIssue81(threading.Thread):

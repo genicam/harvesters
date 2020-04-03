@@ -20,6 +20,7 @@
 
 # Standard library imports
 from datetime import datetime
+from enum import IntEnum
 import io
 from logging import Logger
 import os
@@ -1695,6 +1696,11 @@ class ImageAcquirer:
     _event = Event()
     _specialized_tl_type = ['U3V', 'GEV']
 
+    class Events(IntEnum):
+        ON_TERMINATED = 0,
+        ON_NEW_BUFFER = 1,
+        ON_STOP_ACQUISITION = 2,
+
     def _create_acquisition_thread(self) -> _ImageAcquisitionThread:
         return _ImageAcquisitionThread(
             image_acquire=self, logger=self._logger
@@ -1852,9 +1858,6 @@ class ImageAcquirer:
             )
 
         #
-        self._on_stop_acquisition = None
-
-        #
         self._logger.info(
             'Instantiated an ImageAcquirer object for {0}.'.format(
                 self._device.id_
@@ -1866,27 +1869,43 @@ class ImageAcquirer:
             device=self.device, node_map=self.remote_device.node_map
         )
 
-        # A callback method when it's called when a new buffer is delivered:
-        self._on_new_buffer_available = None
-
         #
         self._finalizer = weakref.finalize(self, self.destroy)
 
         #
-        self._callback_on_destroy = None
+        self._supported_events = [
+            self.Events.ON_TERMINATED,
+            self.Events.ON_STOP_ACQUISITION,
+            self.Events.ON_NEW_BUFFER
+        ]
+        self._callback_dict = dict()
+        for event in self._supported_events:
+            self._callback_dict[event] = None
+
+    def _check_validity(self, event: Events):
+        if event not in self._supported_events:
+            raise ValueError
+
+    def add_callback(self, event: Events, callback: Callback):
+        self._check_validity(event)
+        assert callback
+        self._callback_dict[event] = callback
+
+    def remove_callback(self, event: Events):
+        self._check_validity(event)
+        self._callback_dict[event] = None
+
+    def remove_callbacks(self):
+        for event in self._supported_events:
+            self._callback_dict[event] = None
 
     @property
-    def callback_on_destroy(self):
-        return self._callback_on_destroy
-
-    @callback_on_destroy.setter
-    def callback_on_destroy(self, obj: Callback = None):
-        if obj:
-            assert callable(obj)
-        self._callback_on_destroy = obj
+    def supported_events(self):
+        return self._supported_events
 
     @staticmethod
-    def _get_chunk_adapter(*, device=None, node_map: Optional[NodeMap]=None):
+    def _get_chunk_adapter(
+            *, device=None, node_map: Optional[NodeMap] = None):
         if device.tl_type == 'U3V':
             return ChunkAdapterU3V(node_map)
         elif device.tl_type == 'GEV':
@@ -1938,41 +1957,9 @@ class ImageAcquirer:
         if self._profiler:
             self._profiler.print_diff()
 
-        if self._callback_on_destroy:
-            self._callback_on_destroy.emit(context=self)
-
-    @property
-    def on_new_buffer_arrival(self):
-        """
-        Will be deprecated shortly.
-        """
-        _deprecated(
-            'on_new_buffer_arrival', 'callback_on_new_buffer_available'
-        )
-        return self.callback_on_new_buffer_available
-
-    @on_new_buffer_arrival.setter
-    def on_new_buffer_arrival(self, obj) -> None:
-        _deprecated(
-            'on_new_buffer_arrival', 'callback_on_new_buffer_available'
-        )
-        self.callback_on_new_buffer_available = obj
-
-    @property
-    def callback_on_new_buffer_available(self) -> Callback:
-        """
-        The callback that is emitted when a new buffer turned available.
-
-        :getter: Returns itself.
-        :setter: Overwrites itself with the given value.
-        :type: Callback
-        """
-        return self._on_new_buffer_available
-
-    @callback_on_new_buffer_available.setter
-    def callback_on_new_buffer_available(
-            self, obj: Optional[Callback] = None):
-        self._on_new_buffer_available = obj
+        _event = self.Events.ON_TERMINATED
+        if self._callback_dict[_event]:
+            self._callback_dict[_event].emit(context=self)
 
     @property
     def buffer_handling_mode(self) -> str:
@@ -2196,36 +2183,6 @@ class ImageAcquirer:
     def thread_image_acquisition(self, obj):
         self._thread_image_acquisition = obj
         self._thread_image_acquisition.worker = self.worker_image_acquisition
-
-    @property
-    def signal_stop_image_acquisition(self):
-        """
-        Will be deprecated shortly.
-        """
-        return self.on_stop_acquisition
-
-    @signal_stop_image_acquisition.setter
-    def signal_stop_image_acquisition(self, obj):
-        """
-        Will be deprecated shortly.
-        """
-        self.on_stop_acquisition = obj
-
-    @property
-    def on_stop_acquisition(self):
-        """
-        A callback object that is used when a user need to know the timing
-        where image acquisition stopped.
-
-        :getter: Returns itself.
-        :setter: Overwrites itself with the given value.
-        :type: :class:`Callback`
-        """
-        return self._on_stop_acquisition
-
-    @on_stop_acquisition.setter
-    def on_stop_acquisition(self, obj):
-        self._on_stop_acquisition = obj
 
     @property
     def statistics(self) -> Statistics:
@@ -2472,10 +2429,9 @@ class ImageAcquirer:
                                     queue.put(_buffer)
 
                     # Call the registered callback:
-                    if self._on_new_buffer_available:
-                        self._on_new_buffer_available.emit(
-                            context=self
-                        )
+                    _event = self.Events.ON_NEW_BUFFER
+                    if self._callback_dict[_event]:
+                        self._callback_dict[_event].emit(context=self)
 
                     #
                     self._update_num_images_to_acquire()
@@ -2662,8 +2618,9 @@ class ImageAcquirer:
         #
         if self._num_images_to_acquire == 0:
             #
-            if self.on_stop_acquisition:
-                self.on_stop_acquisition.emit(context=self)
+            _event = self.Events.ON_STOP_ACQUISITION
+            if self._callback_dict[_event]:
+                self._callback_dict[_event].emit(context=self)
 
     def _update_statistics(self, buffer) -> None:
         #

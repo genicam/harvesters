@@ -44,7 +44,7 @@ from harvesters.test.helper import get_package_dir
 
 
 class TestHarvesterCore(TestHarvesterCoreBase):
-    sleep_duration = 1  # Time to keep sleeping [s]
+    sleep_duration = .5  # Time to keep sleeping [s]
 
     def test_basic_usage_1(self):
         """
@@ -572,7 +572,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         # Add it to the image acquire so that it can get notified when the
         # event happened:
         self.ia.add_callback(
-            ImageAcquirer.Events.ON_NEW_BUFFER,
+            ImageAcquirer.Events.ON_NEW_BUFFER_AVAILABLE,
             self.callback_tester
         )
         

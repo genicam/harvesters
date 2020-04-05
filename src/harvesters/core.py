@@ -19,6 +19,7 @@
 
 
 # Standard library imports
+from collections.abc import Iterable
 from datetime import datetime
 from enum import IntEnum
 import io
@@ -1697,9 +1698,10 @@ class ImageAcquirer:
     _specialized_tl_type = ['U3V', 'GEV']
 
     class Events(IntEnum):
-        ON_TERMINATED = 0,
-        ON_NEW_BUFFER = 1,
-        ON_STOP_ACQUISITION = 2,
+        ON_TURNED_OBSOLETE = 0,
+        ON_NEW_BUFFER_AVAILABLE = 1,
+        ON_RETURN_ALL_BORROWED_BUFFERS_NOW = 2,
+        ON_READY_TO_STOP_ACQUISITION = 3,
 
     def _create_acquisition_thread(self) -> _ImageAcquisitionThread:
         return _ImageAcquisitionThread(
@@ -1874,13 +1876,30 @@ class ImageAcquirer:
 
         #
         self._supported_events = [
-            self.Events.ON_TERMINATED,
-            self.Events.ON_STOP_ACQUISITION,
-            self.Events.ON_NEW_BUFFER
+            self.Events.ON_TURNED_OBSOLETE,
+            self.Events.ON_RETURN_ALL_BORROWED_BUFFERS_NOW,
+            self.Events.ON_READY_TO_STOP_ACQUISITION,
+            self.Events.ON_NEW_BUFFER_AVAILABLE
         ]
         self._callback_dict = dict()
         for event in self._supported_events:
             self._callback_dict[event] = None
+
+    def _emit_callbacks(self, event: Events):
+        callbacks = self._callback_dict[event]
+        if isinstance(callbacks, Iterable):
+            for callback in callbacks:
+                self._emit_callback(callback)
+        else:
+            callback = callbacks
+            self._emit_callback(callback)
+
+    def _emit_callback(self, callback):
+        if callback:
+            if isinstance(callback, Callback):
+                callback.emit(context=self)
+            else:
+                raise TypeError
 
     def _check_validity(self, event: Events):
         if event not in self._supported_events:
@@ -1957,9 +1976,8 @@ class ImageAcquirer:
         if self._profiler:
             self._profiler.print_diff()
 
-        _event = self.Events.ON_TERMINATED
-        if self._callback_dict[_event]:
-            self._callback_dict[_event].emit(context=self)
+        #
+        self._emit_callbacks(self.Events.ON_TURNED_OBSOLETE)
 
     @property
     def buffer_handling_mode(self) -> str:
@@ -2429,9 +2447,7 @@ class ImageAcquirer:
                                     queue.put(_buffer)
 
                     # Call the registered callback:
-                    _event = self.Events.ON_NEW_BUFFER
-                    if self._callback_dict[_event]:
-                        self._callback_dict[_event].emit(context=self)
+                    self._emit_callbacks(self.Events.ON_NEW_BUFFER_AVAILABLE)
 
                     #
                     self._update_num_images_to_acquire()
@@ -2618,9 +2634,7 @@ class ImageAcquirer:
         #
         if self._num_images_to_acquire == 0:
             #
-            _event = self.Events.ON_STOP_ACQUISITION
-            if self._callback_dict[_event]:
-                self._callback_dict[_event].emit(context=self)
+            self._emit_callbacks(self.Events.ON_READY_TO_STOP_ACQUISITION)
 
     def _update_statistics(self, buffer) -> None:
         #
@@ -2806,6 +2820,9 @@ class ImageAcquirer:
         self._event_new_buffer_managers.clear()
 
     def _release_buffers(self) -> None:
+        # Notify the client that he has to return/queue buffers back:
+        self._emit_callbacks(self.Events.ON_RETURN_ALL_BORROWED_BUFFERS_NOW)
+        #
         for data_stream in self._data_streams:
             if data_stream.is_open():
                 #

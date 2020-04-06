@@ -1700,7 +1700,7 @@ class ImageAcquirer:
     class Events(IntEnum):
         ON_TURNED_OBSOLETE = 0,
         ON_NEW_BUFFER_AVAILABLE = 1,
-        ON_RETURN_ALL_BORROWED_BUFFERS_NOW = 2,
+        ON_RETURN_ALL_BORROWED_BUFFERS = 2,
         ON_READY_TO_STOP_ACQUISITION = 3,
 
     def _create_acquisition_thread(self) -> _ImageAcquisitionThread:
@@ -1877,7 +1877,7 @@ class ImageAcquirer:
         #
         self._supported_events = [
             self.Events.ON_TURNED_OBSOLETE,
-            self.Events.ON_RETURN_ALL_BORROWED_BUFFERS_NOW,
+            self.Events.ON_RETURN_ALL_BORROWED_BUFFERS,
             self.Events.ON_READY_TO_STOP_ACQUISITION,
             self.Events.ON_NEW_BUFFER_AVAILABLE
         ]
@@ -2802,7 +2802,7 @@ class ImageAcquirer:
     def _flush_buffers(self, data_stream: DataStream) -> None:
         # Notify the client that he has to return/queue buffers back:
         self._emit_callbacks(
-            self.Events.ON_RETURN_ALL_BORROWED_BUFFERS_NOW
+            self.Events.ON_RETURN_ALL_BORROWED_BUFFERS
         )
         data_stream.flush_buffer_queue(
             ACQ_QUEUE_TYPE_LIST.ACQ_QUEUE_ALL_DISCARD

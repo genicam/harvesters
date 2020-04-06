@@ -581,7 +581,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             self.on_new_buffer_available
         )
         self.ia.add_callback(
-            ImageAcquirer.Events.ON_RETURN_ALL_BORROWED_BUFFERS_NOW,
+            ImageAcquirer.Events.ON_RETURN_ALL_BORROWED_BUFFERS,
             self.on_return_buffer_now
         )
 

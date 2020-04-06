@@ -33,7 +33,7 @@ import sys
 from threading import Lock, Thread, Event
 from threading import current_thread, main_thread
 import time
-from typing import Any, List, Optional
+from typing import Union, List, Optional
 from urllib.parse import urlparse
 from warnings import warn
 import weakref
@@ -1885,7 +1885,7 @@ class ImageAcquirer:
         for event in self._supported_events:
             self._callback_dict[event] = None
 
-    def _emit_callbacks(self, event: Events):
+    def _emit_callbacks(self, event: Events) -> None:
         callbacks = self._callback_dict[event]
         if isinstance(callbacks, Iterable):
             for callback in callbacks:
@@ -1894,7 +1894,9 @@ class ImageAcquirer:
             callback = callbacks
             self._emit_callback(callback)
 
-    def _emit_callback(self, callback):
+    def _emit_callback(
+            self,
+            callback: Optional[Union[Callback, List[Callback]]]) -> None:
         if callback:
             if isinstance(callback, Callback):
                 callback.emit(context=self)
@@ -2773,9 +2775,7 @@ class ImageAcquirer:
                         self._logger.error(e, exc_info=True)
 
                     # Flash the queue for image acquisition process.
-                    data_stream.flush_buffer_queue(
-                        ACQ_QUEUE_TYPE_LIST.ACQ_QUEUE_ALL_DISCARD
-                    )
+                    self._flush_buffers(data_stream)
 
                 for event_manager in self._event_new_buffer_managers:
                     event_manager.flush_event_queue()
@@ -2799,6 +2799,15 @@ class ImageAcquirer:
         if self._profiler:
             self._profiler.print_diff()
 
+    def _flush_buffers(self, data_stream: DataStream) -> None:
+        # Notify the client that he has to return/queue buffers back:
+        self._emit_callbacks(
+            self.Events.ON_RETURN_ALL_BORROWED_BUFFERS_NOW
+        )
+        data_stream.flush_buffer_queue(
+            ACQ_QUEUE_TYPE_LIST.ACQ_QUEUE_ALL_DISCARD
+        )
+
     def _release_data_streams(self) -> None:
         #
         self._release_buffers()
@@ -2820,8 +2829,6 @@ class ImageAcquirer:
         self._event_new_buffer_managers.clear()
 
     def _release_buffers(self) -> None:
-        # Notify the client that he has to return/queue buffers back:
-        self._emit_callbacks(self.Events.ON_RETURN_ALL_BORROWED_BUFFERS_NOW)
         #
         for data_stream in self._data_streams:
             if data_stream.is_open():

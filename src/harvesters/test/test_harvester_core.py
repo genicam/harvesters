@@ -548,7 +548,12 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         self.setup_camera()
 
         # Create a callback:
-        self.callback_tester = _Callback(ia=self.ia, buffers=self._buffers)
+        self.on_new_buffer_available = _OnNewBufferAvailable(
+            ia=self.ia, buffers=self._buffers
+        )
+        self.on_return_buffer_now = _OnReturnBufferNow(
+            holder=self.on_new_buffer_available
+        )
 
         # Trigger the target device:
         self.num_images = self.ia.num_buffers
@@ -560,7 +565,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         ]
         for test in tests:
             # We have not yet fetched any buffer:
-            self.assertEqual(0, len(self.callback_tester.buffers))
+            self.assertEqual(0, len(self.on_new_buffer_available.buffers))
 
             # Run a sub-test:
             test()
@@ -573,22 +578,21 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         # event happened:
         self.ia.add_callback(
             ImageAcquirer.Events.ON_NEW_BUFFER_AVAILABLE,
-            self.callback_tester
+            self.on_new_buffer_available
         )
-        
+        self.ia.add_callback(
+            ImageAcquirer.Events.ON_RETURN_ALL_BORROWED_BUFFERS_NOW,
+            self.on_return_buffer_now
+        )
+
         #
         self._test_141_body()
 
         # If the callback method was called, then we should have the same
         # number of buffers with num_images:
         self.assertEqual(
-            self.ia.num_buffers, len(self.callback_tester.buffers)
+            self.ia.num_buffers, len(self.on_new_buffer_available.buffers)
         )
-
-        # Release the buffers before stopping image acquisition:
-        while len(self.callback_tester.buffers) != 0:
-            buffer = self.callback_tester.buffers.pop(-1)
-            buffer.queue()
 
     def _test_141_without_callback(self):
         # Remove all callbacks to not any callback work:
@@ -599,7 +603,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         
         # The list must be empty because the emit method has not been called:
         self.assertEqual(
-            0, len(self.callback_tester.buffers)
+            0, len(self.on_new_buffer_available.buffers)
         )
 
     def _test_141_body(self):
@@ -695,18 +699,32 @@ class TestIssue85(unittest.TestCase):
                 self.assertTrue(os.listdir(temp_dir))
 
 
-class _Callback(Callback):
+class _OnNewBufferAvailable(Callback):
     def __init__(self, ia: ImageAcquirer, buffers: list):
         super().__init__()
         self._ia = ia
         self._buffers = buffers
 
     def emit(self, context: Optional[object] = None) -> None:
-        self._buffers.append(self._ia.fetch_buffer())
+        buffer = self._ia.fetch_buffer()
+        self._buffers.append(buffer)
+        #self._buffers.append(self._ia.fetch_buffer())
 
     @property
     def buffers(self):
         return self._buffers
+
+
+class _OnReturnBufferNow(Callback):
+    def __init__(self, holder: _OnNewBufferAvailable):
+        super().__init__()
+        self._holder = holder
+        
+    def emit(self, context: Optional[object] = None) -> None:
+        # Return/Queue the buffers before stopping image acquisition:
+        while len(self._holder.buffers) > 0:
+            buffer = self._holder.buffers.pop(-1)
+            buffer.queue()
 
 
 if __name__ == '__main__':

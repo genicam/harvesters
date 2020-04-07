@@ -435,6 +435,7 @@ class _SignalHandler:
         # Terminate the threads:
         for thread in self._threads:
             thread.stop()
+            thread.join()
 
         self._logger.debug(
             'Has terminated threads having triggered by '
@@ -480,6 +481,16 @@ class ThreadBase:
         self._logger.debug(
             'Stopped thread {:0X}.'.format(self.id_)
         )
+
+    def join(self):
+        """
+        Waits until the given task is completed.
+
+        This method is abstract and should be reimplemented in any sub-class.
+
+        :return: None.
+        """
+        raise NotImplementedError
 
     def _internal_stop(self):
         """
@@ -603,6 +614,10 @@ class _ImageAcquisitionThread(ThreadBase):
         self._is_running = True
         self._thread.start()
 
+    def join(self):
+        # Wait until the run methods is terminated.
+        self._thread.join()
+
     def _internal_stop(self):
         #
         if self._thread is None:
@@ -611,9 +626,6 @@ class _ImageAcquisitionThread(ThreadBase):
         # Prepare to terminate the worker method.
         self._thread.stop()
         self._is_running = False
-
-        # Wait until the run methods is terminated.
-        self._thread.join()
 
     def acquire(self):
         #
@@ -2752,6 +2764,7 @@ class ImageAcquirer:
             #
             if self.thread_image_acquisition.is_running():
                 self.thread_image_acquisition.stop()
+                self.thread_image_acquisition.join()
 
             with MutexLocker(self.thread_image_acquisition):
                 #

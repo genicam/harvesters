@@ -577,11 +577,11 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         # Add it to the image acquire so that it can get notified when the
         # event happened:
         self.ia.add_callback(
-            ImageAcquirer.Events.ON_NEW_BUFFER_AVAILABLE,
+            ImageAcquirer.Events.NEW_BUFFER_AVAILABLE,
             self.on_new_buffer_available
         )
         self.ia.add_callback(
-            ImageAcquirer.Events.ON_RETURN_ALL_BORROWED_BUFFERS,
+            ImageAcquirer.Events.RETURN_ALL_BORROWED_BUFFERS,
             self.on_return_buffer_now
         )
 

@@ -1698,10 +1698,10 @@ class ImageAcquirer:
     _specialized_tl_type = ['U3V', 'GEV']
 
     class Events(IntEnum):
-        ON_TURNED_OBSOLETE = 0,
-        ON_NEW_BUFFER_AVAILABLE = 1,
-        ON_RETURN_ALL_BORROWED_BUFFERS = 2,
-        ON_READY_TO_STOP_ACQUISITION = 3,
+        TURNED_OBSOLETE = 0,
+        NEW_BUFFER_AVAILABLE = 1,
+        RETURN_ALL_BORROWED_BUFFERS = 2,
+        READY_TO_STOP_ACQUISITION = 3,
 
     def _create_acquisition_thread(self) -> _ImageAcquisitionThread:
         return _ImageAcquisitionThread(
@@ -1876,10 +1876,10 @@ class ImageAcquirer:
 
         #
         self._supported_events = [
-            self.Events.ON_TURNED_OBSOLETE,
-            self.Events.ON_RETURN_ALL_BORROWED_BUFFERS,
-            self.Events.ON_READY_TO_STOP_ACQUISITION,
-            self.Events.ON_NEW_BUFFER_AVAILABLE
+            self.Events.TURNED_OBSOLETE,
+            self.Events.RETURN_ALL_BORROWED_BUFFERS,
+            self.Events.READY_TO_STOP_ACQUISITION,
+            self.Events.NEW_BUFFER_AVAILABLE
         ]
         self._callback_dict = dict()
         for event in self._supported_events:
@@ -1979,7 +1979,7 @@ class ImageAcquirer:
             self._profiler.print_diff()
 
         #
-        self._emit_callbacks(self.Events.ON_TURNED_OBSOLETE)
+        self._emit_callbacks(self.Events.TURNED_OBSOLETE)
 
     @property
     def buffer_handling_mode(self) -> str:
@@ -2449,7 +2449,7 @@ class ImageAcquirer:
                                     queue.put(_buffer)
 
                     # Call the registered callback:
-                    self._emit_callbacks(self.Events.ON_NEW_BUFFER_AVAILABLE)
+                    self._emit_callbacks(self.Events.NEW_BUFFER_AVAILABLE)
 
                     #
                     self._update_num_images_to_acquire()
@@ -2636,7 +2636,7 @@ class ImageAcquirer:
         #
         if self._num_images_to_acquire == 0:
             #
-            self._emit_callbacks(self.Events.ON_READY_TO_STOP_ACQUISITION)
+            self._emit_callbacks(self.Events.READY_TO_STOP_ACQUISITION)
 
     def _update_statistics(self, buffer) -> None:
         #
@@ -2802,7 +2802,7 @@ class ImageAcquirer:
     def _flush_buffers(self, data_stream: DataStream) -> None:
         # Notify the client that he has to return/queue buffers back:
         self._emit_callbacks(
-            self.Events.ON_RETURN_ALL_BORROWED_BUFFERS
+            self.Events.RETURN_ALL_BORROWED_BUFFERS
         )
         data_stream.flush_buffer_queue(
             ACQ_QUEUE_TYPE_LIST.ACQ_QUEUE_ALL_DISCARD

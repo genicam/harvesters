@@ -477,9 +477,10 @@ class ThreadBase:
         raise NotImplementedError
 
     def stop(self) -> None:
+        id_ = self.id_
         self._internal_stop()
         self._logger.debug(
-            'Stopped thread {:0X}.'.format(self.id_)
+            'Stopped thread {:0X}.'.format(id_)
         )
 
     def join(self):

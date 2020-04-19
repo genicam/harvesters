@@ -30,8 +30,8 @@ import unittest
 from harvesters.test.base_harvester import TestHarvesterCoreBase
 
 
-class ThreadImageAcquisitionStatistics(Thread):
-    def __init__(self, *, worker=None, timeout=0):
+class ThreadWithTimeLimit(Thread):
+    def __init__(self, *, worker=None, timeout=0, sleep=0.25):
         """
 
         :param worker:
@@ -45,6 +45,7 @@ class ThreadImageAcquisitionStatistics(Thread):
         self._is_running = False
         self._timeout_s = timeout
         self._time_base = 0
+        self._sleep = sleep
 
     def run(self):
         self._is_running = True
@@ -52,9 +53,8 @@ class ThreadImageAcquisitionStatistics(Thread):
         while self._is_running:
             #
             if self._worker:
-                self._worker()
-                time.sleep(0.25)
-
+                self._worker(id_=self.ident)
+                time.sleep(self._sleep)
             #
             diff_s = time.time() - self._time_base
             if diff_s > self._timeout_s:
@@ -78,7 +78,7 @@ class TestTutorials(TestHarvesterCoreBase):
         self.ia.start_acquisition(run_in_background=True)
 
         # Run the image acquisition thread:
-        thread = ThreadImageAcquisitionStatistics(
+        thread = ThreadWithTimeLimit(
             worker=self._worker_update_statistics, timeout=5
         )
         thread.start()
@@ -90,7 +90,7 @@ class TestTutorials(TestHarvesterCoreBase):
         # Destroy the image acquirer:
         self.ia.destroy()
 
-    def _worker_update_statistics(self):
+    def _worker_update_statistics(self, id_: int):
         #
         if self.ia:
             message_config = 'W: {0} x H: {1}, {2}, '.format(
@@ -109,7 +109,9 @@ class TestTutorials(TestHarvesterCoreBase):
 
             #
             self._logger.info(
-                '{0}'.format(message_config + message_statistics)
+                '{0:08x}: {1}'.format(
+                    id_, message_config + message_statistics
+                )
             )
 
     def test_performance_on_image_acquisition_with_sleep_duration(self):
@@ -125,6 +127,38 @@ class TestTutorials(TestHarvesterCoreBase):
         self._test_performance_on_image_acquisition(
             sleep_duration=0.0
         )
+
+    def test_multiple_access(self):
+        # Connect to the first camera in the list.
+        self.ia = self.harvester.create_image_acquirer(0)
+
+        #
+        self.ia.start_acquisition(run_in_background=True)
+
+        #
+        nr = 100
+
+        # Run the image acquisition thread:
+        threads = []
+        for i in range(nr):
+            threads.append(
+                ThreadWithTimeLimit(
+                    worker=self._worker_update_statistics,
+                    timeout=10, sleep=0
+                )
+            )
+
+        for thread in threads:
+            thread.start()
+
+        for thread in threads:
+            thread.join()
+
+        #
+        self.ia.stop_acquisition()
+
+        # Destroy the image acquirer:
+        self.ia.destroy()
 
 
 if __name__ == '__main__':

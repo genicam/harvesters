@@ -246,26 +246,8 @@ Announcements
 - **Version 1.0.2**: Resolves issue `#109 <https://github.com/genicam/harvesters/issues/109>`_.
 - **Version 1.0.1**: Resolves issue `#104 <https://github.com/genicam/harvesters/issues/104>`_.
 - **Version 1.0.0**: Resolves issue `#83 <https://github.com/genicam/harvesters/issues/83>`_.
-- **Version 0.2.18**: Resolves issue `#103 <https://github.com/genicam/harvesters/issues/103>`_.
-- **Version 0.2.17**: Resolves issue `#100 <https://github.com/genicam/harvesters/issues/100>`_.
-- **Version 0.2.16**: Resolves issue `#98 <https://github.com/genicam/harvesters/issues/98>`_. No changes in the functionality.
-- **Version 0.2.15**: Resolves issue `#97 <https://github.com/genicam/harvesters/issues/97>`_. No changes in the functionality.
-- **Version 0.2.14**: Resolves issue `#96 <https://github.com/genicam/harvesters/issues/96>`_. No changes in the functionality.
-- **Version 0.2.13**: Resolves issues `#88 <https://github.com/genicam/harvesters/issues/88>`_, `#89 <https://github.com/genicam/harvesters/issues/89>`_, `#90 <https://github.com/genicam/harvesters/issues/90>`_, and `#95 <https://github.com/genicam/harvesters/issues/95>`_.
-- **Version 0.2.12**: Resolves issue `#84 <https://github.com/genicam/harvesters/issues/84>`_.
-- **Version 0.2.11**: Resolves issue `#82 <https://github.com/genicam/harvesters/issues/82>`_.
-- **Version 0.2.10**: Resolves issue `#81 <https://github.com/genicam/harvesters/issues/81>`_.
-- **Version 0.2.9**: Resolves issues `#76 <https://github.com/genicam/harvesters/issues/76>`_ and `#78 <https://github.com/genicam/harvesters/issues/78>`_.
-- **Version 0.2.8**: Resolves issues `#73 <https://github.com/genicam/harvesters/issues/73>`_ and `#75 <https://github.com/genicam/harvesters/issues/75>`_.
-- **Version 0.2.7**: Resolves issues `#70 <https://github.com/genicam/harvesters/issues/70>`_ and `#72 <https://github.com/genicam/harvesters/issues/72>`_.
-- **Version 0.2.6**: Resolves issues `#67 <https://github.com/genicam/harvesters/issues/67>`_ and `#68 <https://github.com/genicam/harvesters/issues/68>`_.
-- **Version 0.2.5**: Resolves issue `#63 <https://github.com/genicam/harvesters/issues/63>`_.
-- **Version 0.2.4**: Resolves issue `#64 <https://github.com/genicam/harvesters/issues/64>`_.
-- **Version 0.2.3**: Resolves issues `#57 <https://github.com/genicam/harvesters/issues/57>`_, `#58 <https://github.com/genicam/harvesters/issues/58>`_, `#59 <https://github.com/genicam/harvesters/issues/59>`_, `#60 <https://github.com/genicam/harvesters/issues/60>`_, `#61 <https://github.com/genicam/harvesters/issues/61>`_, and `#62 <https://github.com/genicam/harvesters/issues/62>`_.
-- **Version 0.2.2**: Resolves issue `#56 <https://github.com/genicam/harvesters/issues/56>`_.
-- **Version 0.2.1**: Resolves issue `#55 <https://github.com/genicam/harvesters/issues/55>`_.
-- **Version 0.2.0**: Resolves issue `#53 <https://github.com/genicam/harvesters/issues/53>`_.
-- **Version 0.1.0**: Note that this version will be deprecated and the following versions will be incompatible with any of ``0.1.n`` versions.
+
+Other older releases shoud be found at `the release notes page <https://github.com/genicam/harvesters/wiki/Release-Notes>`_ on GitHub.
 
 ################
 Online Resources

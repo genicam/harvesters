@@ -309,7 +309,7 @@ As of today, we have tested Harvester with the following GenTL Producers and it 
       - `MER Galaxy View <http://en.daheng-image.com/products_list/&pmcId=a1dda1e7-5d40-4538-9572-f4234be49c9c.html>`_
       - No
     - - JAI
-      - `JAI SDK <https://www.jai.com/support-software/jai-software>`_.
+      - `JAI SDK <https://www.jai.com/support-software/jai-software>`_
       - Yes
     - - Matrix Vision
       - `mvIMPACT_Acquire <http://static.matrix-vision.com/mvIMPACT_Acquire/>`_

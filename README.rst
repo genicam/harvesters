@@ -304,7 +304,7 @@ As of today, we have tested Harvester with the following GenTL Producers and it 
       - No
     - - Baumer Optronic
       - `Baumer GAPI SDK <https://www.baumer.com/ae/en/product-overview/image-processing-identification/software/baumer-gapi-sdk/c/14174>`_
-      - No
+      - Yes for GEV and No for U3V
     - - DAHENG VISION
       - `MER Galaxy View <http://en.daheng-image.com/products_list/&pmcId=a1dda1e7-5d40-4538-9572-f4234be49c9c.html>`_
       - No

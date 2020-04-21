@@ -708,7 +708,6 @@ class _OnNewBufferAvailable(Callback):
     def emit(self, context: Optional[object] = None) -> None:
         buffer = self._ia.fetch_buffer()
         self._buffers.append(buffer)
-        #self._buffers.append(self._ia.fetch_buffer())
 
     @property
     def buffers(self):

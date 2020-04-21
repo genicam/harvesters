@@ -1759,7 +1759,7 @@ class ImageAcquirer:
         try:
             node_map = _get_port_connected_node_map(
                 port=system.port, logger=self._logger,
-                xml_dir=self._xml_dir
+                xml_dir_to_store=self._xml_dir
             )
         except GenericException as e:
             self._logger.error(e, exc_info=True)
@@ -1770,7 +1770,7 @@ class ImageAcquirer:
         try:
             node_map = _get_port_connected_node_map(
                 port=interface.port, logger=self._logger,
-                xml_dir=self._xml_dir
+                xml_dir_to_store=self._xml_dir
             )
         except GenericException as e:
             self._logger.error(e, exc_info=True)
@@ -1783,7 +1783,7 @@ class ImageAcquirer:
         try:
             node_map = _get_port_connected_node_map(
                 port=device.local_port, logger=self._logger,
-                xml_dir=self._xml_dir
+                xml_dir_to_store=self._xml_dir
             )  # Local device's node map
         except GenericException as e:
             self._logger.error(e, exc_info=True)
@@ -1796,7 +1796,7 @@ class ImageAcquirer:
         try:
             node_map = _get_port_connected_node_map(
                 port=device.remote_port, logger=self._logger,
-                file_path=file_path, xml_dir=self._xml_dir
+                file_path=file_path, xml_dir_to_store=self._xml_dir
             )  # Remote device's node map
         except GenericException as e:
             self._logger.error(e, exc_info=True)
@@ -2868,18 +2868,18 @@ def _retrieve_file_path(
         *,
         port: Optional[Port] = None,
         url: Optional[str] = None,
-        file_path: Optional[str] = None,
+        file_path_to_load: Optional[str] = None,
         logger: Optional[Logger] = None,
-        xml_dir: Optional[str] = None):
+        xml_dir_to_store: Optional[str] = None):
     #
     _logger = logger or get_logger(name=__name__)
 
     #
-    if file_path:
+    if file_path_to_load:
         # A file that is specified by the client will be used:
-        if not os.path.exists(file_path):
+        if not os.path.exists(file_path_to_load):
             raise LogicalErrorException(
-                '{0} does not exist.'.format(file_path)
+                '{0} does not exist.'.format(file_path_to_load)
             )
     else:
         if url is None:
@@ -2915,13 +2915,13 @@ def _retrieve_file_path(
 
             # Store the XML file on the host side; it may be a Zipped XML
             # file or a plain XML file:
-            file_path = _save_file(
-                file_dir=xml_dir, file_name=file_name,
+            file_path_to_load = _save_file(
+                xml_dir_to_store=xml_dir_to_store, file_name=file_name,
                 binary_data=binary_data
             )
 
         elif location == 'file':
-            file_path = urlparse(url).path
+            file_path_to_load = urlparse(url).path
 
         elif location == 'http' or location == 'https':
             raise NotImplementedError(
@@ -2936,12 +2936,12 @@ def _retrieve_file_path(
                 'Failed to parse URL {0}: Unknown format.'.format(url)
             )
 
-    return file_path
+    return file_path_to_load
 
 
 def _save_file(
         *,
-        file_dir: Optional[str] = None,
+        xml_dir_to_store: Optional[str] = None,
         file_name: Optional[str] = None,
         binary_data=None):
     #
@@ -2951,17 +2951,17 @@ def _save_file(
     #
     bytes_io = io.BytesIO(binary_data)
 
-    if file_dir is not None:
+    if xml_dir_to_store is not None:
         # Create the directory if it didn't exist:
-        if not os.path.exists(file_dir):
-            os.makedirs(file_dir)
+        if not os.path.exists(xml_dir_to_store):
+            os.makedirs(xml_dir_to_store)
     else:
-        file_dir = tempfile.mkdtemp(
+        xml_dir_to_store = tempfile.mkdtemp(
             prefix=datetime.now().strftime('%Y%m%d%H%M%S_'),
         )
 
     #
-    file_path = os.path.join(file_dir, file_name)
+    file_path = os.path.join(xml_dir_to_store, file_name)
 
     #
     mode = 'w+'
@@ -2986,7 +2986,7 @@ def _get_port_connected_node_map(
         port: Optional[Port] = None,
         logger: Optional[Logger] = None,
         file_path: Optional[str] = None,
-        xml_dir: Optional[str] = None):
+        xml_dir_to_store: Optional[str] = None):
     #
     assert port
 
@@ -2998,7 +2998,7 @@ def _get_port_connected_node_map(
 
     #
     file_path = _retrieve_file_path(
-        port=port, file_path=file_path, logger=logger, xml_dir=xml_dir
+        port=port, file_path_to_load=file_path, logger=logger, xml_dir_to_store=xml_dir_to_store
     )
 
     #

@@ -836,58 +836,17 @@ class Component2DImage(ComponentBase):
         self._node_map = node_map
         proxy = NpArrayFactory.get_proxy(symbolic=self.data_format)
         self._nr_components = proxy.nr_components
-        self._data = self._to_nparray(proxy)
+        self._data = self._to_np_array(proxy)
 
-        # Convert the Python's built-in bytes array to a Numpy array:
-        """
-        if _is_logging_buffer_manipulation:
-            self._logger.debug(
-                'Component 2D image ('
-                'len(raw_buffer): {0}, '
-                'int(count): {1}, '
-                'dtype: {2}, '
-                'offset: {3}, '
-                'pixel format: {4},'
-                'x padding: {5},'
-                'y padding: {6}'
-                ')'.format(
-                    len(self._buffer.raw_buffer),
-                    int(count),
-                    dtype,
-                    data_offset,
-                    symbolic,
-                    self.x_padding,
-                    self.y_padding,
-                )
-            )
-        """
-
-    def _to_nparray(self, pf_proxy):
-        if self.x_padding > 0:
-            # In this case, the client will have to trim the padding part.
-            # so we create a NumPy array that consists of uint8 elements
-            # first. The client will interpret the array in an appropriate
-            # dtype in the end once he trimmed:
-            dtype = 'uint8'
-            bytes_per_pixel_data_component = 1
-        else:
-            dtype = pf_proxy.data_boundary.unpacked
-            bytes_per_pixel_data_component = pf_proxy.data_boundary.unpacked_size
-
+    def _to_np_array(self, pf_proxy):
         #
         if self.has_part():
-            """
             count = self._part.data_size
-            count //= bytes_per_pixel_data_component
-            """
-            count = self._part.data_size
+            count //= (pf_proxy.depth_in_byte / pf_proxy.nr_components)
         else:
-            """
-            count = self.width * self.height
+            count = self._buffer.width * self._buffer.height
             count *= pf_proxy.nr_components
-            count += self.y_padding
-            """
-            count = self._buffer.size
+            count += self._buffer.padding_y
 
         array = numpy.frombuffer(
             self._buffer.raw_buffer, count=int(count),

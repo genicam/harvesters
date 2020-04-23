@@ -671,6 +671,14 @@ class DataBoundary:
             assert (size % 4) == 0
         assert self._get_size(self._unpacked) >= self._get_size(self._packed)
 
+    def __repr__(self):
+        repr = ''
+        repr += 'Unpacked: {}, '.format(self.unpacked)
+        repr += 'Unpacked size: {}, '.format(self.unpacked_size)
+        repr += 'Packed: {}, '.format(self.packed)
+        repr += 'Is packed: {}'.format(self.is_packed())
+        return repr
+
     @property
     def unpacked(self):
         return self._unpacked
@@ -703,7 +711,7 @@ class _Base:
     def expand(self, array: numpy.ndarray) -> numpy.ndarray:
         raise NotImplementedError
 
-    def check_validity(self):
+    def _check_validity(self):
         raise NotImplementedError
 
 
@@ -714,9 +722,8 @@ class _PixelFormat(_Base):
         #
         self._data_boundary = None
         self._symbolic = None
-        self._is_signed = None
         self._nr_components = None
-        self._bit_depth = None
+        self._unit_depth_in_bit = None
 
     @property
     def data_boundary(self):
@@ -726,20 +733,17 @@ class _PixelFormat(_Base):
     def symbolic(self) -> str:
         return self._symbolic
 
-    def is_signed(self):
-        return self._is_signed
-
     @property
     def nr_components(self):
         return self._nr_components
 
     @property
-    def bit_depth(self):
-        return self._nr_components * self._bit_depth
+    def depth_in_bit(self):
+        return self._nr_components * self._unit_depth_in_bit
 
     @property
-    def data_size(self):
-        return self.bit_depth / 8
+    def depth_in_byte(self):
+        return self.depth_in_bit / 8
 
     def _finalize(self, symbolic: str):
         self._symbolic = symbolic
@@ -749,7 +753,16 @@ class _PixelFormat(_Base):
         assert self._data_boundary
         assert self._symbolic
         assert self._nr_components
-        assert self._bit_depth
+        assert self._unit_depth_in_bit
+
+    def __repr__(self):
+        repr = ''
+        repr += 'Symbolic: {}, '.format(self.symbolic)
+        repr += 'Nr. components: {}, '.format(self.nr_components)
+        repr += 'Depth[b]: {}, '.format(self.depth_in_bit)
+        repr += 'Depth[B]: {}, '.format(self.depth_in_byte)
+        repr += 'Data boundary: {}'.format(self.data_boundary)
+        return repr
 
 
 class _UnpackedUint8(_PixelFormat):
@@ -776,7 +789,7 @@ class Mono8(_MonoLocationFormatUnpackUint8):
         #
         super().__init__()
         #
-        self._bit_depth = 8
+        self._unit_depth_in_bit = 8
         #
         self._finalize('Mono8')
 
@@ -806,7 +819,7 @@ class Mono8s(_MonoLocationFormatUnpackedInt8):
         super().__init__()
         #
         self._is_signed = True
-        self._bit_depth = 8
+        self._unit_depth_in_bit = 8
         #
         self._finalize('Mono8s')
 
@@ -835,7 +848,7 @@ class Mono10(_MonoLocationFormatUnpackUint16):
         #
         super().__init__()
         #
-        self._bit_depth = 10
+        self._unit_depth_in_bit = 10
         #
         self._finalize('Mono10')
 
@@ -845,7 +858,7 @@ class Mono12(_MonoLocationFormatUnpackUint16):
         #
         super().__init__()
         #
-        self._bit_depth = 12
+        self._unit_depth_in_bit = 12
         #
         self._finalize('Mono12')
 
@@ -855,7 +868,7 @@ class Mono14(_MonoLocationFormatUnpackUint16):
         #
         super().__init__()
         #
-        self._bit_depth = 14
+        self._unit_depth_in_bit = 14
         #
         self._finalize('Mono14')
 
@@ -865,7 +878,7 @@ class Mono16(_MonoLocationFormatUnpackUint16):
         #
         super().__init__()
         #
-        self._bit_depth = 16
+        self._unit_depth_in_bit = 16
         #
         self._finalize('Mono16')
 
@@ -875,7 +888,7 @@ class R8(_MonoLocationFormatUnpackUint8):
         #
         super().__init__()
         #
-        self._bit_depth = 8
+        self._unit_depth_in_bit = 8
         #
         self._finalize('R8')
 
@@ -885,7 +898,7 @@ class R10(_MonoLocationFormatUnpackUint16):
         #
         super().__init__()
         #
-        self._bit_depth = 10
+        self._unit_depth_in_bit = 10
         #
         self._finalize('R10')
 
@@ -895,7 +908,7 @@ class R12(_MonoLocationFormatUnpackUint16):
         #
         super().__init__()
         #
-        self._bit_depth = 12
+        self._unit_depth_in_bit = 12
         #
         self._finalize('R12')
 
@@ -905,7 +918,7 @@ class R16(_MonoLocationFormatUnpackUint16):
         #
         super().__init__()
         #
-        self._bit_depth = 16
+        self._unit_depth_in_bit = 16
         #
         self._finalize('R16')
 
@@ -915,7 +928,7 @@ class G8(_MonoLocationFormatUnpackUint8):
         #
         super().__init__()
         #
-        self._bit_depth = 8
+        self._unit_depth_in_bit = 8
         #
         self._finalize('G8')
 
@@ -925,7 +938,7 @@ class G10(_MonoLocationFormatUnpackUint16):
         #
         super().__init__()
         #
-        self._bit_depth = 10
+        self._unit_depth_in_bit = 10
         #
         self._finalize('G10')
 
@@ -935,7 +948,7 @@ class G12(_MonoLocationFormatUnpackUint16):
         #
         super().__init__()
         #
-        self._bit_depth = 12
+        self._unit_depth_in_bit = 12
         #
         self._finalize('G12')
 
@@ -945,7 +958,7 @@ class G16(_MonoLocationFormatUnpackUint16):
         #
         super().__init__()
         #
-        self._bit_depth = 16
+        self._unit_depth_in_bit = 16
         #
         self._finalize('G16')
 
@@ -955,7 +968,7 @@ class B8(_MonoLocationFormatUnpackUint8):
         #
         super().__init__()
         #
-        self._bit_depth = 8
+        self._unit_depth_in_bit = 8
         #
         self._finalize('B8')
 
@@ -965,7 +978,7 @@ class B10(_MonoLocationFormatUnpackUint16):
         #
         super().__init__()
         #
-        self._bit_depth = 10
+        self._unit_depth_in_bit = 10
         #
         self._finalize('B10')
 
@@ -975,7 +988,7 @@ class B12(_MonoLocationFormatUnpackUint16):
         #
         super().__init__()
         #
-        self._bit_depth = 12
+        self._unit_depth_in_bit = 12
         #
         self._finalize('B12')
 
@@ -985,7 +998,7 @@ class B16(_MonoLocationFormatUnpackUint16):
         #
         super().__init__()
         #
-        self._bit_depth = 16
+        self._unit_depth_in_bit = 16
         #
         self._finalize('B16')
 
@@ -995,7 +1008,7 @@ class Coord3D_A8(_MonoLocationFormatUnpackUint8):
         #
         super().__init__()
         #
-        self._bit_depth = 8
+        self._unit_depth_in_bit = 8
         #
         self._finalize('Coord3D_A8')
 
@@ -1005,7 +1018,7 @@ class Coord3D_B8(_MonoLocationFormatUnpackUint8):
         #
         super().__init__()
         #
-        self._bit_depth = 8
+        self._unit_depth_in_bit = 8
         #
         self._finalize('Coord3D_B8')
 
@@ -1015,7 +1028,7 @@ class Coord3D_C8(_MonoLocationFormatUnpackUint8):
         #
         super().__init__()
         #
-        self._bit_depth = 8
+        self._unit_depth_in_bit = 8
         #
         self._finalize('Coord3D_C8')
 
@@ -1025,7 +1038,7 @@ class Coord3D_A16(_MonoLocationFormatUnpackUint16):
         #
         super().__init__()
         #
-        self._bit_depth = 16
+        self._unit_depth_in_bit = 16
         #
         self._finalize('Coord3D_A8')
 
@@ -1035,7 +1048,7 @@ class Coord3D_B16(_MonoLocationFormatUnpackUint16):
         #
         super().__init__()
         #
-        self._bit_depth = 16
+        self._unit_depth_in_bit = 16
         #
         self._finalize('Coord3D_B8')
 
@@ -1045,7 +1058,7 @@ class Coord3D_C16(_MonoLocationFormatUnpackUint16):
         #
         super().__init__()
         #
-        self._bit_depth = 16
+        self._unit_depth_in_bit = 16
         #
         self._finalize('Coord3D_C8')
 
@@ -1068,7 +1081,7 @@ class _MonoLocationFormatUnpackFloat32(_UnpackedFloat32):
         #
         self._nr_components = 1.
         self._data_boundary = DataBoundary(unpacked=DataBoundary.FLOAT32)
-        self._bit_depth = 32
+        self._unit_depth_in_bit = 32
 
 
 class Coord3D_A32f(_MonoLocationFormatUnpackFloat32):
@@ -1100,7 +1113,7 @@ class Confidence1(_MonoLocationFormatUnpackUint8):
         #
         super().__init__()
         #
-        self._bit_depth = 1
+        self._unit_depth_in_bit = 1
         #
         self._finalize('Confidence1')
 
@@ -1110,7 +1123,7 @@ class Confidence8(_MonoLocationFormatUnpackUint8):
         #
         super().__init__()
         #
-        self._bit_depth = 8
+        self._unit_depth_in_bit = 8
         #
         self._finalize('Confidence8')
 
@@ -1120,7 +1133,7 @@ class Confidence16(_MonoLocationFormatUnpackUint16):
         #
         super().__init__()
         #
-        self._bit_depth = 16
+        self._unit_depth_in_bit = 16
         #
         self._finalize('Confidence16')
 
@@ -1130,7 +1143,7 @@ class Confidence32f(_MonoLocationFormatUnpackFloat32):
         #
         super().__init__()
         #
-        self._bit_depth = 32
+        self._unit_depth_in_bit = 32
         #
         self._finalize('Confidence32f')
 
@@ -1151,7 +1164,7 @@ class _10p(_PixelFormat):
         #
         super().__init__()
         #
-        self._bit_depth = 10
+        self._unit_depth_in_bit = 10
         self._data_boundary = DataBoundary(unpacked=DataBoundary.UINT16, packed=DataBoundary.UINT8)
 
     def expand(self, array: numpy.ndarray) -> numpy.ndarray:
@@ -1180,7 +1193,7 @@ class _MonoLocationFormatUint16_10p(_10p):
         super().__init__()
         #
         self._nr_components = 1.
-        self._bit_depth = 10
+        self._unit_depth_in_bit = 10
 
 
 class Mono10p(_MonoLocationFormatUint16_10p):
@@ -1204,7 +1217,7 @@ class _12p(_PixelFormat):
         #
         super().__init__()
         #
-        self._bit_depth = 12
+        self._unit_depth_in_bit = 12
         self._data_boundary = DataBoundary(unpacked=DataBoundary.UINT16, packed=DataBoundary.UINT8)
 
     def expand(self, array: numpy.ndarray) -> numpy.ndarray:
@@ -1232,7 +1245,7 @@ class _MonoLocationFormatUint16_12p(_12p):
         super().__init__()
         #
         self._nr_components = 1.
-        self._bit_depth = 12
+        self._unit_depth_in_bit = 12
 
 
 class Mono12Packed(_MonoLocationFormatUint16_12p):
@@ -1326,7 +1339,7 @@ class _LMN444LocationFormatUint8_8(_UnpackedUint8):
         super().__init__()
         #
         self._nr_components = 3.
-        self._bit_depth = 8
+        self._unit_depth_in_bit = 8
 
 
 class RGB8(_LMN444LocationFormatUint8_8):
@@ -1350,7 +1363,7 @@ class _LMN444LocationFormatUint16_10(_LMN444LocationFormatUint16):
         #
         super().__init__()
         #
-        self._bit_depth = 10
+        self._unit_depth_in_bit = 10
 
 
 class _LMN444LocationFormatUint16_12(_LMN444LocationFormatUint16):
@@ -1358,7 +1371,7 @@ class _LMN444LocationFormatUint16_12(_LMN444LocationFormatUint16):
         #
         super().__init__()
         #
-        self._bit_depth = 12
+        self._unit_depth_in_bit = 12
 
 
 class _LMN444LocationFormatUint16_14(_LMN444LocationFormatUint16):
@@ -1366,7 +1379,7 @@ class _LMN444LocationFormatUint16_14(_LMN444LocationFormatUint16):
         #
         super().__init__()
         #
-        self._bit_depth = 14
+        self._unit_depth_in_bit = 14
 
 
 class _LMN444LocationFormatUint16_16(_LMN444LocationFormatUint16):
@@ -1374,7 +1387,7 @@ class _LMN444LocationFormatUint16_16(_LMN444LocationFormatUint16):
         #
         super().__init__()
         #
-        self._bit_depth = 16
+        self._unit_depth_in_bit = 16
 
 
 class RGB10(_LMN444LocationFormatUint16_10):
@@ -1486,7 +1499,7 @@ class _LMN444LocationFormatFloat32_32(_UnpackedFloat32):
         #
         super().__init__()
         self._nr_components = 3.
-        self._bit_depth = 32
+        self._unit_depth_in_bit = 32
 
     def expand(self, array: numpy.ndarray) -> numpy.ndarray:
         return array.view(dtype=numpy.float32)
@@ -1583,7 +1596,7 @@ class _YUV422_8(_LMN422Uint8LocationFormat):
         #
         super().__init__()
         #
-        self._bit_depth = 8
+        self._unit_depth_in_bit = 8
 
 
 class YUV422_8_UYVY(_YUV422_8):
@@ -1607,7 +1620,7 @@ class _YCbCr422_8(_LMN422Uint8LocationFormat):
         #
         super().__init__()
         #
-        self._bit_depth = 8
+        self._unit_depth_in_bit = 8
 
 
 class YCbCr422_8(_YCbCr422_8):
@@ -1690,7 +1703,7 @@ class _YCbCr422_10(_LMN422Uint16LocationFormat):
         #
         super().__init__()
         #
-        self._bit_depth = 10
+        self._unit_depth_in_bit = 10
 
 
 class YCbCr422_10(_YCbCr422_10):
@@ -1762,7 +1775,7 @@ class _YCbCr422_12(_LMN422Uint16LocationFormat):
         #
         super().__init__()
         #
-        self._bit_depth = 12
+        self._unit_depth_in_bit = 12
 
 
 class YCbCr422_12(_YCbCr422_12):
@@ -1835,7 +1848,7 @@ class _YCbCr422_10p(_LMN422LocationFormat):
         super().__init__()
         #
         self._data_boundary = DataBoundary(unpacked=DataBoundary.UINT16, packed=DataBoundary.UINT8)
-        self._bit_depth = 10
+        self._unit_depth_in_bit = 10
 
 
 class YCbCr422_10p(_YCbCr422_10p):
@@ -1860,7 +1873,7 @@ class _YCbCr422_12p(_LMN422LocationFormat):
         super().__init__()
         #
         self._data_boundary = DataBoundary(unpacked=DataBoundary.UINT16, packed=DataBoundary.UINT8)
-        self._bit_depth = 12
+        self._unit_depth_in_bit = 12
 
 
 class YCbCr601_422_12p(_YCbCr422_12p):
@@ -1925,7 +1938,7 @@ class _YCbCr422_12p(_LMN422LocationFormat):
         super().__init__()
         #
         self._data_boundary = DataBoundary(unpacked=DataBoundary.UINT16, packed=DataBoundary.UINT8)
-        self._bit_depth = 12
+        self._unit_depth_in_bit = 12
 
 
 class YCbCr422_12p(_YCbCr422_12p):
@@ -1989,7 +2002,7 @@ class _LMN411LocationFormat(_PixelFormat):
         #
         super().__init__()
         #
-        self._nr_components = 1.
+        self._nr_components = 1.5
 
 
 class _LMN411Uint8LocationFormat(_LMN411LocationFormat):
@@ -2008,7 +2021,7 @@ class _YUV411_8(_LMN411Uint8LocationFormat):
         #
         super().__init__()
         #
-        self._bit_depth = 8
+        self._unit_depth_in_bit = 8
 
 
 class YUV411_8_UYYVYY(_YUV411_8):
@@ -2024,7 +2037,7 @@ class _YCbCr411_8(_LMN411Uint8LocationFormat):
         #
         super().__init__()
         #
-        self._bit_depth = 8
+        self._unit_depth_in_bit = 8
 
 
 class YCbCr411_8_CbYYCrYY(_YCbCr411_8):
@@ -2090,7 +2103,7 @@ class _RGBa8(_LMNO4444Uint8LocationFormat):
     def __init__(self):
         #
         super().__init__()
-        self._bit_depth = 8
+        self._unit_depth_in_bit = 8
 
 
 class RGBa8(_RGBa8):
@@ -2125,7 +2138,7 @@ class _RGBa10(_LMNO4444Uint16LocationFormat):
         #
         super().__init__()
         #
-        self._bit_depth = 10
+        self._unit_depth_in_bit = 10
 
 
 class RGBa10(_RGBa10):
@@ -2149,7 +2162,7 @@ class _RGBa12(_LMNO4444Uint16LocationFormat):
         #
         super().__init__()
         #
-        self._bit_depth = 12
+        self._unit_depth_in_bit = 12
 
 
 class RGBa12(_RGBa12):
@@ -2173,7 +2186,7 @@ class _RGBa14(_LMNO4444Uint16LocationFormat):
         #
         super().__init__()
         #
-        self._bit_depth = 14
+        self._unit_depth_in_bit = 14
 
 
 class RGBa14(_RGBa14):
@@ -2197,7 +2210,7 @@ class _RGBa16(_LMNO4444Uint16LocationFormat):
         #
         super().__init__()
         #
-        self._bit_depth = 16
+        self._unit_depth_in_bit = 16
 
 
 class RGBa16(_RGBa16):
@@ -2230,7 +2243,7 @@ class _RGBa10p(_LMNO4444PackedLocationFormat):
         #
         super().__init__()
         #
-        self._bit_depth = 10
+        self._unit_depth_in_bit = 10
 
 
 class RGBa10p(_RGBa10p):
@@ -2254,7 +2267,7 @@ class _RGBa12p(_LMNO4444PackedLocationFormat):
         #
         super().__init__()
         #
-        self._bit_depth = 12
+        self._unit_depth_in_bit = 12
 
 
 class RGBa12p(_RGBa12p):
@@ -2297,7 +2310,7 @@ class _Coord3D_AC8(_LM44Uint8LocationFormat):
         #
         super().__init__()
         #
-        self._bit_depth = 8
+        self._unit_depth_in_bit = 8
 
 
 class Coord3D_AC8(_Coord3D_AC8):
@@ -2332,7 +2345,7 @@ class _Coord3D_AC16(_LM44Uint16LocationFormat):
         #
         super().__init__()
         #
-        self._bit_depth = 16
+        self._unit_depth_in_bit = 16
 
 
 class Coord3D_AC16(_Coord3D_AC16):
@@ -2367,7 +2380,7 @@ class _Coord3D_AC32f(_LM44Float32LocationFormat):
         #
         super().__init__()
         #
-        self._bit_depth = 32
+        self._unit_depth_in_bit = 32
 
 
 class Coord3D_AC32f(_Coord3D_AC32f):
@@ -2386,7 +2399,7 @@ class Coord3D_AC32f_Planar(_Coord3D_AC32f):
         self._finalize('Coord3D_AC32f_Planar')
 
 
-class _LM44PackedLocationFormat(_PixelFormat):
+class _LM44LocationFormat(_PixelFormat):
     def __init__(self):
         #
         super().__init__()
@@ -2395,15 +2408,18 @@ class _LM44PackedLocationFormat(_PixelFormat):
         self._nr_components = 2.
 
 
-class _Coord3D_AC10p(_LM44PackedLocationFormat):
+class _LM44LocationFormat_10p(_LM44LocationFormat):
     def __init__(self):
         #
         super().__init__()
         #
-        self._bit_depth = 10
+        self._unit_depth_in_bit = 10
+
+    def expand(self, array: numpy.ndarray) -> numpy.ndarray:
+        raise NotImplementedError
 
 
-class Coord3D_AC10p(_Coord3D_AC10p):
+class Coord3D_AC10p(_LM44LocationFormat_10p):
     def __init__(self):
         #
         super().__init__()
@@ -2411,7 +2427,7 @@ class Coord3D_AC10p(_Coord3D_AC10p):
         self._finalize('Coord3D_AC10p')
 
 
-class Coord3D_AC10p_Planar(_Coord3D_AC10p):
+class Coord3D_AC10p_Planar(_LM44LocationFormat_10p):
     def __init__(self):
         #
         super().__init__()
@@ -2419,15 +2435,15 @@ class Coord3D_AC10p_Planar(_Coord3D_AC10p):
         self._finalize('Coord3D_AC10p_Planar')
 
 
-class _Coord3D_AC12p_Planar(_LM44PackedLocationFormat):
+class _LM44LocationFormat_12p(_LM44LocationFormat):
     def __init__(self):
         #
         super().__init__()
         #
-        self._bit_depth = 10
+        self._unit_depth_in_bit = 12
 
 
-class Coord3D_AC12p(_Coord3D_AC12p_Planar):
+class Coord3D_AC12p(_LM44LocationFormat_12p):
     def __init__(self):
         #
         super().__init__()
@@ -2435,7 +2451,7 @@ class Coord3D_AC12p(_Coord3D_AC12p_Planar):
         self._finalize('Coord3D_AC12p')
 
 
-class Coord3D_AC12p_Planar(_Coord3D_AC12p_Planar):
+class Coord3D_AC12p_Planar(_LM44LocationFormat_12p):
     def __init__(self):
         #
         super().__init__()
@@ -2451,15 +2467,7 @@ class _BayerLocationFormat(_PixelFormat):
         self._nr_components = 1.
 
 
-class _BayerLocationFormat(_PixelFormat):
-    def __init__(self):
-        #
-        super().__init__()
-        #
-        self._nr_components = 1.5
-
-
-class _BayerUint8LocationFormat(_BayerLocationFormat):
+class _BayerLocationFormatUint8(_BayerLocationFormat):
     def __init__(self):
         #
         super().__init__()
@@ -2470,12 +2478,12 @@ class _BayerUint8LocationFormat(_BayerLocationFormat):
         return array
 
 
-class _BayerGR8(_BayerUint8LocationFormat):
+class _BayerGR8(_BayerLocationFormatUint8):
     def __init__(self):
         #
         super().__init__()
         #
-        self._bit_depth = 8
+        self._unit_depth_in_bit = 8
 
 
 class BayerGR8(_BayerGR8):
@@ -2510,7 +2518,7 @@ class BayerBG8(_BayerGR8):
         self._finalize('BayerBG8')
 
 
-class _BayerUint16LocationFormat(_BayerLocationFormat):
+class _BayerLocationFormatUint16(_BayerLocationFormat):
     def __init__(self):
         #
         super().__init__()
@@ -2520,12 +2528,12 @@ class _BayerUint16LocationFormat(_BayerLocationFormat):
     def expand(self, array: numpy.ndarray) -> numpy.ndarray:
         return array.view(numpy.uint16)
 
-class _BayerGR10(_BayerUint16LocationFormat):
+class _BayerGR10(_BayerLocationFormatUint16):
     def __init__(self):
         #
         super().__init__()
         #
-        self._bit_depth = 10
+        self._unit_depth_in_bit = 10
 
 
 class BayerGR10(_BayerGR10):
@@ -2560,12 +2568,12 @@ class BayerBG10(_BayerGR10):
         self._finalize('BayerBG10')
 
 
-class _BayerGR12(_BayerUint16LocationFormat):
+class _BayerGR12(_BayerLocationFormatUint16):
     def __init__(self):
         #
         super().__init__()
         #
-        self._bit_depth = 12
+        self._unit_depth_in_bit = 12
 
 
 class BayerGR12(_BayerGR12):
@@ -2600,12 +2608,12 @@ class BayerBG12(_BayerGR12):
         self._finalize('BayerBG12')
 
 
-class _BayerGR16(_BayerUint16LocationFormat):
+class _BayerGR16(_BayerLocationFormatUint16):
     def __init__(self):
         #
         super().__init__()
         #
-        self._bit_depth = 16
+        self._unit_depth_in_bit = 16
 
 
 class BayerGR16(_BayerGR16):
@@ -2654,7 +2662,7 @@ class _BayerGR10Packed(_BayerPackedLocationFormat):
         #
         super().__init__()
         #
-        self._bit_depth = 10
+        self._unit_depth_in_bit = 10
 
 
 class BayerGR10Packed(_BayerGR10Packed):
@@ -2726,7 +2734,7 @@ class _BayerGR12Packed(_BayerPackedLocationFormat):
         #
         super().__init__()
         #
-        self._bit_depth = 12
+        self._unit_depth_in_bit = 12
 
 
 class BayerGR12Packed(_BayerGR12Packed):
@@ -2967,7 +2975,12 @@ class NpArrayFactory:
     ]
 
     def __init__(self):
+        #
         super().__init__()
+        #
+        for p in self._pixel_formats:
+            print(p)
+        pass
 
     @classmethod
     def get_proxy(cls, symbolic: str):
@@ -2981,6 +2994,7 @@ class NpArrayFactory:
         return _pf
 
 
+"""
 _pixel_formats = [
     Mono8(),
     Mono8s(),
@@ -3152,10 +3166,5 @@ _pixel_formats = [
     BayerRG10p(),
     BayerRG12p(),
 ]
+"""
 
-
-def create_proxy(symbolic: str):
-    for pf in _pixel_formats:
-        if symbolic == pf.symbolic:
-            return pf
-    return None

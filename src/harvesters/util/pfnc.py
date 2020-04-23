@@ -1189,20 +1189,19 @@ class _GroupPacked(_PixelFormat):
         self._data_boundary = DataBoundary(unpacked=DataBoundary.UINT16, packed=DataBoundary.UINT8)
 
     def expand(self, array: numpy.ndarray) -> numpy.ndarray:
-        nr_packed = 4
-        nr_unpacked = 3
+        nr_packed = 3
+        nr_unpacked = 2
         #
-        p1st, p2nd, p3rd, p4th = numpy.reshape(
+        p1st, p2nd, p3rd = numpy.reshape(
             array, (array.shape[0] // nr_packed, nr_packed)
         ).astype(numpy.uint16).T
         #
         up1st = p1st + p2nd << 8
-        up2nd = p2nd >> 2 + p3rd << 6
-        up3rd = p3rd >> 5 + p4th << 3
+        up2nd = p2nd >> 4 + p3rd << 4
         #
         return numpy.reshape(
             numpy.concatenate(
-                (up1st[:, None], up2nd[:, None], up3rd[:, None]), axis=1
+                (up1st[:, None], up2nd[:, None]), axis=1
             ),
             nr_unpacked * up1st.shape[0]
         )
@@ -1268,7 +1267,7 @@ class _12p(_PixelFormat):
 
     def expand(self, array: numpy.ndarray) -> numpy.ndarray:
         nr_packed = 3
-        nr_unpacked = 22
+        nr_unpacked = 2
         #
         p1st, p2nd, p3rd = numpy.reshape(
             array, (array.shape[0] // nr_packed, nr_packed)
@@ -1774,22 +1773,7 @@ class _LMNO4444_Unpacked_Uint8(_LMNO4444):
 # ----
 
 
-class _LMN422_GroupPacked(_LMN422):
-    def __init__(self):
-        #
-        super().__init__()
-        #
-        self._data_boundary = DataBoundary(unpacked=DataBoundary.UINT16, packed=DataBoundary.UINT8)
-
-    def expand(self, array: numpy.ndarray) -> numpy.ndarray:
-        # TODO: Missing implementation!
-        raise NotImplementedError
-
-
-# ----
-
-
-class _LMN422_GroupPacked_10(_LMN422_GroupPacked):
+class _LMN422_GroupPacked_10(_GroupPacked_10):
     def __init__(self):
         #
         super().__init__()
@@ -1797,7 +1781,7 @@ class _LMN422_GroupPacked_10(_LMN422_GroupPacked):
         self._unit_depth_in_bit = 10
 
 
-class _LMN422_GroupPacked_12(_LMN422_GroupPacked):
+class _LMN422_GroupPacked_12(_GroupPacked_12):
     def __init__(self):
         #
         super().__init__()
@@ -2455,19 +2439,7 @@ class _LM44_Unpacked_Float32(_LM44):
         return array.view(numpy.float32)
 
 
-class _LM44_GroupPacked(_PixelFormat):
-    def __init__(self):
-        #
-        super().__init__()
-        #
-        self._data_boundary = DataBoundary(unpacked=DataBoundary.UINT16, packed=DataBoundary.UINT8)
-        self._nr_components = 2
-
-    def expand(self, array: numpy.ndarray) -> numpy.ndarray:
-        raise NotImplementedError
-
-
-class _LM44_GroupPacked_10(_LM44_GroupPacked):
+class _LM44_GroupPacked_10(_GroupPacked_10):
     def __init__(self):
         #
         super().__init__()
@@ -2475,7 +2447,7 @@ class _LM44_GroupPacked_10(_LM44_GroupPacked):
         self._unit_depth_in_bit = 10
 
 
-class _LM44_GroupPacked_12(_LM44_GroupPacked):
+class _LM44_GroupPacked_12(_GroupPacked_12):
     def __init__(self):
         #
         super().__init__()
@@ -2835,35 +2807,21 @@ class BayerBG16(_Bayer_Unpacked_Uint16_16):
 # ----
 
 
-class _Bayer_GroupPacked(_PixelFormat):
+class _Bayer_GroupPacked_10(_GroupPacked_10):
     def __init__(self):
         #
         super().__init__()
         #
-        self._data_boundary = DataBoundary(unpacked=DataBoundary.UINT16, packed=DataBoundary.UINT8)
-        self._nr_components = 1.
-
-    def expand(self, array: numpy.ndarray) -> numpy.ndarray:
-        # TODO: Missing implementation!
-        raise NotImplementedError
-
-
-# ----
-
-
-class _Bayer_GroupPacked_10(_Bayer_GroupPacked):
-    def __init__(self):
-        #
-        super().__init__()
-        #
+        self._nr_components = 1
         self._unit_depth_in_bit = 10
 
 
-class _Bayer_GroupPacked_12(_Bayer_GroupPacked):
+class _Bayer_GroupPacked_12(_GroupPacked_12):
     def __init__(self):
         #
         super().__init__()
         #
+        self._nr_components = 1
         self._unit_depth_in_bit = 12
 
 

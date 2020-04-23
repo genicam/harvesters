@@ -651,7 +651,7 @@ bgra_formats = [
 ]
 
 
-class DataBoundary:
+class Alignment:
     INT8 = 'int8'
     UINT8 = 'uint8'
     UINT16 = 'uint16'
@@ -704,11 +704,13 @@ class DataBoundary:
 
 
 class _PixelFormat:
-    def __init__(self, data_boundary=None, symbolic=None, nr_components=None, unit_depth_in_bit=None):
+    def __init__(
+            self, alignment=None, symbolic=None, nr_components=None,
+            unit_depth_in_bit=None):
         #
         super().__init__()
         #
-        self._data_boundary = data_boundary
+        self._alignment = alignment
         self._symbolic = symbolic
         self._nr_components = nr_components
         self._unit_depth_in_bit = unit_depth_in_bit
@@ -719,8 +721,8 @@ class _PixelFormat:
         raise NotImplementedError
 
     @property
-    def data_boundary(self):
-        return self._data_boundary
+    def alignment(self):
+        return self._alignment
 
     @property
     def symbolic(self) -> str:
@@ -739,7 +741,7 @@ class _PixelFormat:
         return self.depth_in_bit / 8
 
     def _check_validity(self):
-        assert self._data_boundary
+        assert self._alignment
         assert self._symbolic
         assert self._nr_components
         assert self._unit_depth_in_bit
@@ -750,7 +752,7 @@ class _PixelFormat:
         repr += 'Nr. components: {}, '.format(self.nr_components)
         repr += 'Depth[b]: {}, '.format(self.depth_in_bit)
         repr += 'Depth[B]: {}, '.format(self.depth_in_byte)
-        repr += 'Data boundary: {}'.format(self.data_boundary)
+        repr += 'Data boundary: {}'.format(self.alignment)
         return repr
 
 
@@ -758,19 +760,27 @@ class _PixelFormat:
 
 
 class _Unpacked(_PixelFormat):
-    def __init__(self, data_boundary=None, symbolic=None, nr_components=None, unit_depth_in_bit=None):
+    def __init__(
+            self, alignment=None, symbolic=None, nr_components=None,
+            unit_depth_in_bit=None):
         #
-        super().__init__(data_boundary=data_boundary, symbolic=symbolic, nr_components=nr_components, unit_depth_in_bit=unit_depth_in_bit)
+        super().__init__(
+            alignment=alignment,
+            symbolic=symbolic,
+            nr_components=nr_components,
+            unit_depth_in_bit=unit_depth_in_bit
+        )
 
 
 # ----
 
 
 class _Unpacked_Uint8(_Unpacked):
-    def __init__(self, symbolic=None, nr_components=None, unit_depth_in_bit=None):
+    def __init__(
+            self, symbolic=None, nr_components=None, unit_depth_in_bit=None):
         #
         super().__init__(
-            data_boundary=DataBoundary(unpacked=DataBoundary.UINT8),
+            alignment=Alignment(unpacked=Alignment.UINT8),
             symbolic=symbolic,
             nr_components=nr_components,
             unit_depth_in_bit=unit_depth_in_bit
@@ -781,10 +791,11 @@ class _Unpacked_Uint8(_Unpacked):
 
 
 class _Unpacked_Int8(_Unpacked):
-    def __init__(self, symbolic=None, nr_components=None, unit_depth_in_bit=None):
+    def __init__(
+            self, symbolic=None, nr_components=None, unit_depth_in_bit=None):
         #
         super().__init__(
-            data_boundary=DataBoundary(unpacked=DataBoundary.INT8),
+            alignment=Alignment(unpacked=Alignment.INT8),
             symbolic=symbolic,
             nr_components=nr_components,
             unit_depth_in_bit=unit_depth_in_bit
@@ -795,10 +806,11 @@ class _Unpacked_Int8(_Unpacked):
 
 
 class _Unpacked_Uint16(_Unpacked):
-    def __init__(self, symbolic=None, nr_components=None, unit_depth_in_bit=None):
+    def __init__(
+            self, symbolic=None, nr_components=None, unit_depth_in_bit=None):
         #
         super().__init__(
-            data_boundary=DataBoundary(unpacked=DataBoundary.UINT16),
+            alignment=Alignment(unpacked=Alignment.UINT16),
             symbolic=symbolic,
             nr_components=nr_components,
             unit_depth_in_bit=unit_depth_in_bit
@@ -809,10 +821,11 @@ class _Unpacked_Uint16(_Unpacked):
 
 
 class _Unpacked_Float32(_Unpacked):
-    def __init__(self, symbolic=None, nr_components=None, unit_depth_in_bit=None):
+    def __init__(
+            self, symbolic=None, nr_components=None, unit_depth_in_bit=None):
         #
         super().__init__(
-            data_boundary=DataBoundary(unpacked=DataBoundary.FLOAT32),
+            alignment=Alignment(unpacked=Alignment.FLOAT32),
             symbolic=symbolic,
             nr_components=nr_components,
             unit_depth_in_bit=unit_depth_in_bit
@@ -1145,10 +1158,13 @@ class Confidence32f(_Mono_Unpacked_Float32):
 
 
 class _Packed(_PixelFormat):
-    def __init__(self, symbolic=None, nr_components=None, unit_depth_in_bit=None):
+    def __init__(
+            self, symbolic=None, nr_components=None, unit_depth_in_bit=None):
         #
         super().__init__(
-            data_boundary=DataBoundary(unpacked=DataBoundary.UINT16, packed=DataBoundary.UINT8),
+            alignment=Alignment(
+                unpacked=Alignment.UINT16, packed=Alignment.UINT8
+            ),
             symbolic=symbolic,
             nr_components=nr_components,
             unit_depth_in_bit=unit_depth_in_bit
@@ -1159,10 +1175,13 @@ class _Packed(_PixelFormat):
 
 
 class _GroupPacked(_PixelFormat):
-    def __init__(self, symbolic=None, nr_components=None, unit_depth_in_bit=None):
+    def __init__(
+            self, symbolic=None, nr_components=None, unit_depth_in_bit=None):
         #
         super().__init__(
-            data_boundary=DataBoundary(unpacked=DataBoundary.UINT16, packed=DataBoundary.UINT8),
+            alignment=Alignment(
+                unpacked=Alignment.UINT16, packed=Alignment.UINT8
+            ),
             symbolic=symbolic,
             nr_components=nr_components,
             unit_depth_in_bit=unit_depth_in_bit
@@ -1190,8 +1209,12 @@ class _GroupPacked_10(_GroupPacked):
         ).astype(numpy.uint16).T
         #
         mask = 0x3
-        up1st = numpy.bitwise_or(p1st << 2, numpy.bitwise_and(mask, p2nd))
-        up2nd = numpy.bitwise_or(p3rd << 2, numpy.bitwise_and(mask, p2nd >> 4))
+        up1st = numpy.bitwise_or(
+            p1st << 2, numpy.bitwise_and(mask, p2nd)
+        )
+        up2nd = numpy.bitwise_or(
+            p3rd << 2, numpy.bitwise_and(mask, p2nd >> 4)
+        )
         #
         return numpy.reshape(
             numpy.concatenate(
@@ -1219,8 +1242,12 @@ class _GroupPacked_12(_GroupPacked):
         ).astype(numpy.uint16).T
         #
         mask = 0xf
-        up1st = numpy.bitwise_or(p1st << 4, numpy.bitwise_and(mask, p2nd))
-        up2nd = numpy.bitwise_or(p3rd << 4, numpy.bitwise_and(mask, p2nd >> 4))
+        up1st = numpy.bitwise_or(
+            p1st << 4, numpy.bitwise_and(mask, p2nd)
+        )
+        up2nd = numpy.bitwise_or(
+            p3rd << 4, numpy.bitwise_and(mask, p2nd >> 4)
+        )
         #
         return numpy.reshape(
             numpy.concatenate(
@@ -1240,7 +1267,9 @@ class _10p(_PixelFormat):
         #
         super().__init__(
             symbolic=symbolic,
-            data_boundary=DataBoundary(unpacked=DataBoundary.UINT16, packed=DataBoundary.UINT8),
+            alignment=Alignment(
+                unpacked=Alignment.UINT16, packed=Alignment.UINT8
+            ),
             nr_components=nr_components,
             unit_depth_in_bit=10
         )
@@ -1253,9 +1282,17 @@ class _10p(_PixelFormat):
             array, (array.shape[0] // nr_packed, nr_packed)
         ).astype(numpy.uint16).T
         #
-        up1st = numpy.bitwise_or(p1st, numpy.bitwise_and(0x300, p2nd << 8))
-        up2nd = numpy.bitwise_or(numpy.bitwise_and(0x3f, p2nd >> 2), numpy.bitwise_and(0x3e0, p3rd << 6))
-        up3rd = numpy.bitwise_or(numpy.bitwise_and(0x7, p3rd >> 5), numpy.bitwise_and(0x7f8, p4th << 3))
+        up1st = numpy.bitwise_or(
+            p1st, numpy.bitwise_and(0x300, p2nd << 8)
+        )
+        up2nd = numpy.bitwise_or(
+            numpy.bitwise_and(0x3f, p2nd >> 2),
+            numpy.bitwise_and(0x3e0, p3rd << 6)
+        )
+        up3rd = numpy.bitwise_or(
+            numpy.bitwise_and(0x7, p3rd >> 5),
+            numpy.bitwise_and(0x7f8, p4th << 3)
+        )
         #
         return numpy.reshape(
             numpy.concatenate(
@@ -1270,7 +1307,9 @@ class _12p(_PixelFormat):
         #
         super().__init__(
             symbolic=symbolic,
-            data_boundary=DataBoundary(unpacked=DataBoundary.UINT16, packed=DataBoundary.UINT8),
+            alignment=Alignment(
+                unpacked=Alignment.UINT16, packed=Alignment.UINT8
+            ),
             nr_components=nr_components,
             unit_depth_in_bit=12
         )
@@ -1283,8 +1322,13 @@ class _12p(_PixelFormat):
             array, (array.shape[0] // nr_packed, nr_packed)
         ).astype(numpy.uint16).T
         #
-        up1st = numpy.bitwise_or(p1st, numpy.bitwise_and(0xf00, p2nd << 8))
-        up2nd = numpy.bitwise_or(numpy.bitwise_and(0xf, p2nd >> 4), numpy.bitwise_and(0xff0, p3rd << 4))
+        up1st = numpy.bitwise_or(
+            p1st, numpy.bitwise_and(0xf00, p2nd << 8)
+        )
+        up2nd = numpy.bitwise_or(
+            numpy.bitwise_and(0xf, p2nd >> 4),
+            numpy.bitwise_and(0xff0, p3rd << 4)
+        )
         #
         return numpy.reshape(
             numpy.concatenate(
@@ -1660,33 +1704,33 @@ class Coord3D_ABC12p_Planar(_LMN444_12p):
 
 
 class _LMN422(_PixelFormat):
-    def __init__(self, symbolic=None, data_boundary=None, unit_depth_in_bit=None):
+    def __init__(self, symbolic=None, alignment=None, unit_depth_in_bit=None):
         #
         super().__init__(
             symbolic=symbolic,
-            data_boundary=data_boundary,
+            alignment=alignment,
             nr_components=2.,
             unit_depth_in_bit=unit_depth_in_bit
         )
 
 
 class _LMN411(_PixelFormat):
-    def __init__(self, symbolic=None, data_boundary=None, unit_depth_in_bit=None):
+    def __init__(self, symbolic=None, alignment=None, unit_depth_in_bit=None):
         #
         super().__init__(
             symbolic=symbolic,
-            data_boundary=data_boundary,
+            alignment=alignment,
             nr_components=1.5,
             unit_depth_in_bit=unit_depth_in_bit
         )
 
 
 class _LMNO4444(_PixelFormat):
-    def __init__(self, symbolic=None, data_boundary=None, unit_depth_in_bit=None):
+    def __init__(self, symbolic=None, alignment=None, unit_depth_in_bit=None):
         #
         super().__init__(
             symbolic=symbolic,
-            data_boundary=data_boundary,
+            alignment=alignment,
             nr_components=4.,
             unit_depth_in_bit=unit_depth_in_bit
         )
@@ -1700,7 +1744,7 @@ class _LMN422_Unpacked_Uint8(_LMN422):
         #
         super().__init__(
             symbolic=symbolic,
-            data_boundary=DataBoundary(unpacked=DataBoundary.UINT8),
+            alignment=Alignment(unpacked=Alignment.UINT8),
             unit_depth_in_bit=unit_depth_in_bit
         )
 
@@ -1713,7 +1757,7 @@ class _LMN422_Unpacked_Uint16(_LMN422):
         #
         super().__init__(
             symbolic=symbolic,
-            data_boundary=DataBoundary(unpacked=DataBoundary.UINT16),
+            alignment=Alignment(unpacked=Alignment.UINT16),
             unit_depth_in_bit=unit_depth_in_bit
         )
 
@@ -1726,7 +1770,7 @@ class _LMN411_Unpacked_Uint8(_LMN411):
         #
         super().__init__(
             symbolic=symbolic,
-            data_boundary=DataBoundary(unpacked=DataBoundary.UINT8),
+            alignment=Alignment(unpacked=Alignment.UINT8),
             unit_depth_in_bit=unit_depth_in_bit
         )
 
@@ -1739,7 +1783,7 @@ class _LMNO4444_Unpacked_Uint8(_LMNO4444):
         #
         super().__init__(
             symbolic=symbolic,
-            data_boundary=DataBoundary(unpacked=DataBoundary.UINT8),
+            alignment=Alignment(unpacked=Alignment.UINT8),
             unit_depth_in_bit=unit_depth_in_bit
         )
 
@@ -2148,7 +2192,7 @@ class _LMNO4444_Unpacked_Uint16(_LMNO4444):
         #
         super().__init__(
             symbolic=symbolic,
-            data_boundary=DataBoundary(unpacked=DataBoundary.UINT16),
+            alignment=Alignment(unpacked=Alignment.UINT16),
             unit_depth_in_bit=unit_depth_in_bit
         )
 
@@ -2292,11 +2336,11 @@ class BGRa12p(_LMNO4444_12p):
 
 
 class _LM44(_PixelFormat):
-    def __init__(self, symbolic=None, data_boundary=None, unit_depth_in_bit=None):
+    def __init__(self, symbolic=None, alignment=None, unit_depth_in_bit=None):
         #
         super().__init__(
             symbolic=symbolic,
-            data_boundary=data_boundary,
+            alignment=alignment,
             nr_components=2.,
             unit_depth_in_bit=unit_depth_in_bit
         )
@@ -2307,7 +2351,7 @@ class _LM44_Unpacked_Float32(_LM44):
         #
         super().__init__(
             symbolic=symbolic,
-            data_boundary=DataBoundary(unpacked=DataBoundary.FLOAT32),
+            alignment=Alignment(unpacked=Alignment.FLOAT32),
             unit_depth_in_bit=unit_depth_in_bit
         )
 
@@ -2362,7 +2406,7 @@ class _LM44_Unpacked_Uint8(_LM44):
         #
         super().__init__(
             symbolic=symbolic,
-            data_boundary=DataBoundary(unpacked=DataBoundary.UINT8),
+            alignment=Alignment(unpacked=Alignment.UINT8),
             unit_depth_in_bit=unit_depth_in_bit
         )
 
@@ -2375,7 +2419,7 @@ class _LM44_Unpacked_Uint16(_LM44):
         #
         super().__init__(
             symbolic=symbolic,
-            data_boundary=DataBoundary(unpacked=DataBoundary.UINT16),
+            alignment=Alignment(unpacked=Alignment.UINT16),
             unit_depth_in_bit=unit_depth_in_bit
         )
 
@@ -2480,11 +2524,11 @@ class Coord3D_AC16_Planar(_LM44_Unpacked_Uint16_16):
 
 
 class _Bayer(_PixelFormat):
-    def __init__(self, symbolic=None, data_boundary=None, unit_depth_in_bit=None):
+    def __init__(self, symbolic=None, alignment=None, unit_depth_in_bit=None):
         #
         super().__init__(
             symbolic=symbolic,
-            data_boundary=data_boundary,
+            alignment=alignment,
             nr_components=1.,
             unit_depth_in_bit=unit_depth_in_bit
         )
@@ -2498,7 +2542,7 @@ class _Bayer_Unpacked_Uint8(_Bayer):
         #
         super().__init__(
             symbolic=symbolic,
-            data_boundary=DataBoundary(unpacked=DataBoundary.UINT8),
+            alignment=Alignment(unpacked=Alignment.UINT8),
             unit_depth_in_bit=8
         )
 
@@ -2511,7 +2555,7 @@ class _Bayer_Unpacked_Uint16(_Bayer):
         #
         super().__init__(
             symbolic=symbolic,
-            data_boundary=DataBoundary(unpacked=DataBoundary.UINT16),
+            alignment=Alignment(unpacked=Alignment.UINT16),
             unit_depth_in_bit=unit_depth_in_bit
         )
 

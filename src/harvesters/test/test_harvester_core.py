@@ -32,6 +32,7 @@ from urllib.parse import quote
 
 # Related third party imports
 from genicam.gentl import TimeoutException
+import numpy as np
 
 # Local application/library specific imports
 from harvesters.test.base_harvester import TestHarvesterCoreBase
@@ -41,6 +42,7 @@ from harvesters.core import Callback
 from harvesters.core import Harvester
 from harvesters.core import ImageAcquirer
 from harvesters.test.helper import get_package_dir
+from harvesters.util.pfnc import NpArrayFactory
 
 
 class TestHarvesterCore(TestHarvesterCoreBase):
@@ -613,6 +615,30 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         # Trigger the target device:
         for _ in range(self.num_images):
             self.generate_software_trigger(sleep_s=self.sleep_duration)
+
+    def test_issue_146(self):
+        tests = [
+            self._test_issue_146_group_packed_10,
+            self._test_issue_146_group_packed_12,
+        ]
+        for test in tests:
+            test()
+
+    def _test_issue_146_group_packed_10(self):
+        ba = bytes([0x10, 0x21, 0x32])
+        packed = np.frombuffer(ba, dtype=np.uint8)
+        pf = NpArrayFactory.get_proxy('BayerRG10Packed')
+        unpacked = pf.expand(packed)
+        self.assertEqual(0x10 * 4 + 1, unpacked[0])
+        self.assertEqual(0x32 * 4 + 2, unpacked[1])
+
+    def _test_issue_146_group_packed_12(self):
+        ba = bytes([0x10, 0xce, 0x32])
+        packed = np.frombuffer(ba, dtype=np.uint8)
+        pf = NpArrayFactory.get_proxy('BayerRG12Packed')
+        unpacked = pf.expand(packed)
+        self.assertEqual(0x10 * 16 + 0xe, unpacked[0])
+        self.assertEqual(0x32 * 16 + 0xc, unpacked[1])
 
 
 class _TestIssue81(threading.Thread):

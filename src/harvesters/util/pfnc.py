@@ -1207,8 +1207,8 @@ class _GroupPacked_10(_GroupPacked):
         ).astype(numpy.uint16).T
         #
         mask = 0x3
-        up1st = p1st << 2 + numpy.bitwise_and(mask, p2nd)
-        up2nd = p3rd << 2 + numpy.bitwise_and(mask, p2nd >> 4)
+        up1st = numpy.bitwise_or(p1st << 2, numpy.bitwise_and(mask, p2nd))
+        up2nd = numpy.bitwise_or(p3rd << 2, numpy.bitwise_and(mask, p2nd >> 4))
         #
         return numpy.reshape(
             numpy.concatenate(
@@ -1234,8 +1234,8 @@ class _GroupPacked_12(_GroupPacked):
         ).astype(numpy.uint16).T
         #
         mask = 0xf
-        up1st = p1st << 4 + numpy.bitwise_and(mask, p2nd)
-        up2nd = p3rd << 4 + numpy.bitwise_and(mask, p2nd >> 4)
+        up1st = numpy.bitwise_or(p1st << 4, numpy.bitwise_and(mask, p2nd))
+        up2nd = numpy.bitwise_or(p3rd << 4, numpy.bitwise_and(mask, p2nd >> 4))
         #
         return numpy.reshape(
             numpy.concatenate(
@@ -1266,9 +1266,9 @@ class _10p(_PixelFormat):
             array, (array.shape[0] // nr_packed, nr_packed)
         ).astype(numpy.uint16).T
         #
-        up1st = p1st + numpy.bitwise_and(0xff00, p2nd << 8)
-        up2nd = numpy.bitwise_and(0x3f, p2nd >> 2) + numpy.bitwise_and(0x3e0, p3rd << 6)
-        up3rd = numpy.bitwise_and(0x7, p3rd >> 5) + numpy.bitwise_and(0x7f8, p4th << 3)
+        up1st = numpy.bitwise_or(p1st, numpy.bitwise_and(0xff00, p2nd << 8))
+        up2nd = numpy.bitwise_or(numpy.bitwise_and(0x3f, p2nd >> 2), numpy.bitwise_and(0x3e0, p3rd << 6))
+        up3rd = numpy.bitwise_or(numpy.bitwise_and(0x7, p3rd >> 5), numpy.bitwise_and(0x7f8, p4th << 3))
         #
         return numpy.reshape(
             numpy.concatenate(
@@ -1294,8 +1294,8 @@ class _12p(_PixelFormat):
             array, (array.shape[0] // nr_packed, nr_packed)
         ).astype(numpy.uint16).T
         #
-        up1st = p1st + numpy.bitwise_and(0x700, p2nd << 8)
-        up2nd = numpy.bitwise_and(0xf, p2nd >> 4) + numpy.bitwise_and(0xff0, p3rd << 4)
+        up1st = numpy.bitwise_or(p1st, numpy.bitwise_and(0x700, p2nd << 8))
+        up2nd = numpy.bitwise_or(numpy.bitwise_and(0xf, p2nd >> 4), numpy.bitwise_and(0xff0, p3rd << 4))
         #
         return numpy.reshape(
             numpy.concatenate(

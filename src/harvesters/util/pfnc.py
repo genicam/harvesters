@@ -1778,7 +1778,7 @@ class _LMN422_GroupPacked_10(_GroupPacked_10):
         #
         super().__init__()
         #
-        self._unit_depth_in_bit = 10
+        self._nr_components = 3
 
 
 class _LMN422_GroupPacked_12(_GroupPacked_12):
@@ -1786,7 +1786,7 @@ class _LMN422_GroupPacked_12(_GroupPacked_12):
         #
         super().__init__()
         #
-        self._unit_depth_in_bit = 12
+        self._nr_components = 3
 
 
 class _LMN422_10p(_10p):
@@ -2444,7 +2444,7 @@ class _LM44_GroupPacked_10(_GroupPacked_10):
         #
         super().__init__()
         #
-        self._unit_depth_in_bit = 10
+        self._nr_components = 2
 
 
 class _LM44_GroupPacked_12(_GroupPacked_12):
@@ -2452,7 +2452,8 @@ class _LM44_GroupPacked_12(_GroupPacked_12):
         #
         super().__init__()
         #
-        self._unit_depth_in_bit = 12
+        self._nr_components = 2
+
 
 
 class _LM44_10p(_10p):
@@ -2813,7 +2814,6 @@ class _Bayer_GroupPacked_10(_GroupPacked_10):
         super().__init__()
         #
         self._nr_components = 1
-        self._unit_depth_in_bit = 10
 
 
 class _Bayer_GroupPacked_12(_GroupPacked_12):
@@ -2822,7 +2822,6 @@ class _Bayer_GroupPacked_12(_GroupPacked_12):
         super().__init__()
         #
         self._nr_components = 1
-        self._unit_depth_in_bit = 12
 
 
 class _Bayer_10p(_10p):

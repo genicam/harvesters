@@ -1266,7 +1266,7 @@ class _10p(_PixelFormat):
             array, (array.shape[0] // nr_packed, nr_packed)
         ).astype(numpy.uint16).T
         #
-        up1st = numpy.bitwise_or(p1st, numpy.bitwise_and(0xff00, p2nd << 8))
+        up1st = numpy.bitwise_or(p1st, numpy.bitwise_and(0x300, p2nd << 8))
         up2nd = numpy.bitwise_or(numpy.bitwise_and(0x3f, p2nd >> 2), numpy.bitwise_and(0x3e0, p3rd << 6))
         up3rd = numpy.bitwise_or(numpy.bitwise_and(0x7, p3rd >> 5), numpy.bitwise_and(0x7f8, p4th << 3))
         #
@@ -1294,7 +1294,7 @@ class _12p(_PixelFormat):
             array, (array.shape[0] // nr_packed, nr_packed)
         ).astype(numpy.uint16).T
         #
-        up1st = numpy.bitwise_or(p1st, numpy.bitwise_and(0x700, p2nd << 8))
+        up1st = numpy.bitwise_or(p1st, numpy.bitwise_and(0xf00, p2nd << 8))
         up2nd = numpy.bitwise_or(numpy.bitwise_and(0xf, p2nd >> 4), numpy.bitwise_and(0xff0, p3rd << 4))
         #
         return numpy.reshape(

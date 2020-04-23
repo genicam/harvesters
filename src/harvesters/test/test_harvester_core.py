@@ -617,28 +617,56 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             self.generate_software_trigger(sleep_s=self.sleep_duration)
 
     def test_issue_146(self):
+        #
         tests = [
             self._test_issue_146_group_packed_10,
             self._test_issue_146_group_packed_12,
+            self._test_issue_146_packed_10,
+            self._test_issue_146_packed_12,
         ]
+        #
         for test in tests:
             test()
 
     def _test_issue_146_group_packed_10(self):
-        ba = bytes([0x10, 0x21, 0x32])
+        _1st = 0xff
+        _3rd = 0xff
+        ba = bytes([_1st, 0x33, _3rd])
         packed = np.frombuffer(ba, dtype=np.uint8)
         pf = NpArrayFactory.get_proxy('BayerRG10Packed')
         unpacked = pf.expand(packed)
-        self.assertEqual(0x10 * 4 + 1, unpacked[0])
-        self.assertEqual(0x32 * 4 + 2, unpacked[1])
+        self.assertEqual(_1st * 4 + 3, unpacked[0])
+        self.assertEqual(_3rd * 4 + 3, unpacked[1])
 
     def _test_issue_146_group_packed_12(self):
-        ba = bytes([0x10, 0xce, 0x32])
+        _1st = 0xff
+        _3rd = 0xff
+        ba = bytes([_1st, 0xff, _3rd])
         packed = np.frombuffer(ba, dtype=np.uint8)
         pf = NpArrayFactory.get_proxy('BayerRG12Packed')
         unpacked = pf.expand(packed)
-        self.assertEqual(0x10 * 16 + 0xe, unpacked[0])
-        self.assertEqual(0x32 * 16 + 0xc, unpacked[1])
+        self.assertEqual(_1st * 16 + 0xf, unpacked[0])
+        self.assertEqual(_3rd * 16 + 0xf, unpacked[1])
+
+    def _test_issue_146_packed_10(self):
+        element = 0xff
+        ba = bytes([element, element, element, element])
+        packed = np.frombuffer(ba, dtype=np.uint8)
+        pf = NpArrayFactory.get_proxy('Mono10p')
+        unpacked = pf.expand(packed)
+        self.assertEqual(0x3ff, unpacked[0])
+        self.assertEqual(0x3ff, unpacked[1])
+        self.assertEqual(0x7ff, unpacked[2])
+
+    def _test_issue_146_packed_12(self):
+        _1st = 0xff
+        _3rd = 0xff
+        ba = bytes([_1st, 0xff, _3rd])
+        packed = np.frombuffer(ba, dtype=np.uint8)
+        pf = NpArrayFactory.get_proxy('Mono12p')
+        unpacked = pf.expand(packed)
+        self.assertEqual(0xf * 256 + _1st, unpacked[0])
+        self.assertEqual(_3rd * 16 + 0xf, unpacked[1])
 
 
 class _TestIssue81(threading.Thread):

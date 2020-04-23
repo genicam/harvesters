@@ -63,12 +63,8 @@ from harvesters._private.core.port import ConcretePort
 from harvesters._private.core.statistics import Statistics
 from harvesters.util.logging import get_logger
 from harvesters.util.pfnc import dict_by_names, dict_by_ints
-from harvesters.util.pfnc import uint16_formats, uint32_formats, \
-    float32_formats, uint8_formats
+from harvesters.util.pfnc import NpArrayFactory
 from harvesters.util.pfnc import component_2d_formats
-from harvesters.util.pfnc import lmn_444_location_formats, \
-    lmno_4444_location_formats, lmn_422_location_formats, \
-    lmn_411_location_formats, mono_location_formats, bayer_location_formats
 
 
 _is_logging_buffer_manipulation = True if 'HARVESTERS_LOG_BUFFER_MANIPULATION' in os.environ else False
@@ -838,73 +834,12 @@ class Component2DImage(ComponentBase):
         #
         self._part = part
         self._node_map = node_map
-        self._data = None
-        self._num_components_per_pixel = 0
-
-        symbolic = self.data_format
-
-        # Determine the data type:
-        if self.x_padding > 0:
-            # In this case, the client will have to trim the padding part.
-            # so we create a NumPy array that consists of uint8 elements
-            # first. The client will interpret the array in an appropriate
-            # dtype in the end once he trimmed:
-            dtype = 'uint8'
-            bytes_per_pixel_data_component = 1
-        else:
-            if symbolic in uint16_formats:
-                dtype = 'uint16'
-                bytes_per_pixel_data_component = 2
-            elif symbolic in uint32_formats:
-                dtype = 'uint32'
-                bytes_per_pixel_data_component = 4
-            elif symbolic in float32_formats:
-                dtype = 'float32'
-                bytes_per_pixel_data_component = 4
-            elif symbolic in uint8_formats:
-                dtype = 'uint8'
-                bytes_per_pixel_data_component = 1
-            else:
-                # Sorry, Harvester can't handle this:
-                self._data = None
-                return
-
-        # Determine the number of components per pixel:
-        if symbolic in lmn_444_location_formats:
-            num_components_per_pixel = 3.
-        elif symbolic in lmn_422_location_formats:
-            num_components_per_pixel = 2.
-        elif symbolic in lmn_411_location_formats:
-            num_components_per_pixel = 1.5
-        elif symbolic in lmno_4444_location_formats:
-            num_components_per_pixel = 4.
-        elif symbolic in mono_location_formats or \
-                symbolic in bayer_location_formats:
-            num_components_per_pixel = 1.
-        else:
-            # Sorry, Harvester can't handle this:
-            self._data = None
-            return
-
-        self._num_components_per_pixel = num_components_per_pixel
-        self._symbolic = symbolic
-
-        #
-        width = self.width
-        height = self.height
-
-        #
-        if self._part:
-            count = self._part.data_size
-            count //= bytes_per_pixel_data_component
-            data_offset = self._part.data_offset
-        else:
-            count = width * height
-            count *= num_components_per_pixel
-            count += self.y_padding
-            data_offset = 0
+        proxy = NpArrayFactory.get_proxy(symbolic=self.data_format)
+        self._nr_components = proxy.nr_components
+        self._data = self._to_nparray(proxy)
 
         # Convert the Python's built-in bytes array to a Numpy array:
+        """
         if _is_logging_buffer_manipulation:
             self._logger.debug(
                 'Component 2D image ('
@@ -925,13 +860,41 @@ class Component2DImage(ComponentBase):
                     self.y_padding,
                 )
             )
+        """
 
-        self._data = numpy.frombuffer(
-            self._buffer.raw_buffer,
-            count=int(count),
-            dtype=dtype,
-            offset=data_offset
+    def _to_nparray(self, pf_proxy):
+        if self.x_padding > 0:
+            # In this case, the client will have to trim the padding part.
+            # so we create a NumPy array that consists of uint8 elements
+            # first. The client will interpret the array in an appropriate
+            # dtype in the end once he trimmed:
+            dtype = 'uint8'
+            bytes_per_pixel_data_component = 1
+        else:
+            dtype = pf_proxy.data_boundary.unpacked
+            bytes_per_pixel_data_component = pf_proxy.data_boundary.unpacked_size
+
+        #
+        if self.has_part():
+            """
+            count = self._part.data_size
+            count //= bytes_per_pixel_data_component
+            """
+            count = self._part.data_size
+        else:
+            """
+            count = self.width * self.height
+            count *= pf_proxy.nr_components
+            count += self.y_padding
+            """
+            count = self._buffer.size
+
+        array = numpy.frombuffer(
+            self._buffer.raw_buffer, count=int(count),
+            dtype='uint8',
+            offset=self.data_offset
         )
+        return pf_proxy.expand(array)
 
     def represent_pixel_location(self) -> Optional[numpy.ndarray]:
         """
@@ -950,7 +913,7 @@ class Component2DImage(ComponentBase):
         #
         return self._data.reshape(
             self.height + self.y_padding,
-            int(self.width * self._num_components_per_pixel + self.x_padding)
+            int(self.width * self._nr_components + self.x_padding)
         )
 
     @property
@@ -961,7 +924,7 @@ class Component2DImage(ComponentBase):
         :getter: Returns itself.
         :type: float
         """
-        return self._num_components_per_pixel
+        return self._nr_components
 
     def __repr__(self):
         return '{0} x {1}, {2}, {3} elements,\n{4}'.format(
@@ -1119,6 +1082,16 @@ class Component2DImage(ComponentBase):
         except GenericException:
             value = 0
         return value
+
+    def has_part(self):
+        return self._part is not None
+
+    @property
+    def data_offset(self):
+        if self.has_part():
+            return self._part.data_offset
+        else:
+            return 0
 
 
 class Buffer:

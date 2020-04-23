@@ -455,6 +455,7 @@ class ThreadBase:
         #
         self._mutex = mutex
         self._is_running = False
+        self._id = None
 
     def start(self) -> None:
         self._internal_start()
@@ -473,10 +474,9 @@ class ThreadBase:
         raise NotImplementedError
 
     def stop(self) -> None:
-        id_ = self.id_
         self._internal_stop()
         self._logger.debug(
-            'Stopped thread {:0X}.'.format(id_)
+            'Stopped thread {:0X}.'.format(self.id_)
         )
 
     def join(self):
@@ -533,15 +533,7 @@ class ThreadBase:
 
     @property
     def id_(self) -> int:
-        """
-        The thread ID.
-
-        This method is abstract and should be reimplemented in any sub-class.
-
-        :getter: Returns itself.
-        :type: int
-        """
-        raise NotImplementedError
+        return self._id
 
 
 class MutexLocker:
@@ -606,6 +598,7 @@ class _ImageAcquisitionThread(ThreadBase):
             thread_owner=self, worker=self._worker,
             sleep_duration=self._sleep_duration
         )
+        self._id = self._thread.id_
 
         # Start running its worker method.
         self._is_running = True

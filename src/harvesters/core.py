@@ -24,6 +24,7 @@ from datetime import datetime
 from enum import IntEnum
 import io
 from logging import Logger
+import ntpath
 import os
 import pathlib
 from queue import Queue
@@ -2961,7 +2962,8 @@ def _save_file(
         )
 
     #
-    file_path = os.path.join(xml_dir_to_store, file_name)
+    _file_name = ntpath.basename(file_name)
+    file_path = os.path.join(xml_dir_to_store, _file_name)
 
     #
     mode = 'w+'

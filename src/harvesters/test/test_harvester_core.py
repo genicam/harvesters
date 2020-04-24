@@ -42,7 +42,7 @@ from harvesters.core import Callback
 from harvesters.core import Harvester
 from harvesters.core import ImageAcquirer
 from harvesters.test.helper import get_package_dir
-from harvesters.util.pfnc import NpArrayFactory
+from harvesters.util.pfnc import Dictionary
 
 
 class TestHarvesterCore(TestHarvesterCoreBase):
@@ -633,7 +633,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         _3rd = 0xff
         ba = bytes([_1st, 0x33, _3rd])
         packed = np.frombuffer(ba, dtype=np.uint8)
-        pf = NpArrayFactory.get_proxy('BayerRG10Packed')
+        pf = Dictionary.get_proxy('BayerRG10Packed')
         unpacked = pf.expand(packed)
         self.assertEqual(_1st * 4 + 3, unpacked[0])
         self.assertEqual(_3rd * 4 + 3, unpacked[1])
@@ -643,7 +643,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         _3rd = 0xff
         ba = bytes([_1st, 0xff, _3rd])
         packed = np.frombuffer(ba, dtype=np.uint8)
-        pf = NpArrayFactory.get_proxy('BayerRG12Packed')
+        pf = Dictionary.get_proxy('BayerRG12Packed')
         unpacked = pf.expand(packed)
         self.assertEqual(_1st * 16 + 0xf, unpacked[0])
         self.assertEqual(_3rd * 16 + 0xf, unpacked[1])
@@ -652,7 +652,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         element = 0xff
         ba = bytes([element, element, element, element])
         packed = np.frombuffer(ba, dtype=np.uint8)
-        pf = NpArrayFactory.get_proxy('Mono10p')
+        pf = Dictionary.get_proxy('Mono10p')
         unpacked = pf.expand(packed)
         self.assertEqual(0x3ff, unpacked[0])
         self.assertEqual(0x3ff, unpacked[1])
@@ -663,7 +663,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         _3rd = 0xff
         ba = bytes([_1st, 0xff, _3rd])
         packed = np.frombuffer(ba, dtype=np.uint8)
-        pf = NpArrayFactory.get_proxy('Mono12p')
+        pf = Dictionary.get_proxy('Mono12p')
         unpacked = pf.expand(packed)
         self.assertEqual(0xf * 256 + _1st, unpacked[0])
         self.assertEqual(_3rd * 16 + 0xf, unpacked[1])

@@ -63,7 +63,7 @@ from harvesters._private.core.port import ConcretePort
 from harvesters._private.core.statistics import Statistics
 from harvesters.util.logging import get_logger
 from harvesters.util.pfnc import dict_by_names, dict_by_ints
-from harvesters.util.pfnc import NpArrayFactory
+from harvesters.util.pfnc import Dictionary
 from harvesters.util.pfnc import component_2d_formats
 
 
@@ -827,7 +827,7 @@ class Component2DImage(ComponentBase):
         #
         self._part = part
         self._node_map = node_map
-        proxy = NpArrayFactory.get_proxy(symbolic=self.data_format)
+        proxy = Dictionary.get_proxy(symbolic=self.data_format)
         self._nr_components = proxy.nr_components
         self._data = self._to_np_array(proxy)
 

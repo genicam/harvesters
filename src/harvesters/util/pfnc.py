@@ -19,6 +19,7 @@
 
 
 # Standard library imports
+from enum import IntEnum
 from typing import Optional
 
 # Related third party imports
@@ -651,14 +652,26 @@ bgra_formats = [
 ]
 
 
-class Alignment:
-    INT8 = 'int8'
-    UINT8 = 'uint8'
-    UINT16 = 'uint16'
-    UINT32 = 'uint32'
-    FLOAT32 = 'float32'
+class _DataSize(IntEnum):
+    INT8 = 1
+    UINT8 = 2
+    UINT16 = 3
+    UINT32 = 4
+    FLOAT32 = 5
 
-    def __init__(self, unpacked: str, packed: Optional[str] = None):
+
+class _Location(IntEnum):
+    MONO = 1
+    LMN444 = 2
+    LMN422 = 3
+    LMN411 = 4
+    LMNO4444 = 5
+    LM44 = 6
+    BAYER = 7
+
+
+class _Alignment:
+    def __init__(self, unpacked: IntEnum, packed: Optional[IntEnum] = None):
         #
         super().__init__()
         #
@@ -694,19 +707,23 @@ class Alignment:
     def is_packed(self):
         return self._unpacked != self._packed
 
-    def _get_size(self, dtype: str):
-        if dtype in (self.INT8, self.UINT8):
+    @staticmethod
+    def _get_size(index: IntEnum):
+        if (index == _DataSize.INT8) or (index == _DataSize.UINT8):
             return 8
-        elif dtype in (self.UINT16):
+        elif index == _DataSize.UINT16:
             return 16
-        elif dtype in (self.UINT32, self.FLOAT32):
+        elif (index == _DataSize.UINT32) or (index == _DataSize.FLOAT32):
             return 32
+        else:
+            raise ValueError
 
 
 class _PixelFormat:
     def __init__(
-            self, alignment: Alignment = None, symbolic: str = None,
-            nr_components=None, unit_depth_in_bit: int = None):
+            self, alignment: _Alignment = None, symbolic: str = None,
+            nr_components=None, unit_depth_in_bit: int = None,
+            location: _Location = None):
         #
         super().__init__()
         #
@@ -714,6 +731,7 @@ class _PixelFormat:
         self._symbolic = symbolic
         self._nr_components = nr_components
         self._unit_depth_in_bit = unit_depth_in_bit
+        self._location = location
         #
         self._check_validity()
 
@@ -740,11 +758,16 @@ class _PixelFormat:
     def depth_in_byte(self):
         return self.depth_in_bit / 8
 
+    @property
+    def location(self):
+        return self._location
+
     def _check_validity(self):
         assert self._alignment
         assert self._symbolic
         assert self._nr_components
         assert self._unit_depth_in_bit
+        assert self._location
 
     def __repr__(self):
         repr = ''
@@ -761,14 +784,16 @@ class _PixelFormat:
 
 class _Unpacked(_PixelFormat):
     def __init__(
-            self, alignment: Alignment = None, symbolic: str = None,
-            nr_components=None, unit_depth_in_bit: int = None):
+            self, alignment: _Alignment = None, symbolic: str = None,
+            nr_components=None, unit_depth_in_bit: int = None,
+            location: _Location = None):
         #
         super().__init__(
             alignment=alignment,
             symbolic=symbolic,
             nr_components=nr_components,
-            unit_depth_in_bit=unit_depth_in_bit
+            unit_depth_in_bit=unit_depth_in_bit,
+            location=location
         )
 
 
@@ -778,13 +803,14 @@ class _Unpacked(_PixelFormat):
 class _Unpacked_Uint8(_Unpacked):
     def __init__(
             self, symbolic: str = None, nr_components=None,
-            unit_depth_in_bit: int = None):
+            unit_depth_in_bit: int = None, location: _Location = None):
         #
         super().__init__(
-            alignment=Alignment(unpacked=Alignment.UINT8),
+            alignment=_Alignment(unpacked=_DataSize.UINT8),
             symbolic=symbolic,
             nr_components=nr_components,
-            unit_depth_in_bit=unit_depth_in_bit
+            unit_depth_in_bit=unit_depth_in_bit,
+            location=location
         )
 
     def expand(self, array: numpy.ndarray) -> numpy.ndarray:
@@ -794,13 +820,14 @@ class _Unpacked_Uint8(_Unpacked):
 class _Unpacked_Int8(_Unpacked):
     def __init__(
             self, symbolic: str = None, nr_components=None,
-            unit_depth_in_bit: int = None):
+            unit_depth_in_bit: int = None, location: _Location = None):
         #
         super().__init__(
-            alignment=Alignment(unpacked=Alignment.INT8),
+            alignment=_Alignment(unpacked=_DataSize.INT8),
             symbolic=symbolic,
             nr_components=nr_components,
-            unit_depth_in_bit=unit_depth_in_bit
+            unit_depth_in_bit=unit_depth_in_bit,
+            location=location
         )
 
     def expand(self, array: numpy.ndarray) -> numpy.ndarray:
@@ -810,13 +837,14 @@ class _Unpacked_Int8(_Unpacked):
 class _Unpacked_Uint16(_Unpacked):
     def __init__(
             self, symbolic: str = None, nr_components=None,
-            unit_depth_in_bit: int = None):
+            unit_depth_in_bit: int = None, location: _Location = None):
         #
         super().__init__(
-            alignment=Alignment(unpacked=Alignment.UINT16),
+            alignment=_Alignment(unpacked=_DataSize.UINT16),
             symbolic=symbolic,
             nr_components=nr_components,
-            unit_depth_in_bit=unit_depth_in_bit
+            unit_depth_in_bit=unit_depth_in_bit,
+            location=location
         )
 
     def expand(self, array: numpy.ndarray) -> numpy.ndarray:
@@ -826,13 +854,14 @@ class _Unpacked_Uint16(_Unpacked):
 class _Unpacked_Float32(_Unpacked):
     def __init__(
             self, symbolic: str = None, nr_components=None,
-            unit_depth_in_bit: int = None):
+            unit_depth_in_bit: int = None, location: _Location = None):
         #
         super().__init__(
-            alignment=Alignment(unpacked=Alignment.FLOAT32),
+            alignment=_Alignment(unpacked=_DataSize.FLOAT32),
             symbolic=symbolic,
             nr_components=nr_components,
-            unit_depth_in_bit=unit_depth_in_bit
+            unit_depth_in_bit=unit_depth_in_bit,
+            location=location
         )
 
     def expand(self, array: numpy.ndarray) -> numpy.ndarray:
@@ -848,7 +877,8 @@ class _Mono_Unpacked_Uint8(_Unpacked_Uint8):
         super().__init__(
             symbolic=symbolic,
             nr_components=1.,
-            unit_depth_in_bit=unit_depth_in_bit
+            unit_depth_in_bit=unit_depth_in_bit,
+            location=_Location.MONO
         )
 
 
@@ -858,7 +888,8 @@ class _Mono_Unpacked_Int8(_Unpacked_Int8):
         super().__init__(
             symbolic=symbolic,
             nr_components=1.,
-            unit_depth_in_bit=unit_depth_in_bit
+            unit_depth_in_bit=unit_depth_in_bit,
+            location = _Location.MONO
         )
 
 
@@ -868,7 +899,8 @@ class _Mono_Unpacked_Uint16(_Unpacked_Uint16):
         super().__init__(
             symbolic=symbolic,
             nr_components=1.,
-            unit_depth_in_bit=unit_depth_in_bit
+            unit_depth_in_bit=unit_depth_in_bit,
+            location=_Location.MONO
         )
 
 
@@ -878,7 +910,8 @@ class _Mono_Unpacked_Float32(_Unpacked_Float32):
         super().__init__(
             symbolic=symbolic,
             nr_components=1.,
-            unit_depth_in_bit=32
+            unit_depth_in_bit=32,
+            location=_Location.MONO
         )
 
 
@@ -1164,15 +1197,16 @@ class Confidence32f(_Mono_Unpacked_Float32):
 class _Packed(_PixelFormat):
     def __init__(
             self, symbolic: str = None, nr_components=None,
-            unit_depth_in_bit: int = None):
+            unit_depth_in_bit: int = None, location: _Location = None):
         #
         super().__init__(
-            alignment=Alignment(
-                unpacked=Alignment.UINT16, packed=Alignment.UINT8
+            alignment=_Alignment(
+                unpacked=_DataSize.UINT16, packed=_DataSize.UINT8
             ),
             symbolic=symbolic,
             nr_components=nr_components,
-            unit_depth_in_bit=unit_depth_in_bit
+            unit_depth_in_bit=unit_depth_in_bit,
+            location=location
         )
 
 
@@ -1182,15 +1216,16 @@ class _Packed(_PixelFormat):
 class _GroupPacked(_PixelFormat):
     def __init__(
             self, symbolic: str = None, nr_components: float = None,
-            unit_depth_in_bit: int = None):
+            unit_depth_in_bit: int = None, location: _Location = None):
         #
         super().__init__(
-            alignment=Alignment(
-                unpacked=Alignment.UINT16, packed=Alignment.UINT8
+            alignment=_Alignment(
+                unpacked=_DataSize.UINT16, packed=_DataSize.UINT8
             ),
             symbolic=symbolic,
             nr_components=nr_components,
-            unit_depth_in_bit=unit_depth_in_bit
+            unit_depth_in_bit=unit_depth_in_bit,
+            location=location
         )
 
 
@@ -1198,12 +1233,15 @@ class _GroupPacked(_PixelFormat):
 
 
 class _GroupPacked_10(_GroupPacked):
-    def __init__(self, symbolic: str = None, nr_components: float = None):
+    def __init__(
+            self, symbolic: str = None, nr_components: float = None,
+            location: _Location = None):
         #
         super().__init__(
             symbolic=symbolic,
             nr_components=nr_components,
-            unit_depth_in_bit=10
+            unit_depth_in_bit=10,
+            location=location
         )
 
     def expand(self, array: numpy.ndarray) -> numpy.ndarray:
@@ -1231,12 +1269,15 @@ class _GroupPacked_10(_GroupPacked):
 
 
 class _GroupPacked_12(_GroupPacked):
-    def __init__(self, symbolic: str = None, nr_components: float = None):
+    def __init__(
+            self, symbolic: str = None, nr_components: float = None,
+            location: _Location = None):
         #
         super().__init__(
             symbolic=symbolic,
             nr_components=nr_components,
-            unit_depth_in_bit=12
+            unit_depth_in_bit=12,
+            location=location
         )
 
     def expand(self, array: numpy.ndarray) -> numpy.ndarray:
@@ -1263,21 +1304,22 @@ class _GroupPacked_12(_GroupPacked):
         )
 
 
-
-
 # ----
 
 
 class _10p(_PixelFormat):
-    def __init__(self, symbolic: str = None, nr_components: float = None):
+    def __init__(
+            self, symbolic: str = None, nr_components: float = None,
+            location: _Location = None):
         #
         super().__init__(
             symbolic=symbolic,
-            alignment=Alignment(
-                unpacked=Alignment.UINT16, packed=Alignment.UINT8
+            alignment=_Alignment(
+                unpacked=_DataSize.UINT16, packed=_DataSize.UINT8
             ),
             nr_components=nr_components,
-            unit_depth_in_bit=10
+            unit_depth_in_bit=10,
+            location=location
         )
 
     def expand(self, array: numpy.ndarray) -> numpy.ndarray:
@@ -1309,15 +1351,18 @@ class _10p(_PixelFormat):
 
 
 class _12p(_PixelFormat):
-    def __init__(self, symbolic: str = None, nr_components: float = None):
+    def __init__(
+            self, symbolic: str = None, nr_components: float = None,
+            location: _Location = None):
         #
         super().__init__(
             symbolic=symbolic,
-            alignment=Alignment(
-                unpacked=Alignment.UINT16, packed=Alignment.UINT8
+            alignment=_Alignment(
+                unpacked=_DataSize.UINT16, packed=_DataSize.UINT8
             ),
             nr_components=nr_components,
-            unit_depth_in_bit=12
+            unit_depth_in_bit=12,
+            location=location
         )
 
     def expand(self, array: numpy.ndarray) -> numpy.ndarray:
@@ -1352,7 +1397,8 @@ class _Mono_10p(_10p):
         #
         super().__init__(
             symbolic=symbolic,
-            nr_components=1.
+            nr_components=1.,
+            location=_Location.MONO
         )
 
 
@@ -1361,7 +1407,8 @@ class _Mono_12p(_12p):
         #
         super().__init__(
             symbolic=symbolic,
-            nr_components=1.
+            nr_components=1.,
+            location = _Location.MONO
         )
 
 
@@ -1373,7 +1420,8 @@ class _Mono_GroupPacked_10(_GroupPacked_10):
         #
         super().__init__(
             symbolic=symbolic,
-            nr_components=1.
+            nr_components=1.,
+            location=_Location.MONO
         )
 
 
@@ -1382,7 +1430,8 @@ class _Mono_GroupPacked_12(_GroupPacked_12):
         #
         super().__init__(
             symbolic=symbolic,
-            nr_components=1.
+            nr_components=1.,
+            location=_Location.MONO
         )
 
 
@@ -1463,7 +1512,8 @@ class _LMN444_Unpacked_Uint8(_Unpacked_Uint8):
         super().__init__(
             symbolic=symbolic,
             nr_components=3.,
-            unit_depth_in_bit=unit_depth_in_bit
+            unit_depth_in_bit=unit_depth_in_bit,
+            location=_Location.LMN444
         )
 
 
@@ -1473,7 +1523,8 @@ class _LMN444_Unpacked_Uint16(_Unpacked_Uint16):
         super().__init__(
             symbolic=symbolic,
             nr_components=3.,
-            unit_depth_in_bit=unit_depth_in_bit
+            unit_depth_in_bit=unit_depth_in_bit,
+            location=_Location.LMN444
         )
 
 
@@ -1483,7 +1534,8 @@ class _LMN444_Unpacked_Float32(_Unpacked_Float32):
         super().__init__(
             symbolic=symbolic,
             nr_components=3.,
-            unit_depth_in_bit=unit_depth_in_bit
+            unit_depth_in_bit=unit_depth_in_bit,
+            location=_Location.LMN444
         )
 
 
@@ -1666,7 +1718,8 @@ class _LMN444_10p(_10p):
         #
         super().__init__(
             symbolic=symbolic,
-            nr_components=3.
+            nr_components=3.,
+            location=_Location.LMN444
         )
 
 
@@ -1675,7 +1728,8 @@ class _LMN444_12p(_12p):
         #
         super().__init__(
             symbolic=symbolic,
-            nr_components=3.
+            nr_components=3.,
+            location=_Location.LMN444
         )
 
 
@@ -1711,40 +1765,43 @@ class Coord3D_ABC12p_Planar(_LMN444_12p):
 
 class _LMN422(_PixelFormat):
     def __init__(
-            self, symbolic: str = None, alignment: Alignment = None,
+            self, symbolic: str = None, alignment: _Alignment = None,
             unit_depth_in_bit: int = None):
         #
         super().__init__(
             symbolic=symbolic,
             alignment=alignment,
             nr_components=2.,
-            unit_depth_in_bit=unit_depth_in_bit
+            unit_depth_in_bit=unit_depth_in_bit,
+            location=_Location.LMN422
         )
 
 
 class _LMN411(_PixelFormat):
     def __init__(
-            self, symbolic: str = None, alignment: Alignment = None,
+            self, symbolic: str = None, alignment: _Alignment = None,
             unit_depth_in_bit: int = None):
         #
         super().__init__(
             symbolic=symbolic,
             alignment=alignment,
             nr_components=1.5,
-            unit_depth_in_bit=unit_depth_in_bit
+            unit_depth_in_bit=unit_depth_in_bit,
+            location=_Location.LMN411
         )
 
 
 class _LMNO4444(_PixelFormat):
     def __init__(
-            self, symbolic: str = None, alignment: Alignment = None,
+            self, symbolic: str = None, alignment: _Alignment = None,
             unit_depth_in_bit: int = None):
         #
         super().__init__(
             symbolic=symbolic,
             alignment=alignment,
             nr_components=4.,
-            unit_depth_in_bit=unit_depth_in_bit
+            unit_depth_in_bit=unit_depth_in_bit,
+            location=_Location.LMNO4444
         )
 
 
@@ -1756,7 +1813,7 @@ class _LMN422_Unpacked_Uint8(_LMN422):
         #
         super().__init__(
             symbolic=symbolic,
-            alignment=Alignment(unpacked=Alignment.UINT8),
+            alignment=_Alignment(unpacked=_DataSize.UINT8),
             unit_depth_in_bit=unit_depth_in_bit
         )
 
@@ -1769,7 +1826,7 @@ class _LMN422_Unpacked_Uint16(_LMN422):
         #
         super().__init__(
             symbolic=symbolic,
-            alignment=Alignment(unpacked=Alignment.UINT16),
+            alignment=_Alignment(unpacked=_DataSize.UINT16),
             unit_depth_in_bit=unit_depth_in_bit
         )
 
@@ -1782,7 +1839,7 @@ class _LMN411_Unpacked_Uint8(_LMN411):
         #
         super().__init__(
             symbolic=symbolic,
-            alignment=Alignment(unpacked=Alignment.UINT8),
+            alignment=_Alignment(unpacked=_DataSize.UINT8),
             unit_depth_in_bit=unit_depth_in_bit
         )
 
@@ -1795,7 +1852,7 @@ class _LMNO4444_Unpacked_Uint8(_LMNO4444):
         #
         super().__init__(
             symbolic=symbolic,
-            alignment=Alignment(unpacked=Alignment.UINT8),
+            alignment=_Alignment(unpacked=_DataSize.UINT8),
             unit_depth_in_bit=unit_depth_in_bit
         )
 
@@ -1811,7 +1868,8 @@ class _LMN422_GroupPacked_10(_GroupPacked_10):
         #
         super().__init__(
             symbolic=symbolic,
-            nr_components=3
+            nr_components=3,
+            location=_Location.LMN422
         )
 
 
@@ -1820,7 +1878,8 @@ class _LMN422_GroupPacked_12(_GroupPacked_12):
         #
         super().__init__(
             symbolic=symbolic,
-            nr_components=3
+            nr_components=3,
+            location=_Location.LMN422
         )
 
 
@@ -1829,7 +1888,8 @@ class _LMN422_10p(_10p):
         #
         super().__init__(
             symbolic=symbolic,
-            nr_components=3
+            nr_components=3,
+            location=_Location.LMN422
         )
 
 
@@ -1838,7 +1898,8 @@ class _LMN422_12p(_12p):
         #
         super().__init__(
             symbolic=symbolic,
-            nr_components=2
+            nr_components=2,
+            location=_Location.LMN422
         )
 
 
@@ -2204,7 +2265,7 @@ class _LMNO4444_Unpacked_Uint16(_LMNO4444):
         #
         super().__init__(
             symbolic=symbolic,
-            alignment=Alignment(unpacked=Alignment.UINT16),
+            alignment=_Alignment(unpacked=_DataSize.UINT16),
             unit_depth_in_bit=unit_depth_in_bit
         )
 
@@ -2217,7 +2278,8 @@ class _LMNO4444_10p(_10p):
         #
         super().__init__(
             symbolic=symbolic,
-            nr_components=4.
+            nr_components=4.,
+            location=_Location.LMNO4444
         )
 
 
@@ -2226,7 +2288,8 @@ class _LMNO4444_12p(_12p):
         #
         super().__init__(
             symbolic=symbolic,
-            nr_components=4.
+            nr_components=4.,
+            location=_Location.LMNO4444
         )
 
 
@@ -2349,14 +2412,15 @@ class BGRa12p(_LMNO4444_12p):
 
 class _LM44(_PixelFormat):
     def __init__(
-            self, symbolic: str = None, alignment: Alignment = None,
+            self, symbolic: str = None, alignment: _Alignment = None,
             unit_depth_in_bit: int = None):
         #
         super().__init__(
             symbolic=symbolic,
             alignment=alignment,
             nr_components=2.,
-            unit_depth_in_bit=unit_depth_in_bit
+            unit_depth_in_bit=unit_depth_in_bit,
+            location=_Location.LM44
         )
 
 
@@ -2365,7 +2429,7 @@ class _LM44_Unpacked_Float32(_LM44):
         #
         super().__init__(
             symbolic=symbolic,
-            alignment=Alignment(unpacked=Alignment.FLOAT32),
+            alignment=_Alignment(unpacked=_DataSize.FLOAT32),
             unit_depth_in_bit=unit_depth_in_bit
         )
 
@@ -2396,7 +2460,8 @@ class _LM44_10p(_10p):
         #
         super().__init__(
             symbolic=symbolic,
-            nr_components=2
+            nr_components=2,
+            location=_Location.LM44
         )
 
     def expand(self, array: numpy.ndarray) -> numpy.ndarray:
@@ -2408,7 +2473,8 @@ class _LM44_12p(_12p):
         #
         super().__init__(
             symbolic=symbolic,
-            nr_components=2
+            nr_components=2,
+            location=_Location.LM44
         )
 
     def expand(self, array: numpy.ndarray) -> numpy.ndarray:
@@ -2420,7 +2486,7 @@ class _LM44_Unpacked_Uint8(_LM44):
         #
         super().__init__(
             symbolic=symbolic,
-            alignment=Alignment(unpacked=Alignment.UINT8),
+            alignment=_Alignment(unpacked=_DataSize.UINT8),
             unit_depth_in_bit=unit_depth_in_bit
         )
 
@@ -2433,7 +2499,7 @@ class _LM44_Unpacked_Uint16(_LM44):
         #
         super().__init__(
             symbolic=symbolic,
-            alignment=Alignment(unpacked=Alignment.UINT16),
+            alignment=_Alignment(unpacked=_DataSize.UINT16),
             unit_depth_in_bit=unit_depth_in_bit
         )
 
@@ -2539,14 +2605,15 @@ class Coord3D_AC16_Planar(_LM44_Unpacked_Uint16_16):
 
 class _Bayer(_PixelFormat):
     def __init__(
-            self, symbolic: str = None, alignment: Alignment = None,
+            self, symbolic: str = None, alignment: _Alignment = None,
             unit_depth_in_bit: int = None):
         #
         super().__init__(
             symbolic=symbolic,
             alignment=alignment,
             nr_components=1.,
-            unit_depth_in_bit=unit_depth_in_bit
+            unit_depth_in_bit=unit_depth_in_bit,
+            location=_Location.BAYER
         )
 
 
@@ -2558,7 +2625,7 @@ class _Bayer_Unpacked_Uint8(_Bayer):
         #
         super().__init__(
             symbolic=symbolic,
-            alignment=Alignment(unpacked=Alignment.UINT8),
+            alignment=_Alignment(unpacked=_DataSize.UINT8),
             unit_depth_in_bit=8
         )
 
@@ -2571,7 +2638,7 @@ class _Bayer_Unpacked_Uint16(_Bayer):
         #
         super().__init__(
             symbolic=symbolic,
-            alignment=Alignment(unpacked=Alignment.UINT16),
+            alignment=_Alignment(unpacked=_DataSize.UINT16),
             unit_depth_in_bit=unit_depth_in_bit
         )
 
@@ -2716,7 +2783,8 @@ class _Bayer_GroupPacked_10(_GroupPacked_10):
         #
         super().__init__(
             symbolic=symbolic,
-            nr_components=1
+            nr_components=1,
+            location=_Location.BAYER
         )
 
 
@@ -2725,7 +2793,8 @@ class _Bayer_GroupPacked_12(_GroupPacked_12):
         #
         super().__init__(
             symbolic=symbolic,
-            nr_components=1
+            nr_components=1,
+            location=_Location.BAYER
         )
 
 
@@ -2734,7 +2803,8 @@ class _Bayer_10p(_10p):
         #
         super().__init__(
             symbolic=symbolic,
-            nr_components=1
+            nr_components=1,
+            location=_Location.BAYER
         )
 
 
@@ -2743,7 +2813,8 @@ class _Bayer_12p(_12p):
         #
         super().__init__(
             symbolic=symbolic,
-            nr_components=1
+            nr_components=1,
+            location=_Location.BAYER
         )
 
 
@@ -2846,7 +2917,7 @@ class BayerRG12p(_Bayer_12p):
         super().__init__(symbolic='BayerRG12p')
 
 
-class NpArrayFactory:
+class Dictionary:
     _pixel_formats = [
         Mono8(),
         Mono8s(),

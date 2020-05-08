@@ -1839,7 +1839,7 @@ class ImageAcquirer:
             self._logger.info('Created a signal handler for SIGINT.')
 
         #
-        self._num_images_to_acquire = -1
+        self._num_images_to_acquire = 0
 
         #
         self._timeout_for_image_acquisition = 1  # ms
@@ -2187,6 +2187,13 @@ class ImageAcquirer:
         """
         return self._is_acquiring
 
+    def is_armed(self) -> bool:
+        if not self.is_acquiring() or \
+                self.is_acquiring() and self._num_images_to_acquire == 0:
+            return False
+        else:
+            return True
+
     @property
     def timeout_for_image_acquisition(self) -> int:
         """
@@ -2280,83 +2287,102 @@ class ImageAcquirer:
 
         :return: None.
         """
-        if not self._create_ds_at_connection:
-            self._setup_data_streams()
 
         #
-        num_required_buffers = self._num_buffers
-        for data_stream in self._data_streams:
+        if not self.is_acquiring():
+            self._num_images_to_acquire = 0
+
+        # Refill the number of images to be acquired if needed:
+        if self._num_images_to_acquire == 0:
+            # In this case, the all images have been acquired from the
+            # previous session; now we refill the number of the images
+            # to acquire in the next session:
             try:
-                num_buffers = data_stream.buffer_announce_min
-                if num_buffers < num_required_buffers:
-                    num_buffers = num_required_buffers
+                acq_mode = self.remote_device.node_map.AcquisitionMode.value
             except GenericException as e:
-                num_buffers = num_required_buffers
+                # The node doesn't exist.
+                num_images_to_acquire = -1
                 self._logger.debug(e, exc_info=True)
-
-            if data_stream.defines_payload_size():
-                buffer_size = data_stream.payload_size
             else:
-                buffer_size = self.remote_device.node_map.PayloadSize.value
+                if acq_mode == 'Continuous':
+                    num_images_to_acquire = -1
+                elif acq_mode == 'SingleFrame':
+                    num_images_to_acquire = 1
+                elif acq_mode == 'MultiFrame':
+                    num_images_to_acquire = \
+                        self.remote_device.node_map.AcquisitionFrameCount.value
+                else:
+                    num_images_to_acquire = -1
 
-            raw_buffers = self._create_raw_buffers(
-                num_buffers, buffer_size
-            )
+            self._num_images_to_acquire = num_images_to_acquire
 
-            buffer_tokens = self._create_buffer_tokens(
-                raw_buffers
-            )
+        if not self.is_armed():
+            # In this case, we have not armed our GenTL Producer yet for
+            # the coming image acquisition; let's arm it:
 
-            self._announced_buffers = self._announce_buffers(
-                data_stream=data_stream, _buffer_tokens=buffer_tokens
-            )
+            #
+            if not self._create_ds_at_connection:
+                self._setup_data_streams()
 
-            self._queue_announced_buffers(
-                data_stream=data_stream, buffers=self._announced_buffers
-            )
+            #
+            for ds in self._data_streams:
+                if ds.defines_payload_size():
+                    buffer_size = ds.payload_size
+                else:
+                    buffer_size = self.remote_device.node_map.PayloadSize.value
 
-        # Reset the number of images to acquire.
-        try:
-            acq_mode = self.remote_device.node_map.AcquisitionMode.value
-            if acq_mode == 'Continuous':
-                num_images_to_acquire = -1
-            elif acq_mode == 'SingleFrame':
-                num_images_to_acquire = 1
-            elif acq_mode == 'MultiFrame':
-                num_images_to_acquire = \
-                    self.remote_device.node_map.AcquisitionFrameCount.value
-            else:
-                num_images_to_acquire = -1
-        except GenericException as e:
-            # The node doesn't exist.
-            num_images_to_acquire = -1
-            self._logger.debug(e, exc_info=True)
+                #
+                num_required_buffers = self._num_buffers
+                try:
+                    num_buffers = ds.buffer_announce_min
+                    if num_buffers < num_required_buffers:
+                        num_buffers = num_required_buffers
+                except GenericException as e:
+                    num_buffers = num_required_buffers
+                    self._logger.debug(e, exc_info=True)
 
-        self._num_images_to_acquire = num_images_to_acquire
+                # The number of buffers must be greater than or equal to
+                # the number of images to acquire:
+                num_buffers = max(num_buffers, self._num_images_to_acquire)
 
-        try:
-            # We're ready to start image acquisition. Lock the device's
-            # transport layer related features:
-            self.remote_device.node_map.TLParamsLocked.value = 1
-        except GenericException:
-            # SFNC < 2.0
-            pass
+                raw_buffers = self._create_raw_buffers(
+                    num_buffers, buffer_size
+                )
 
-        # Start image acquisition.
-        self._is_acquiring = True
+                buffer_tokens = self._create_buffer_tokens(
+                    raw_buffers
+                )
 
-        for data_stream in self._data_streams:
-            data_stream.start_acquisition(
-                ACQ_START_FLAGS_LIST.ACQ_START_FLAGS_DEFAULT,
-                self._num_images_to_acquire
-            )
+                self._announced_buffers = self._announce_buffers(
+                    data_stream=ds, _buffer_tokens=buffer_tokens
+                )
 
-        #
-        if run_in_background:
-            if self.thread_image_acquisition:
-                self.thread_image_acquisition.start()
+                self._queue_announced_buffers(
+                    data_stream=ds, buffers=self._announced_buffers
+                )
 
-        #
+                # We're ready to start image acquisition. Lock the device's
+                # transport layer related features:
+                try:
+                    self.remote_device.node_map.TLParamsLocked.value = 1
+                except GenericException:
+                    # SFNC < 2.0
+                    pass
+
+                # Run GenTL Producer's image acquisition engine:
+                ds.start_acquisition(
+                    ACQ_START_FLAGS_LIST.ACQ_START_FLAGS_DEFAULT, -1
+                )
+
+            # Start image acquisition.
+            self._is_acquiring = True
+
+            #
+            if run_in_background:
+                if self.thread_image_acquisition:
+                    self.thread_image_acquisition.start()
+
+        # Start image acquisition on the device side:
         self.remote_device.node_map.AcquisitionStart.execute()
 
         self._logger.info(

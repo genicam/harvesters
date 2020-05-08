@@ -614,6 +614,32 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         for _ in range(self.num_images):
             self.generate_software_trigger(sleep_s=self.sleep_duration)
 
+    def test_issue_150(self):
+        # Create an image acquirer:
+        self.ia = self.harvester.create_image_acquirer(0)
+
+        # TLSimu does not support SingleFrame in reality:
+        # modes = ["SingleFrame", "Continuous"]
+
+        # Test only "Continuous":
+        modes = ["Continuous"]
+        for mode in modes:
+            self.ia.remote_device.node_map.AcquisitionMode.value = mode
+
+            for i in range(32):
+                # Then start it:
+                self.ia.start_acquisition()
+
+                # Fetch a buffer to make sure it's working:
+                with self.ia.fetch_buffer() as buffer:
+                    self._logger.info('{0}'.format(buffer))
+
+            # Then stop image acquisition:
+            self.ia.stop_acquisition()
+
+        # And destroy the ImageAcquirer:
+        self.ia.destroy()
+
 
 class _TestIssue81(threading.Thread):
     def __init__(self, message_queue=None, cti_file_path=None):

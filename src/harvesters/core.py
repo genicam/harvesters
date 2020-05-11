@@ -1188,19 +1188,13 @@ class Buffer:
         :getter: Returns itself.
         :type: int
         """
-        timestamp = 0
         try:
             timestamp = self._buffer.timestamp_ns
         except GenericException:
             try:
-                _ = self.timestamp_frequency
+                timestamp = self._buffer.timestamp
             except GenericException:
-                pass
-            else:
-                try:
-                    timestamp = self._buffer.timestamp
-                except GenericException:
-                    timestamp = 0
+                timestamp = 0
 
         return timestamp
 

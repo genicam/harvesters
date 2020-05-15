@@ -23,6 +23,7 @@ from collections.abc import Iterable
 from datetime import datetime
 from enum import IntEnum
 import io
+import itertools
 from logging import Logger
 import ntpath
 import os
@@ -324,6 +325,7 @@ class System(Module):
     def __init__(
             self,
             module=None, node_map: Optional[NodeMap] = None, parent=None):
+        assert parent is None
         super().__init__(module=module, node_map=node_map, parent=parent)
 
 
@@ -1751,54 +1753,48 @@ class ImageAcquirer:
             self._xml_dir = None
 
         #
-        try:
-            node_map = _get_port_connected_node_map(
-                port=system.port, logger=self._logger,
-                xml_dir_to_store=self._xml_dir
-            )
-        except GenericException as e:
-            self._logger.error(e, exc_info=True)
-        else:
-            self._system = System(module=system, node_map=node_map)
+        exceptions = (GenericException, LogicalErrorException)
 
-        #
-        try:
-            node_map = _get_port_connected_node_map(
-                port=interface.port, logger=self._logger,
-                xml_dir_to_store=self._xml_dir
-            )
-        except GenericException as e:
-            self._logger.error(e, exc_info=True)
-        else:
-            self._interface = Interface(
-                module=interface, node_map=node_map, parent=self._system
+        self._system = None
+        self._interface = None
+        self._device = None
+        self._remote_device = None
+
+        sources = [system, interface, device, device]
+        ports = [
+            system.port, interface.port, device.local_port, device.remote_port
+        ]
+        destinations = [
+            '_system', '_interface', '_device', '_remote_device'
+        ]
+        ctors = [System, Interface, Device, RemoteDevice]
+        parents = [None, self._system, self._interface, self._device]
+        file_paths = [None, None, None, file_path]
+
+        for (ctor, destination, file_path_, parent, port, source) in \
+                zip(ctors, destinations, file_paths, parents, ports, sources):
+            #
+            try:
+                node_map = _get_port_connected_node_map(
+                    port=port, logger=self._logger,
+                    xml_dir_to_store=self._xml_dir, file_path=file_path_
+                )
+            except exceptions as e:
+                # Accept a case where the target GenTL entity does not
+                # provide any device description XML file:
+                self._logger.error(e, exc_info=True)
+                node_map = None
+            #
+            setattr(
+                self, destination, ctor(
+                    module=source, node_map=node_map, parent=parent
+                )
             )
 
-        #
-        try:
-            node_map = _get_port_connected_node_map(
-                port=device.local_port, logger=self._logger,
-                xml_dir_to_store=self._xml_dir
-            )  # Local device's node map
-        except GenericException as e:
-            self._logger.error(e, exc_info=True)
-        else:
-            self._device = Device(
-                module=device, node_map=node_map, parent=self._interface
-            )
-
-        #
-        try:
-            node_map = _get_port_connected_node_map(
-                port=device.remote_port, logger=self._logger,
-                file_path=file_path, xml_dir_to_store=self._xml_dir
-            )  # Remote device's node map
-        except GenericException as e:
-            self._logger.error(e, exc_info=True)
-        else:
-            self._remote_device = RemoteDevice(
-                module=self._device, node_map=node_map, parent=self._device
-            )
+        if self._remote_device:
+            # Providing an device description file is mandatory for
+            # a GenICam compliant cameras (= remote devices):
+            assert self._remote_device.node_map
 
         #
         self._data_streams = []
@@ -1965,7 +1961,7 @@ class ImageAcquirer:
             id_ = self._device.id_
             #
             if self.remote_device.node_map:
-                self.device.node_map.disconnect()
+                self.remote_device.node_map.disconnect()
             #
             if self._device.is_open():
                 self._device.close()
@@ -2238,26 +2234,31 @@ class ImageAcquirer:
                     )
                 )
 
+            #
+            exceptions = (GenericException, LogicalErrorException)
             try:
                 node_map = _get_port_connected_node_map(
                     port=_data_stream.port, logger=self._logger
                 )
-            except GenericException as e:
+            except exceptions as e:
+                # Accept a case where the target GenTL entity does not
+                # provide any device description XML file:
                 self._logger.error(e, exc_info=True)
-            else:
-                self._data_streams.append(
-                    DataStream(
-                        module=_data_stream, node_map=node_map,
-                        parent=self._device
-                    )
+                node_map = None
+
+            self._data_streams.append(
+                DataStream(
+                    module=_data_stream, node_map=node_map,
+                    parent=self._device
                 )
-                # Create an Event Manager object for image acquisition.
-                event_token = self._data_streams[i].register_event(
-                    EVENT_TYPE_LIST.EVENT_NEW_BUFFER
-                )
-                self._event_new_buffer_managers.append(
-                    EventManagerNewBuffer(event_token)
-                )
+            )
+            # Create an Event Manager object for image acquisition.
+            event_token = self._data_streams[i].register_event(
+                EVENT_TYPE_LIST.EVENT_NEW_BUFFER
+            )
+            self._event_new_buffer_managers.append(
+                EventManagerNewBuffer(event_token)
+            )
 
     def start_image_acquisition(self, run_in_background=False):
         """

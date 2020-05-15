@@ -987,7 +987,10 @@ class Component2DImage(ComponentBase):
             else:
                 value = self._buffer.width
         except GenericException:
-            value = self._node_map.Width.value
+            try:
+                value = self._node_map.Width.value
+            except AttributeError:
+                value = 0
         return value
 
     @property
@@ -1003,8 +1006,13 @@ class Component2DImage(ComponentBase):
                 value = self._part.height
             else:
                 value = self._buffer.height
+                if value == 0:
+                    value = self._buffer.delivered_image_height
         except GenericException:
-            value = self._node_map.Height.value
+            try:
+                value = self._node_map.Height.value
+            except AttributeError:
+                value = 0
         return value
 
     @property

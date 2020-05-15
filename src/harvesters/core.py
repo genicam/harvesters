@@ -23,7 +23,6 @@ from collections.abc import Iterable
 from datetime import datetime
 from enum import IntEnum
 import io
-import itertools
 from logging import Logger
 import ntpath
 import os

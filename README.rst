@@ -237,6 +237,7 @@ https://github.com/genicam/harvesters_gui
 Announcements
 *************
 
+- **Version 1.2.1**: Resolves issues `#145 <https://github.com/genicam/harvesters/issues/145>`_, `#155 <https://github.com/genicam/harvesters/issues/155>`_, `#157 <https://github.com/genicam/harvesters/issues/157>`_, and `#159 <https://github.com/genicam/harvesters/issues/159>`_.
 - **Version 1.2.0**: Resolves issues `#127 <https://github.com/genicam/harvesters/issues/127>`_, `#131 <https://github.com/genicam/harvesters/issues/131>`_, `#141 <https://github.com/genicam/harvesters/issues/141>`_, and `#142 <https://github.com/genicam/harvesters/issues/142>`_. The fix for ticket #131 improves the performance of both stability and capable acquisition rate of the image acquisition.
 - **Version 1.1.1**: Resolves issue `#126 <https://github.com/genicam/harvesters/issues/126>`_.
 - **Version 1.1.0**: Resolves issue `#120 <https://github.com/genicam/harvesters/issues/120>`_.

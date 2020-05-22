@@ -64,12 +64,8 @@ from harvesters._private.core.port import ConcretePort
 from harvesters._private.core.statistics import Statistics
 from harvesters.util.logging import get_logger
 from harvesters.util.pfnc import dict_by_names, dict_by_ints
-from harvesters.util.pfnc import uint16_formats, uint32_formats, \
-    float32_formats, uint8_formats
+from harvesters.util.pfnc import Dictionary
 from harvesters.util.pfnc import component_2d_formats
-from harvesters.util.pfnc import lmn_444_location_formats, \
-    lmno_4444_location_formats, lmn_422_location_formats, \
-    lmn_411_location_formats, mono_location_formats, bayer_location_formats
 
 
 _is_logging_buffer_manipulation = True if 'HARVESTERS_LOG_BUFFER_MANIPULATION' in os.environ else False
@@ -461,6 +457,7 @@ class ThreadBase:
         #
         self._mutex = mutex
         self._is_running = False
+        self._id = None
 
     def start(self) -> None:
         self._internal_start()
@@ -479,10 +476,9 @@ class ThreadBase:
         raise NotImplementedError
 
     def stop(self) -> None:
-        id_ = self.id_
         self._internal_stop()
         self._logger.debug(
-            'Stopped thread {:0X}.'.format(id_)
+            'Stopped thread {:0X}.'.format(self.id_)
         )
 
     def join(self):
@@ -539,15 +535,7 @@ class ThreadBase:
 
     @property
     def id_(self) -> int:
-        """
-        The thread ID.
-
-        This method is abstract and should be reimplemented in any sub-class.
-
-        :getter: Returns itself.
-        :type: int
-        """
-        raise NotImplementedError
+        return self._id
 
 
 class MutexLocker:
@@ -612,6 +600,7 @@ class _ImageAcquisitionThread(ThreadBase):
             thread_owner=self, worker=self._worker,
             sleep_duration=self._sleep_duration
         )
+        self._id = self._thread.id_
 
         # Start running its worker method.
         self._is_running = True
@@ -840,100 +829,26 @@ class Component2DImage(ComponentBase):
         #
         self._part = part
         self._node_map = node_map
-        self._data = None
-        self._num_components_per_pixel = 0
+        proxy = Dictionary.get_proxy(symbolic=self.data_format)
+        self._nr_components = proxy.nr_components
+        self._data = self._to_np_array(proxy)
 
-        symbolic = self.data_format
-
-        # Determine the data type:
-        if self.x_padding > 0:
-            # In this case, the client will have to trim the padding part.
-            # so we create a NumPy array that consists of uint8 elements
-            # first. The client will interpret the array in an appropriate
-            # dtype in the end once he trimmed:
-            dtype = 'uint8'
-            bytes_per_pixel_data_component = 1
-        else:
-            if symbolic in uint16_formats:
-                dtype = 'uint16'
-                bytes_per_pixel_data_component = 2
-            elif symbolic in uint32_formats:
-                dtype = 'uint32'
-                bytes_per_pixel_data_component = 4
-            elif symbolic in float32_formats:
-                dtype = 'float32'
-                bytes_per_pixel_data_component = 4
-            elif symbolic in uint8_formats:
-                dtype = 'uint8'
-                bytes_per_pixel_data_component = 1
-            else:
-                # Sorry, Harvester can't handle this:
-                self._data = None
-                return
-
-        # Determine the number of components per pixel:
-        if symbolic in lmn_444_location_formats:
-            num_components_per_pixel = 3.
-        elif symbolic in lmn_422_location_formats:
-            num_components_per_pixel = 2.
-        elif symbolic in lmn_411_location_formats:
-            num_components_per_pixel = 1.5
-        elif symbolic in lmno_4444_location_formats:
-            num_components_per_pixel = 4.
-        elif symbolic in mono_location_formats or \
-                symbolic in bayer_location_formats:
-            num_components_per_pixel = 1.
-        else:
-            # Sorry, Harvester can't handle this:
-            self._data = None
-            return
-
-        self._num_components_per_pixel = num_components_per_pixel
-        self._symbolic = symbolic
-
+    def _to_np_array(self, pf_proxy):
         #
-        width = self.width
-        height = self.height
-
-        #
-        if self._part:
+        if self.has_part():
             count = self._part.data_size
-            count //= bytes_per_pixel_data_component
-            data_offset = self._part.data_offset
+            count //= (pf_proxy.depth_in_byte / pf_proxy.nr_components)
         else:
-            count = width * height
-            count *= num_components_per_pixel
-            count += self.y_padding
-            data_offset = 0
+            count = self._buffer.width * self._buffer.height
+            count *= pf_proxy.nr_components
+            count += self._buffer.padding_y
 
-        # Convert the Python's built-in bytes array to a Numpy array:
-        if _is_logging_buffer_manipulation:
-            self._logger.debug(
-                'Component 2D image ('
-                'len(raw_buffer): {0}, '
-                'int(count): {1}, '
-                'dtype: {2}, '
-                'offset: {3}, '
-                'pixel format: {4},'
-                'x padding: {5},'
-                'y padding: {6}'
-                ')'.format(
-                    len(self._buffer.raw_buffer),
-                    int(count),
-                    dtype,
-                    data_offset,
-                    symbolic,
-                    self.x_padding,
-                    self.y_padding,
-                )
-            )
-
-        self._data = numpy.frombuffer(
-            self._buffer.raw_buffer,
-            count=int(count),
-            dtype=dtype,
-            offset=data_offset
+        array = numpy.frombuffer(
+            self._buffer.raw_buffer, count=int(count),
+            dtype='uint8',
+            offset=self.data_offset
         )
+        return pf_proxy.expand(array)
 
     def represent_pixel_location(self) -> Optional[numpy.ndarray]:
         """
@@ -952,7 +867,7 @@ class Component2DImage(ComponentBase):
         #
         return self._data.reshape(
             self.height + self.y_padding,
-            int(self.width * self._num_components_per_pixel + self.x_padding)
+            int(self.width * self._nr_components + self.x_padding)
         )
 
     @property
@@ -963,7 +878,7 @@ class Component2DImage(ComponentBase):
         :getter: Returns itself.
         :type: float
         """
-        return self._num_components_per_pixel
+        return self._nr_components
 
     def __repr__(self):
         return '{0} x {1}, {2}, {3} elements,\n{4}'.format(
@@ -1129,6 +1044,16 @@ class Component2DImage(ComponentBase):
         except GenericException:
             value = 0
         return value
+
+    def has_part(self):
+        return self._part is not None
+
+    @property
+    def data_offset(self):
+        if self.has_part():
+            return self._part.data_offset
+        else:
+            return 0
 
 
 class Buffer:

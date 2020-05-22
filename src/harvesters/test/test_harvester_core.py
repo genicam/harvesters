@@ -32,6 +32,7 @@ from urllib.parse import quote
 
 # Related third party imports
 from genicam.gentl import TimeoutException
+import numpy as np
 
 # Local application/library specific imports
 from harvesters.test.base_harvester import TestHarvesterCoreBase
@@ -41,6 +42,7 @@ from harvesters.core import Callback
 from harvesters.core import Harvester
 from harvesters.core import ImageAcquirer
 from harvesters.test.helper import get_package_dir
+from harvesters.util.pfnc import Dictionary
 
 
 class TestHarvesterCore(TestHarvesterCoreBase):
@@ -613,6 +615,58 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         # Trigger the target device:
         for _ in range(self.num_images):
             self.generate_software_trigger(sleep_s=self.sleep_duration)
+
+    def test_issue_146(self):
+        #
+        tests = [
+            self._test_issue_146_group_packed_10,
+            self._test_issue_146_group_packed_12,
+            self._test_issue_146_packed_10,
+            self._test_issue_146_packed_12,
+        ]
+        #
+        for test in tests:
+            test()
+
+    def _test_issue_146_group_packed_10(self):
+        _1st = 0xff
+        _3rd = 0xff
+        ba = bytes([_1st, 0x33, _3rd])
+        packed = np.frombuffer(ba, dtype=np.uint8)
+        pf = Dictionary.get_proxy('BayerRG10Packed')
+        unpacked = pf.expand(packed)
+        self.assertEqual(_1st * 4 + 3, unpacked[0])
+        self.assertEqual(_3rd * 4 + 3, unpacked[1])
+
+    def _test_issue_146_group_packed_12(self):
+        _1st = 0xff
+        _3rd = 0xff
+        ba = bytes([_1st, 0xff, _3rd])
+        packed = np.frombuffer(ba, dtype=np.uint8)
+        pf = Dictionary.get_proxy('BayerRG12Packed')
+        unpacked = pf.expand(packed)
+        self.assertEqual(_1st * 16 + 0xf, unpacked[0])
+        self.assertEqual(_3rd * 16 + 0xf, unpacked[1])
+
+    def _test_issue_146_packed_10(self):
+        element = 0xff
+        ba = bytes([element, element, element, element])
+        packed = np.frombuffer(ba, dtype=np.uint8)
+        pf = Dictionary.get_proxy('Mono10p')
+        unpacked = pf.expand(packed)
+        self.assertEqual(0x3ff, unpacked[0])
+        self.assertEqual(0x3ff, unpacked[1])
+        self.assertEqual(0x7ff, unpacked[2])
+
+    def _test_issue_146_packed_12(self):
+        _1st = 0xff
+        _3rd = 0xff
+        ba = bytes([_1st, 0xff, _3rd])
+        packed = np.frombuffer(ba, dtype=np.uint8)
+        pf = Dictionary.get_proxy('Mono12p')
+        unpacked = pf.expand(packed)
+        self.assertEqual(0xf * 256 + _1st, unpacked[0])
+        self.assertEqual(_3rd * 16 + 0xf, unpacked[1])
 
 
 class _TestIssue81(threading.Thread):

@@ -46,7 +46,7 @@ if sys.version_info in supported_versions:
 with open('README.rst', 'r',encoding='utf-8_sig') as fh:
     __doc__ = fh.read()
 
-description = 'Pythonic Image Acquisition Library for Machine Vision People'
+description = '🌈 Friendly Image Acquisition Library for Computer Vision People'
 
 # Determine the base directory:
 base_dir = os.path.dirname(__file__)

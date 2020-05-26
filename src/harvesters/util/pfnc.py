@@ -1146,7 +1146,7 @@ class Coord3D_A32f(_Mono_Unpacked_Float32):
 class Coord3D_B32f(_Mono_Unpacked_Float32):
     def __init__(self):
         #
-        super().__init__(symbolic='coord3d_b32f')
+        super().__init__(symbolic='Coord3D_B32f')
 
 
 class Coord3D_C32f(_Mono_Unpacked_Float32):

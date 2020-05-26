@@ -836,15 +836,14 @@ class Component2DImage(ComponentBase):
     def _to_np_array(self, pf_proxy):
         #
         if self.has_part():
-            count = self._part.data_size
-            count //= (pf_proxy.depth_in_byte / pf_proxy.nr_components)
+            nr_bytes = self._part.data_size
         else:
-            count = self._buffer.width * self._buffer.height
-            count *= pf_proxy.nr_components
-            count += self._buffer.padding_y
+            nr_bytes = self._buffer.width * self._buffer.height
+            nr_bytes *= pf_proxy.nr_components
+            nr_bytes += self._buffer.padding_y
 
         array = numpy.frombuffer(
-            self._buffer.raw_buffer, count=int(count),
+            self._buffer.raw_buffer, count=int(nr_bytes),
             dtype='uint8',
             offset=self.data_offset
         )

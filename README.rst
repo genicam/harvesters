@@ -163,7 +163,7 @@ Note that we as the committee have not prepared any formal certification procedu
       - Not tested
       - Worked
       - Worked
-    - - `MATRIX VISION <https://www.matrix-vision.com/home-en.html>`_
+    - - `MATRIX VISION GmbH <https://www.matrix-vision.com/home-en.html>`_
       - Not applicable
       - Worked
       - Worked
@@ -301,7 +301,7 @@ As of today, we have tested Harvester with the following GenTL Producers and it 
 
     - - Company Name
       - SDK Name
-      - Camera Manufacture Free
+      - Camera Manufacturer Free
     - - Basler AG
       - `Pylon <https://www.baslerweb.com/en/products/software/basler-pylon-camera-software-suite/>`_
       - No
@@ -314,8 +314,8 @@ As of today, we have tested Harvester with the following GenTL Producers and it 
     - - JAI
       - `JAI SDK <https://www.jai.com/support-software/jai-software>`_
       - Yes
-    - - Matrix Vision
-      - `mvIMPACT_Acquire <http://static.matrix-vision.com/mvIMPACT_Acquire/>`_
+    - - MATRIX VISION GmbH
+      - `mvIMPACT Acquire <http://static.matrix-vision.com/mvIMPACT_Acquire/>`_
       - Yes
     - - OMRON SENTECH
       - `StCamUSBPack <https://sentech.co.jp/data/#cnt2nd>`_

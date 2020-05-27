@@ -535,16 +535,6 @@ Note that the second item implies you can involve multiple types of transport la
 
 On the other hand, Harvester Core could be considered as a simplified version of the GenTL-Python Binding; actually, Harvester Core hides it in its back and shows only intuitive interfaces to its clients. Harvester Core just offers you a relationship between you and a remote device. Nothing more. We say it again, just you and a remote device. If you need to manipulate more relevant GenTL modules or have to achieve something over a hardcore way, then you should directly work with the GenTL-Python Binding.
 
-******************************************
-Pixel Formats That Harvester Core Supports
-******************************************
-
-Currently, Harvester Core supports the following pixel formats that are defined by the Pixel Format Naming Convention:
-
-    ``Mono8``, ``Mono10``, ``Mono12``, ``Mono16``, ``RGB8``, ``RGBa8``, ``BayerRG8``, ``BayerGR8``, ``BayerBG8``, ``BayerGB8``, ``BayerRG16``, ``BayerGR16``, ``BayerBG16``, ``BayerGB16``
-
-Note that Harvester does not support packed formats which allow multiple elements of information reside in a byte data.
-
 *************************
 Harvester Core on IPython
 *************************

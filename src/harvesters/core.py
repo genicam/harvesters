@@ -840,6 +840,7 @@ class Component2DImage(ComponentBase):
         else:
             nr_bytes = self._buffer.width * self._buffer.height
             nr_bytes *= pf_proxy.nr_components
+            nr_bytes *= pf_proxy.alignment.unpacked_size
             nr_bytes += self._buffer.padding_y
 
         array = numpy.frombuffer(

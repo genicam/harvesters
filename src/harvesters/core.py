@@ -841,7 +841,11 @@ class Component2DImage(ComponentBase):
             nr_bytes = self._buffer.width * self._buffer.height
             nr_bytes *= pf_proxy.nr_components
             nr_bytes *= pf_proxy.alignment.unpacked_size
-            nr_bytes += self._buffer.padding_y
+            try:
+                padding_y = self._buffer.padding_y
+            except NotImplementedException:
+                padding_y = 0
+            nr_bytes += padding_y
 
         array = numpy.frombuffer(
             self._buffer.raw_buffer, count=int(nr_bytes),

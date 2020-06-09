@@ -525,6 +525,7 @@ component_2d_formats = [
     'Mono8',
     'Mono10',
     'Mono12',
+    'Mono12Packed',
     'Mono14',
     'Mono16',
     #

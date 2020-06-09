@@ -838,7 +838,15 @@ class Component2DImage(ComponentBase):
         if self.has_part():
             nr_bytes = self._part.data_size
         else:
-            nr_bytes = self._buffer.width * self._buffer.height
+            try:
+                w = self._buffer.width
+            except NotImplementedException:
+                w = self._node_map.Width.value
+            try:
+                h = self._buffer.height
+            except NotImplementedException:
+                h = self._node_map.Height.value
+            nr_bytes = h * w
             nr_bytes *= pf_proxy.nr_components
             nr_bytes *= pf_proxy.alignment.unpacked_size
             try:

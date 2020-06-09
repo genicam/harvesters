@@ -949,7 +949,8 @@ class Component2DImage(ComponentBase):
             else:
                 value = self._buffer.pixel_format
         except GenericException:
-            value = self._node_map.PixelFormat.value
+            value = self._node_map.PixelFormat.get_int_value()
+        assert type(value) is int
         return value
 
     @property

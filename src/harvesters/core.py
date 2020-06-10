@@ -847,8 +847,7 @@ class Component2DImage(ComponentBase):
             except NotImplementedException:
                 h = self._node_map.Height.value
             nr_bytes = h * w
-            nr_bytes *= pf_proxy.nr_components
-            nr_bytes *= pf_proxy.alignment.unpacked_size
+            nr_bytes *= pf_proxy.depth_in_byte
             try:
                 padding_y = self._buffer.padding_y
             except NotImplementedException:

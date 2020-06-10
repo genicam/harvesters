@@ -528,6 +528,9 @@ component_2d_formats = [
     'Mono14',
     'Mono16',
     #
+    'Mono10Packed',
+    'Mono12Packed',
+    #
     'RGB8',
     'RGB10',
     'RGB12',

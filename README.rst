@@ -7,8 +7,8 @@
 .. image:: https://readthedocs.org/projects/harvesters/badge/?version=latest
     :target: https://harvesters.readthedocs.io/en/latest/?badge=latest
 
-.. image:: https://img.shields.io/pypi/pyversions/harvesters.svg
-    :target: https://img.shields.io/pypi/pyversions/harvesters.svg
+.. image:: https://img.shields.io/pypi/v/harvesters.svg
+    :target: https://pypi.org/project/harvesters
 
 .. image:: https://zenodo.org/badge/133908095.svg
    :target: https://zenodo.org/badge/latestdoi/133908095

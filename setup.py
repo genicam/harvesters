@@ -56,13 +56,6 @@ src_dir = os.path.join(base_dir, 'src')
 # the package is located in src_dir:
 sys.path.insert(0, src_dir)
 
-
-# genicam package does not support 3.8 so 1.0.1 is the only way where
-# people can install harvesters package:
-dep_ver_genicam = '1.0.1' if sys.version_info.major == 3 and \
-        sys.version_info.minor == 8 else '1.0.0'
-
-
 setuptools.setup(
     # The author of the package:
     author='The GenICam Committee',
@@ -88,7 +81,7 @@ setuptools.setup(
     download_url='https://pypi.org/project/harvesters/',
     # A list of required Python modules:
     install_requires=[
-        'genicam==' + dep_ver_genicam,
+        'genicam==1.0.0',
         'numpy'
     ],
     #

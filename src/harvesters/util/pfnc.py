@@ -596,6 +596,15 @@ component_2d_formats = [
     'Coord3D_ABC32f_Planar',
     'Coord3D_AC32f',
     'Coord3D_AC32f_Planar',
+    #
+    'Confidence1',
+    'Confidence8',
+    'Confidence16',
+    'Confidence32f',
+    #
+    'Mono10p',
+    'Mono12p',
+    #
     'Coord3D_A10p',
     'Coord3D_B10p',
     'Coord3D_C10p',
@@ -606,16 +615,44 @@ component_2d_formats = [
     'Coord3D_ABC10p_Planar',
     'Coord3D_ABC12p',
     'Coord3D_ABC12p_Planar',
+    #
+    'YCbCr422_10p',
+    'YCbCr422_12p',
+    'YCbCr601_422_10p',
+    'YCbCr601_422_12p',
+    'YCbCr709_422_10p',
+    'YCbCr709_422_12p',
+    'YCbCr422_10p_CbYCrY',
+    'YCbCr422_12p_CbYCrY',
+    'YCbCr601_422_10p_CbYCrY',
+    'YCbCr601_422_12p_CbYCrY',
+    'YCbCr709_422_10p_CbYCrY',
+    'YCbCr709_422_12p_CbYCrY',
+    'YCbCr2020_422_10p',
+    'YCbCr2020_422_10p_CbYCrY',
+    'YCbCr2020_422_12p',
+    'YCbCr2020_422_12p_CbYCrY',
+    #
+    'RGBa10p',
+    'RGBa12p',
+    'BGRa10p',
+    'BGRa12p',
+    #
     'Coord3D_AC10p',
     'Coord3D_AC10p_Planar',
     'Coord3D_AC12p',
     'Coord3D_AC12p_Planar',
     #
-    'Confidence1',
     'Confidence1p',
-    'Confidence8',
-    'Confidence16',
-    'Confidence32f',
+    #
+    'BayerBG10p',
+    'BayerBG12p',
+    'BayerGB10p',
+    'BayerGB12p',
+    'BayerGR10p',
+    'BayerGR12p',
+    'BayerRG10p',
+    'BayerRG12p',
 ]
 
 rgb_formats = [

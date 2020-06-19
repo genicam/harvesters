@@ -781,10 +781,15 @@ class _OnReturnBufferNow(Callback):
 
 
 class TestIssue181(unittest.TestCase):
-    def test_issue_181(self):
+    def test_issue_181_with_nonexistent_file(self):
         h = Harvester()
         with self.assertRaises(FileNotFoundError):
-            h.add_file('just a string')
+            h.add_file('just a string', check_existence=True)
+
+    def test_issue_181_with_invalid_file(self):
+        h = Harvester()
+        with self.assertRaises(OSError):
+            h.add_file(__file__, check_validity=True)
 
 
 if __name__ == '__main__':

@@ -780,5 +780,12 @@ class _OnReturnBufferNow(Callback):
             buffer.queue()
 
 
+class TestIssue181(unittest.TestCase):
+    def test_issue_181(self):
+        h = Harvester()
+        with self.assertRaises(FileNotFoundError):
+            h.add_file('just a string')
+
+
 if __name__ == '__main__':
     unittest.main()

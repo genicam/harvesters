@@ -3246,10 +3246,12 @@ class Harvester:
 
         :return: None.
         """
+        # Check if the file exists:
         if not os.path.exists(file_path):
-            self._logger.warning(
+            self._logger.error(
                 'Attempted to add {0} which does not exist.'.format(file_path)
             )
+            raise FileNotFoundError
 
         if file_path not in self._cti_files:
             self._cti_files.append(file_path)

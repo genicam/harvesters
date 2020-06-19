@@ -20,6 +20,7 @@
 
 # Standard library imports
 from collections.abc import Iterable
+from ctypes import CDLL
 from datetime import datetime
 from enum import IntEnum
 import io
@@ -3231,14 +3232,18 @@ class Harvester:
 
         return ia
 
-    def add_cti_file(self, file_path: str):
+    def add_cti_file(
+            self, file_path: str, check_existence: bool = False,
+            check_validity: bool = False):
         """
         Will be deprecated shortly.
         """
         _deprecated(self.add_cti_file, self.add_file)
         self.add_file(file_path)
 
-    def add_file(self, file_path: str) -> None:
+    def add_file(
+            self, file_path: str, check_existence: bool = False,
+            check_validity: bool = False) -> None:
         """
         Adds a CTI file as one of GenTL Producers to work with.
 
@@ -3246,10 +3251,25 @@ class Harvester:
 
         :return: None.
         """
-        if not os.path.exists(file_path):
-            self._logger.warning(
-                'Attempted to add {0} which does not exist.'.format(file_path)
-            )
+
+        # Check if the file exists:
+        if check_existence:
+            if not os.path.exists(file_path):
+                self._logger.error(
+                    'Attempted to add {0} which does not exist.'.format(file_path)
+                )
+                raise FileNotFoundError
+
+        # Check if the file can be dynamically loaded:
+        if check_validity:
+            try:
+                _ = CDLL(file_path)
+            except OSError as e:
+                self._logger.error(e, exc_info=True)
+                raise
+            else:
+                # We let the library being loaded.
+                pass
 
         if file_path not in self._cti_files:
             self._cti_files.append(file_path)

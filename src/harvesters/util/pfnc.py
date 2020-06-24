@@ -836,11 +836,13 @@ class _Unpacked(_PixelFormat):
             location=location
         )
 
+    def expand(self, array: numpy.ndarray) -> numpy.ndarray:
+        raise NotImplementedError
 
 # ----
 
 
-class _Unpacked_Uint8(_Unpacked):
+class _UnpackedUint8(_Unpacked):
     def __init__(
             self, symbolic: str = None, nr_components=None,
             unit_depth_in_bit: int = None, location: _Location = None):
@@ -857,7 +859,7 @@ class _Unpacked_Uint8(_Unpacked):
         return array
 
 
-class _Unpacked_Int8(_Unpacked):
+class _UnpackedInt8(_Unpacked):
     def __init__(
             self, symbolic: str = None, nr_components=None,
             unit_depth_in_bit: int = None, location: _Location = None):
@@ -874,7 +876,7 @@ class _Unpacked_Int8(_Unpacked):
         return array.view(numpy.int8)
 
 
-class _Unpacked_Uint16(_Unpacked):
+class _UnpackedUint16(_Unpacked):
     def __init__(
             self, symbolic: str = None, nr_components=None,
             unit_depth_in_bit: int = None, location: _Location = None):
@@ -891,7 +893,7 @@ class _Unpacked_Uint16(_Unpacked):
         return array.view(numpy.uint16)
 
 
-class _Unpacked_Float32(_Unpacked):
+class _UnpackedFloat32(_Unpacked):
     def __init__(
             self, symbolic: str = None, nr_components=None,
             unit_depth_in_bit: int = None, location: _Location = None):
@@ -911,7 +913,7 @@ class _Unpacked_Float32(_Unpacked):
 # ----
 
 
-class _Mono_Unpacked_Uint8(_Unpacked_Uint8):
+class _MonoUnpackedUint8(_UnpackedUint8):
     def __init__(self, symbolic: str = None, unit_depth_in_bit: int = None):
         #
         super().__init__(
@@ -922,7 +924,7 @@ class _Mono_Unpacked_Uint8(_Unpacked_Uint8):
         )
 
 
-class _Mono_Unpacked_Int8(_Unpacked_Int8):
+class _MonoUnpackedInt8(_UnpackedInt8):
     def __init__(self, symbolic: str = None, unit_depth_in_bit: int = None):
         #
         super().__init__(
@@ -933,7 +935,7 @@ class _Mono_Unpacked_Int8(_Unpacked_Int8):
         )
 
 
-class _Mono_Unpacked_Uint16(_Unpacked_Uint16):
+class _MonoUnpackedUint16(_UnpackedUint16):
     def __init__(self, symbolic: str = None, unit_depth_in_bit: int = None):
         #
         super().__init__(
@@ -944,7 +946,7 @@ class _Mono_Unpacked_Uint16(_Unpacked_Uint16):
         )
 
 
-class _Mono_Unpacked_Float32(_Unpacked_Float32):
+class _MonoUnpackedFloat32(_UnpackedFloat32):
     def __init__(self, symbolic: str = None):
         #
         super().__init__(
@@ -958,7 +960,7 @@ class _Mono_Unpacked_Float32(_Unpacked_Float32):
 # ----
 
 
-class Mono8(_Mono_Unpacked_Uint8):
+class Mono8(_MonoUnpackedUint8):
     def __init__(self):
         #
         super().__init__(
@@ -967,7 +969,7 @@ class Mono8(_Mono_Unpacked_Uint8):
         )
 
 
-class Mono8s(_Mono_Unpacked_Int8):
+class Mono8s(_MonoUnpackedInt8):
     def __init__(self):
         #
         super().__init__(
@@ -976,7 +978,7 @@ class Mono8s(_Mono_Unpacked_Int8):
         )
 
 
-class Mono10(_Mono_Unpacked_Uint16):
+class Mono10(_MonoUnpackedUint16):
     def __init__(self):
         #
         super().__init__(
@@ -985,7 +987,7 @@ class Mono10(_Mono_Unpacked_Uint16):
         )
 
 
-class Mono12(_Mono_Unpacked_Uint16):
+class Mono12(_MonoUnpackedUint16):
     def __init__(self):
         #
         super().__init__(
@@ -994,7 +996,7 @@ class Mono12(_Mono_Unpacked_Uint16):
         )
 
 
-class Mono14(_Mono_Unpacked_Uint16):
+class Mono14(_MonoUnpackedUint16):
     def __init__(self):
         #
         super().__init__(
@@ -1003,7 +1005,7 @@ class Mono14(_Mono_Unpacked_Uint16):
         )
 
 
-class Mono16(_Mono_Unpacked_Uint16):
+class Mono16(_MonoUnpackedUint16):
     def __init__(self):
         #
         super().__init__(
@@ -1012,7 +1014,7 @@ class Mono16(_Mono_Unpacked_Uint16):
         )
 
 
-class R8(_Mono_Unpacked_Uint8):
+class R8(_MonoUnpackedUint8):
     def __init__(self):
         #
         super().__init__(
@@ -1021,7 +1023,7 @@ class R8(_Mono_Unpacked_Uint8):
         )
 
 
-class R10(_Mono_Unpacked_Uint16):
+class R10(_MonoUnpackedUint16):
     def __init__(self):
         #
         super().__init__(
@@ -1030,7 +1032,7 @@ class R10(_Mono_Unpacked_Uint16):
         )
 
 
-class R12(_Mono_Unpacked_Uint16):
+class R12(_MonoUnpackedUint16):
     def __init__(self):
         #
         super().__init__(
@@ -1039,7 +1041,7 @@ class R12(_Mono_Unpacked_Uint16):
         )
 
 
-class R16(_Mono_Unpacked_Uint16):
+class R16(_MonoUnpackedUint16):
     def __init__(self):
         #
         super().__init__(
@@ -1048,7 +1050,7 @@ class R16(_Mono_Unpacked_Uint16):
         )
 
 
-class G8(_Mono_Unpacked_Uint8):
+class G8(_MonoUnpackedUint8):
     def __init__(self):
         #
         super().__init__(
@@ -1057,7 +1059,7 @@ class G8(_Mono_Unpacked_Uint8):
         )
 
 
-class G10(_Mono_Unpacked_Uint16):
+class G10(_MonoUnpackedUint16):
     def __init__(self):
         #
         super().__init__(
@@ -1066,7 +1068,7 @@ class G10(_Mono_Unpacked_Uint16):
         )
 
 
-class G12(_Mono_Unpacked_Uint16):
+class G12(_MonoUnpackedUint16):
     def __init__(self):
         #
         super().__init__(
@@ -1075,7 +1077,7 @@ class G12(_Mono_Unpacked_Uint16):
         )
 
 
-class G16(_Mono_Unpacked_Uint16):
+class G16(_MonoUnpackedUint16):
     def __init__(self):
         #
         super().__init__(
@@ -1084,7 +1086,7 @@ class G16(_Mono_Unpacked_Uint16):
         )
 
 
-class B8(_Mono_Unpacked_Uint8):
+class B8(_MonoUnpackedUint8):
     def __init__(self):
         #
         super().__init__(
@@ -1093,7 +1095,7 @@ class B8(_Mono_Unpacked_Uint8):
         )
 
 
-class B10(_Mono_Unpacked_Uint16):
+class B10(_MonoUnpackedUint16):
     def __init__(self):
         #
         super().__init__(
@@ -1102,7 +1104,7 @@ class B10(_Mono_Unpacked_Uint16):
         )
 
 
-class B12(_Mono_Unpacked_Uint16):
+class B12(_MonoUnpackedUint16):
     def __init__(self):
         #
         super().__init__(
@@ -1111,7 +1113,7 @@ class B12(_Mono_Unpacked_Uint16):
         )
 
 
-class B16(_Mono_Unpacked_Uint16):
+class B16(_MonoUnpackedUint16):
     def __init__(self):
         #
         super().__init__(
@@ -1120,7 +1122,7 @@ class B16(_Mono_Unpacked_Uint16):
         )
 
 
-class Coord3D_A8(_Mono_Unpacked_Uint8):
+class Coord3D_A8(_MonoUnpackedUint8):
     def __init__(self):
         #
         super().__init__(
@@ -1129,7 +1131,7 @@ class Coord3D_A8(_Mono_Unpacked_Uint8):
         )
 
 
-class Coord3D_B8(_Mono_Unpacked_Uint8):
+class Coord3D_B8(_MonoUnpackedUint8):
     def __init__(self):
         #
         super().__init__(
@@ -1138,7 +1140,7 @@ class Coord3D_B8(_Mono_Unpacked_Uint8):
         )
 
 
-class Coord3D_C8(_Mono_Unpacked_Uint8):
+class Coord3D_C8(_MonoUnpackedUint8):
     def __init__(self):
         #
         super().__init__(
@@ -1147,7 +1149,7 @@ class Coord3D_C8(_Mono_Unpacked_Uint8):
         )
 
 
-class Coord3D_A16(_Mono_Unpacked_Uint16):
+class Coord3D_A16(_MonoUnpackedUint16):
     def __init__(self):
         #
         super().__init__(
@@ -1156,7 +1158,7 @@ class Coord3D_A16(_Mono_Unpacked_Uint16):
         )
 
 
-class Coord3D_B16(_Mono_Unpacked_Uint16):
+class Coord3D_B16(_MonoUnpackedUint16):
     def __init__(self):
         #
         super().__init__(
@@ -1165,7 +1167,7 @@ class Coord3D_B16(_Mono_Unpacked_Uint16):
         )
 
 
-class Coord3D_C16(_Mono_Unpacked_Uint16):
+class Coord3D_C16(_MonoUnpackedUint16):
     def __init__(self):
         #
         super().__init__(
@@ -1177,19 +1179,19 @@ class Coord3D_C16(_Mono_Unpacked_Uint16):
 # ----
 
 
-class Coord3D_A32f(_Mono_Unpacked_Float32):
+class Coord3D_A32f(_MonoUnpackedFloat32):
     def __init__(self):
         #
         super().__init__(symbolic='Coord3D_A32f')
 
 
-class Coord3D_B32f(_Mono_Unpacked_Float32):
+class Coord3D_B32f(_MonoUnpackedFloat32):
     def __init__(self):
         #
         super().__init__(symbolic='Coord3D_B32f')
 
 
-class Coord3D_C32f(_Mono_Unpacked_Float32):
+class Coord3D_C32f(_MonoUnpackedFloat32):
     def __init__(self):
         #
         super().__init__(symbolic='Coord3D_C32f')
@@ -1198,7 +1200,7 @@ class Coord3D_C32f(_Mono_Unpacked_Float32):
 # ----
 
 
-class Confidence1(_Mono_Unpacked_Uint8):
+class Confidence1(_MonoUnpackedUint8):
     def __init__(self):
         #
         super().__init__(
@@ -1207,7 +1209,7 @@ class Confidence1(_Mono_Unpacked_Uint8):
         )
 
 
-class Confidence8(_Mono_Unpacked_Uint8):
+class Confidence8(_MonoUnpackedUint8):
     def __init__(self):
         #
         super().__init__(
@@ -1216,7 +1218,7 @@ class Confidence8(_Mono_Unpacked_Uint8):
         )
 
 
-class Confidence16(_Mono_Unpacked_Uint16):
+class Confidence16(_MonoUnpackedUint16):
     def __init__(self):
         #
         super().__init__(
@@ -1225,7 +1227,7 @@ class Confidence16(_Mono_Unpacked_Uint16):
         )
 
 
-class Confidence32f(_Mono_Unpacked_Float32):
+class Confidence32f(_MonoUnpackedFloat32):
     def __init__(self):
         #
         super().__init__(symbolic='Confidence32f')
@@ -1546,7 +1548,7 @@ class Coord3D_C12p(_Mono_12p):
 # ----
 
 
-class _LMN444_Unpacked_Uint8(_Unpacked_Uint8):
+class _LMN444_Unpacked_Uint8(_UnpackedUint8):
     def __init__(self, symbolic: str = None, unit_depth_in_bit: int = None):
         #
         super().__init__(
@@ -1557,7 +1559,7 @@ class _LMN444_Unpacked_Uint8(_Unpacked_Uint8):
         )
 
 
-class _LMN444_Unpacked_Uint16(_Unpacked_Uint16):
+class _LMN444_Unpacked_Uint16(_UnpackedUint16):
     def __init__(self, symbolic: str = None, unit_depth_in_bit: int = None):
         #
         super().__init__(
@@ -1568,7 +1570,7 @@ class _LMN444_Unpacked_Uint16(_Unpacked_Uint16):
         )
 
 
-class _LMN444_Unpacked_Float32(_Unpacked_Float32):
+class _LMN444_Unpacked_Float32(_UnpackedFloat32):
     def __init__(self, symbolic: str = None, unit_depth_in_bit: int = None):
         #
         super().__init__(

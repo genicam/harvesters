@@ -51,7 +51,8 @@ from genicam.genapi import ChunkAdapterGeneric, ChunkAdapterU3V, \
 
 from genicam.gentl import TimeoutException, \
     NotImplementedException, ParsingChunkDataException, NoDataException, \
-    ErrorException, InvalidBufferException, InvalidParameterException
+    ErrorException, InvalidBufferException, InvalidParameterException, \
+    NotAvailableException
 from genicam.gentl import GenericException
 from genicam.gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
 from genicam.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
@@ -839,19 +840,20 @@ class Component2DImage(ComponentBase):
         if self.has_part():
             nr_bytes = self._part.data_size
         else:
+            exceptions = (NotAvailableException, NotImplementedException)
             try:
                 w = self._buffer.width
-            except NotImplementedException:
+            except exceptions:
                 w = self._node_map.Width.value
             try:
                 h = self._buffer.height
-            except NotImplementedException:
+            except exceptions:
                 h = self._node_map.Height.value
             nr_bytes = h * w
             nr_bytes *= pf_proxy.depth_in_byte
             try:
                 padding_y = self._buffer.padding_y
-            except NotImplementedException:
+            except exceptions:
                 padding_y = 0
             nr_bytes += padding_y
 

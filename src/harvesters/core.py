@@ -2919,7 +2919,7 @@ def _save_file(
             # Found a \x00:
             data_to_write = data_to_write[:pos]
     #
-    with open(file_path, mode) as f:
+    with io.open(file_path, mode, encoding="utf-8") as f:
         f.write(data_to_write)
 
     return file_path

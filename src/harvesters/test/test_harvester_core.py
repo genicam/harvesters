@@ -43,6 +43,10 @@ from harvesters.core import Harvester
 from harvesters.core import ImageAcquirer
 from harvesters.test.helper import get_package_dir
 from harvesters.util.pfnc import Dictionary
+from harvesters.core import _get_nr_bytes
+from harvesters.util.pfnc import Mono8, Mono10, Mono12, Mono14, Mono16
+from harvesters.util.pfnc import Mono10Packed, Mono12Packed
+from harvesters.util.pfnc import Mono10p, Mono12p, Mono14p
 
 
 class TestHarvesterCore(TestHarvesterCoreBase):
@@ -790,6 +794,69 @@ class TestIssue181(unittest.TestCase):
         h = Harvester()
         with self.assertRaises(OSError):
             h.add_file(__file__, check_validity=True)
+
+
+class TestIssue188(unittest.TestCase):
+    _height = 1
+    _range = range(0, 3, 1)
+
+    def test_issue_188_unpacked(self):
+        proxies = [Mono8, Mono10, Mono12, Mono14, Mono16]
+        expected_results = [
+            [1, 2, 2, 2, 2],  # 1 x 1
+            [2, 4, 4, 4, 4],  # 2 x 1
+            [3, 6, 6, 6, 6],  # 3 x 1
+        ]
+        for i in self._range:
+            for j, proxy in enumerate(proxies):
+                self.assertEqual(
+                    expected_results[i][j],
+                    _get_nr_bytes(
+                        pf_proxy=proxy(), width=i + 1, height=self._height
+                    )
+                )
+
+    def test_issue_188_packed(self):
+        proxies = [Mono10Packed, Mono12Packed]
+        expected_results = [
+            [2, 2],  # 1 x 1
+            [3, 3],  # 2 x 1
+            [4, 5],  # 3 x 1
+        ]
+        for i in self._range:
+            for j, proxy in enumerate(proxies):
+                self.assertEqual(
+                    expected_results[i][j],
+                    _get_nr_bytes(
+                        pf_proxy=proxy(), width=i + 1, height=self._height
+                    )
+                )
+
+    def test_issue_188_p(self):
+        proxies = [Mono10p, Mono12p, Mono14p]
+        expected_results = [
+            [2, 2, 2],  # 1 x 1
+            [3, 3, 4],  # 2 x 1
+            [4, 5, 6],  # 3 x 1
+        ]
+        for i in self._range:
+            for j, proxy in enumerate(proxies):
+                self.assertEqual(
+                    expected_results[i][j],
+                    _get_nr_bytes(
+                        pf_proxy=proxy(), width=i + 1, height=self._height
+                    )
+                )
+
+    def test_issue_188_neels_case(self):
+        proxies = [Mono12]
+        width = 2456
+        height = 2058
+        for proxy in proxies:
+            self.assertEqual(
+                10108896,  # = 2456 * 2058 * 2
+                _get_nr_bytes(pf_proxy=proxy(), width=width, height=height)
+            )
 
 
 if __name__ == '__main__':

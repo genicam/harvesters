@@ -627,6 +627,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             self._test_issue_146_group_packed_12,
             self._test_issue_146_packed_10,
             self._test_issue_146_packed_12,
+            self._test_issue_146_mono_unpacked_multibytes,
         ]
         #
         for test in tests:
@@ -671,6 +672,21 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         unpacked = pf.expand(packed)
         self.assertEqual(0xf * 256 + _1st, unpacked[0])
         self.assertEqual(_3rd * 16 + 0xf, unpacked[1])
+
+    def _test_issue_146_mono_unpacked_multibytes(self):
+        names = ['Mono10', 'Mono12']
+        maximums = [0x4, 0x10]
+        for index, name in enumerate(names):
+            pf = Dictionary.get_proxy(name)
+            for i in range(maximums[index]):
+                for j in range(0x100):
+                    ba = bytes([j, i, j, i])
+                    packed = np.frombuffer(ba, dtype=np.uint8)
+                    unpacked = pf.expand(packed)
+                    # We know it's redundant but check 10 times:
+                    for l in range(10):
+                        for k in range(2):
+                            self.assertEqual((i << 8) + j, unpacked[k])
 
 
 class _TestIssue81(threading.Thread):

@@ -43,7 +43,7 @@ from harvesters.core import Harvester
 from harvesters.core import ImageAcquirer
 from harvesters.test.helper import get_package_dir
 from harvesters.util.pfnc import Dictionary
-from harvesters.core import _get_nr_bytes
+from harvesters.core import Component2DImage
 from harvesters.util.pfnc import Mono8, Mono10, Mono12, Mono14, Mono16
 from harvesters.util.pfnc import Mono10Packed, Mono12Packed
 from harvesters.util.pfnc import Mono10p, Mono12p, Mono14p
@@ -811,7 +811,7 @@ class TestIssue188(unittest.TestCase):
             for j, proxy in enumerate(proxies):
                 self.assertEqual(
                     expected_results[i][j],
-                    _get_nr_bytes(
+                    Component2DImage._get_nr_bytes(
                         pf_proxy=proxy(), width=i + 1, height=self._height
                     )
                 )
@@ -827,7 +827,7 @@ class TestIssue188(unittest.TestCase):
             for j, proxy in enumerate(proxies):
                 self.assertEqual(
                     expected_results[i][j],
-                    _get_nr_bytes(
+                    Component2DImage._get_nr_bytes(
                         pf_proxy=proxy(), width=i + 1, height=self._height
                     )
                 )
@@ -843,7 +843,7 @@ class TestIssue188(unittest.TestCase):
             for j, proxy in enumerate(proxies):
                 self.assertEqual(
                     expected_results[i][j],
-                    _get_nr_bytes(
+                    Component2DImage._get_nr_bytes(
                         pf_proxy=proxy(), width=i + 1, height=self._height
                     )
                 )
@@ -855,7 +855,9 @@ class TestIssue188(unittest.TestCase):
         for proxy in proxies:
             self.assertEqual(
                 10108896,  # = 2456 * 2058 * 2
-                _get_nr_bytes(pf_proxy=proxy(), width=width, height=height)
+                Component2DImage._get_nr_bytes(
+                    pf_proxy=proxy(), width=width, height=height
+                )
             )
 
 

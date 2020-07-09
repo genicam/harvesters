@@ -806,20 +806,6 @@ class ComponentUnknown(ComponentBase):
         super().__init__()
 
 
-def _get_nr_bytes(pf_proxy: _PixelFormat, width: int, height: int) -> int:
-    #
-    nr_bytes = height * width
-    #
-    if pf_proxy.alignment.is_packed():
-        nr_bytes *= pf_proxy.depth_in_byte
-        nr_bytes = ceil(nr_bytes)
-    else:
-        nr_bytes *= pf_proxy.alignment.unpacked_size
-        nr_bytes *= pf_proxy.nr_components
-    #
-    return int(nr_bytes)
-
-
 class Component2DImage(ComponentBase):
     """
     Represents a data component that is classified as
@@ -850,6 +836,20 @@ class Component2DImage(ComponentBase):
         self._nr_components = proxy.nr_components
         self._data = self._to_np_array(proxy)
 
+    @staticmethod
+    def _get_nr_bytes(pf_proxy: _PixelFormat, width: int, height: int) -> int:
+        #
+        nr_bytes = height * width
+        #
+        if pf_proxy.alignment.is_packed():
+            nr_bytes *= pf_proxy.depth_in_byte
+            nr_bytes = ceil(nr_bytes)
+        else:
+            nr_bytes *= pf_proxy.alignment.unpacked_size
+            nr_bytes *= pf_proxy.nr_components
+        #
+        return int(nr_bytes)
+
     def _to_np_array(self, pf_proxy):
         #
         if self.has_part():
@@ -868,7 +868,7 @@ class Component2DImage(ComponentBase):
             except exceptions:
                 h = self._node_map.Height.value
 
-            nr_bytes = _get_nr_bytes(pf_proxy=pf_proxy, width=w, height=h)
+            nr_bytes = self._get_nr_bytes(pf_proxy=pf_proxy, width=w, height=h)
 
             try:
                 padding_y = self._buffer.padding_y

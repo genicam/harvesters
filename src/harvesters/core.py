@@ -25,6 +25,7 @@ from datetime import datetime
 from enum import IntEnum
 import io
 from logging import Logger
+from math import ceil
 import ntpath
 import os
 import pathlib
@@ -66,7 +67,7 @@ from harvesters._private.core.port import ConcretePort
 from harvesters._private.core.statistics import Statistics
 from harvesters.util.logging import get_logger
 from harvesters.util.pfnc import dict_by_names, dict_by_ints
-from harvesters.util.pfnc import Dictionary
+from harvesters.util.pfnc import Dictionary, _PixelFormat
 from harvesters.util.pfnc import component_2d_formats
 
 
@@ -835,12 +836,29 @@ class Component2DImage(ComponentBase):
         self._nr_components = proxy.nr_components
         self._data = self._to_np_array(proxy)
 
+    @staticmethod
+    def _get_nr_bytes(pf_proxy: _PixelFormat, width: int, height: int) -> int:
+        #
+        nr_bytes = height * width
+        #
+        if pf_proxy.alignment.is_packed():
+            nr_bytes *= pf_proxy.depth_in_byte
+            nr_bytes = ceil(nr_bytes)
+        else:
+            nr_bytes *= pf_proxy.alignment.unpacked_size
+            nr_bytes *= pf_proxy.nr_components
+        #
+        return int(nr_bytes)
+
     def _to_np_array(self, pf_proxy):
         #
         if self.has_part():
             nr_bytes = self._part.data_size
         else:
+            #
             exceptions = (NotAvailableException, NotImplementedException)
+
+            #
             try:
                 w = self._buffer.width
             except exceptions:
@@ -849,8 +867,9 @@ class Component2DImage(ComponentBase):
                 h = self._buffer.height
             except exceptions:
                 h = self._node_map.Height.value
-            nr_bytes = h * w
-            nr_bytes *= pf_proxy.depth_in_byte
+
+            nr_bytes = self._get_nr_bytes(pf_proxy=pf_proxy, width=w, height=h)
+
             try:
                 padding_y = self._buffer.padding_y
             except exceptions:

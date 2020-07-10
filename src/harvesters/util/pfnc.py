@@ -1431,6 +1431,58 @@ class _12p(_PixelFormat):
         )
 
 
+class _14p(_PixelFormat):
+    def __init__(
+            self, symbolic: str = None, nr_components: float = None,
+            location: _Location = None):
+        #
+        super().__init__(
+            symbolic=symbolic,
+            alignment=_Alignment(
+                unpacked=_DataSize.UINT16, packed=_DataSize.UINT8
+            ),
+            nr_components=nr_components,
+            unit_depth_in_bit=14,
+            location=location
+        )
+
+    def expand(self, array: numpy.ndarray) -> numpy.ndarray:
+        nr_packed = 7
+        nr_unpacked = 4
+        #
+        p1st, p2nd, p3rd, p4th, p5th, p6th, p7th = numpy.reshape(
+            array, (array.shape[0] // nr_packed, nr_packed)
+        ).astype(numpy.uint16).T
+        #
+        up1st = numpy.bitwise_or(
+            p1st, numpy.bitwise_and(0x3f00, p2nd << 8)
+        )
+        up2nd = numpy.bitwise_or(
+            numpy.bitwise_and(0x3, p2nd >> 6),
+            numpy.bitwise_and(0x3fc, p3rd << 2),
+            numpy.bitwise_and(0x3c00, p4th << 10),
+        )
+        up3rd = numpy.bitwise_or(
+            numpy.bitwise_and(0xf, p4th >> 4),
+            numpy.bitwise_and(0xff0, p5th << 4),
+            numpy.bitwise_and(0x3000, p6th << 12)
+        )
+        up4th = numpy.bitwise_or(
+            numpy.bitwise_and(0x3f, p6th >> 2),
+            numpy.bitwise_and(0x3fc0, p7th << 6)
+        )
+        #
+        return numpy.reshape(
+            numpy.concatenate(
+                (
+                    up1st[:, None], up2nd[:, None], up3rd[:, None],
+                    up4th[:, None]
+                ), axis=1
+            ),
+            nr_unpacked * up1st.shape[0]
+        )
+
+
 # ----
 
 
@@ -1445,6 +1497,16 @@ class _Mono_10p(_10p):
 
 
 class _Mono_12p(_12p):
+    def __init__(self, symbolic: str = None):
+        #
+        super().__init__(
+            symbolic=symbolic,
+            nr_components=1.,
+            location = _Location.MONO
+        )
+
+
+class _Mono_14p(_14p):
     def __init__(self, symbolic: str = None):
         #
         super().__init__(
@@ -1502,6 +1564,12 @@ class Mono12p(_Mono_12p):
     def __init__(self):
         #
         super().__init__(symbolic='Mono12p')
+
+
+class Mono14p(_Mono_14p):
+    def __init__(self):
+        #
+        super().__init__(symbolic='Mono14p')
 
 
 class Coord3D_A10p(_Mono_10p):
@@ -2999,6 +3067,7 @@ class Dictionary:
         Mono10p(),
         Mono12Packed(),
         Mono12p(),
+        Mono14p(),
         Coord3D_A10p(),
         Coord3D_B10p(),
         Coord3D_C10p(),

@@ -12,7 +12,7 @@ Harvester's Documentation
 Harvester as an API
 ###################
 
-Click the following link to learn Harvester as an API:
+Click the following link to learn about Harvester as an API:
 
 .. toctree::
     :maxdepth: 2

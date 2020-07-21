@@ -1741,7 +1741,7 @@ class ImageAcquirer:
                 zip(ctors, destinations, file_paths, parents, ports, sources):
             #
             try:
-                node_map = _get_port_connected_node_map(
+                node_map = self._get_port_connected_node_map(
                     port=port, logger=self._logger,
                     xml_dir_to_store=self._xml_dir, file_path=file_path_
                 )
@@ -2203,7 +2203,7 @@ class ImageAcquirer:
             #
             exceptions = (GenericException, LogicalErrorException)
             try:
-                node_map = _get_port_connected_node_map(
+                node_map = self._get_port_connected_node_map(
                     port=_data_stream.port, logger=self._logger
                 )
             except exceptions as e:
@@ -2225,6 +2225,133 @@ class ImageAcquirer:
             self._event_new_buffer_managers.append(
                 EventManagerNewBuffer(event_token)
             )
+
+    def _get_port_connected_node_map(
+            self, *,
+            port: Optional[Port] = None,
+            logger: Optional[Logger] = None,
+            file_path: Optional[str] = None,
+            xml_dir_to_store: Optional[str] = None):
+        #
+        assert port
+
+        #
+        _logger = logger or get_logger(name=__name__)
+
+        # Instantiate a GenICam node map object.
+        node_map = NodeMap()
+
+        #
+        file_path = self._retrieve_file_path(
+            port=port, file_path_to_load=file_path, logger=logger, xml_dir_to_store=xml_dir_to_store
+        )
+
+        #
+        if file_path is not None:
+            # Every valid (zipped) XML file MUST be parsed as expected and the
+            # method returns the file path where the file is located:
+            # Then load the XML file content on the node map object.
+            has_valid_file = True
+
+            # In this case, the file has been identified as a Zip file but
+            # has been diagnosed as BadZipFile due to a technical reason.
+            # Let the NodeMap object load the file from the path:
+            try:
+                node_map.load_xml_from_zip_file(file_path)
+            except RuntimeException:
+                try:
+                    node_map.load_xml_from_file(file_path)
+                except RuntimeException as e:
+                    _logger.error(e, exc_info=True)
+                    has_valid_file = False
+
+            if has_valid_file:
+                # Instantiate a concrete port object of the remote device's
+                # port.
+                concrete_port = ConcretePort(port)
+
+                # And finally connect the concrete port on the node map
+                # object.
+                node_map.connect(concrete_port, port.name)
+
+        # Then return the node map:
+        return node_map
+
+    @staticmethod
+    def _retrieve_file_path(
+            *,
+            port: Optional[Port] = None,
+            url: Optional[str] = None,
+            file_path_to_load: Optional[str] = None,
+            logger: Optional[Logger] = None,
+            xml_dir_to_store: Optional[str] = None):
+        #
+        _logger = logger or get_logger(name=__name__)
+
+        #
+        if file_path_to_load:
+            # A file that is specified by the client will be used:
+            if not os.path.exists(file_path_to_load):
+                raise LogicalErrorException(
+                    '{0} does not exist.'.format(file_path_to_load)
+                )
+        else:
+            if url is None:
+                # Inquire its URL information.
+                if len(port.url_info_list) > 0:
+                    url = port.url_info_list[0].url
+                else:
+                    raise LogicalErrorException(
+                        'The target port does not hold any URL.'
+                    )
+
+            _logger.info('URL: {0}'.format(url))
+
+            # And parse the URL.
+            location, others = url.split(':', 1)
+            location = location.lower()
+
+            if location == 'local':
+                file_name, address, size = others.split(';')
+                address = int(address, 16)
+                # Remove optional /// after local: See section 4.1.2 in GenTL
+                # v1.4 Standard
+                file_name = file_name.lstrip('/')
+
+                # It may specify the schema version.
+                delimiter = '?'
+                if delimiter in size:
+                    size, _ = size.split(delimiter)
+                size = int(size, 16)  # From Hex to Dec
+
+                # Now we get the file content.
+                size, binary_data = port.read(address, size)
+
+                # Store the XML file on the host side; it may be a Zipped XML
+                # file or a plain XML file:
+                file_path_to_load = _save_file(
+                    xml_dir_to_store=xml_dir_to_store, file_name=file_name,
+                    binary_data=binary_data, logger=logger
+                )
+
+            elif location == 'file':
+                file_path_to_load = urlparse(url).path
+
+            elif location == 'http' or location == 'https':
+                raise NotImplementedError(
+                    'Failed to parse URL {0}: Harvester has not supported '
+                    'downloading a device description file from vendor '
+                    'web site. If you must rely on the current condition,'
+                    'just try to make a request to the Harvester '
+                    'maintainer.'.format(url)
+                )
+            else:
+                raise LogicalErrorException(
+                    'Failed to parse URL {0}: Unknown format.'.format(url)
+                )
+
+        return file_path_to_load
+
 
     def start_image_acquisition(self, run_in_background=False):
         """
@@ -2826,90 +2953,20 @@ class ImageAcquirer:
             _ = self._queue.get_nowait()
 
 
-def _retrieve_file_path(
-        *,
-        port: Optional[Port] = None,
-        url: Optional[str] = None,
-        file_path_to_load: Optional[str] = None,
-        logger: Optional[Logger] = None,
-        xml_dir_to_store: Optional[str] = None):
-    #
-    _logger = logger or get_logger(name=__name__)
-
-    #
-    if file_path_to_load:
-        # A file that is specified by the client will be used:
-        if not os.path.exists(file_path_to_load):
-            raise LogicalErrorException(
-                '{0} does not exist.'.format(file_path_to_load)
-            )
-    else:
-        if url is None:
-            # Inquire its URL information.
-            if len(port.url_info_list) > 0:
-                url = port.url_info_list[0].url
-            else:
-                raise LogicalErrorException(
-                    'The target port does not hold any URL.'
-                )
-
-        _logger.info('URL: {0}'.format(url))
-
-        # And parse the URL.
-        location, others = url.split(':', 1)
-        location = location.lower()
-
-        if location == 'local':
-            file_name, address, size = others.split(';')
-            address = int(address, 16)
-            # Remove optional /// after local: See section 4.1.2 in GenTL
-            # v1.4 Standard
-            file_name = file_name.lstrip('/')
-
-            # It may specify the schema version.
-            delimiter = '?'
-            if delimiter in size:
-                size, _ = size.split(delimiter)
-            size = int(size, 16)  # From Hex to Dec
-
-            # Now we get the file content.
-            size, binary_data = port.read(address, size)
-
-            # Store the XML file on the host side; it may be a Zipped XML
-            # file or a plain XML file:
-            file_path_to_load = _save_file(
-                xml_dir_to_store=xml_dir_to_store, file_name=file_name,
-                binary_data=binary_data
-            )
-
-        elif location == 'file':
-            file_path_to_load = urlparse(url).path
-
-        elif location == 'http' or location == 'https':
-            raise NotImplementedError(
-                'Failed to parse URL {0}: Harvester has not supported '
-                'downloading a device description file from vendor '
-                'web site. If you must rely on the current condition,'
-                'just try to make a request to the Harvester '
-                'maintainer.'.format(url)
-            )
-        else:
-            raise LogicalErrorException(
-                'Failed to parse URL {0}: Unknown format.'.format(url)
-            )
-
-    return file_path_to_load
 
 
 def _save_file(
         *,
         xml_dir_to_store: Optional[str] = None,
         file_name: Optional[str] = None,
-        binary_data=None):
+        binary_data=None,
+        logger=None):
+    #
+    _logger = logger or get_logger(name=__name__)
+
     #
     assert binary_data
     assert file_name
-
     #
     bytes_io = io.BytesIO(binary_data)
 
@@ -2927,7 +2984,8 @@ def _save_file(
     file_path = os.path.join(xml_dir_to_store, _file_name)
 
     #
-    mode = 'w+'
+    mode_base = 'w+'
+    mode = mode_base
     data_to_write = bytes_content = bytes_io.getvalue()
     if pathlib.Path(file_path).suffix.lower() == '.zip':
         mode += 'b'
@@ -2938,62 +2996,25 @@ def _save_file(
             # Found a \x00:
             data_to_write = data_to_write[:pos]
     #
-    with io.open(file_path, mode, encoding="utf-8") as f:
-        f.write(data_to_write)
+    try:
+        with open(file_path, mode) as f:
+            f.write(data_to_write)
+    except UnicodeEncodeError:
+        # Probably you've caught "UnicodeEncodeError: 'charmap' codec can't
+        # encode characters"; the file must be a text file:
+        try:
+            with io.open(file_path, mode_base, encoding="utf-8") as f:
+                f.write(data_to_write)
+        except:
+            e = sys.exc_info()[0]
+            _logger.error(e, exc_info=True)
+            raise
+    except:
+        e = sys.exc_info()[0]
+        _logger.error(e, exc_info=True)
+        raise
 
     return file_path
-
-
-def _get_port_connected_node_map(
-        *,
-        port: Optional[Port] = None,
-        logger: Optional[Logger] = None,
-        file_path: Optional[str] = None,
-        xml_dir_to_store: Optional[str] = None):
-    #
-    assert port
-
-    #
-    _logger = logger or get_logger(name=__name__)
-
-    # Instantiate a GenICam node map object.
-    node_map = NodeMap()
-
-    #
-    file_path = _retrieve_file_path(
-        port=port, file_path_to_load=file_path, logger=logger, xml_dir_to_store=xml_dir_to_store
-    )
-
-    #
-    if file_path is not None:
-        # Every valid (zipped) XML file MUST be parsed as expected and the
-        # method returns the file path where the file is located:
-        # Then load the XML file content on the node map object.
-        has_valid_file = True
-
-        # In this case, the file has been identified as a Zip file but
-        # has been diagnosed as BadZipFile due to a technical reason.
-        # Let the NodeMap object load the file from the path:
-        try:
-            node_map.load_xml_from_zip_file(file_path)
-        except RuntimeException:
-            try:
-                node_map.load_xml_from_file(file_path)
-            except RuntimeException as e:
-                _logger.error(e, exc_info=True)
-                has_valid_file = False
-
-        if has_valid_file:
-            # Instantiate a concrete port object of the remote device's
-            # port.
-            concrete_port = ConcretePort(port)
-
-            # And finally connect the concrete port on the node map
-            # object.
-            node_map.connect(concrete_port, port.name)
-
-    # Then return the node map:
-    return node_map
 
 
 class _CallbackDestroyImageAcquirer(Callback):

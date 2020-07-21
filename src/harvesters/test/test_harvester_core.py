@@ -37,7 +37,6 @@ import numpy as np
 # Local application/library specific imports
 from harvesters.test.base_harvester import TestHarvesterCoreBase
 from harvesters.test.base_harvester import get_cti_file_path
-from harvesters.core import _retrieve_file_path
 from harvesters.core import Callback
 from harvesters.core import Harvester
 from harvesters.core import ImageAcquirer
@@ -478,7 +477,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         url += file_path
 
         # Parse the URL:
-        retrieved_file_path = _retrieve_file_path(url=url)
+        retrieved_file_path = ImageAcquirer._retrieve_file_path(url=url)
 
         # Compare file names:
         self.assertEqual(
@@ -492,7 +491,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
 
         #
         url = 'file://' + expected_file_path
-        retrieved_file_path = _retrieve_file_path(url=url)
+        retrieved_file_path = ImageAcquirer._retrieve_file_path(url=url)
 
         # Compare file names:
         self.assertEqual(

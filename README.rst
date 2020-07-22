@@ -234,6 +234,7 @@ https://github.com/genicam/harvesters_gui
 Announcements
 *************
 
+- **Version 1.2.8**: Resolves issue `#191 <https://github.com/genicam/harvesters/issues/191>`_.
 - **Version 1.2.7**: Resolves issues `#167 <https://github.com/genicam/harvesters/issues/167>`_, `#181 <https://github.com/genicam/harvesters/issues/181>`_, `#183 <https://github.com/genicam/harvesters/issues/183>`_, `#184 <https://github.com/genicam/harvesters/issues/184>`_, `#185 <https://github.com/genicam/harvesters/issues/185>`_, and `#188 <https://github.com/genicam/harvesters/issues/188>`_.
 - **Version 1.2.6**: Reverted the change made for version 1.2.5.
 - **Version 1.2.5**: Resolves issue `#180 <https://github.com/genicam/harvesters/issues/180>`_.

@@ -2426,7 +2426,7 @@ class ImageAcquirer:
             # We're ready to start image acquisition. Lock the device's
             # transport layer related features:
             self.remote_device.node_map.TLParamsLocked.value = 1
-        except GenericException:
+        except (GenericException, AttributeError):
             # SFNC < 2.0
             pass
 
@@ -2864,7 +2864,7 @@ class ImageAcquirer:
                     # Unlock TLParamsLocked in order to allow full device
                     # configuration:
                     self.remote_device.node_map.TLParamsLocked.value = 0
-                except GenericException:
+                except (GenericException, AttributeError):
                     # SFNC < 2.0
                     pass
 

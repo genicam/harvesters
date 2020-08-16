@@ -20,10 +20,12 @@
 
 # Standard library imports
 from collections.abc import Iterable
+from ctypes import CDLL
 from datetime import datetime
 from enum import IntEnum
 import io
 from logging import Logger
+from math import ceil
 import ntpath
 import os
 import pathlib
@@ -50,7 +52,8 @@ from genicam.genapi import ChunkAdapterGeneric, ChunkAdapterU3V, \
 
 from genicam.gentl import TimeoutException, \
     NotImplementedException, ParsingChunkDataException, NoDataException, \
-    ErrorException, InvalidBufferException, InvalidParameterException
+    ErrorException, InvalidBufferException, InvalidParameterException, \
+    NotAvailableException
 from genicam.gentl import GenericException
 from genicam.gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
 from genicam.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
@@ -64,12 +67,8 @@ from harvesters._private.core.port import ConcretePort
 from harvesters._private.core.statistics import Statistics
 from harvesters.util.logging import get_logger
 from harvesters.util.pfnc import dict_by_names, dict_by_ints
-from harvesters.util.pfnc import uint16_formats, uint32_formats, \
-    float32_formats, uint8_formats
+from harvesters.util.pfnc import Dictionary, _PixelFormat
 from harvesters.util.pfnc import component_2d_formats
-from harvesters.util.pfnc import lmn_444_location_formats, \
-    lmno_4444_location_formats, lmn_422_location_formats, \
-    lmn_411_location_formats, mono_location_formats, bayer_location_formats
 
 
 _is_logging_buffer_manipulation = True if 'HARVESTERS_LOG_BUFFER_MANIPULATION' in os.environ else False
@@ -324,6 +323,7 @@ class System(Module):
     def __init__(
             self,
             module=None, node_map: Optional[NodeMap] = None, parent=None):
+        assert parent is None
         super().__init__(module=module, node_map=node_map, parent=parent)
 
 
@@ -460,6 +460,7 @@ class ThreadBase:
         #
         self._mutex = mutex
         self._is_running = False
+        self._id = None
 
     def start(self) -> None:
         self._internal_start()
@@ -478,10 +479,9 @@ class ThreadBase:
         raise NotImplementedError
 
     def stop(self) -> None:
-        id_ = self.id_
         self._internal_stop()
         self._logger.debug(
-            'Stopped thread {:0X}.'.format(id_)
+            'Stopped thread {:0X}.'.format(self.id_)
         )
 
     def join(self):
@@ -538,15 +538,7 @@ class ThreadBase:
 
     @property
     def id_(self) -> int:
-        """
-        The thread ID.
-
-        This method is abstract and should be reimplemented in any sub-class.
-
-        :getter: Returns itself.
-        :type: int
-        """
-        raise NotImplementedError
+        return self._id
 
 
 class MutexLocker:
@@ -611,6 +603,7 @@ class _ImageAcquisitionThread(ThreadBase):
             thread_owner=self, worker=self._worker,
             sleep_duration=self._sleep_duration
         )
+        self._id = self._thread.id_
 
         # Start running its worker method.
         self._is_running = True
@@ -839,100 +832,56 @@ class Component2DImage(ComponentBase):
         #
         self._part = part
         self._node_map = node_map
-        self._data = None
-        self._num_components_per_pixel = 0
+        proxy = Dictionary.get_proxy(symbolic=self.data_format)
+        self._nr_components = proxy.nr_components
+        self._data = self._to_np_array(proxy)
 
-        symbolic = self.data_format
-
-        # Determine the data type:
-        if self.x_padding > 0:
-            # In this case, the client will have to trim the padding part.
-            # so we create a NumPy array that consists of uint8 elements
-            # first. The client will interpret the array in an appropriate
-            # dtype in the end once he trimmed:
-            dtype = 'uint8'
-            bytes_per_pixel_data_component = 1
-        else:
-            if symbolic in uint16_formats:
-                dtype = 'uint16'
-                bytes_per_pixel_data_component = 2
-            elif symbolic in uint32_formats:
-                dtype = 'uint32'
-                bytes_per_pixel_data_component = 4
-            elif symbolic in float32_formats:
-                dtype = 'float32'
-                bytes_per_pixel_data_component = 4
-            elif symbolic in uint8_formats:
-                dtype = 'uint8'
-                bytes_per_pixel_data_component = 1
-            else:
-                # Sorry, Harvester can't handle this:
-                self._data = None
-                return
-
-        # Determine the number of components per pixel:
-        if symbolic in lmn_444_location_formats:
-            num_components_per_pixel = 3.
-        elif symbolic in lmn_422_location_formats:
-            num_components_per_pixel = 2.
-        elif symbolic in lmn_411_location_formats:
-            num_components_per_pixel = 1.5
-        elif symbolic in lmno_4444_location_formats:
-            num_components_per_pixel = 4.
-        elif symbolic in mono_location_formats or \
-                symbolic in bayer_location_formats:
-            num_components_per_pixel = 1.
-        else:
-            # Sorry, Harvester can't handle this:
-            self._data = None
-            return
-
-        self._num_components_per_pixel = num_components_per_pixel
-        self._symbolic = symbolic
-
+    @staticmethod
+    def _get_nr_bytes(pf_proxy: _PixelFormat, width: int, height: int) -> int:
         #
-        width = self.width
-        height = self.height
-
+        nr_bytes = height * width
         #
-        if self._part:
-            count = self._part.data_size
-            count //= bytes_per_pixel_data_component
-            data_offset = self._part.data_offset
+        if pf_proxy.alignment.is_packed():
+            nr_bytes *= pf_proxy.depth_in_byte
+            nr_bytes = ceil(nr_bytes)
         else:
-            count = width * height
-            count *= num_components_per_pixel
-            count += self.y_padding
-            data_offset = 0
+            nr_bytes *= pf_proxy.alignment.unpacked_size
+            nr_bytes *= pf_proxy.nr_components
+        #
+        return int(nr_bytes)
 
-        # Convert the Python's built-in bytes array to a Numpy array:
-        if _is_logging_buffer_manipulation:
-            self._logger.debug(
-                'Component 2D image ('
-                'len(raw_buffer): {0}, '
-                'int(count): {1}, '
-                'dtype: {2}, '
-                'offset: {3}, '
-                'pixel format: {4},'
-                'x padding: {5},'
-                'y padding: {6}'
-                ')'.format(
-                    len(self._buffer.raw_buffer),
-                    int(count),
-                    dtype,
-                    data_offset,
-                    symbolic,
-                    self.x_padding,
-                    self.y_padding,
-                )
-            )
+    def _to_np_array(self, pf_proxy):
+        #
+        if self.has_part():
+            nr_bytes = self._part.data_size
+        else:
+            #
+            exceptions = (NotAvailableException, NotImplementedException)
 
-        self._data = numpy.frombuffer(
-            self._buffer.raw_buffer,
-            count=int(count),
-            dtype=dtype,
-            offset=data_offset
+            #
+            try:
+                w = self._buffer.width
+            except exceptions:
+                w = self._node_map.Width.value
+            try:
+                h = self._buffer.height
+            except exceptions:
+                h = self._node_map.Height.value
+
+            nr_bytes = self._get_nr_bytes(pf_proxy=pf_proxy, width=w, height=h)
+
+            try:
+                padding_y = self._buffer.padding_y
+            except exceptions:
+                padding_y = 0
+            nr_bytes += padding_y
+
+        array = numpy.frombuffer(
+            self._buffer.raw_buffer, count=int(nr_bytes),
+            dtype='uint8',
+            offset=self.data_offset
         )
+        return pf_proxy.expand(array)
 
     def represent_pixel_location(self) -> Optional[numpy.ndarray]:
         """
@@ -951,7 +900,7 @@ class Component2DImage(ComponentBase):
         #
         return self._data.reshape(
             self.height + self.y_padding,
-            int(self.width * self._num_components_per_pixel + self.x_padding)
+            int(self.width * self._nr_components + self.x_padding)
         )
 
     @property
@@ -962,7 +911,7 @@ class Component2DImage(ComponentBase):
         :getter: Returns itself.
         :type: float
         """
-        return self._num_components_per_pixel
+        return self._nr_components
 
     def __repr__(self):
         return '{0} x {1}, {2}, {3} elements,\n{4}'.format(
@@ -987,7 +936,10 @@ class Component2DImage(ComponentBase):
             else:
                 value = self._buffer.width
         except GenericException:
-            value = self._node_map.Width.value
+            try:
+                value = self._node_map.Width.value
+            except AttributeError:
+                value = 0
         return value
 
     @property
@@ -1003,8 +955,13 @@ class Component2DImage(ComponentBase):
                 value = self._part.height
             else:
                 value = self._buffer.height
+                if value == 0:
+                    value = self._buffer.delivered_image_height
         except GenericException:
-            value = self._node_map.Height.value
+            try:
+                value = self._node_map.Height.value
+            except AttributeError:
+                value = 0
         return value
 
     @property
@@ -1021,7 +978,8 @@ class Component2DImage(ComponentBase):
             else:
                 value = self._buffer.pixel_format
         except GenericException:
-            value = self._node_map.PixelFormat.value
+            value = self._node_map.PixelFormat.get_int_value()
+        assert type(value) is int
         return value
 
     @property
@@ -1121,6 +1079,16 @@ class Component2DImage(ComponentBase):
             value = 0
         return value
 
+    def has_part(self):
+        return self._part is not None
+
+    @property
+    def data_offset(self):
+        if self.has_part():
+            return self._part.data_offset
+        else:
+            return 0
+
 
 class Buffer:
     """
@@ -1188,19 +1156,13 @@ class Buffer:
         :getter: Returns itself.
         :type: int
         """
-        timestamp = 0
         try:
             timestamp = self._buffer.timestamp_ns
         except GenericException:
             try:
-                _ = self.timestamp_frequency
+                timestamp = self._buffer.timestamp
             except GenericException:
-                pass
-            else:
-                try:
-                    timestamp = self._buffer.timestamp
-                except GenericException:
-                    timestamp = 0
+                timestamp = 0
 
         return timestamp
 
@@ -1757,54 +1719,48 @@ class ImageAcquirer:
             self._xml_dir = None
 
         #
-        try:
-            node_map = _get_port_connected_node_map(
-                port=system.port, logger=self._logger,
-                xml_dir_to_store=self._xml_dir
-            )
-        except GenericException as e:
-            self._logger.error(e, exc_info=True)
-        else:
-            self._system = System(module=system, node_map=node_map)
+        exceptions = (GenericException, LogicalErrorException)
 
-        #
-        try:
-            node_map = _get_port_connected_node_map(
-                port=interface.port, logger=self._logger,
-                xml_dir_to_store=self._xml_dir
-            )
-        except GenericException as e:
-            self._logger.error(e, exc_info=True)
-        else:
-            self._interface = Interface(
-                module=interface, node_map=node_map, parent=self._system
+        self._system = None
+        self._interface = None
+        self._device = None
+        self._remote_device = None
+
+        sources = [system, interface, device, device]
+        ports = [
+            system.port, interface.port, device.local_port, device.remote_port
+        ]
+        destinations = [
+            '_system', '_interface', '_device', '_remote_device'
+        ]
+        ctors = [System, Interface, Device, RemoteDevice]
+        parents = [None, self._system, self._interface, self._device]
+        file_paths = [None, None, None, file_path]
+
+        for (ctor, destination, file_path_, parent, port, source) in \
+                zip(ctors, destinations, file_paths, parents, ports, sources):
+            #
+            try:
+                node_map = self._get_port_connected_node_map(
+                    port=port, logger=self._logger,
+                    xml_dir_to_store=self._xml_dir, file_path=file_path_
+                )
+            except exceptions as e:
+                # Accept a case where the target GenTL entity does not
+                # provide any device description XML file:
+                self._logger.error(e, exc_info=True)
+                node_map = None
+            #
+            setattr(
+                self, destination, ctor(
+                    module=source, node_map=node_map, parent=parent
+                )
             )
 
-        #
-        try:
-            node_map = _get_port_connected_node_map(
-                port=device.local_port, logger=self._logger,
-                xml_dir_to_store=self._xml_dir
-            )  # Local device's node map
-        except GenericException as e:
-            self._logger.error(e, exc_info=True)
-        else:
-            self._device = Device(
-                module=device, node_map=node_map, parent=self._interface
-            )
-
-        #
-        try:
-            node_map = _get_port_connected_node_map(
-                port=device.remote_port, logger=self._logger,
-                file_path=file_path, xml_dir_to_store=self._xml_dir
-            )  # Remote device's node map
-        except GenericException as e:
-            self._logger.error(e, exc_info=True)
-        else:
-            self._remote_device = RemoteDevice(
-                module=self._device, node_map=node_map, parent=self._device
-            )
+        if self._remote_device:
+            # Providing an device description file is mandatory for
+            # a GenICam compliant cameras (= remote devices):
+            assert self._remote_device.node_map
 
         #
         self._data_streams = []
@@ -1971,7 +1927,7 @@ class ImageAcquirer:
             id_ = self._device.id_
             #
             if self.remote_device.node_map:
-                self.device.node_map.disconnect()
+                self.remote_device.node_map.disconnect()
             #
             if self._device.is_open():
                 self._device.close()
@@ -2251,26 +2207,158 @@ class ImageAcquirer:
                     )
                 )
 
+            #
+            exceptions = (GenericException, LogicalErrorException)
             try:
-                node_map = _get_port_connected_node_map(
+                node_map = self._get_port_connected_node_map(
                     port=_data_stream.port, logger=self._logger
                 )
-            except GenericException as e:
+            except exceptions as e:
+                # Accept a case where the target GenTL entity does not
+                # provide any device description XML file:
                 self._logger.error(e, exc_info=True)
-            else:
-                self._data_streams.append(
-                    DataStream(
-                        module=_data_stream, node_map=node_map,
-                        parent=self._device
+                node_map = None
+
+            self._data_streams.append(
+                DataStream(
+                    module=_data_stream, node_map=node_map,
+                    parent=self._device
+                )
+            )
+            # Create an Event Manager object for image acquisition.
+            event_token = self._data_streams[i].register_event(
+                EVENT_TYPE_LIST.EVENT_NEW_BUFFER
+            )
+            self._event_new_buffer_managers.append(
+                EventManagerNewBuffer(event_token)
+            )
+
+    def _get_port_connected_node_map(
+            self, *,
+            port: Optional[Port] = None,
+            logger: Optional[Logger] = None,
+            file_path: Optional[str] = None,
+            xml_dir_to_store: Optional[str] = None):
+        #
+        assert port
+
+        #
+        _logger = logger or get_logger(name=__name__)
+
+        # Instantiate a GenICam node map object.
+        node_map = NodeMap()
+
+        #
+        file_path = self._retrieve_file_path(
+            port=port, file_path_to_load=file_path, logger=logger, xml_dir_to_store=xml_dir_to_store
+        )
+
+        #
+        if file_path is not None:
+            # Every valid (zipped) XML file MUST be parsed as expected and the
+            # method returns the file path where the file is located:
+            # Then load the XML file content on the node map object.
+            has_valid_file = True
+
+            # In this case, the file has been identified as a Zip file but
+            # has been diagnosed as BadZipFile due to a technical reason.
+            # Let the NodeMap object load the file from the path:
+            try:
+                node_map.load_xml_from_zip_file(file_path)
+            except RuntimeException:
+                try:
+                    node_map.load_xml_from_file(file_path)
+                except RuntimeException as e:
+                    _logger.error(e, exc_info=True)
+                    has_valid_file = False
+
+            if has_valid_file:
+                # Instantiate a concrete port object of the remote device's
+                # port.
+                concrete_port = ConcretePort(port)
+
+                # And finally connect the concrete port on the node map
+                # object.
+                node_map.connect(concrete_port, port.name)
+
+        # Then return the node map:
+        return node_map
+
+    @staticmethod
+    def _retrieve_file_path(
+            *,
+            port: Optional[Port] = None,
+            url: Optional[str] = None,
+            file_path_to_load: Optional[str] = None,
+            logger: Optional[Logger] = None,
+            xml_dir_to_store: Optional[str] = None):
+        #
+        _logger = logger or get_logger(name=__name__)
+
+        #
+        if file_path_to_load:
+            # A file that is specified by the client will be used:
+            if not os.path.exists(file_path_to_load):
+                raise LogicalErrorException(
+                    '{0} does not exist.'.format(file_path_to_load)
+                )
+        else:
+            if url is None:
+                # Inquire its URL information.
+                if len(port.url_info_list) > 0:
+                    url = port.url_info_list[0].url
+                else:
+                    raise LogicalErrorException(
+                        'The target port does not hold any URL.'
                     )
+
+            _logger.info('URL: {0}'.format(url))
+
+            # And parse the URL.
+            location, others = url.split(':', 1)
+            location = location.lower()
+
+            if location == 'local':
+                file_name, address, size = others.split(';')
+                address = int(address, 16)
+                # Remove optional /// after local: See section 4.1.2 in GenTL
+                # v1.4 Standard
+                file_name = file_name.lstrip('/')
+
+                # It may specify the schema version.
+                delimiter = '?'
+                if delimiter in size:
+                    size, _ = size.split(delimiter)
+                size = int(size, 16)  # From Hex to Dec
+
+                # Now we get the file content.
+                size, binary_data = port.read(address, size)
+
+                # Store the XML file on the host side; it may be a Zipped XML
+                # file or a plain XML file:
+                file_path_to_load = _save_file(
+                    xml_dir_to_store=xml_dir_to_store, file_name=file_name,
+                    binary_data=binary_data, logger=logger
                 )
-                # Create an Event Manager object for image acquisition.
-                event_token = self._data_streams[i].register_event(
-                    EVENT_TYPE_LIST.EVENT_NEW_BUFFER
+
+            elif location == 'file':
+                file_path_to_load = urlparse(url).path
+
+            elif location == 'http' or location == 'https':
+                raise NotImplementedError(
+                    'Failed to parse URL {0}: Harvester has not supported '
+                    'downloading a device description file from vendor '
+                    'web site. If you must rely on the current condition,'
+                    'just try to make a request to the Harvester '
+                    'maintainer.'.format(url)
                 )
-                self._event_new_buffer_managers.append(
-                    EventManagerNewBuffer(event_token)
+            else:
+                raise LogicalErrorException(
+                    'Failed to parse URL {0}: Unknown format.'.format(url)
                 )
+
+        return file_path_to_load
+
 
     def start_image_acquisition(self, run_in_background=False):
         """
@@ -2365,7 +2453,7 @@ class ImageAcquirer:
                 # transport layer related features:
                 try:
                     self.remote_device.node_map.TLParamsLocked.value = 1
-                except GenericException:
+                except (GenericException, AttributeError):
                     # SFNC < 2.0
                     pass
 
@@ -2802,7 +2890,7 @@ class ImageAcquirer:
                     # Unlock TLParamsLocked in order to allow full device
                     # configuration:
                     self.remote_device.node_map.TLParamsLocked.value = 0
-                except GenericException:
+                except (GenericException, AttributeError):
                     # SFNC < 2.0
                     pass
 
@@ -2891,90 +2979,20 @@ class ImageAcquirer:
             _ = self._queue.get_nowait()
 
 
-def _retrieve_file_path(
-        *,
-        port: Optional[Port] = None,
-        url: Optional[str] = None,
-        file_path_to_load: Optional[str] = None,
-        logger: Optional[Logger] = None,
-        xml_dir_to_store: Optional[str] = None):
-    #
-    _logger = logger or get_logger(name=__name__)
-
-    #
-    if file_path_to_load:
-        # A file that is specified by the client will be used:
-        if not os.path.exists(file_path_to_load):
-            raise LogicalErrorException(
-                '{0} does not exist.'.format(file_path_to_load)
-            )
-    else:
-        if url is None:
-            # Inquire its URL information.
-            if len(port.url_info_list) > 0:
-                url = port.url_info_list[0].url
-            else:
-                raise LogicalErrorException(
-                    'The target port does not hold any URL.'
-                )
-
-        _logger.info('URL: {0}'.format(url))
-
-        # And parse the URL.
-        location, others = url.split(':', 1)
-        location = location.lower()
-
-        if location == 'local':
-            file_name, address, size = others.split(';')
-            address = int(address, 16)
-            # Remove optional /// after local: See section 4.1.2 in GenTL
-            # v1.4 Standard
-            file_name = file_name.lstrip('/')
-
-            # It may specify the schema version.
-            delimiter = '?'
-            if delimiter in size:
-                size, _ = size.split(delimiter)
-            size = int(size, 16)  # From Hex to Dec
-
-            # Now we get the file content.
-            size, binary_data = port.read(address, size)
-
-            # Store the XML file on the host side; it may be a Zipped XML
-            # file or a plain XML file:
-            file_path_to_load = _save_file(
-                xml_dir_to_store=xml_dir_to_store, file_name=file_name,
-                binary_data=binary_data
-            )
-
-        elif location == 'file':
-            file_path_to_load = urlparse(url).path
-
-        elif location == 'http' or location == 'https':
-            raise NotImplementedError(
-                'Failed to parse URL {0}: Harvester has not supported '
-                'downloading a device description file from vendor '
-                'web site. If you must rely on the current condition,'
-                'just try to make a request to the Harvester '
-                'maintainer.'.format(url)
-            )
-        else:
-            raise LogicalErrorException(
-                'Failed to parse URL {0}: Unknown format.'.format(url)
-            )
-
-    return file_path_to_load
 
 
 def _save_file(
         *,
         xml_dir_to_store: Optional[str] = None,
         file_name: Optional[str] = None,
-        binary_data=None):
+        binary_data=None,
+        logger=None):
+    #
+    _logger = logger or get_logger(name=__name__)
+
     #
     assert binary_data
     assert file_name
-
     #
     bytes_io = io.BytesIO(binary_data)
 
@@ -2992,7 +3010,8 @@ def _save_file(
     file_path = os.path.join(xml_dir_to_store, _file_name)
 
     #
-    mode = 'w+'
+    mode_base = 'w+'
+    mode = mode_base
     data_to_write = bytes_content = bytes_io.getvalue()
     if pathlib.Path(file_path).suffix.lower() == '.zip':
         mode += 'b'
@@ -3003,62 +3022,25 @@ def _save_file(
             # Found a \x00:
             data_to_write = data_to_write[:pos]
     #
-    with open(file_path, mode) as f:
-        f.write(data_to_write)
+    try:
+        with open(file_path, mode) as f:
+            f.write(data_to_write)
+    except UnicodeEncodeError:
+        # Probably you've caught "UnicodeEncodeError: 'charmap' codec can't
+        # encode characters"; the file must be a text file:
+        try:
+            with io.open(file_path, mode_base, encoding="utf-8") as f:
+                f.write(data_to_write)
+        except:
+            e = sys.exc_info()[0]
+            _logger.error(e, exc_info=True)
+            raise
+    except:
+        e = sys.exc_info()[0]
+        _logger.error(e, exc_info=True)
+        raise
 
     return file_path
-
-
-def _get_port_connected_node_map(
-        *,
-        port: Optional[Port] = None,
-        logger: Optional[Logger] = None,
-        file_path: Optional[str] = None,
-        xml_dir_to_store: Optional[str] = None):
-    #
-    assert port
-
-    #
-    _logger = logger or get_logger(name=__name__)
-
-    # Instantiate a GenICam node map object.
-    node_map = NodeMap()
-
-    #
-    file_path = _retrieve_file_path(
-        port=port, file_path_to_load=file_path, logger=logger, xml_dir_to_store=xml_dir_to_store
-    )
-
-    #
-    if file_path is not None:
-        # Every valid (zipped) XML file MUST be parsed as expected and the
-        # method returns the file path where the file is located:
-        # Then load the XML file content on the node map object.
-        has_valid_file = True
-
-        # In this case, the file has been identified as a Zip file but
-        # has been diagnosed as BadZipFile due to a technical reason.
-        # Let the NodeMap object load the file from the path:
-        try:
-            node_map.load_xml_from_zip_file(file_path)
-        except RuntimeException:
-            try:
-                node_map.load_xml_from_file(file_path)
-            except RuntimeException as e:
-                _logger.error(e, exc_info=True)
-                has_valid_file = False
-
-        if has_valid_file:
-            # Instantiate a concrete port object of the remote device's
-            # port.
-            concrete_port = ConcretePort(port)
-
-            # And finally connect the concrete port on the node map
-            # object.
-            node_map.connect(concrete_port, port.name)
-
-    # Then return the node map:
-    return node_map
 
 
 class _CallbackDestroyImageAcquirer(Callback):
@@ -3318,14 +3300,18 @@ class Harvester:
 
         return ia
 
-    def add_cti_file(self, file_path: str):
+    def add_cti_file(
+            self, file_path: str, check_existence: bool = False,
+            check_validity: bool = False):
         """
         Will be deprecated shortly.
         """
         _deprecated(self.add_cti_file, self.add_file)
         self.add_file(file_path)
 
-    def add_file(self, file_path: str) -> None:
+    def add_file(
+            self, file_path: str, check_existence: bool = False,
+            check_validity: bool = False) -> None:
         """
         Adds a CTI file as one of GenTL Producers to work with.
 
@@ -3333,10 +3319,25 @@ class Harvester:
 
         :return: None.
         """
-        if not os.path.exists(file_path):
-            self._logger.warning(
-                'Attempted to add {0} which does not exist.'.format(file_path)
-            )
+
+        # Check if the file exists:
+        if check_existence:
+            if not os.path.exists(file_path):
+                self._logger.error(
+                    'Attempted to add {0} which does not exist.'.format(file_path)
+                )
+                raise FileNotFoundError
+
+        # Check if the file can be dynamically loaded:
+        if check_validity:
+            try:
+                _ = CDLL(file_path)
+            except OSError as e:
+                self._logger.error(e, exc_info=True)
+                raise
+            else:
+                # We let the library being loaded.
+                pass
 
         if file_path not in self._cti_files:
             self._cti_files.append(file_path)

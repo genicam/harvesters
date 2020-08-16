@@ -32,15 +32,20 @@ from urllib.parse import quote
 
 # Related third party imports
 from genicam.gentl import TimeoutException
+import numpy as np
 
 # Local application/library specific imports
 from harvesters.test.base_harvester import TestHarvesterCoreBase
 from harvesters.test.base_harvester import get_cti_file_path
-from harvesters.core import _retrieve_file_path
 from harvesters.core import Callback
 from harvesters.core import Harvester
 from harvesters.core import ImageAcquirer
 from harvesters.test.helper import get_package_dir
+from harvesters.util.pfnc import Dictionary
+from harvesters.core import Component2DImage
+from harvesters.util.pfnc import Mono8, Mono10, Mono12, Mono14, Mono16
+from harvesters.util.pfnc import Mono10Packed, Mono12Packed
+from harvesters.util.pfnc import Mono10p, Mono12p, Mono14p
 
 
 class TestHarvesterCore(TestHarvesterCoreBase):
@@ -472,7 +477,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         url += file_path
 
         # Parse the URL:
-        retrieved_file_path = _retrieve_file_path(url=url)
+        retrieved_file_path = ImageAcquirer._retrieve_file_path(url=url)
 
         # Compare file names:
         self.assertEqual(
@@ -486,7 +491,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
 
         #
         url = 'file://' + expected_file_path
-        retrieved_file_path = _retrieve_file_path(url=url)
+        retrieved_file_path = ImageAcquirer._retrieve_file_path(url=url)
 
         # Compare file names:
         self.assertEqual(
@@ -640,6 +645,74 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         # And destroy the ImageAcquirer:
         self.ia.destroy()
 
+    def test_issue_146(self):
+        #
+        tests = [
+            self._test_issue_146_group_packed_10,
+            self._test_issue_146_group_packed_12,
+            self._test_issue_146_packed_10,
+            self._test_issue_146_packed_12,
+            self._test_issue_146_mono_unpacked_multibytes,
+        ]
+        #
+        for test in tests:
+            test()
+
+    def _test_issue_146_group_packed_10(self):
+        _1st = 0xff
+        _3rd = 0xff
+        ba = bytes([_1st, 0x33, _3rd])
+        packed = np.frombuffer(ba, dtype=np.uint8)
+        pf = Dictionary.get_proxy('BayerRG10Packed')
+        unpacked = pf.expand(packed)
+        self.assertEqual(_1st * 4 + 3, unpacked[0])
+        self.assertEqual(_3rd * 4 + 3, unpacked[1])
+
+    def _test_issue_146_group_packed_12(self):
+        _1st = 0xff
+        _3rd = 0xff
+        ba = bytes([_1st, 0xff, _3rd])
+        packed = np.frombuffer(ba, dtype=np.uint8)
+        pf = Dictionary.get_proxy('BayerRG12Packed')
+        unpacked = pf.expand(packed)
+        self.assertEqual(_1st * 16 + 0xf, unpacked[0])
+        self.assertEqual(_3rd * 16 + 0xf, unpacked[1])
+
+    def _test_issue_146_packed_10(self):
+        element = 0xff
+        ba = bytes([element, element, element, element])
+        packed = np.frombuffer(ba, dtype=np.uint8)
+        pf = Dictionary.get_proxy('Mono10p')
+        unpacked = pf.expand(packed)
+        self.assertEqual(0x3ff, unpacked[0])
+        self.assertEqual(0x3ff, unpacked[1])
+        self.assertEqual(0x7ff, unpacked[2])
+
+    def _test_issue_146_packed_12(self):
+        _1st = 0xff
+        _3rd = 0xff
+        ba = bytes([_1st, 0xff, _3rd])
+        packed = np.frombuffer(ba, dtype=np.uint8)
+        pf = Dictionary.get_proxy('Mono12p')
+        unpacked = pf.expand(packed)
+        self.assertEqual(0xf * 256 + _1st, unpacked[0])
+        self.assertEqual(_3rd * 16 + 0xf, unpacked[1])
+
+    def _test_issue_146_mono_unpacked_multibytes(self):
+        names = ['Mono10', 'Mono12']
+        maximums = [0x4, 0x10]
+        for index, name in enumerate(names):
+            pf = Dictionary.get_proxy(name)
+            for i in range(maximums[index]):
+                for j in range(0x100):
+                    ba = bytes([j, i, j, i])
+                    packed = np.frombuffer(ba, dtype=np.uint8)
+                    unpacked = pf.expand(packed)
+                    # We know it's redundant but check 10 times:
+                    for l in range(10):
+                        for k in range(2):
+                            self.assertEqual((i << 8) + j, unpacked[k])
+
 
 class _TestIssue81(threading.Thread):
     def __init__(self, message_queue=None, cti_file_path=None):
@@ -750,6 +823,83 @@ class _OnReturnBufferNow(Callback):
         while len(self._holder.buffers) > 0:
             buffer = self._holder.buffers.pop(-1)
             buffer.queue()
+
+
+class TestIssue181(unittest.TestCase):
+    def test_issue_181_with_nonexistent_file(self):
+        h = Harvester()
+        with self.assertRaises(FileNotFoundError):
+            h.add_file('just a string', check_existence=True)
+
+    def test_issue_181_with_invalid_file(self):
+        h = Harvester()
+        with self.assertRaises(OSError):
+            h.add_file(__file__, check_validity=True)
+
+
+class TestIssue188(unittest.TestCase):
+    _height = 1
+    _range = range(0, 3, 1)
+
+    def test_issue_188_unpacked(self):
+        proxies = [Mono8, Mono10, Mono12, Mono14, Mono16]
+        expected_results = [
+            [1, 2, 2, 2, 2],  # 1 x 1
+            [2, 4, 4, 4, 4],  # 2 x 1
+            [3, 6, 6, 6, 6],  # 3 x 1
+        ]
+        for i in self._range:
+            for j, proxy in enumerate(proxies):
+                self.assertEqual(
+                    expected_results[i][j],
+                    Component2DImage._get_nr_bytes(
+                        pf_proxy=proxy(), width=i + 1, height=self._height
+                    )
+                )
+
+    def test_issue_188_packed(self):
+        proxies = [Mono10Packed, Mono12Packed]
+        expected_results = [
+            [2, 2],  # 1 x 1
+            [3, 3],  # 2 x 1
+            [4, 5],  # 3 x 1
+        ]
+        for i in self._range:
+            for j, proxy in enumerate(proxies):
+                self.assertEqual(
+                    expected_results[i][j],
+                    Component2DImage._get_nr_bytes(
+                        pf_proxy=proxy(), width=i + 1, height=self._height
+                    )
+                )
+
+    def test_issue_188_p(self):
+        proxies = [Mono10p, Mono12p, Mono14p]
+        expected_results = [
+            [2, 2, 2],  # 1 x 1
+            [3, 3, 4],  # 2 x 1
+            [4, 5, 6],  # 3 x 1
+        ]
+        for i in self._range:
+            for j, proxy in enumerate(proxies):
+                self.assertEqual(
+                    expected_results[i][j],
+                    Component2DImage._get_nr_bytes(
+                        pf_proxy=proxy(), width=i + 1, height=self._height
+                    )
+                )
+
+    def test_issue_188_neels_case(self):
+        proxies = [Mono12]
+        width = 2456
+        height = 2058
+        for proxy in proxies:
+            self.assertEqual(
+                10108896,  # = 2456 * 2058 * 2
+                Component2DImage._get_nr_bytes(
+                    pf_proxy=proxy(), width=width, height=height
+                )
+            )
 
 
 if __name__ == '__main__':

@@ -10,9 +10,6 @@
 .. image:: https://img.shields.io/pypi/v/harvesters.svg
     :target: https://pypi.org/project/harvesters
 
-.. image:: https://img.shields.io/pypi/pyversions/harvesters.svg
-    :target: https://img.shields.io/pypi/pyversions/harvesters.svg
-
 .. image:: https://zenodo.org/badge/133908095.svg
    :target: https://zenodo.org/badge/latestdoi/133908095
 
@@ -163,7 +160,7 @@ Note that we as the committee have not prepared any formal certification procedu
       - Not tested
       - Worked
       - Worked
-    - - `MATRIX VISION <https://www.matrix-vision.com/home-en.html>`_
+    - - `MATRIX VISION GmbH <https://www.matrix-vision.com/home-en.html>`_
       - Not applicable
       - Worked
       - Worked
@@ -237,17 +234,21 @@ https://github.com/genicam/harvesters_gui
 Announcements
 *************
 
+- **Version 1.2.8**: Resolves issue `#191 <https://github.com/genicam/harvesters/issues/191>`_.
+- **Version 1.2.7**: Resolves issues `#167 <https://github.com/genicam/harvesters/issues/167>`_, `#181 <https://github.com/genicam/harvesters/issues/181>`_, `#183 <https://github.com/genicam/harvesters/issues/183>`_, `#184 <https://github.com/genicam/harvesters/issues/184>`_, `#185 <https://github.com/genicam/harvesters/issues/185>`_, and `#188 <https://github.com/genicam/harvesters/issues/188>`_.
+- **Version 1.2.6**: Reverted the change made for version 1.2.5.
+- **Version 1.2.5**: Resolves issue `#180 <https://github.com/genicam/harvesters/issues/180>`_.
+- **Version 1.2.4**: Resolves issues `#125 <https://github.com/genicam/harvesters/issues/125>`_, `#169 <https://github.com/genicam/harvesters/issues/169>`_, `#172 <https://github.com/genicam/harvesters/issues/172>`_, `#175 <https://github.com/genicam/harvesters/issues/175>`_, and `#178 <https://github.com/genicam/harvesters/issues/178>`_.
+- **Version 1.2.3**: Resolves issue `#165 <https://github.com/genicam/harvesters/issues/165>`_.
+- **Version 1.2.2**: Resolves issue `#146 <https://github.com/genicam/harvesters/issues/146>`_; please let me know if it breaks something on your side. I will revert the change as soon as possible.
+- **Version 1.2.1**: Resolves issues `#145 <https://github.com/genicam/harvesters/issues/145>`_, `#155 <https://github.com/genicam/harvesters/issues/155>`_, `#157 <https://github.com/genicam/harvesters/issues/157>`_, and `#159 <https://github.com/genicam/harvesters/issues/159>`_.
 - **Version 1.2.0**: Resolves issues `#127 <https://github.com/genicam/harvesters/issues/127>`_, `#131 <https://github.com/genicam/harvesters/issues/131>`_, `#141 <https://github.com/genicam/harvesters/issues/141>`_, and `#142 <https://github.com/genicam/harvesters/issues/142>`_. The fix for ticket #131 improves the performance of both stability and capable acquisition rate of the image acquisition.
 - **Version 1.1.1**: Resolves issue `#126 <https://github.com/genicam/harvesters/issues/126>`_.
 - **Version 1.1.0**: Resolves issue `#120 <https://github.com/genicam/harvesters/issues/120>`_.
 - **Version 1.0.5**: Resolves issue `#124 <https://github.com/genicam/harvesters/issues/124>`_.
 - **Version 1.0.4**: Partly resolves issue `#121 <https://github.com/genicam/harvesters/issues/121>`_.
-- **Version 1.0.3**: Resolves issue `#103 <https://github.com/genicam/harvesters/issues/103>`_.
-- **Version 1.0.2**: Resolves issue `#109 <https://github.com/genicam/harvesters/issues/109>`_.
-- **Version 1.0.1**: Resolves issue `#104 <https://github.com/genicam/harvesters/issues/104>`_.
-- **Version 1.0.0**: Resolves issue `#83 <https://github.com/genicam/harvesters/issues/83>`_.
 
-Other older releases shoud be found at `the release notes page <https://github.com/genicam/harvesters/wiki/Release-Notes>`_ on GitHub.
+Other older releases should be found at `Milestones page <https://github.com/genicam/harvesters/milestones>`_ on GitHub.
 
 ################
 Online Resources
@@ -298,7 +299,7 @@ As of today, we have tested Harvester with the following GenTL Producers and it 
 
     - - Company Name
       - SDK Name
-      - Camera Manufacture Free
+      - Camera Manufacturer Free
     - - Basler AG
       - `Pylon <https://www.baslerweb.com/en/products/software/basler-pylon-camera-software-suite/>`_
       - No
@@ -311,11 +312,11 @@ As of today, we have tested Harvester with the following GenTL Producers and it 
     - - JAI
       - `JAI SDK <https://www.jai.com/support-software/jai-software>`_
       - Yes
-    - - Matrix Vision
-      - `mvIMPACT_Acquire <http://static.matrix-vision.com/mvIMPACT_Acquire/>`_
+    - - MATRIX VISION GmbH
+      - `mvIMPACT Acquire <http://static.matrix-vision.com/mvIMPACT_Acquire/>`_
       - Yes
     - - OMRON SENTECH
-      - `StCamUSBPack <https://sentech.co.jp/data/#cnt2nd>`_
+      - `SentechSDK <https://sentech.co.jp/en/data/>`_
       - No
     - - STEMMER IMAGING
       - `Common Vision Blox <https://www.commonvisionblox.com/en/cvb-download/>`_
@@ -531,16 +532,6 @@ The main features of Harvester Core are listed as follows:
 Note that the second item implies you can involve multiple types of transport layers in your Python script. Each transport layer has own advantages and disadvantages and you should choose appropriate transport layers following your application's requirement. You just need to acquire images for some purposes and the GenTL Producers deliver the images somehow. It truly is the great benefit of the GenTL Standard! And of course, not only GenTL Producers but Harvester Core offer you a way to manipulate multiple remote devices in a single Python script with an intuitive manner.
 
 On the other hand, Harvester Core could be considered as a simplified version of the GenTL-Python Binding; actually, Harvester Core hides it in its back and shows only intuitive interfaces to its clients. Harvester Core just offers you a relationship between you and a remote device. Nothing more. We say it again, just you and a remote device. If you need to manipulate more relevant GenTL modules or have to achieve something over a hardcore way, then you should directly work with the GenTL-Python Binding.
-
-******************************************
-Pixel Formats That Harvester Core Supports
-******************************************
-
-Currently, Harvester Core supports the following pixel formats that are defined by the Pixel Format Naming Convention:
-
-    ``Mono8``, ``Mono10``, ``Mono12``, ``Mono16``, ``RGB8``, ``RGBa8``, ``BayerRG8``, ``BayerGR8``, ``BayerBG8``, ``BayerGB8``, ``BayerRG16``, ``BayerGR16``, ``BayerBG16``, ``BayerGB16``
-
-Note that Harvester does not support packed formats which allow multiple elements of information reside in a byte data.
 
 *************************
 Harvester Core on IPython

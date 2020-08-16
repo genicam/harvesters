@@ -46,7 +46,7 @@ if sys.version_info in supported_versions:
 with open('README.rst', 'r',encoding='utf-8_sig') as fh:
     __doc__ = fh.read()
 
-description = 'Pythonic Image Acquisition Library for Machine Vision People'
+description = '🌈 Friendly Image Acquisition Library for Computer Vision People'
 
 # Determine the base directory:
 base_dir = os.path.dirname(__file__)
@@ -80,7 +80,10 @@ setuptools.setup(
     # Location where the package may be downloaded:
     download_url='https://pypi.org/project/harvesters/',
     # A list of required Python modules:
-    install_requires=['genicam>=1', 'numpy'],
+    install_requires=[
+        'genicam==1.0.0',
+        'numpy'
+    ],
     #
     license='Apache Software License V2.0',
     # A detailed description of the package:

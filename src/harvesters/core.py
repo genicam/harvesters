@@ -856,7 +856,10 @@ class Component2DImage(ComponentBase):
             nr_bytes = self._part.data_size
         else:
             #
-            exceptions = (NotAvailableException, NotImplementedException)
+            exceptions = (
+                NotAvailableException, NotImplementedException,
+                InvalidParameterException
+            )
 
             #
             try:

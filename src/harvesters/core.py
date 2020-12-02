@@ -279,7 +279,7 @@ class RemoteDevice(Module):
 
     @property
     def port(self):
-        return self._parent.remote_port
+        return self._parent._module.remote_port
 
 
 class Device(Module):
@@ -1737,11 +1737,11 @@ class ImageAcquirer:
             '_system', '_interface', '_device', '_remote_device'
         ]
         ctors = [System, Interface, Device, RemoteDevice]
-        parents = [None, self._system, self._interface, self._device]
+        parent = None
         file_paths = [None, None, None, file_path]
 
-        for (ctor, destination, file_path_, parent, port, source) in \
-                zip(ctors, destinations, file_paths, parents, ports, sources):
+        for (ctor, destination, file_path_, port, source) in \
+                zip(ctors, destinations, file_paths, ports, sources):
             #
             try:
                 node_map = self._get_port_connected_node_map(
@@ -1759,6 +1759,7 @@ class ImageAcquirer:
                     module=source, node_map=node_map, parent=parent
                 )
             )
+            parent=getattr(self, destination)
 
         if self._remote_device:
             # Providing an device description file is mandatory for

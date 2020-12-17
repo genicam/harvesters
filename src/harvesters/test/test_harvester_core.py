@@ -713,6 +713,28 @@ class TestHarvesterCore(TestHarvesterCoreBase):
                         for k in range(2):
                             self.assertEqual((i << 8) + j, unpacked[k])
 
+    def test_issue_215(self):
+        if not self.is_running_with_default_target():
+            return
+
+        ia = self.harvester.create_image_acquirer(0)
+
+        ports = [
+            ia.system.port,
+            ia.interface.port,
+            ia.device.port,
+            ia.remote_device.port
+        ]
+        file_names = [
+            'SITL.xml',
+            'SITLI.xml',
+            'SIDEVTL.xml',
+            'SIDEV.xml'
+        ]
+
+        for (port, file_name) in zip(ports, file_names):
+            self.assertEqual(port.url_info_list[0].file_name, file_name)
+
 
 class _TestIssue81(threading.Thread):
     def __init__(self, message_queue=None, cti_file_path=None):

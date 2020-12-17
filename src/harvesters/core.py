@@ -99,6 +99,10 @@ class Module:
         self._parent = parent
 
     @property
+    def module(self):
+        return self._module
+
+    @property
     def node_map(self):
         """
         The GenICam feature node map that belongs to the owner object.
@@ -279,7 +283,7 @@ class RemoteDevice(Module):
 
     @property
     def port(self):
-        return self._parent.remote_port
+        return self._parent.module.remote_port
 
 
 class Device(Module):
@@ -1729,19 +1733,29 @@ class ImageAcquirer:
         self._device = None
         self._remote_device = None
 
-        sources = [system, interface, device, device]
+        sources = [
+            system,
+            interface,
+            device,
+            device
+        ]
         ports = [
-            system.port, interface.port, device.local_port, device.remote_port
+            system.port,
+            interface.port,
+            device.local_port,
+            device.remote_port
         ]
         destinations = [
-            '_system', '_interface', '_device', '_remote_device'
+            '_system',
+            '_interface',
+            '_device',
+            '_remote_device'
         ]
-        ctors = [System, Interface, Device, RemoteDevice]
-        parents = [None, self._system, self._interface, self._device]
         file_paths = [None, None, None, file_path]
 
-        for (ctor, destination, file_path_, parent, port, source) in \
-                zip(ctors, destinations, file_paths, parents, ports, sources):
+        node_maps = []
+
+        for (file_path_, port) in zip(file_paths, ports):
             #
             try:
                 node_map = self._get_port_connected_node_map(
@@ -1754,9 +1768,29 @@ class ImageAcquirer:
                 self._logger.error(e, exc_info=True)
                 node_map = None
             #
+            node_maps.append(node_map)
+
+        ctors = [
+            System,
+            Interface,
+            Device,
+            RemoteDevice
+        ]
+        parents = [
+            None,
+            '_system',
+            '_interface',
+            '_device',
+        ]
+
+        for (ctor, destination, node_map, parent, source) in \
+                zip(ctors, destinations, node_maps, parents, sources):
+            #
+            _parent = getattr(self, parent) if parent else None
+
             setattr(
                 self, destination, ctor(
-                    module=source, node_map=node_map, parent=parent
+                    module=source, node_map=node_map, parent=_parent
                 )
             )
 

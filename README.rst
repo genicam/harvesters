@@ -71,6 +71,9 @@ The Harvester project has started since April 2018 and it's still under developm
 
 Note that we as the committee have not prepared any formal certification procedure for Harvester. The following results were presented by Harvester users who confirmed Harvester worked for their use cases. It is true that the following information does not cover whole domain but as a fact it is helpful sometimes at least.
 
+* N.A.: Not applicable.
+* N.T.: Not tested.
+
 .. list-table::
     :header-rows: 1
     :align: center
@@ -82,139 +85,139 @@ Note that we as the committee have not prepared any formal certification procedu
       - GenICam compliant cameras
     - - `Active Silicon <https://www.activesilicon.com/>`_
       - Worked
-      - Not applicable
-      - Not applicable
-      - Not applicable
+      - N.A.
+      - N.A.
+      - N.A.
     - - `Adimec <https://www.adimec.com/>`_
-      - Not applicable
-      - Not applicable
-      - Not applicable
+      - N.A.
+      - N.A.
+      - N.A.
       - Worked
     - - `Allied Vision <https://www.alliedvision.com/en/digital-industrial-camera-solutions.html>`_
-      - Not tested
-      - Not tested
-      - Not tested
+      - N.T.
+      - N.T.
+      - N.T.
       - Worked
     - - `Automation Technology <https://www.automationtechnology.de/cms/en/>`_
-      - Not applicable
-      - Not applicable
-      - Not applicable
+      - N.A.
+      - N.A.
+      - N.A.
       - Worked
     - - `Basler <https://www.baslerweb.com/>`_
-      - Not applicable
-      - Not applicable
+      - N.A.
+      - N.A.
       - Worked
       - Worked
     - - `Baumer Optronic <https://www.baumer.com/se/en/>`_
-      - Not applicable
+      - N.A.
       - Worked
       - Worked
       - Worked
     - - `CREVIS <http://www.crevis.co.kr/eng/main/main.php>`_
-      - Not applicable
-      - Not tested
-      - Not applicable
+      - N.A.
+      - N.T.
+      - N.A.
       - Worked
     - - `CRITICAL LINK <https://www.criticallink.com>`_
-      - Not applicable
-      - Not applicable
+      - N.A.
+      - N.A.
       - Worked
       - Worked
     - - `DAHENG VISION <http://en.daheng-image.com/main.html>`_
-      - Not applicable
+      - N.A.
       - Worked
       - Worked
       - Worked
     - - `Euresys <https://www.euresys.com/Homepage>`_
       - Worked
-      - Not tested
-      - Not tested
-      - Not applicable
+      - N.T.
+      - N.T.
+      - N.A.
     - - `FLIR <https://www.flir.com>`_
-      - Not applicable
-      - Not applicable
-      - Not applicable
+      - N.A.
+      - N.A.
+      - N.A.
       - Worked
     - - `Gardasoft <http://www.gardasoft.com>`_
-      - Not applicable
-      - Not applicable
-      - Not applicable
+      - N.A.
+      - N.A.
+      - N.A.
       - Worked
     - - `JAI <https://www.jai.com>`_
-      - Not tested
+      - N.T.
       - Worked
       - Worked
       - Worked
     - - `The IMAGING SOURCE <https://www.theimagingsource.com/>`_
-      - Not tested
-      - Not tested
-      - Not tested
+      - N.T.
+      - N.T.
+      - N.T.
       - Worked
     - - `Lucid Vision Labs <https://thinklucid.com>`_
-      - Not applicable
+      - N.A.
       - Worked
-      - Not applicable
+      - N.A.
       - Worked
     - - `MACNICA Inc. <https://www.macnica.co.jp/en/top>`_
-      - Not tested
-      - Not tested
+      - N.T.
+      - N.T.
       - Worked
       - Worked
     - - `MATRIX VISION GmbH <https://www.matrix-vision.com/home-en.html>`_
-      - Not applicable
+      - N.A.
       - Worked
       - Worked
       - Worked
     - - `Matrox Imaging <https://matrox.com/en/>`_
       - Worked
-      - Not applicable
-      - Not applicable
-      - Not applicable
+      - N.A.
+      - N.A.
+      - N.A.
     - - `OMRON SENTECH <https://sentech.co.jp/en/>`_
-      - Not tested
-      - Not tested
+      - N.T.
+      - N.T.
       - Worked
       - Worked
     - - `PCO <https://www.pco-imaging.com/>`_
-      - Not applicable
-      - Not applicable
-      - Not applicable
-      - Not tested
+      - N.A.
+      - N.A.
+      - N.A.
+      - N.T.
     - - `Roboception <https://roboception.com/en/>`_
-      - Not applicable
-      - Not applicable
-      - Not applicable
+      - N.A.
+      - N.A.
+      - N.A.
       - Worked
     - - `SICK <https://www.sick.com/ag/en/>`_
-      - Not applicable
+      - N.A.
       - Worked
-      - Not applicable
+      - N.A.
       - Worked
     - - `Silicon Software <https://silicon.software/>`_
-      - Not tested
-      - Not tested
-      - Not tested
-      - Not applicable
+      - N.T.
+      - N.T.
+      - N.T.
+      - N.A.
     - - `STEMMER IMAGING <https://www.stemmer-imaging.com/en/>`_
-      - Not tested
+      - N.T.
       - Worked
       - Worked
-      - Not applicable
+      - N.A.
     - - `Teledyne DALSA <http://www.teledynedalsa.com/en/products/imaging/cameras/>`_
-      - Not tested
-      - Not applicable
-      - Not applicable
+      - N.T.
+      - N.A.
+      - N.A.
       - Worked
     - - `Vieworks <http://www.vieworks.com/eng/main.html>`_
-      - Not tested
-      - Not applicable
-      - Not applicable
-      - Not tested
+      - N.T.
+      - N.A.
+      - N.A.
+      - N.T.
     - - `XIMEA <https://www.ximea.com/>`_
-      - Not tested
-      - Not tested
-      - Not tested
-      - Not tested
+      - N.T.
+      - N.T.
+      - N.T.
+      - N.T.
 
 Please don't hesitate to tell us if you have tested Harvester with your GenTL Producer or GenICam compliant device. We will add your company/organization name to the list.
 

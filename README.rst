@@ -958,21 +958,3 @@ The initial idea about Harvester suddenly came up to a software engineer, Kazuna
 The following individuals have directly or indirectly contributed to the development activity of Harvester or encouraged the developers by their thoughtful warm words; they are our respectable wonderful colleagues:
 
 Rod Barman, Stefan Battmer, David Beek, Jan Becvar, David Bernecker, Chris Beynon, Eric Bourbonnais, Benedikt Busch, George Chamberlain, Thomas Detjen, Friedrich Dierks, Dana Diezemann, Emile Dodin, Reynold Dodson, Sascha Dorenbeck, Jozsa Elod, Erik Eloff, Katie Ensign, Andreas Ertl, James Falconer, Werner Feith, Maciej Gara, Andreas Gau, Sebastien Gendreau, Francois Gobeil, Werner Goeman, Jean-Paul Goglio, Markus Grebing, Eric Gross, Ioannis Hadjicharalambous, Uwe Hagmaier, Tim Handschack, Christopher Hartmann, Reinhard Heister, Gerhard Helfrich, Jochem Herrmann, Heiko Hirschmueller, Tom Hopfner, David Hoese, Karsten Ingeman Christensen, Severi Jaaskelainen, Mattias Johannesson, Mark Jones, Mattias Josefsson, Martin Kersting, Stephan Kieneke, Tom Kirchner, Lutz Koschorreck, Frank Krehl, Maarten Kuijk, Max Larin, Ralf Lay, Min Liu, Sergey Loginonvskikh, Thomas Lueck, Alain Marchand, Rocco Matano, Masahide Matsubara, Stephane Maurice, Robert McCurrach, Mike Miethig, Thies Moeller, Roman Moie, Katsura Muramatsu, Marcel Naggatz, Hartmut Nebelung, Damian Nesbitt, Quang Nhan Nguyen, Klaus-Henning Noffz, Neerav Patel, Jan Pech, Merlin Plock, Joerg Preckwinkel, Benjamin Pussacq, Dave Reaves, Thomas Reuter, Gordon Rice, Andreas Rittinger, Ryan Robe, Nicolas P. Rougier, Felix Ruess, Matthias Schaffland, Michael Schmidt, Jan Scholze, Martin Schwarzbauer, Rupert Stelz, Madhura Suresh, Chendra Hadi Suryanto, Andrew Wei Chuen Tan, Timo Teifel, Albert Theuwissen, Laval Tremblay, Tim Vlaar, Silvio Voitzsch, Stefan Von Weihe, Frederik Voncken, Roman Wagner, Ansger Waschki, Anne Wendel, Michael Williamson, Jean-Michel Wintgens, Manfred Wuetschner, Jang Xu, Christoph Zierl, Sebastian Yap, and Juraj Zopp
-
-******************************
-Column: Seeing and Recognition
-******************************
-
-The following is a short column that was written by one of my favorite photographers/philosophers, Katsura Muramatsu. Even though the column was exclusively dedicated to her exhibition called "Natura naturans", she generously allowed me to excerpt the column for this Harvester project. It would give us an opportunity to thinking about seeing and recognition we regularly do. To me, at least, they sound like a habit on which we unconsciously premise when we do machine vision: We tend to see everything in a way that we want to interpret. Of course, I would like to take the fact in a positive way though.
-
-*"When we talk to someone, we implicitly or explicitly try to find a piece of evidence in his/her eyes that he/she is alive. The same situation happens in a case where we face a stuffed animal and the face, or especially the eyes play a much more important role rather than its fur or other parts. When people visit this place, the museum where I took photos of these stuffed animals, they would feel that they are seen by the animals rather than they see the animals even though the animals are not alive anymore. In fact, the eyes of the stuffed animals are made of glass or other materials such as plastic. I frequently ask myself why we felt that we were seen through their eyes made of those materials." - Katsura Muramatsu*
-
-.. figure:: https://user-images.githubusercontent.com/8652625/65650928-c261cd00-e047-11e9-9ce3-972461c3e15d.jpg
-    :align: center
-    :alt: Ordo: Eastern Wolf
-
-    Title: "Ordo: Eastern Wolf" (2018)
-    
-    © Katsura Muramatsu All Rights Reserved
-
-    http://hellerraum.nobody.jp

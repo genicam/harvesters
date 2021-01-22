@@ -28,8 +28,8 @@ Harvester as Python Module
 
 Harvester consists of two Python modules, *Harvester Core* and *Harvester GUI*, and each library is responsible for the following tasks:
 
-- Harvester Core: Image acquisition & remote device manipulation
-- Harvester GUI: Image data visualization
+- ``harvesters``: Harvester Core, responsible for image acquisition & remote device manipulation
+- ``harvesters-gui``: The Harvester GUI, used for image data visualization
 
 Harvester consumes image acquisition libraries, so-called GenTL Producers. Just grabbing a GenTL Producer and GenICam compliant machine vision cameras, then Harvester will supply you the acquired image data as `numpy <http://www.numpy.org>`_ array to make your image processing task easier.
 

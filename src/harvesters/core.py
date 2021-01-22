@@ -2769,6 +2769,12 @@ class ImageAcquirer:
                                     event_manager.parent.parent.id_
                                 )
                             )
+                    else:
+                        self._logger.debug(
+                            'Acquired buffer was incomplete.'
+                        )
+                        ds = event_manager.buffer.parent
+                        ds.queue_buffer(event_manager.buffer)
 
                     # Get the latest buffer:
                     _buffer = event_manager.buffer

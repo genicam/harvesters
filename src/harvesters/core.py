@@ -1886,7 +1886,8 @@ class ImageAcquirer:
             self.Events.TURNED_OBSOLETE,
             self.Events.RETURN_ALL_BORROWED_BUFFERS,
             self.Events.READY_TO_STOP_ACQUISITION,
-            self.Events.NEW_BUFFER_AVAILABLE
+            self.Events.NEW_BUFFER_AVAILABLE,
+            self.Events.INCOMPLETE_BUFFER
         ]
         self._callback_dict = dict()
         for event in self._supported_events:
@@ -2775,6 +2776,7 @@ class ImageAcquirer:
                         )
                         ds = event_manager.buffer.parent
                         ds.queue_buffer(event_manager.buffer)
+                        self._emit_callbacks(self.Events.INCOMPLETE_BUFFER)
 
                     # Get the latest buffer:
                     _buffer = event_manager.buffer

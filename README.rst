@@ -15,36 +15,26 @@
 
 ----
 
-############
-Introduction
-############
+**********
+Motivation
+**********
 
-Hello everyone. I'm Kazunari, the author of Harvester and a technical contributor to GenICam.
+*"Bring your imagination into computer vision to make this world better. Harvester is here for you."*
 
-Since I opened the source code of Harvester in May 2018, so many people tried out that and gave me very positive feedback that improves Harvester. The number of feedback and the number of people who I discussed with was much more than I expected what I had in the beginning and it truly was one of the exciting experiences I ever had in my professional career.
-
-The original motivation that drove me to develop Harvester was like this: Until I got the idea of Harvester, I had to learn and adapt to popular proprietary 3rd party image acquisition/processing libraries from scratch every time even though I just wanted to acquire an image. To be honest, I had felt it's a bit annoying. A straightforward solution to the issue was to have a unified image acquisition library. In addition, as a guy who likes to work with Python, I wanted to make it a Python module to boost productivity.
-
-I believe that Harvester can help you to concentrate on image processing that you really have to be responsible for. Of course, you would have to implement the algorithm again using other sophisticated and powerful proprietary libraries to optimize the performance in reality. However, (this is very important so let me stress this) Harvester is just a productive sandbox that encapsulates the image acquisition process and does not intend to take the place of such superior image processing libraries because they were designed for exactly that purpose. Harvester just wants to shorten the time you spend to realize your brilliant ideas as much as possible. With this meaning, Harvester can be considered as a tool that helps you to quickly iterate the prototyping process. Note that it is vital for designers because the prototyping process defines the basic quality of the final product. Fortunately, Harvester has got firm support from the high-quality GenTL Producers on the market. It means you can smoothly start working with any GenICam compliant cameras that you may want to work with.
-
-So, everyone, there's no worry anymore. Keep having fun working. Harvester has got your back.
-
-Greetings, Kazunari Kudo.
 
 **************************
 Harvester as Python Module
 **************************
 
-Techincally speaking, Harvester consists of two Python modules, Harvester Core and Harvester GUI, and technically speaking, each library is responsible for the following tasks:
+Harvester consists of two Python modules, *Harvester Core* and *Harvester GUI*, and each library is responsible for the following tasks:
 
 - Harvester Core: Image acquisition & remote device manipulation
 - Harvester GUI: Image data visualization
 
-Harvester consumes image acquisition libraries, so-called GenTL Producers. Just grabbing a GenTL Producer and GenICam compliant machine vision cameras, then Harvester will supply you the acquired image data as `numpy <http://www.numpy.org>`_ array to make your image processing task productive.
+Harvester consumes image acquisition libraries, so-called GenTL Producers. Just grabbing a GenTL Producer and GenICam compliant machine vision cameras, then Harvester will supply you the acquired image data as `numpy <http://www.numpy.org>`_ array to make your image processing task easier.
 
 You can freely use, modify, distribute Harvester under `Apache License-2.0 <https://www.apache.org/licenses/LICENSE-2.0>`_ without worrying about the use of your software: personal, internal or commercial.
 
-Currently, Harvester is being developed by the motivated contributors from all over the world.
 
 ***********************
 Where Is The Name From?
@@ -52,14 +42,16 @@ Where Is The Name From?
 
 Harvester's name is from the great Flemish painter, Pieter Bruegel the Elder's painting so-called "The Harvesters". You can see the painting in the top of this page. Harvesters harvest a crop every season that has been fully grown and the harvested crop is passed to the consumers. On the other hand, image acquisition libraries acquire images as their crop and the images are passed to the following processes. We found the similarity between them and decided to name our library Harvester.
 
-Apart from anything else, we love its peaceful and friendly name.
+Apart from anything else, we love its peaceful and friendly name, and you?
+
 
 ----
 
 .. contents:: Table of Contents
-    :depth: 2
+    :depth: 1
 
 **Disclaimer**: All external pictures should have associated credits. If there are missing credits, please tell us, we will correct it. Similarly, all excerpts should be sourced. If not, this is an error and we will correct it as soon as you tell us.
+
 
 ----
 
@@ -67,9 +59,7 @@ Apart from anything else, we love its peaceful and friendly name.
 Development Status
 ******************
 
-The Harvester project has started since April 2018 and it's still under development as of October 2018 but many developers and researchers over the world have already confirmed that it is actually usable with the popular GenTL Producers and GenICam compliant cameras from the following companies. We have realized the progress had been brought by all interested people's positive expectation in the machine vision market and we strongly believe it will sustain to the following years. Of course, we will never forget the importance of volunteer companies which provided us their products to test Harvester. Thank you very much!
-
-Note that we as the committee have not prepared any formal certification procedure for Harvester. The following results were presented by Harvester users who confirmed Harvester worked for their use cases. It is true that the following information does not cover whole domain but as a fact it is helpful sometimes at least.
+The following table could be infromative for you but note that we as the committee have not prepared any formal certification procedure for Harvester. The following results were presented by Harvester users who confirmed Harvester worked for their use cases. It is true that the following information does not cover whole domain but as a fact it is helpful sometimes at least.
 
 * N.A.: Not applicable.
 * N.T.: Not tested.
@@ -203,10 +193,15 @@ Note that we as the committee have not prepared any formal certification procedu
       - Worked
       - Worked
       - N.A.
-    - - `Teledyne DALSA <http://www.teledynedalsa.com/en/products/imaging/cameras/>`_
+    - - `Teledyne <http://www.teledynedalsa.com/en/products/imaging/cameras/>`_
       - N.T.
       - N.A.
       - N.A.
+      - Worked
+    - - `Toshiba TELI Corporation <https://www.toshiba-teli.co.jp/en/>`_
+      - N.A.
+      - N.A.
+      - Worked.
       - Worked
     - - `Vieworks <http://www.vieworks.com/eng/main.html>`_
       - N.T.
@@ -221,6 +216,7 @@ Note that we as the committee have not prepared any formal certification procedu
 
 Please don't hesitate to tell us if you have tested Harvester with your GenTL Producer or GenICam compliant device. We will add your company/organization name to the list.
 
+
 ***********
 Need a GUI?
 ***********
@@ -232,6 +228,7 @@ https://github.com/genicam/harvesters_gui
 .. image:: https://user-images.githubusercontent.com/8652625/43035346-c84fe404-8d28-11e8-815f-2df66cbbc6d0.png
     :align: center
     :alt: Image data visualizer
+
 
 *************
 Announcements
@@ -246,12 +243,9 @@ Announcements
 - **Version 1.2.2**: Resolves issue `#146 <https://github.com/genicam/harvesters/issues/146>`_; please let me know if it breaks something on your side. I will revert the change as soon as possible.
 - **Version 1.2.1**: Resolves issues `#145 <https://github.com/genicam/harvesters/issues/145>`_, `#155 <https://github.com/genicam/harvesters/issues/155>`_, `#157 <https://github.com/genicam/harvesters/issues/157>`_, and `#159 <https://github.com/genicam/harvesters/issues/159>`_.
 - **Version 1.2.0**: Resolves issues `#127 <https://github.com/genicam/harvesters/issues/127>`_, `#131 <https://github.com/genicam/harvesters/issues/131>`_, `#141 <https://github.com/genicam/harvesters/issues/141>`_, and `#142 <https://github.com/genicam/harvesters/issues/142>`_. The fix for ticket #131 improves the performance of both stability and capable acquisition rate of the image acquisition.
-- **Version 1.1.1**: Resolves issue `#126 <https://github.com/genicam/harvesters/issues/126>`_.
-- **Version 1.1.0**: Resolves issue `#120 <https://github.com/genicam/harvesters/issues/120>`_.
-- **Version 1.0.5**: Resolves issue `#124 <https://github.com/genicam/harvesters/issues/124>`_.
-- **Version 1.0.4**: Partly resolves issue `#121 <https://github.com/genicam/harvesters/issues/121>`_.
 
 Other older releases should be found at `Milestones page <https://github.com/genicam/harvesters/milestones>`_ on GitHub.
+
 
 ################
 Online Resources
@@ -268,6 +262,7 @@ https://github.com/genicam/harvesters/wiki/FAQ
 If any article was not mentioning about the issue you are facing, please try to visit the following page and check if there's a ticket that is relevant to the issue. If nothing has been mentioned yet, feel free to create an issue ticket so that we can support you:
 
 https://github.com/genicam/harvesters/issues
+
 
 ***************
 Important Links
@@ -327,25 +322,26 @@ As of today, we have tested Harvester with the following GenTL Producers and it 
 
 You might be able to directly download one at their website but please note that perhaps some of them could require you to register your information to get one. In addition, some GenTL Producers might block you to connect other competitors' cameras.
 
+
 ###########
 Terminology
 ###########
 
 Before start talking about the detail, let's take a look at some important terminologies that frequently appear in this document. These terminologies are listed as follows:
 
-* **The GenApi-Python Binding**: A Python module that communicates with the GenICam reference implementation.
+* *The GenApi-Python Binding*: A Python module that communicates with the GenICam reference implementation.
 
-* **A GenTL Producer**: A library that has C interface and offers consumers a way to communicate with cameras over physical transport layer dependent technology hiding the detail from the consumer.
+* *A GenTL Producer*: A library that has C interface and offers consumers a way to communicate with cameras over physical transport layer dependent technology hiding the detail from the consumer.
 
-* **The GenTL-Python Binding**: A Python module that communicates with GenTL Producers.
+* *The GenTL-Python Binding*: A Python module that communicates with GenTL Producers.
 
-* **Harvester**: A Python module that consists of Harvester Core and Harvester GUI.
+* *Harvester*: A Python module that consists of Harvester Core and Harvester GUI.
 
-* **Harvester Core**: A part of Harvester that works as an image acquisition engine.
+* *Harvester Core*: A part of Harvester that works as an image acquisition engine.
 
-* **Harvester GUI**: A part of Harvester that works as a graphical user interface of Harvester Core.
+* *Harvester GUI*: A part of Harvester that works as a graphical user interface of Harvester Core.
 
-* **A GenICam compliant device**: It's typically a camera. Just involving the GenICam reference implementation, it offers consumers a way to dynamically configure/control the target remote devices.
+* *A GenICam compliant device*: It's typically a camera. Just involving the GenICam reference implementation, it offers consumers a way to dynamically configure/control the target remote devices.
 
 The following diagram shows the hierarchy and relationship of the relevant modules:
 
@@ -353,11 +349,13 @@ The following diagram shows the hierarchy and relationship of the relevant modul
     :align: center
     :alt: Module hierarchy
 
+
 ###############
 Getting Started
 ###############
 
 In this section, we will learn how to instruct procedures to get Harvester work.
+
 
 *******************
 System Requirements
@@ -385,11 +383,14 @@ Harvester has been confirmed it works with the following 64-bit operating system
 
 Note that it's just a snapshot at a moment. If you are curious to know the reality, just make a try because Harvester is for free!
 
+
 *****************
 Installing Python
 *****************
 
-First, let's install Python. There are several options for you but I would like to introduce you Anaconda here. You can download Anaconda from the following URL:
+First, let's install Python. There are several options for you but I would like to introduce you Anaconda here; I say this again, Anaconda is just an option and we bring it up here just for our convenience!
+
+You can download Anaconda from the following URL:
 
 https://www.anaconda.com/download/
 
@@ -410,6 +411,7 @@ Then activate the root environment:
     $ conda activate
 
 Now you can start working for installing Harvester.
+
 
 Creating an Environment
 =======================
@@ -456,6 +458,7 @@ Finally, to deactivate the environment, type the following command:
 
 It's so easy.
 
+
 ***************************
 Installing a GenTL Producer
 ***************************
@@ -471,6 +474,7 @@ http://static.matrix-vision.com/mvIMPACT_Acquire/2.29.0/
 Once you installed their SDK, you can find the appropriate GenTL Producer just grepping ``*.cti``. Note that Harvester supports only 64-bit version of GenTL Producers as of November 2018.
 
 This is just for your information but you can find the list of other reliable GenTL Producers `here <https://github.com/genicam/harvesters#gentl-producers>`_.
+
 
 *************************
 Installing Harvester Core
@@ -510,6 +514,7 @@ Getting back to the original topic, you could install the latest development ver
 
     $ git clone https://github.com/genicam/harvesters.git && cd harvesters && python setup.py install
 
+
 #######################
 Working with Harveseter
 #######################
@@ -521,6 +526,7 @@ Harvester Core works as a minimalistic front-end for image acquisition. Just imp
 You'll be able to download the these language binding runtime libraries from the `EMVA website <https://www.emva.org/standards-technology/genicam/genicam-downloads/>`_, however, it's not available as of May 2018, because they have not officially released yet. Fortunately they are in the final reviewing process so hopefully they'll be released by the end of 2018.
 
 If you don't have to care about the display rate for visualizing acquired images, the combination of Harvester Core and `Matplotlib <https://matplotlib.org>`_ might be a realistic option for that purpose.
+
 
 *********************************
 Tasks Harvester Core Does for You
@@ -535,6 +541,7 @@ The main features of Harvester Core are listed as follows:
 Note that the second item implies you can involve multiple types of transport layers in your Python script. Each transport layer has own advantages and disadvantages and you should choose appropriate transport layers following your application's requirement. You just need to acquire images for some purposes and the GenTL Producers deliver the images somehow. It truly is the great benefit of the GenTL Standard! And of course, not only GenTL Producers but Harvester Core offer you a way to manipulate multiple remote devices in a single Python script with an intuitive manner.
 
 On the other hand, Harvester Core could be considered as a simplified version of the GenTL-Python Binding; actually, Harvester Core hides it in its back and shows only intuitive interfaces to its clients. Harvester Core just offers you a relationship between you and a remote device. Nothing more. We say it again, just you and a remote device. If you need to manipulate more relevant GenTL modules or have to achieve something over a hardcore way, then you should directly work with the GenTL-Python Binding.
+
 
 *************************
 Harvester Core on IPython
@@ -781,6 +788,7 @@ Now you can quit the program! Please not that ``Harvester`` and ``ImageAcquirer`
 
 This way prevents you forget to release the acquired external resources. If this notation doesn't block your use case then you should rely on the ``with`` statement.
 
+
 ***********************************
 Reshaping a NumPy Array as an Image
 ***********************************
@@ -880,6 +888,7 @@ Once you finished filling up each pixel with a set of RGB values, then you'll be
 
 You can download the standard document of PFNC at the `EMVA website <https://www.emva.org/standards-technology/genicam/genicam-downloads/>`_.
 
+
 **********************************
 Manipulating GenICam Feature Nodes
 **********************************
@@ -926,6 +935,7 @@ Ah, one more thing. You may want to know the available GenICam feature nodes in 
 
 You should be able to find (probably) familiar feature names in the output.
 
+
 ########
 Appendix
 ########
@@ -951,6 +961,7 @@ Harvester Core uses the following open source libraries/resources:
   | Copyright (c) 2018 Brian Warner
 
   | https://github.com/warner/python-versioneer
+
 
 ***************
 Acknowledgement

@@ -413,8 +413,9 @@ Then activate the root environment:
 Now you can start working for installing Harvester.
 
 
+***********************
 Creating an Environment
-=======================
+***********************
 
 After installing a Python, let's create an isolated environment where does not interfere in your system. An environment is very helpful for developers because everything will be okay just deleting the environment if you completely corrupted it by accident. Please imagine a case where you corrupt the system-wide Python. It's obviously a nightmare and it will enforce you to spend some days to recover it so it is very recommended to work in an isolated environment when you need to develop something.
 

@@ -2,7 +2,7 @@
 Motivation
 **********
 
-*"Do not hesitate to use your imagination to make this world better. Harvester is here to help you."*
+*"Keep encouraging yourself to make this world better. Harvester is here to help you."*
 
 
 .. figure:: https://user-images.githubusercontent.com/8652625/40595190-1e16e90e-626e-11e8-9dc7-207d691c6d6d.jpg

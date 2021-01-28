@@ -1685,6 +1685,7 @@ class ImageAcquirer:
         NEW_BUFFER_AVAILABLE = 1,
         RETURN_ALL_BORROWED_BUFFERS = 2,
         READY_TO_STOP_ACQUISITION = 3,
+        INCOMPLETE_BUFFER = 4,
 
     def _create_acquisition_thread(self) -> _ImageAcquisitionThread:
         return _ImageAcquisitionThread(

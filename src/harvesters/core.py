@@ -350,13 +350,11 @@ class DeviceInfo:
         ]
         results = []
         for _property in properties:
-            if _property is '':
+            assert _property != ''
+            try:
+                result = eval('self._device_info.' + _property)
+            except:
                 result = None
-            else:
-                try:
-                    result = eval('self._device_info.' + _property)
-                except:
-                    result = None
             results.append(result)
 
         info = '('

@@ -603,6 +603,7 @@ component_2d_formats = [
     'Confidence32f',
     #
     'Mono10p',
+    'Mono10c3p32',
     'Mono12p',
     #
     'Coord3D_A10p',
@@ -1363,33 +1364,136 @@ class _10p(_PixelFormat):
             unit_depth_in_bit=10,
             location=location
         )
+    
+    def expand(self, array: numpy.ndarray) -> numpy.ndarray:
+        """Expand the Mono10p format (litte-endian order), where chunks of 5 bytes give 4 pixels.
+        
+        Parameters
+        ----------
+        array : numpy.ndarray
+            One-dimensional array of datatype uint8 representing the raw byte sequence.
+        
+        Returns
+        -------
+        numpy.ndarray
+            One-dimensional array of datatype uint16 representing the unpacked
+            pixels with  10-bit data (values from 0 to 1023).
+        """
+
+        assert array.dtype == numpy.uint8
+
+        bytes_packed = 5  # chunks of 5 bytes
+        # pixels_unpacked = 4  # give 4 pixels
+
+        # The .T-transpose allows receiving into five named variables v0--v4.
+        v0, v1, v2, v3, v4 = array.reshape(
+            array.size // bytes_packed,
+            bytes_packed
+        ).astype(numpy.uint16).T
+
+        """
+        See Figure 6-9 on page 34 of
+        https://www.emva.org/wp-content/uploads/GenICam_PFNC_2_3.pdf
+        
+        Input:           v4       v3        v2        v1        v0
+        
+        Byte:            B4       B3        B2        B1        B0
+                        |........|.. ......|.... ....|...... ..|........|
+                        |........ ..|...... ....|.... ......|.. ........|
+        Pixel:           p3          p2          p1          p0
+        
+        Output:          v3          v2          v1          v0
+        
+        """
+        v0 = numpy.bitwise_or(
+            # all the 8 bits of B0 remain as LSB of p0
+            v0,
+            # 2 LSB from B1 go to MSB of p0
+            numpy.bitwise_and(v1 << 8, 0b1100000000)
+        )
+        v1 = numpy.bitwise_or(
+            # 6 MSB from B1 as LSB of p1
+            v1 >> 2,
+            # 4 LSB from B2 of MSB of p1
+            numpy.bitwise_and(v2 << 6, 0b1111000000)
+        )
+        v2 = numpy.bitwise_or(
+            # 4 MSB from B2 as LSB of p2
+            v2 >> 4,
+            # 6 LSB from B3 as MSB of p2
+            numpy.bitwise_and(v3 << 4, 0b1111110000)
+        )
+        v3 = numpy.bitwise_or(
+            # 2 MSB of B3 as LSB of p3
+            v3 >> 6,
+            # all the 8 bits of B4 as MSB of p3
+            v4 << 2
+        )
+
+        # Stack the four pixels as columns, i.e. one row per chunk, then
+        # flatten to 1D-array
+        return numpy.column_stack((v0, v1, v2, v3)).ravel()
+
+
+class _10p32(_PixelFormat):
+    def __init__(
+            self, symbolic: str = None, nr_components: float = None,
+            location: _Location = None):
+        #
+        super().__init__(
+            symbolic=symbolic,
+            alignment=_Alignment(
+                unpacked=_DataSize.UINT16, packed=_DataSize.UINT8
+            ),
+            nr_components=nr_components,
+            unit_depth_in_bit=10,
+            location=location
+        )
 
     def expand(self, array: numpy.ndarray) -> numpy.ndarray:
+        """
+        Expand the Mono10c3p32 (or RGB10p32) format, where chunks of 4 bytes
+        give 3 pixels.
+        """
         nr_packed = 4
-        nr_unpacked = 3
+        # nr_unpacked = 3
         #
         p1st, p2nd, p3rd, p4th = numpy.reshape(
             array, (array.shape[0] // nr_packed, nr_packed)
         ).astype(numpy.uint16).T
-        #
+        """
+        See Figure 6-6 on page 32 of
+        https://www.emva.org/wp-content/uploads/GenICam_PFNC_2_3.pdf
+        
+        Byte:     B3       B2        B1        B0
+        with     |XX......|.... ....|...... ..|........|
+                 |  ...... ....|.... ......|.. ........|
+        Pixel:      p2          p1          p0
+        
+        """
+
         up1st = numpy.bitwise_or(
-            p1st, numpy.bitwise_and(0x300, p2nd << 8)
+            # all the 8 bits of B0 remain as LSB of p0
+            p1st,
+            # 2 LSB from B1 go to MSB of p0
+            numpy.bitwise_and(0x300, p2nd << 8)
         )
         up2nd = numpy.bitwise_or(
+            # 6 MSB from B1 as LSB of p1
             numpy.bitwise_and(0x3f, p2nd >> 2),
-            numpy.bitwise_and(0x3e0, p3rd << 6)
+            # 4 LSB from B2 of MSB of p1.
+            numpy.bitwise_and(0x3c0, p3rd << 6)
+            # NOTE: 0x3e0 changed to 0x3c0 to make more sense but result is
+            # the same (after the << 6 shift the extra bit with 0x3e0 was
+            # anyway zeroed).
         )
         up3rd = numpy.bitwise_or(
-            numpy.bitwise_and(0x7, p3rd >> 5),
-            numpy.bitwise_and(0x7f8, p4th << 3)
+            # 4 MSB from B2 as LSB of p2
+            numpy.bitwise_and(0xf, p3rd >> 4),
+            # 6 LSB from B3 as MSB of p2
+            numpy.bitwise_and(0x3f0, p4th << 4)
         )
-        #
-        return numpy.reshape(
-            numpy.concatenate(
-                (up1st[:, None], up2nd[:, None], up3rd[:, None]), axis=1
-            ),
-            nr_unpacked * up1st.shape[0]
-        )
+        return numpy.column_stack((up1st, up2nd, up3rd)).ravel()
 
 
 class _12p(_PixelFormat):
@@ -1496,6 +1600,16 @@ class _Mono_10p(_10p):
         )
 
 
+class _Mono_10p32(_10p32):
+    def __init__(self, symbolic: str = None):
+        #
+        super().__init__(
+            symbolic=symbolic,
+            nr_components=1.,
+            location=_Location.MONO
+        )
+
+
 class _Mono_12p(_12p):
     def __init__(self, symbolic: str = None):
         #
@@ -1552,6 +1666,12 @@ class Mono10Packed(_Mono_GroupPacked_10):
     def __init__(self):
         #
         super().__init__(symbolic='Mono10Packed')
+
+
+class Mono10c3p32(_Mono_10p32):
+    def __init__(self):
+        #
+        super().__init__(symbolic='Mono10c3p32')
 
 
 class Mono12Packed(_Mono_GroupPacked_12):
@@ -3065,6 +3185,7 @@ class Dictionary:
         # Mono4p(),
         Mono10Packed(),
         Mono10p(),
+        Mono10c3p32(),
         Mono12Packed(),
         Mono12p(),
         Mono14p(),

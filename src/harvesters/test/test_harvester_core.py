@@ -652,6 +652,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             self._test_issue_146_group_packed_12,
             self._test_issue_146_packed_10,
             self._test_issue_146_packed_12,
+            self._test_issue_222,
             self._test_issue_146_mono_unpacked_multibytes,
         ]
         #
@@ -668,35 +669,64 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         self.assertEqual(_1st * 4 + 3, unpacked[0])
         self.assertEqual(_3rd * 4 + 3, unpacked[1])
 
+    def _test_conversion(self, format_name: str, inputs, outputs):
+        pf = Dictionary.get_proxy(format_name)
+        for input, output in zip(inputs, outputs):
+            packed = np.frombuffer(input, dtype=np.uint8)
+            unpacked_elements = pf.expand(packed)
+            self.assertEqual(len(outputs), unpacked_elements.size)
+            for i, element in enumerate(unpacked_elements):
+                self.assertEqual(output[i], element)
+
     def _test_issue_146_group_packed_12(self):
-        _1st = 0xff
-        _3rd = 0xff
-        ba = bytes([_1st, 0xff, _3rd])
-        packed = np.frombuffer(ba, dtype=np.uint8)
-        pf = Dictionary.get_proxy('BayerRG12Packed')
-        unpacked = pf.expand(packed)
-        self.assertEqual(_1st * 16 + 0xf, unpacked[0])
-        self.assertEqual(_3rd * 16 + 0xf, unpacked[1])
+        inputs = [
+            bytes([0b11111111, 0b00001111, 0b00000000]),
+            bytes([0b00000000, 0b11110000, 0b11111111])
+        ]
+        outputs = [
+            [0xfff, 0],
+            [0, 0xfff]
+        ]
+        self._test_conversion('BayerRG12Packed', inputs, outputs)
 
     def _test_issue_146_packed_10(self):
-        element = 0xff
-        ba = bytes([element, element, element, element])
-        packed = np.frombuffer(ba, dtype=np.uint8)
-        pf = Dictionary.get_proxy('Mono10p')
-        unpacked = pf.expand(packed)
-        self.assertEqual(0x3ff, unpacked[0])
-        self.assertEqual(0x3ff, unpacked[1])
-        self.assertEqual(0x7ff, unpacked[2])
+        inputs = [
+            bytes([0b11111111, 0b00000011, 0b00000000, 0b00000000, 0b00000000]),
+            bytes([0b00000000, 0b11111100, 0b00001111, 0b00000000, 0b00000000]),
+            bytes([0b00000000, 0b00000000, 0b11110000, 0b00111111, 0b00000000]),
+            bytes([0b00000000, 0b00000000, 0b00000000, 0b11000000, 0b11111111])
+        ]
+        outputs = [
+            [0x3ff, 0, 0, 0],
+            [0, 0x3ff, 0, 0],
+            [0, 0, 0x3ff, 0],
+            [0, 0, 0, 0x3ff]
+        ]
+        self._test_conversion('Mono10p', inputs, outputs)
 
     def _test_issue_146_packed_12(self):
-        _1st = 0xff
-        _3rd = 0xff
-        ba = bytes([_1st, 0xff, _3rd])
-        packed = np.frombuffer(ba, dtype=np.uint8)
-        pf = Dictionary.get_proxy('Mono12p')
-        unpacked = pf.expand(packed)
-        self.assertEqual(0xf * 256 + _1st, unpacked[0])
-        self.assertEqual(_3rd * 16 + 0xf, unpacked[1])
+        inputs = [
+            bytes([0b11111111, 0b00001111, 0b00000000]),
+            bytes([0b00000000, 0b11110000, 0b11111111])
+        ]
+        outputs = [
+            [0xfff, 0],
+            [0, 0xfff]
+        ]
+        self._test_conversion('Mono12p', inputs, outputs)
+
+    def _test_issue_222(self):
+        inputs = [
+            bytes([0b11111111, 0b00000011, 0b00000000, 0b00000000]),
+            bytes([0b00000000, 0b11111100, 0b00001111, 0b00000000]),
+            bytes([0b00000000, 0b00000000, 0b11110000, 0b00111111])
+        ]
+        outputs = [
+            [0x3ff, 0, 0],
+            [0, 0x3ff, 0],
+            [0, 0, 0x3ff]
+        ]
+        self._test_conversion('Mono10c3p32', inputs, outputs)
 
     def _test_issue_146_mono_unpacked_multibytes(self):
         names = ['Mono10', 'Mono12']

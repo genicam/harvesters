@@ -654,10 +654,22 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             self._test_issue_146_packed_12,
             self._test_issue_222,
             self._test_issue_146_mono_unpacked_multibytes,
+            self._test_issue_146_bayer_rg_12p,
         ]
         #
         for test in tests:
             test()
+
+    def _test_issue_146_bayer_rg_12p(self):
+        inputs = [
+            bytes([0b11111111, 0b00001111, 0b00000000]),
+            bytes([0b00000000, 0b11110000, 0b11111111])
+        ]
+        outputs = [
+            [0xfff, 0],
+            [0, 0xfff]
+        ]
+        self._test_conversion('BayerRG12p', inputs, outputs)
 
     def _test_issue_146_group_packed_10(self):
         _1st = 0xff

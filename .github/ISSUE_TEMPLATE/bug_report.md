@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-**Describe the bug**
+**Describe the Bug**
 A clear and concise description of what the bug is.
 
 **To Reproduce**
@@ -17,18 +17,24 @@ Steps to reproduce the behavior:
 3. Scroll down to '....'
 4. See error
 
-**Expected behavior**
+**Expected Behavior**
 A clear and concise description of what you expected to happen.
 
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Desktop (please complete the following information):**
+**Configuration (please complete the following information):**
  - OS: [e.g. macOS]
  - Python: [e.g. 3.7]
  - Harvester: [e.g. 0.2.12]
  - GenTL Producer: [e.g. Comapny ABC]
  - Camera: [e.g. Company DEF]
+
+**Actions You Have Taken**
+
+<!-- Add additional items if needed! -->
+ 
+- [X] I've read the [Harvester FAQ page](https://github.com/genicam/harvesters/wiki/FAQ).
 
 **Additional context**
 Add any other context about the problem here.

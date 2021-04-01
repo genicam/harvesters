@@ -23,7 +23,10 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Configuration (please complete the following information):**
+**Configuration**
+
+<!-- Add additional items if needed! -->
+
  - OS: [e.g. macOS]
  - Python: [e.g. 3.7]
  - Harvester: [e.g. 0.2.12]

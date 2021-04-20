@@ -3244,7 +3244,7 @@ class Harvester:
         :param version: Set a version number string of the target device.
         :param sleep_duration: Set a sleep duration in second that is inserted after the image acquisition worker is executed.
         :param file_path: Set a path to camera description file which you want to load on the target node map instead of the one which the device declares.
-        :param privilege: Set an access privilege. `exclusive`, `contorl`, and `read_only` are supported. The default is `exclusive`.
+        :param privilege: Set an access privilege. `exclusive`, `control`, and `read_only` are supported. The default is `exclusive`.
 
         :return: An :class:`ImageAcquirer` object that associates with the specified device.
 

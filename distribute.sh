@@ -62,7 +62,6 @@ then
   twine check dist/*
   # Return; do not execute upload:
   exit $?
-else
 fi
 
 

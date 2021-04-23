@@ -777,6 +777,33 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         for (port, file_name) in zip(ports, file_names):
             self.assertEqual(port.url_info_list[0].file_name, file_name)
 
+    def test_port_access(self):
+        if not self.is_running_with_default_target():
+            return
+
+        # instantiate an acquirer:
+        ia = self.harvester.create_image_acquirer(0)
+
+        #
+        address = 0x104
+        access_size = 4
+
+        # read a piece of data through the remote device port:
+        data_size, data_returned = ia.remote_device.port.read(
+            address, access_size)
+        self.assertEqual(data_size, access_size)
+        self.assertEqual(data_returned, b'\x00\x02\x00\x00')
+
+        # overwrite the data through the remote device port:
+        data_to_write = b'\x00\x01\x00\x00'
+        ia.remote_device.port.write(address, data_to_write)
+
+        # then read it back to make sure that it worked:
+        data_size, data_returned = ia.remote_device.port.read(
+            address, access_size)
+        self.assertEqual(data_size, access_size)
+        self.assertEqual(data_returned, data_to_write)
+
 
 class _TestIssue81(threading.Thread):
     def __init__(self, message_queue=None, cti_file_path=None):

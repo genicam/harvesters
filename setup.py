@@ -36,7 +36,7 @@ log.info('$PATH=%s' % os.environ['PATH'])
 
 
 # Check the Python version:
-supported_versions = [(3, 4), (3, 5), (3, 6), (3, 7)]
+supported_versions = [(3, 5), (3, 6), (3, 7), (3, 8)]
 if sys.version_info in supported_versions:
     raise RuntimeError(
         'See https://github.com/genicam/harvesters#requirements'
@@ -70,10 +70,10 @@ setuptools.setup(
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ),
     # A short, on-sentence summary of the package:
     description=description,
@@ -81,7 +81,7 @@ setuptools.setup(
     download_url='https://pypi.org/project/harvesters/',
     # A list of required Python modules:
     install_requires=[
-        'genicam==1.0.0',
+        'genicam',
         'numpy'
     ],
     #

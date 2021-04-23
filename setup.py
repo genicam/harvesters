@@ -36,7 +36,7 @@ log.info('$PATH=%s' % os.environ['PATH'])
 
 
 # Check the Python version:
-supported_versions = [(3, 4), (3, 5), (3, 6)]
+supported_versions = [(3, 4), (3, 5), (3, 6), (3, 7)]
 if sys.version_info in supported_versions:
     raise RuntimeError(
         'See https://github.com/genicam/harvesters#requirements'
@@ -46,7 +46,7 @@ if sys.version_info in supported_versions:
 with open('README.rst', 'r',encoding='utf-8_sig') as fh:
     __doc__ = fh.read()
 
-description = '🌈 Friendly Image Acquisition Library for Computer Vision People'
+description = 'Friendly Image Acquisition Library for Computer Vision People'
 
 # Determine the base directory:
 base_dir = os.path.dirname(__file__)

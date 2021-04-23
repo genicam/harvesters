@@ -19,6 +19,7 @@
 
 # Prepare options.
 build=
+check=
 test=
 upload=
 
@@ -26,6 +27,8 @@ while getopts btu opt ; do
   case $opt in
   b)
     build=true ;;
+  c)
+    check=true ;;
   t)
     test=true ;;
   u)
@@ -36,33 +39,44 @@ while getopts btu opt ; do
   esac
 done
 
-# Delete intermediate directories.
-for dir in build dist genicam.harvester.egg-info
-do
-  if [ -e "$dir" ]
-  then
-    echo "Removing \"$dir\""
-    rm -rf "$dir"
-  fi
-done
 
-# BUild a distribution package.
+# Build a distribution package.
 if [ "x$build" = "xtrue" ]
 then
+  # Delete intermediate directories.
+  for dir in build dist genicam.harvester.egg-info
+  do
+    if [ -e "$dir" ]
+    then
+      echo "Removing \"$dir\""
+      rm -rf "$dir"
+    fi
+  done
   python3 setup.py sdist bdist_wheel
 fi
 
-url="https://upload.pypi.org/legacy/"
-if [ "x$test" = "xtrue" ]
+
+# Check the distribution package:
+if [ "x$check" = "xtrue" ]
 then
-  url="https://test.pypi.org/legacy/"
+  twine check dist/*
+  # Return; do not execute upload:
+  exit $?
+else
 fi
+
 
 # Upload the distribution package.
 if [ "x$upload" = "xtrue" ]
 then
+  url="https://upload.pypi.org/legacy/"
+  if [ "x$test" = "xtrue" ]
+  then
+    url="https://test.pypi.org/legacy/"
+  fi
   twine upload --repository-url $url dist/*
 fi
+
 
 exit $?
 

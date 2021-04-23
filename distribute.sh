@@ -23,7 +23,7 @@ check=
 test=
 upload=
 
-while getopts btu opt ; do
+while getopts bctu opt ; do
   case $opt in
   b)
     build=true ;;

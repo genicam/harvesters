@@ -438,7 +438,7 @@ Now we install a GenTL Producer that works with Harvester. Harvester can't acqui
 
 Today, many camera manufacturers and software vendors all over the world provide GenTL Producers to support image acquisition using GenICam compliant cameras. However, you should note that some GenTL Producers may block cameras from other competitors. Though it's perfectly legal but we recommend you here to use a GenTL Producer from MATRIX VISION as a one of reliable GenTL Producer for this tutorial because it doesn't block cameras from other competitors. However, please respect their license and give them feedback immediately if you find something to be reported or something that you appreciate. As an open source activity, we would like to pay our best respect to their attitude and their products.
 
-You can get their SDK from the following URL; please download the latest version of ``mvIMPACT_Acquire`` and install it; note that it has been renamed to ``mvGenTL_Acquire` since 2.30:
+You can get their SDK from the following URL; please download the latest version of ``mvIMPACT_Acquire`` and install it; note that it has been renamed to ``mvGenTL_Acquire`` since 2.30:
 
 http://static.matrix-vision.com/mvIMPACT_Acquire/
 

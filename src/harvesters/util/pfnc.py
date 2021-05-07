@@ -1999,19 +1999,19 @@ class RGB12p(_LMN444_12p):
 class BGR12p(_LMN444_12p):
     def __init__(self):
         #
-        super().__init__(symbolic='BGR12p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class Coord3D_ABC12p(_LMN444_12p):
     def __init__(self):
         #
-        super().__init__(symbolic='Coord3D_ABC12p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class Coord3D_ABC12p_Planar(_LMN444_12p):
     def __init__(self):
         #
-        super().__init__(symbolic='Coord3D_ABC12p_Planar')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 # ----
@@ -2211,157 +2211,157 @@ class _LMNO4444_Unpacked_Uint8_8(_LMNO4444_Unpacked_Uint8):
 class YUV422_8_UYVY(_LMN422_Unpacked_Uint8_8):
     def __init__(self):
         #
-        super().__init__(symbolic='YUV422_8_UYVY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YUV422_8(_LMN422_Unpacked_Uint8_8):
     def __init__(self):
         #
-        super().__init__(symbolic='YUV422_8')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr422_8(_LMN422_Unpacked_Uint8_8):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr422_8')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr601_422_8(_LMN422_Unpacked_Uint8_8):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr601_422_8')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr709_422_8(_LMN422_Unpacked_Uint8_8):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr709_422_8')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr422_8_CbYCrY(_LMN422_Unpacked_Uint8_8):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr422_8_CbYCrY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr601_422_8_CbYCrY(_LMN422_Unpacked_Uint8_8):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr601_422_8_CbYCrY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr709_422_8_CbYCrY(_LMN422_Unpacked_Uint8_8):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr709_422_8_CbYCrY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr2020_422_8(_LMN422_Unpacked_Uint8_8):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr2020_422_8')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr2020_422_8_CbYCrY(_LMN422_Unpacked_Uint8_8):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr2020_422_8_CbYCrY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr422_10(_LMN422_Unpacked_Uint16_10):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr422_10')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr601_422_10(_LMN422_Unpacked_Uint16_10):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr601_422_10')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr709_422_10(_LMN422_Unpacked_Uint16_10):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr709_422_10')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr422_10_CbYCrY(_LMN422_Unpacked_Uint16_10):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr422_10_CbYCrY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr601_422_10_CbYCrY(_LMN422_Unpacked_Uint16_10):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr601_422_10_CbYCrY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr709_422_10_CbYCrY(_LMN422_Unpacked_Uint16_10):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr709_422_10_CbYCrY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr2020_422_10(_LMN422_Unpacked_Uint16_10):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr2020_422_10')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr2020_422_10_CbYCrY(_LMN422_Unpacked_Uint16_10):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr2020_422_10_CbYCrY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr422_12(_LMN422_Unpacked_Uint16_12):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr422_12')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr601_422_12(_LMN422_Unpacked_Uint16_12):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr601_422_12')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr709_422_12(_LMN422_Unpacked_Uint16_12):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr709_422_12')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr422_12_CbYCrY(_LMN422_Unpacked_Uint16_12):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr422_12_CbYCrY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr601_422_12_CbYCrY(_LMN422_Unpacked_Uint16_12):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr601_422_12_CbYCrY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr709_422_12_CbYCrY(_LMN422_Unpacked_Uint16_12):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr709_422_12_CbYCrY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr2020_422_12(_LMN422_Unpacked_Uint16_12):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr2020_422_12')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr2020_422_12_CbYCrY(_LMN422_Unpacked_Uint16_12):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr2020_422_12_CbYCrY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 # ----
@@ -2370,145 +2370,145 @@ class YCbCr2020_422_12_CbYCrY(_LMN422_Unpacked_Uint16_12):
 class YCbCr422_10p(_LMN422_10p):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr422_10p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr601_422_10p(_LMN422_10p):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr601_422_10p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr601_422_12p(_LMN422_12p):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr601_422_12p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr709_422_10p(_LMN422_10p):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr709_422_10p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr422_10p_CbYCrY(_LMN422_10p):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr422_10p_CbYCrY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr601_422_10p_CbYCrY(_LMN422_10p):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr601_422_10p_CbYCrY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr709_422_10p_CbYCrY(_LMN422_10p):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr709_422_10p_CbYCrY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr2020_422_10p(_LMN422_10p):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr2020_422_10p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr2020_422_10p_CbYCrY(_LMN422_10p):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr2020_422_10p_CbYCrY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr422_12p(_LMN422_12p):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr422_12p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr709_422_12p(_LMN422_12p):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr709_422_12p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr422_12p_CbYCrY(_LMN422_12p):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr422_12p_CbYCrY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr601_422_12p_CbYCrY(_LMN422_12p):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr601_422_12p_CbYCrY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr709_422_12p_CbYCrY(_LMN422_12p):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr709_422_12p_CbYCrY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr2020_422_12p(_LMN422_12p):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr2020_422_12p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr2020_422_12p_CbYCrY(_LMN422_12p):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr2020_422_12p_CbYCrY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YUV411_8_UYYVYY(_LMN411_Unpacked_Uint8_8):
     def __init__(self):
         #
-        super().__init__(symbolic='YUV411_8_UYYVYY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr411_8_CbYYCrYY(_LMN411_Unpacked_Uint8_8):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr411_8_CbYYCrYY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr601_411_8_CbYYCrYY(_LMN411_Unpacked_Uint8_8):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr601_411_8_CbYYCrYY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr709_411_8_CbYYCrYY(_LMN411_Unpacked_Uint8_8):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr709_411_8_CbYYCrYY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr411_8(_LMN411_Unpacked_Uint8_8):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr411_8')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class YCbCr2020_411_8_CbYYCrYY(_LMN411_Unpacked_Uint8_8):
     def __init__(self):
         #
-        super().__init__(symbolic='YCbCr2020_411_8_CbYYCrYY')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class RGBa8(_LMNO4444_Unpacked_Uint8_8):
     def __init__(self):
         #
-        super().__init__(symbolic='RGBa8')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BGRa8(_LMNO4444_Unpacked_Uint8_8):
     def __init__(self):
         #
-        super().__init__(symbolic='BGRa8')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 # ----
@@ -2592,73 +2592,73 @@ class _LMNO4444_Unpacked_Uint16_16(_LMNO4444_Unpacked_Uint16):
 class RGBa10(_LMNO4444_Unpacked_Uint16_10):
     def __init__(self):
         #
-        super().__init__(symbolic='RGBa10')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BGRa10(_LMNO4444_Unpacked_Uint16_10):
     def __init__(self):
         #
-        super().__init__(symbolic='BGRa10')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class RGBa12(_LMNO4444_Unpacked_Uint16_12):
     def __init__(self):
         #
-        super().__init__(symbolic='RGBa12')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BGRa12(_LMNO4444_Unpacked_Uint16_12):
     def __init__(self):
         #
-        super().__init__(symbolic='BGRa12')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class RGBa14(_LMNO4444_Unpacked_Uint16_14):
     def __init__(self):
         #
-        super().__init__(symbolic='RGBa14')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BGRa14(_LMNO4444_Unpacked_Uint16_14):
     def __init__(self):
         #
-        super().__init__(symbolic='BGRa14')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class RGBa16(_LMNO4444_Unpacked_Uint16_16):
     def __init__(self):
         #
-        super().__init__(symbolic='RGBa16')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BGRa16(_LMNO4444_Unpacked_Uint16_16):
     def __init__(self):
         #
-        super().__init__(symbolic='BGRa16')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class RGBa10p(_LMNO4444_10p):
     def __init__(self):
         #
-        super().__init__(symbolic='RGBa10p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BGRa10p(_LMNO4444_10p):
     def __init__(self):
         #
-        super().__init__(symbolic='BGRa10p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class RGBa12p(_LMNO4444_12p):
     def __init__(self):
         #
-        super().__init__(symbolic='RGBa12p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BGRa12p(_LMNO4444_12p):
     def __init__(self):
         #
-        super().__init__(symbolic='BGRa12p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 # ----
@@ -2797,61 +2797,61 @@ class _LM44_Unpacked_Float32_32(_LM44_Unpacked_Float32):
 class Coord3D_AC32f(_LM44_Unpacked_Float32_32):
     def __init__(self):
         #
-        super().__init__(symbolic='Coord3D_AC32f')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class Coord3D_AC32f_Planar(_LM44_Unpacked_Float32_32):
     def __init__(self):
         #
-        super().__init__(symbolic='Coord3D_AC32f_Planar')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class Coord3D_AC8(_LM44_Unpacked_Uint8_8):
     def __init__(self):
         #
-        super().__init__(symbolic='Coord3D_AC8')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class Coord3D_AC8_Planar(_LM44_Unpacked_Uint8_8):
     def __init__(self):
         #
-        super().__init__(symbolic='Coord3D_AC8_Planar')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class Coord3D_AC10p(_LM44_10p):
     def __init__(self):
         #
-        super().__init__(symbolic='Coord3D_AC10p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class Coord3D_AC10p_Planar(_LM44_10p):
     def __init__(self):
         #
-        super().__init__(symbolic='Coord3D_AC10p_Planar')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class Coord3D_AC12p(_LM44_12p):
     def __init__(self):
         #
-        super().__init__(symbolic='Coord3D_AC12p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class Coord3D_AC12p_Planar(_LM44_12p):
     def __init__(self):
         #
-        super().__init__(symbolic='Coord3D_AC12p_Planar')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class Coord3D_AC16(_LM44_Unpacked_Uint16_16):
     def __init__(self):
         #
-        super().__init__(symbolic='Coord3D_AC16')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class Coord3D_AC16_Planar(_LM44_Unpacked_Uint16_16):
     def __init__(self):
         #
-        super().__init__(symbolic='Coord3D_AC16_Planar')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 # ----
@@ -2936,97 +2936,97 @@ class _Bayer_Unpacked_Uint16_16(_Bayer_Unpacked_Uint16):
 class BayerGR8(_Bayer_Unpacked_Uint8):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerGR8')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerRG8(_Bayer_Unpacked_Uint8):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerRG8')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerGB8(_Bayer_Unpacked_Uint8):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerGB8')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerBG8(_Bayer_Unpacked_Uint8):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerBG8')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerGR10(_Bayer_Unpacked_Uint16_10):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerGR10')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerRG10(_Bayer_Unpacked_Uint16_10):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerRG10')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerGB10(_Bayer_Unpacked_Uint16_10):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerGB10')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerBG10(_Bayer_Unpacked_Uint16_10):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerBG10')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerGR12(_Bayer_Unpacked_Uint16_12):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerGR12')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerRG12(_Bayer_Unpacked_Uint16_12):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerRG12')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerGB12(_Bayer_Unpacked_Uint16_12):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerGB12')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerBG12(_Bayer_Unpacked_Uint16_12):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerBG12')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerGR16(_Bayer_Unpacked_Uint16_16):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerGR16')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerRG16(_Bayer_Unpacked_Uint16_16):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerRG16')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerGB16(_Bayer_Unpacked_Uint16_16):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerGB16')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerBG16(_Bayer_Unpacked_Uint16_16):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerBG16')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 # ----
@@ -3078,97 +3078,97 @@ class _Bayer_12p(_12p):
 class BayerGR10Packed(_Bayer_GroupPacked_10):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerGR10Packed')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerRG10Packed(_Bayer_GroupPacked_10):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerRG10Packed')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerGB10Packed(_Bayer_GroupPacked_10):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerGB10Packed')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerBG10Packed(_Bayer_GroupPacked_10):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerBG10Packed')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerBG10p(_Bayer_10p):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerBG10p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerGB10p(_Bayer_10p):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerGB10p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerGR10p(_Bayer_10p):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerGR10p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerRG10p(_Bayer_10p):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerRG10p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerGR12Packed(_Bayer_GroupPacked_12):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerGR12Packed')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerRG12Packed(_Bayer_GroupPacked_12):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerRG12Packed')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerGB12Packed(_Bayer_GroupPacked_12):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerGB12Packed')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerBG12Packed(_Bayer_GroupPacked_12):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerBG12Packed')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerBG12p(_Bayer_12p):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerBG12p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerGB12p(_Bayer_12p):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerGB12p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerGR12p(_Bayer_12p):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerGR12p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class BayerRG12p(_Bayer_12p):
     def __init__(self):
         #
-        super().__init__(symbolic='BayerRG12p')
+        super().__init__(symbolic=self.__class__.__name__)
 
 
 class Dictionary:

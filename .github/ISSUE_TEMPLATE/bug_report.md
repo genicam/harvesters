@@ -23,7 +23,7 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 <!-- Note that it is not necessary to put everything as a screenshot. -->
-<!-- If the source is a text just past the text. That is much helpful for us. -->
+<!-- If the source is a text just paste the text; that is much helpful. -->
 
 **Configuration**
 

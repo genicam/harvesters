@@ -46,6 +46,8 @@ from harvesters.core import Component2DImage
 from harvesters.util.pfnc import Mono8, Mono10, Mono12, Mono14, Mono16
 from harvesters.util.pfnc import Mono10Packed, Mono12Packed
 from harvesters.util.pfnc import Mono10p, Mono12p, Mono14p
+from harvesters.util.pfnc import RGB10p, BGR10p
+from harvesters.util.pfnc import RGB12p, BGR12p
 
 
 class TestHarvesterCore(TestHarvesterCoreBase):
@@ -934,7 +936,7 @@ class TestIssue188(unittest.TestCase):
 
     def test_issue_188_unpacked(self):
         proxies = [Mono8, Mono10, Mono12, Mono14, Mono16]
-        expected_results = [
+        expected_bytes = [
             [1, 2, 2, 2, 2],  # 1 x 1
             [2, 4, 4, 4, 4],  # 2 x 1
             [3, 6, 6, 6, 6],  # 3 x 1
@@ -942,7 +944,7 @@ class TestIssue188(unittest.TestCase):
         for i in self._range:
             for j, proxy in enumerate(proxies):
                 self.assertEqual(
-                    expected_results[i][j],
+                    expected_bytes[i][j],
                     Component2DImage._get_nr_bytes(
                         pf_proxy=proxy(), width=i + 1, height=self._height
                     )
@@ -950,7 +952,7 @@ class TestIssue188(unittest.TestCase):
 
     def test_issue_188_packed(self):
         proxies = [Mono10Packed, Mono12Packed]
-        expected_results = [
+        expected_bytes = [
             [2, 2],  # 1 x 1
             [3, 3],  # 2 x 1
             [4, 5],  # 3 x 1
@@ -958,7 +960,7 @@ class TestIssue188(unittest.TestCase):
         for i in self._range:
             for j, proxy in enumerate(proxies):
                 self.assertEqual(
-                    expected_results[i][j],
+                    expected_bytes[i][j],
                     Component2DImage._get_nr_bytes(
                         pf_proxy=proxy(), width=i + 1, height=self._height
                     )
@@ -966,7 +968,7 @@ class TestIssue188(unittest.TestCase):
 
     def test_issue_188_p(self):
         proxies = [Mono10p, Mono12p, Mono14p]
-        expected_results = [
+        expected_bytes = [
             [2, 2, 2],  # 1 x 1
             [3, 3, 4],  # 2 x 1
             [4, 5, 6],  # 3 x 1
@@ -974,7 +976,7 @@ class TestIssue188(unittest.TestCase):
         for i in self._range:
             for j, proxy in enumerate(proxies):
                 self.assertEqual(
-                    expected_results[i][j],
+                    expected_bytes[i][j],
                     Component2DImage._get_nr_bytes(
                         pf_proxy=proxy(), width=i + 1, height=self._height
                     )
@@ -991,6 +993,22 @@ class TestIssue188(unittest.TestCase):
                     pf_proxy=proxy(), width=width, height=height
                 )
             )
+
+    def test_issue_238(self):
+        proxies = [RGB10p, BGR10p, RGB12p, BGR12p]
+        expected_bytes = [
+            [4, 4, 5, 5],  # 1 x 1
+            [8, 8, 9, 9],  # 2 x 1
+            [12, 12, 14, 14],  # 3 x 1
+        ]
+        for i in self._range:
+            for j, proxy in enumerate(proxies):
+                self.assertEqual(
+                    expected_bytes[i][j],
+                    Component2DImage._get_nr_bytes(
+                        pf_proxy=proxy(), width=i + 1, height=self._height
+                    )
+                )
 
 
 if __name__ == '__main__':

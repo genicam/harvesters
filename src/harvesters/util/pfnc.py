@@ -1966,6 +1966,18 @@ class _LMN444_12p(_12p):
 # ----
 
 
+class RGB10p(_LMN444_10p):
+    def __init__(self):
+        #
+        super().__init__(symbolic='RGB10p')
+
+
+class BGR10p(_LMN444_10p):
+    def __init__(self):
+        #
+        super().__init__(symbolic='BGR10p')
+
+
 class Coord3D_ABC10p(_LMN444_10p):
     def __init__(self):
         #
@@ -1976,6 +1988,18 @@ class Coord3D_ABC10p_Planar(_LMN444_10p):
     def __init__(self):
         #
         super().__init__(symbolic='Coord3D_ABC10p_Planar')
+
+
+class RGB12p(_LMN444_12p):
+    def __init__(self):
+        #
+        super().__init__(symbolic='RGB12p')
+
+
+class BGR12p(_LMN444_12p):
+    def __init__(self):
+        #
+        super().__init__(symbolic='BGR12p')
 
 
 class Coord3D_ABC12p(_LMN444_12p):

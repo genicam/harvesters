@@ -3344,6 +3344,10 @@ class Dictionary:
         BayerGR12p(),
         BayerRG10p(),
         BayerRG12p(),
+        RGB10p(),
+        RGB12p(),
+        BGR10p(),
+        BGR12p(),
     ]
 
     def __init__(self):

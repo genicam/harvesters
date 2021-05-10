@@ -1366,6 +1366,9 @@ class PayloadBase:
                 logger=self._logger
             )
 
+        self._logger.warning(
+            "Pixel format \'{}\' is not supported.".format(symbolic))
+
         return None
 
     @property

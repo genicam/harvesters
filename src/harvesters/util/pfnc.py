@@ -520,141 +520,6 @@ component_32bit_formats = [
     'Confidence32f',
 ]
 
-component_2d_formats = [
-    #
-    'Mono8',
-    'Mono10',
-    'Mono12',
-    'Mono14',
-    'Mono16',
-    #
-    'Mono10Packed',
-    'Mono12Packed',
-    #
-    'RGB8',
-    'RGB10',
-    'RGB12',
-    'RGB14',
-    'RGB16',
-    #
-    'BGR8',
-    'BGR10',
-    'BGR12',
-    'BGR14',
-    'BGR16',
-    #
-    'RGBa8',
-    'RGBa10',
-    'RGBa12',
-    'RGBa14',
-    'RGBa16',
-    #
-    'BGRa8',
-    'BGRa10',
-    'BGRa12',
-    'BGRa14',
-    'BGRa16',
-    #
-    'BayerGR8',
-    'BayerGB8',
-    'BayerRG8',
-    'BayerBG8',
-    #
-    'BayerGR10',
-    'BayerGB10',
-    'BayerRG10',
-    'BayerBG10',
-    #
-    'BayerGR12',
-    'BayerGB12',
-    'BayerRG12',
-    'BayerBG12',
-    #
-    'BayerGR16',
-    'BayerRG16',
-    'BayerGB16',
-    'BayerBG16',
-    #
-    'Coord3D_A8',
-    'Coord3D_B8',
-    'Coord3D_C8',
-    'Coord3D_ABC8',
-    'Coord3D_ABC8_Planar',
-    'Coord3D_AC8',
-    'Coord3D_AC8_Planar',
-    'Coord3D_A16',
-    'Coord3D_B16',
-    'Coord3D_C16',
-    'Coord3D_ABC16',
-    'Coord3D_ABC16_Planar',
-    'Coord3D_AC16',
-    'Coord3D_AC16_Planar',
-    'Coord3D_A32f',
-    'Coord3D_B32f',
-    'Coord3D_C32f',
-    'Coord3D_ABC32f',
-    'Coord3D_ABC32f_Planar',
-    'Coord3D_AC32f',
-    'Coord3D_AC32f_Planar',
-    #
-    'Confidence1',
-    'Confidence8',
-    'Confidence16',
-    'Confidence32f',
-    #
-    'Mono10p',
-    'Mono10c3p32',
-    'Mono12p',
-    #
-    'Coord3D_A10p',
-    'Coord3D_B10p',
-    'Coord3D_C10p',
-    'Coord3D_A12p',
-    'Coord3D_B12p',
-    'Coord3D_C12p',
-    'Coord3D_ABC10p',
-    'Coord3D_ABC10p_Planar',
-    'Coord3D_ABC12p',
-    'Coord3D_ABC12p_Planar',
-    #
-    'YCbCr422_10p',
-    'YCbCr422_12p',
-    'YCbCr601_422_10p',
-    'YCbCr601_422_12p',
-    'YCbCr709_422_10p',
-    'YCbCr709_422_12p',
-    'YCbCr422_10p_CbYCrY',
-    'YCbCr422_12p_CbYCrY',
-    'YCbCr601_422_10p_CbYCrY',
-    'YCbCr601_422_12p_CbYCrY',
-    'YCbCr709_422_10p_CbYCrY',
-    'YCbCr709_422_12p_CbYCrY',
-    'YCbCr2020_422_10p',
-    'YCbCr2020_422_10p_CbYCrY',
-    'YCbCr2020_422_12p',
-    'YCbCr2020_422_12p_CbYCrY',
-    #
-    'RGBa10p',
-    'RGBa12p',
-    'BGRa10p',
-    'BGRa12p',
-    #
-    'Coord3D_AC10p',
-    'Coord3D_AC10p_Planar',
-    'Coord3D_AC12p',
-    'Coord3D_AC12p_Planar',
-    #
-    'Confidence1p',
-    #
-    'BayerBG10p',
-    'BayerBG12p',
-    'BayerGB10p',
-    'BayerGB12p',
-    'BayerGR10p',
-    'BayerGR12p',
-    'BayerRG10p',
-    'BayerRG12p',
-]
 
 rgb_formats = [
     #
@@ -3354,7 +3219,7 @@ class Dictionary:
         #
         super().__init__()
         #
-        for p in self._pixel_formats:
+        for p in Dictionary._pixel_formats:
             print(p)
         pass
 
@@ -3362,11 +3227,16 @@ class Dictionary:
     def get_proxy(cls, symbolic: str):
         #
         _pf = None
-        for pf in cls._pixel_formats:
+        for pf in Dictionary._pixel_formats:
             if symbolic == pf.symbolic:
                 _pf = pf
                 break
         #
         return _pf
 
+    @classmethod
+    def get_pixel_formats(cls):
+        return Dictionary._pixel_formats
 
+
+component_2d_formats = [p.symbolic for p in Dictionary.get_pixel_formats()]

@@ -34,6 +34,21 @@ You can freely use, modify, distribute Harvester under `Apache License-2.0 <http
 
 ----
 
+****************************
+Tasks Harvester Does for You
+****************************
+
+The main features of Harvester are listed as follows:
+
+* Image acquisition through GenTL Producers
+* Multiple loading of GenTL Producers in a single Python script
+* GenICam feature node manipulation of the target remote device
+
+Note that the second item implies you can involve multiple types of transport layers in your Python script. Each transport layer has own advantages and disadvantages and you should choose appropriate transport layers following your application's requirement. You just need to acquire images for some purposes and the GenTL Producers deliver the images somehow. It truly is the great benefit of the GenTL Standard! And of course, not only GenTL Producers but Harvester Core offer you a way to manipulate multiple remote devices in a single Python script with an intuitive manner.
+
+On the other hand, Harvester Core could be considered as a simplified version of the GenTL-Python Binding; actually, Harvester Core hides it in its back and shows only intuitive interfaces to its clients. Harvester Core just offers you a relationship between you and a remote device. Nothing more. We say it again, just you and a remote device. If you need to manipulate more relevant GenTL modules or have to achieve something over a hardcore way, then you should directly work with the GenTL-Python Binding.
+
+
 ***********
 Need a GUI?
 ***********
@@ -335,21 +350,6 @@ Harvester Core works as a minimalistic front-end for image acquisition. Just imp
 You'll be able to download the these language binding runtime libraries from the `EMVA website <https://www.emva.org/standards-technology/genicam/genicam-downloads/>`_, however, it's not available as of May 2018, because they have not officially released yet. Fortunately they are in the final reviewing process so hopefully they'll be released by the end of 2018.
 
 If you don't have to care about the display rate for visualizing acquired images, the combination of Harvester Core and `Matplotlib <https://matplotlib.org>`_ might be a realistic option for that purpose.
-
-
-*********************************
-Tasks Harvester Core Does for You
-*********************************
-
-The main features of Harvester Core are listed as follows:
-
-* Image acquisition through GenTL Producers
-* Multiple loading of GenTL Producers in a single Python script
-* GenICam feature node manipulation of the target remote device
-
-Note that the second item implies you can involve multiple types of transport layers in your Python script. Each transport layer has own advantages and disadvantages and you should choose appropriate transport layers following your application's requirement. You just need to acquire images for some purposes and the GenTL Producers deliver the images somehow. It truly is the great benefit of the GenTL Standard! And of course, not only GenTL Producers but Harvester Core offer you a way to manipulate multiple remote devices in a single Python script with an intuitive manner.
-
-On the other hand, Harvester Core could be considered as a simplified version of the GenTL-Python Binding; actually, Harvester Core hides it in its back and shows only intuitive interfaces to its clients. Harvester Core just offers you a relationship between you and a remote device. Nothing more. We say it again, just you and a remote device. If you need to manipulate more relevant GenTL modules or have to achieve something over a hardcore way, then you should directly work with the GenTL-Python Binding.
 
 
 *************************

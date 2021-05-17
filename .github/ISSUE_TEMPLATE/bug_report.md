@@ -21,9 +21,13 @@ Steps to reproduce the behavior:
 A clear and concise description of what you expected to happen.
 
 **Screenshots**
-If applicable, add screenshots to help explain your problem.
-<!-- Note that it is not necessary to put everything as a screenshot. -->
-<!-- If the source is a text just paste the text; that is much helpful. -->
+If applicable, add screenshots to help explain your problem; Note that it is not necessary to put everything as a screenshot! If the source is a text just paste the text because that is much helpful for us.
+
+**Reproducibility**
+
+- [] This phenomenon can be reproduced with the following other versions:
+
+* a.b.c
 
 **Configuration**
 

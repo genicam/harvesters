@@ -38,7 +38,6 @@ If applicable, add screenshots to help explain your problem; Note that it is not
 This phenomenon can be reproduced by other versions:
 
 - [ ] Yes
-- [x] No
 
 If so, please list up the reproducible versions you have confirmed:
 

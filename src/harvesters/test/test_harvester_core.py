@@ -40,6 +40,7 @@ from harvesters.test.base_harvester import get_cti_file_path
 from harvesters.core import Callback
 from harvesters.core import Harvester
 from harvesters.core import ImageAcquirer
+from harvesters.core import _drop_unnecessary_trailer
 from harvesters.test.helper import get_package_dir
 from harvesters.util.pfnc import Dictionary
 from harvesters.core import Component2DImage
@@ -1009,6 +1010,22 @@ class TestIssue188(unittest.TestCase):
                         pf_proxy=proxy(), width=i + 1, height=self._height
                     )
                 )
+
+
+class TestUtility(unittest.TestCase):
+    def test_issue_207_and_226(self):
+        body = b'\xc2\xb0'  # °
+        padding = b'\x00\x00'
+        data = body + padding
+        data = _drop_unnecessary_trailer(data)
+        self.assertEqual(data, body)
+        self.assertEqual('°', str(data, encoding='utf-8'))
+
+    @unittest.skip  # experimental
+    def test_issue_207_and_226_in_orignal_way(self):
+        data = b'\xc2\xb0'  # °
+        decoded = data.decode()
+        self.assertEqual('°', decoded)
 
 
 if __name__ == '__main__':

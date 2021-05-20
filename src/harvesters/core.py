@@ -3026,8 +3026,6 @@ class ImageAcquirer:
             _ = self._queue.get_nowait()
 
 
-
-
 def _save_file(
         *,
         xml_dir_to_store: Optional[str] = None,
@@ -3057,26 +3055,20 @@ def _save_file(
     file_path = os.path.join(xml_dir_to_store, _file_name)
 
     #
-    mode_base = 'w+'
-    mode = mode_base
-    data_to_write = bytes_content = bytes_io.getvalue()
-    if pathlib.Path(file_path).suffix.lower() == '.zip':
-        mode += 'b'
-    else:
-        data_to_write = bytes_content.decode()
-        pos = data_to_write.find('\x00')
-        if pos != -1:
-            # Found a \x00:
-            data_to_write = data_to_write[:pos]
+    mode = 'w+'
+    data_to_write = bytes_io.getvalue()
+    if pathlib.Path(file_path).suffix.lower() != '.zip':
+        data_to_write = _drop_unnecessary_trailer(data_to_write)
+
     #
     try:
-        with open(file_path, mode) as f:
+        with open(file_path, mode + 'b') as f:
             f.write(data_to_write)
     except UnicodeEncodeError:
         # Probably you've caught "UnicodeEncodeError: 'charmap' codec can't
         # encode characters"; the file must be a text file:
         try:
-            with io.open(file_path, mode_base, encoding="utf-8") as f:
+            with io.open(file_path, mode, encoding="utf-8") as f:
                 f.write(data_to_write)
         except:
             e = sys.exc_info()[0]
@@ -3088,6 +3080,16 @@ def _save_file(
         raise
 
     return file_path
+
+
+def _drop_unnecessary_trailer(data_to_write: bytes):
+    assert data_to_write
+    pos = data_to_write.find(0x00)
+    if pos != -1:
+        # Found a \x00:
+        return data_to_write[:pos]
+    else:
+        return data_to_write
 
 
 class _CallbackDestroyImageAcquirer(Callback):

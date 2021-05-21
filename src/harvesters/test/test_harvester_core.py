@@ -1022,7 +1022,7 @@ class TestUtility(unittest.TestCase):
         self.assertEqual('°', str(data, encoding='utf-8'))
 
     @unittest.skip  # experimental
-    def test_issue_207_and_226_in_orignal_way(self):
+    def test_issue_207_and_226_in_original_way(self):
         data = b'\xc2\xb0'  # °
         decoded = data.decode()
         self.assertEqual('°', decoded)

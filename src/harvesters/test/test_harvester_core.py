@@ -813,7 +813,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             return
 
         ia = self.harvester.create_image_acquirer(
-            0, pattern_dict={r'\.$': b'\23\34\45'}
+            0, file_dict={r'\.$': b'\23\34\45'}
         )
         self.assertIsNotNone(ia)
 
@@ -823,7 +823,7 @@ class TestHarvesterCore(TestHarvesterCoreBase):
 
         with self.assertRaises(RuntimeException):
             _ = self.harvester.create_image_acquirer(
-                0, pattern_dict={r'\.xml$': bytes('<', encoding='utf-8')})
+                0, file_dict={r'\.xml$': bytes('<', encoding='utf-8')})
 
 
 class _TestIssue81(threading.Thread):
@@ -1052,7 +1052,7 @@ class TestUtility(unittest.TestCase):
         file_name_pattern = r'GenTL_Stream\.xml'
         result = _drop_unnecessary_trailer(
             data + padding, file_name=target_file_name,
-            pattern_dict={file_name_pattern: bytes('-en', encoding='utf-8')}
+            file_dict={file_name_pattern: bytes('-en', encoding='utf-8')}
         )
         self.assertEqual(data, result)
 

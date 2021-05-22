@@ -1699,7 +1699,7 @@ class ImageAcquirer:
             profiler=None, logger: Optional[Logger] = None,
             sleep_duration: float = _sleep_duration_default,
             file_path: Optional[str] = None,
-            pattern_dict: Dict[str, bytes] = None):
+            file_dict: Dict[str, bytes] = None):
         """
 
         :param device:
@@ -1719,7 +1719,7 @@ class ImageAcquirer:
         super().__init__()
 
         #
-        self._pattern_dict = pattern_dict
+        self._file_dict = file_dict
 
         #
         interface = device.parent
@@ -1767,7 +1767,7 @@ class ImageAcquirer:
                 node_map = self._get_port_connected_node_map(
                     port=port, logger=self._logger,
                     xml_dir_to_store=self._xml_dir, file_path=file_path_,
-                    pattern_dict=self._pattern_dict)
+                    file_dict=self._file_dict)
             except exceptions as e:
                 # Accept a case where the target GenTL entity does not
                 # provide any device description XML file:
@@ -2235,7 +2235,7 @@ class ImageAcquirer:
         """
         return self._statistics
 
-    def _setup_data_streams(self, pattern_dict: Dict[str, bytes] = None):
+    def _setup_data_streams(self, file_dict: Dict[str, bytes] = None):
         for i, stream_id in enumerate(self._device.data_stream_ids):
             #
             _data_stream = self._device.create_data_stream()
@@ -2256,7 +2256,7 @@ class ImageAcquirer:
             try:
                 node_map = self._get_port_connected_node_map(
                     port=_data_stream.port, logger=self._logger,
-                    pattern_dict=pattern_dict
+                    file_dict=file_dict
                 )
             except exceptions as e:
                 # Accept a case where the target GenTL entity does not
@@ -2284,7 +2284,7 @@ class ImageAcquirer:
             logger: Optional[Logger] = None,
             file_path: Optional[str] = None,
             xml_dir_to_store: Optional[str] = None,
-            pattern_dict: Dict[str, bytes] = None):
+            file_dict: Dict[str, bytes] = None):
         #
         assert port
 
@@ -2298,7 +2298,7 @@ class ImageAcquirer:
         file_path = self._retrieve_file_path(
             port=port, file_path_to_load=file_path, logger=logger,
             xml_dir_to_store=xml_dir_to_store,
-            pattern_dict=pattern_dict)
+            file_dict=file_dict)
 
         #
         if file_path is not None:
@@ -2316,7 +2316,7 @@ class ImageAcquirer:
                 try:
                     node_map.load_xml_from_file(file_path)
                 except RuntimeException as e:
-                    if pattern_dict:
+                    if file_dict:
                         _logger.error(e, exc_info=True)
                         raise
                     else:
@@ -2342,7 +2342,7 @@ class ImageAcquirer:
             file_path_to_load: Optional[str] = None,
             logger: Optional[Logger] = None,
             xml_dir_to_store: Optional[str] = None,
-            pattern_dict: Dict[str, bytes] = None):
+            file_dict: Dict[str, bytes] = None):
         #
         _logger = logger or get_logger(name=__name__)
 
@@ -2390,7 +2390,7 @@ class ImageAcquirer:
                 file_path_to_load = _save_file(
                     xml_dir_to_store=xml_dir_to_store, file_name=file_name,
                     binary_data=binary_data, logger=logger,
-                    pattern_dict=pattern_dict)
+                    file_dict=file_dict)
 
             elif location == 'file':
                 file_path_to_load = urlparse(url).path
@@ -2460,7 +2460,7 @@ class ImageAcquirer:
 
             #
             if not self._create_ds_at_connection:
-                self._setup_data_streams(pattern_dict=self._pattern_dict)
+                self._setup_data_streams(file_dict=self._file_dict)
 
             #
             for ds in self._data_streams:
@@ -3042,7 +3042,7 @@ def _save_file(
         file_name: Optional[str] = None,
         binary_data=None,
         logger=None,
-        pattern_dict: Dict[str, bytes] = None):
+        file_dict: Dict[str, bytes] = None):
     #
     _logger = logger or get_logger(name=__name__)
 
@@ -3069,11 +3069,9 @@ def _save_file(
     mode = 'w+'
     data_to_write = bytes_io.getvalue()
     if pathlib.Path(file_path).suffix.lower() != '.zip':
-        # file_name
-        # pattern_dict
         data_to_write = _drop_unnecessary_trailer(
             data_to_write,
-            file_name=_file_name, pattern_dict=pattern_dict)
+            file_name=_file_name, file_dict=file_dict)
 
     #
     try:
@@ -3099,19 +3097,19 @@ def _save_file(
 
 def _drop_unnecessary_trailer(
         data_to_write: bytes, *, file_name: str = None,
-        pattern_dict: Dict[str, bytes] = None):
+        file_dict: Dict[str, bytes] = None):
     assert data_to_write
     data_to_be_found = b'\x00'
-    if pattern_dict and file_name:
+    if file_dict and file_name:
         result = None
         key = None
-        for pattern in pattern_dict.keys():
+        for pattern in file_dict.keys():
             result = re.search(pattern, file_name)
             if result:
                 key = pattern
                 break
         if result and key:
-            data_to_be_found = pattern_dict[key]
+            data_to_be_found = file_dict[key]
 
     pos = data_to_write.find(data_to_be_found)
     if pos != -1:
@@ -3263,7 +3261,7 @@ class Harvester:
             sleep_duration: Optional[float] = _sleep_duration_default,
             file_path: Optional[str] = None,
             privilege: str = 'exclusive',
-            pattern_dict: Dict[str, bytes] = None):
+            file_dict: Dict[str, bytes] = None):
         """
         Creates an image acquirer for the specified remote device and return
         the created :class:`ImageAcquirer` object.
@@ -3370,7 +3368,7 @@ class Harvester:
                 device=device, profiler=self._profiler,
                 logger=self._logger, sleep_duration=sleep_duration,
                 file_path=file_path,
-                pattern_dict=pattern_dict
+                file_dict=file_dict
             )
             self._ias.append(ia)
 

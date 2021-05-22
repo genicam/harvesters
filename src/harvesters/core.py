@@ -31,12 +31,13 @@ import os
 import pathlib
 from queue import Queue
 from queue import Full, Empty
+import re
 import signal
 import sys
 from threading import Lock, Thread, Event
 from threading import current_thread, main_thread
 import time
-from typing import Union, List, Optional
+from typing import Union, List, Optional, Dict
 from urllib.parse import urlparse
 from warnings import warn
 import weakref
@@ -1697,8 +1698,8 @@ class ImageAcquirer:
             self, *, device=None,
             profiler=None, logger: Optional[Logger] = None,
             sleep_duration: float = _sleep_duration_default,
-            file_path: Optional[str] = None
-    ):
+            file_path: Optional[str] = None,
+            pattern_dict: Dict[str, bytes] = None):
         """
 
         :param device:
@@ -1716,6 +1717,9 @@ class ImageAcquirer:
 
         #
         super().__init__()
+
+        #
+        self._pattern_dict = pattern_dict
 
         #
         interface = device.parent
@@ -1762,8 +1766,8 @@ class ImageAcquirer:
             try:
                 node_map = self._get_port_connected_node_map(
                     port=port, logger=self._logger,
-                    xml_dir_to_store=self._xml_dir, file_path=file_path_
-                )
+                    xml_dir_to_store=self._xml_dir, file_path=file_path_,
+                    pattern_dict=self._pattern_dict)
             except exceptions as e:
                 # Accept a case where the target GenTL entity does not
                 # provide any device description XML file:
@@ -2231,7 +2235,7 @@ class ImageAcquirer:
         """
         return self._statistics
 
-    def _setup_data_streams(self):
+    def _setup_data_streams(self, pattern_dict: Dict[str, bytes] = None):
         for i, stream_id in enumerate(self._device.data_stream_ids):
             #
             _data_stream = self._device.create_data_stream()
@@ -2251,7 +2255,8 @@ class ImageAcquirer:
             exceptions = (GenericException, LogicalErrorException)
             try:
                 node_map = self._get_port_connected_node_map(
-                    port=_data_stream.port, logger=self._logger
+                    port=_data_stream.port, logger=self._logger,
+                    pattern_dict=pattern_dict
                 )
             except exceptions as e:
                 # Accept a case where the target GenTL entity does not
@@ -2278,7 +2283,8 @@ class ImageAcquirer:
             port: Optional[Port] = None,
             logger: Optional[Logger] = None,
             file_path: Optional[str] = None,
-            xml_dir_to_store: Optional[str] = None):
+            xml_dir_to_store: Optional[str] = None,
+            pattern_dict: Dict[str, bytes] = None):
         #
         assert port
 
@@ -2290,8 +2296,9 @@ class ImageAcquirer:
 
         #
         file_path = self._retrieve_file_path(
-            port=port, file_path_to_load=file_path, logger=logger, xml_dir_to_store=xml_dir_to_store
-        )
+            port=port, file_path_to_load=file_path, logger=logger,
+            xml_dir_to_store=xml_dir_to_store,
+            pattern_dict=pattern_dict)
 
         #
         if file_path is not None:
@@ -2309,8 +2316,11 @@ class ImageAcquirer:
                 try:
                     node_map.load_xml_from_file(file_path)
                 except RuntimeException as e:
-                    _logger.error(e, exc_info=True)
-                    has_valid_file = False
+                    if pattern_dict:
+                        _logger.error(e, exc_info=True)
+                        raise
+                    else:
+                        _logger.warning(e, exc_info=True)
 
             if has_valid_file:
                 # Instantiate a concrete port object of the remote device's
@@ -2331,7 +2341,8 @@ class ImageAcquirer:
             url: Optional[str] = None,
             file_path_to_load: Optional[str] = None,
             logger: Optional[Logger] = None,
-            xml_dir_to_store: Optional[str] = None):
+            xml_dir_to_store: Optional[str] = None,
+            pattern_dict: Dict[str, bytes] = None):
         #
         _logger = logger or get_logger(name=__name__)
 
@@ -2378,8 +2389,8 @@ class ImageAcquirer:
                 # file or a plain XML file:
                 file_path_to_load = _save_file(
                     xml_dir_to_store=xml_dir_to_store, file_name=file_name,
-                    binary_data=binary_data, logger=logger
-                )
+                    binary_data=binary_data, logger=logger,
+                    pattern_dict=pattern_dict)
 
             elif location == 'file':
                 file_path_to_load = urlparse(url).path
@@ -2398,7 +2409,6 @@ class ImageAcquirer:
                 )
 
         return file_path_to_load
-
 
     def start_image_acquisition(self, run_in_background=False):
         """
@@ -2450,7 +2460,7 @@ class ImageAcquirer:
 
             #
             if not self._create_ds_at_connection:
-                self._setup_data_streams()
+                self._setup_data_streams(pattern_dict=self._pattern_dict)
 
             #
             for ds in self._data_streams:
@@ -3031,7 +3041,8 @@ def _save_file(
         xml_dir_to_store: Optional[str] = None,
         file_name: Optional[str] = None,
         binary_data=None,
-        logger=None):
+        logger=None,
+        pattern_dict: Dict[str, bytes] = None):
     #
     _logger = logger or get_logger(name=__name__)
 
@@ -3058,7 +3069,11 @@ def _save_file(
     mode = 'w+'
     data_to_write = bytes_io.getvalue()
     if pathlib.Path(file_path).suffix.lower() != '.zip':
-        data_to_write = _drop_unnecessary_trailer(data_to_write)
+        # file_name
+        # pattern_dict
+        data_to_write = _drop_unnecessary_trailer(
+            data_to_write,
+            file_name=_file_name, pattern_dict=pattern_dict)
 
     #
     try:
@@ -3082,9 +3097,23 @@ def _save_file(
     return file_path
 
 
-def _drop_unnecessary_trailer(data_to_write: bytes):
+def _drop_unnecessary_trailer(
+        data_to_write: bytes, *, file_name: str = None,
+        pattern_dict: Dict[str, bytes] = None):
     assert data_to_write
-    pos = data_to_write.find(0x00)
+    data_to_be_found = b'\x00'
+    if pattern_dict and file_name:
+        result = None
+        key = None
+        for pattern in pattern_dict.keys():
+            result = re.search(pattern, file_name)
+            if result:
+                key = pattern
+                break
+        if result and key:
+            data_to_be_found = pattern_dict[key]
+
+    pos = data_to_write.find(data_to_be_found)
     if pos != -1:
         # Found a \x00:
         return data_to_write[:pos]
@@ -3233,8 +3262,8 @@ class Harvester:
             version: Optional[str] = None,
             sleep_duration: Optional[float] = _sleep_duration_default,
             file_path: Optional[str] = None,
-            privilege: str = 'exclusive'
-        ):
+            privilege: str = 'exclusive',
+            pattern_dict: Dict[str, bytes] = None):
         """
         Creates an image acquirer for the specified remote device and return
         the created :class:`ImageAcquirer` object.
@@ -3340,7 +3369,8 @@ class Harvester:
             ia = ImageAcquirer(
                 device=device, profiler=self._profiler,
                 logger=self._logger, sleep_duration=sleep_duration,
-                file_path=file_path
+                file_path=file_path,
+                pattern_dict=pattern_dict
             )
             self._ias.append(ia)
 

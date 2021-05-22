@@ -31,6 +31,7 @@ import unittest
 from urllib.parse import quote
 
 # Related third party imports
+from genicam.genapi import RuntimeException
 from genicam.gentl import TimeoutException
 import numpy as np
 
@@ -807,6 +808,23 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         self.assertEqual(data_size, access_size)
         self.assertEqual(data_returned, data_to_write)
 
+    def test_issue_207_that_does_not_match(self):
+        if not self.is_running_with_default_target():
+            return
+
+        ia = self.harvester.create_image_acquirer(
+            0, pattern_dict={r'\.$': b'\23\34\45'}
+        )
+        self.assertIsNotNone(ia)
+
+    def test_issue_207_that_does_match(self):
+        if not self.is_running_with_default_target():
+            return
+
+        with self.assertRaises(RuntimeException):
+            _ = self.harvester.create_image_acquirer(
+                0, pattern_dict={r'\.xml$': bytes('<', encoding='utf-8')})
+
 
 class _TestIssue81(threading.Thread):
     def __init__(self, message_queue=None, cti_file_path=None):
@@ -1026,6 +1044,17 @@ class TestUtility(unittest.TestCase):
         data = b'\xc2\xb0'  # °
         decoded = data.decode()
         self.assertEqual('°', decoded)
+
+    def test_issue_207(self):
+        data = b'\xc2\xb0'  # '°'
+        padding = b'\x2D\x65\x6E'  # '-en'
+        target_file_name = 'GenTL_Stream.xml'
+        file_name_pattern = r'GenTL_Stream\.xml'
+        result = _drop_unnecessary_trailer(
+            data + padding, file_name=target_file_name,
+            pattern_dict={file_name_pattern: bytes('-en', encoding='utf-8')}
+        )
+        self.assertEqual(data, result)
 
 
 if __name__ == '__main__':

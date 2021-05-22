@@ -41,7 +41,7 @@ from harvesters.test.base_harvester import get_cti_file_path
 from harvesters.core import Callback
 from harvesters.core import Harvester
 from harvesters.core import ImageAcquirer
-from harvesters.core import _drop_unnecessary_trailer
+from harvesters.core import _drop_padding_data
 from harvesters.test.helper import get_package_dir
 from harvesters.util.pfnc import Dictionary
 from harvesters.core import Component2DImage
@@ -1035,7 +1035,7 @@ class TestUtility(unittest.TestCase):
         body = b'\xc2\xb0'  # °
         padding = b'\x00\x00'
         data = body + padding
-        data = _drop_unnecessary_trailer(data)
+        data = _drop_padding_data(data)
         self.assertEqual(data, body)
         self.assertEqual('°', str(data, encoding='utf-8'))
 
@@ -1050,7 +1050,7 @@ class TestUtility(unittest.TestCase):
         padding = b'\x2D\x65\x6E'  # '-en'
         target_file_name = 'GenTL_Stream.xml'
         file_name_pattern = r'GenTL_Stream\.xml'
-        result = _drop_unnecessary_trailer(
+        result = _drop_padding_data(
             data + padding, file_name=target_file_name,
             file_dict={file_name_pattern: bytes('-en', encoding='utf-8')}
         )

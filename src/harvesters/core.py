@@ -3069,7 +3069,7 @@ def _save_file(
     mode = 'w+'
     data_to_write = bytes_io.getvalue()
     if pathlib.Path(file_path).suffix.lower() != '.zip':
-        data_to_write = _drop_unnecessary_trailer(
+        data_to_write = _drop_padding_data(
             data_to_write,
             file_name=_file_name, file_dict=file_dict)
 
@@ -3095,7 +3095,7 @@ def _save_file(
     return file_path
 
 
-def _drop_unnecessary_trailer(
+def _drop_padding_data(
         data_to_write: bytes, *, file_name: str = None,
         file_dict: Dict[str, bytes] = None):
     assert data_to_write

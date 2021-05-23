@@ -1767,7 +1767,7 @@ class ImageAcquirer:
             #
             try:
                 node_map = self._get_port_connected_node_map(
-                    port=port, logger=self._logger,
+                    port=port,
                     xml_dir_to_store=self._xml_dir, file_path=file_path_,
                     file_dict=self._file_dict, do_clean_up=self._do_clean_up)
             except exceptions as e:
@@ -2257,7 +2257,7 @@ class ImageAcquirer:
             exceptions = (GenericException, LogicalErrorException)
             try:
                 node_map = self._get_port_connected_node_map(
-                    port=_data_stream.port, logger=self._logger,
+                    port=_data_stream.port,
                     file_dict=file_dict, do_clean_up=self._do_clean_up
                 )
             except exceptions as e:
@@ -2283,7 +2283,6 @@ class ImageAcquirer:
     def _get_port_connected_node_map(
             self, *,
             port: Optional[Port] = None,
-            logger: Optional[Logger] = None,
             file_path: Optional[str] = None,
             xml_dir_to_store: Optional[str] = None,
             file_dict: Dict[str, bytes] = None,
@@ -2291,15 +2290,12 @@ class ImageAcquirer:
         #
         assert port
 
-        #
-        _logger = logger or get_logger(name=__name__)
-
         # Instantiate a GenICam node map object.
         node_map = NodeMap()
 
         #
         file_path = self._retrieve_file_path(
-            port=port, file_path_to_load=file_path, logger=logger,
+            port=port, file_path_to_load=file_path,
             xml_dir_to_store=xml_dir_to_store,
             file_dict=file_dict)
 
@@ -3330,7 +3326,7 @@ class Harvester:
                                 items_to_be_removed.append(item)
                         except GenericException as e:
                             # The candidate doesn't support the information.
-                            self._logger.warn(e, exc_info=True)
+                            self._logger.warning(e, exc_info=True)
                             pass
                     # Remove irrelevant items from the candidates.
                     for item in items_to_be_removed:

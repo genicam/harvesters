@@ -27,7 +27,7 @@ import unittest
 # Related third party imports
 
 # Local application/library specific imports
-from harvesters.test.base_harvester import TestHarvesterCoreBase
+from harvesters.test.base_harvester import TestHarvester
 
 
 class ThreadWithTimeLimit(Thread):
@@ -61,7 +61,7 @@ class ThreadWithTimeLimit(Thread):
                 self._is_running = False
 
 
-class TestTutorials(TestHarvesterCoreBase):
+class TestTutorials(TestHarvester):
 
     def _test_performance_on_image_acquisition(self, sleep_duration=0.0):
         #

@@ -55,7 +55,7 @@ def get_cti_file_path():
     return cti_file_path
     
     
-class TestHarvesterCoreBase(unittest.TestCase):
+class TestHarvesterBase(unittest.TestCase):
     _cti_file_path = get_cti_file_path()
     sys.path.append(_cti_file_path)
 
@@ -73,11 +73,6 @@ class TestHarvesterCoreBase(unittest.TestCase):
     def setUp(self):
         #
         super().setUp()
-
-        #
-        self._harvester = Harvester(logger=self._logger)
-        self._harvester.add_file(self._cti_file_path)
-        self._harvester.update()
 
     def tearDown(self):
         #
@@ -115,6 +110,40 @@ class TestHarvesterCoreBase(unittest.TestCase):
 
     def is_running_with_default_target(self):
         return True if 'TLSimu.cti' in self._cti_file_path else False
+
+    @staticmethod
+    def _get_xml_dir():
+        return os.path.join(get_package_dir('harvesters'), 'test', 'xml')
+
+
+class TestHarvester(TestHarvesterBase):
+    def __init__(self, *args, **kwargs):
+        #
+        super().__init__(*args, **kwargs)
+
+    def setUp(self):
+        #
+        super().setUp()
+
+        #
+        self._harvester = Harvester(logger=self._logger, do_clean_up=True)
+        self._harvester.add_file(self._cti_file_path)
+        self._harvester.update()
+
+
+class TestHarvesterNoCleanUp(TestHarvesterBase):
+    def __init__(self, *args, **kwargs):
+        #
+        super().__init__(*args, **kwargs)
+
+    def setUp(self):
+        #
+        super().setUp()
+
+        #
+        self._harvester = Harvester(logger=self._logger, do_clean_up=False)
+        self._harvester.add_file(self._cti_file_path)
+        self._harvester.update()
 
 
 if __name__ == '__main__':

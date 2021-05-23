@@ -1699,7 +1699,8 @@ class ImageAcquirer:
             profiler=None, logger: Optional[Logger] = None,
             sleep_duration: float = _sleep_duration_default,
             file_path: Optional[str] = None,
-            file_dict: Dict[str, bytes] = None):
+            file_dict: Dict[str, bytes] = None,
+            do_clean_up: bool = True):
         """
 
         :param device:
@@ -1720,6 +1721,7 @@ class ImageAcquirer:
 
         #
         self._file_dict = file_dict
+        self._do_clean_up = do_clean_up
 
         #
         interface = device.parent
@@ -1767,7 +1769,7 @@ class ImageAcquirer:
                 node_map = self._get_port_connected_node_map(
                     port=port, logger=self._logger,
                     xml_dir_to_store=self._xml_dir, file_path=file_path_,
-                    file_dict=self._file_dict)
+                    file_dict=self._file_dict, do_clean_up=self._do_clean_up)
             except exceptions as e:
                 # Accept a case where the target GenTL entity does not
                 # provide any device description XML file:
@@ -2256,7 +2258,7 @@ class ImageAcquirer:
             try:
                 node_map = self._get_port_connected_node_map(
                     port=_data_stream.port, logger=self._logger,
-                    file_dict=file_dict
+                    file_dict=file_dict, do_clean_up=self._do_clean_up
                 )
             except exceptions as e:
                 # Accept a case where the target GenTL entity does not
@@ -2284,7 +2286,8 @@ class ImageAcquirer:
             logger: Optional[Logger] = None,
             file_path: Optional[str] = None,
             xml_dir_to_store: Optional[str] = None,
-            file_dict: Dict[str, bytes] = None):
+            file_dict: Dict[str, bytes] = None,
+            do_clean_up: bool = True):
         #
         assert port
 
@@ -2317,10 +2320,15 @@ class ImageAcquirer:
                     node_map.load_xml_from_file(file_path)
                 except RuntimeException as e:
                     if file_dict:
+                        if do_clean_up:
+                            os.remove(file_path)
                         _logger.error(e, exc_info=True)
                         raise
                     else:
                         _logger.warning(e, exc_info=True)
+
+            if do_clean_up:
+                os.remove(file_path)
 
             if has_valid_file:
                 # Instantiate a concrete port object of the remote device's
@@ -3137,7 +3145,8 @@ class Harvester:
     #
     def __init__(
             self, *,
-            profile=False, logger: Optional[Logger] = None):
+            profile=False, logger: Optional[Logger] = None,
+            do_clean_up: bool = True):
         """
 
         :param profile:
@@ -3157,6 +3166,9 @@ class Harvester:
         self._interfaces = []
         self._device_info_list = []
         self._ias = []
+
+        #
+        self._do_clean_up = do_clean_up
 
         #
         self._has_revised_device_list = False
@@ -3368,7 +3380,7 @@ class Harvester:
                 device=device, profiler=self._profiler,
                 logger=self._logger, sleep_duration=sleep_duration,
                 file_path=file_path,
-                file_dict=file_dict
+                file_dict=file_dict, do_clean_up=self._do_clean_up
             )
             self._ias.append(ia)
 

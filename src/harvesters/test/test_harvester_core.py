@@ -36,7 +36,8 @@ from genicam.gentl import TimeoutException
 import numpy as np
 
 # Local application/library specific imports
-from harvesters.test.base_harvester import TestHarvesterCoreBase
+from harvesters.test.base_harvester import TestHarvester, \
+    TestHarvesterNoCleanUp
 from harvesters.test.base_harvester import get_cti_file_path
 from harvesters.core import Callback
 from harvesters.core import Harvester
@@ -52,7 +53,38 @@ from harvesters.util.pfnc import RGB10p, BGR10p
 from harvesters.util.pfnc import RGB12p, BGR12p
 
 
-class TestHarvesterCore(TestHarvesterCoreBase):
+class TestHarvesterCore(TestHarvesterNoCleanUp):
+    def test_issue_66(self):
+        if not self.is_running_with_default_target():
+            return
+
+        file_names = ['altered_plain.xml', 'altered_zip.zip']
+        expected_values = ['plain', 'zip']
+        for i, file_name in enumerate(file_names):
+            self._test_issue_66(
+                'issue_66_' + file_name, expected_values[i]
+            )
+
+    def _test_issue_66(self, file_name, expected_value):
+        #
+        xml_dir = self._get_xml_dir()
+
+        # Connect to the first camera in the list.
+        self.ia = self.harvester.create_image_acquirer(
+            0, file_path=os.path.join(xml_dir, file_name), do_clean_up=False
+        )
+
+        # Compare DeviceModelNames:
+        self.assertEqual(
+            'Altered TLSimu (' + expected_value + ')',
+            self.ia.remote_device.node_map.DeviceModelName.value
+        )
+
+        #
+        self.ia.destroy()
+
+
+class TestHarvesterCore(TestHarvester):
     sleep_duration = .5  # Time to keep sleeping [s]
 
     def test_basic_usage_1(self):
@@ -421,35 +453,6 @@ class TestHarvesterCore(TestHarvesterCoreBase):
         # Fetch a buffer and keep it:
         self._buffers.append(self.ia.fetch_buffer())
 
-    def test_issue_66(self):
-        if not self.is_running_with_default_target():
-            return
-
-        file_names = ['altered_plain.xml', 'altered_zip.zip']
-        expected_values = ['plain', 'zip']
-        for i, file_name in enumerate(file_names):
-            self._test_issue_66(
-                'issue_66_' + file_name, expected_values[i]
-            )
-
-    def _test_issue_66(self, file_name, expected_value):
-        #
-        xml_dir = self._get_xml_dir()
-
-        # Connect to the first camera in the list.
-        self.ia = self.harvester.create_image_acquirer(
-            0, file_path=os.path.join(xml_dir, file_name)
-        )
-
-        # Compare DeviceModelNames:
-        self.assertEqual(
-            'Altered TLSimu (' + expected_value + ')',
-            self.ia.remote_device.node_map.DeviceModelName.value
-        )
-
-        #
-        self.ia.destroy()
-
     def test_issue_67(self):
         if not self.is_running_with_default_target():
             return
@@ -502,10 +505,6 @@ class TestHarvesterCore(TestHarvesterCoreBase):
             retrieved_file_path,
             expected_file_path
         )
-
-    @staticmethod
-    def _get_xml_dir():
-        return os.path.join(get_package_dir('harvesters'), 'test', 'xml')
 
     def test_issue_70(self):
         if not self.is_running_with_default_target():
@@ -901,7 +900,7 @@ class TestIssue85(unittest.TestCase):
         self.assertFalse(os.listdir(temp_dir))
 
         #
-        with Harvester() as h:
+        with Harvester(do_clean_up=False) as h:
             h.add_file(self._cti_file_path)
             h.update()
             with h.create_image_acquirer(0):

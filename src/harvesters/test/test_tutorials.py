@@ -25,11 +25,11 @@ import unittest
 from harvesters.core import Harvester
 
 # Local application/library specific imports
-from harvesters.test.base_harvester import TestHarvesterCoreBase
+from harvesters.test.base_harvester import TestHarvester
 from harvesters.test.base_harvester import get_cti_file_path
 
 
-class TestTutorials(TestHarvesterCoreBase):
+class TestTutorials(TestHarvester):
 
     def test_severis_usage(self):
         if not self.is_running_with_default_target():

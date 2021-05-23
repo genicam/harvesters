@@ -2329,6 +2329,7 @@ class ImageAcquirer:
 
             if do_clean_up:
                 os.remove(file_path)
+                _logger.info('{} has been removed'.format(file_path))
 
             if has_valid_file:
                 # Instantiate a concrete port object of the remote device's

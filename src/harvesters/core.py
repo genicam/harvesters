@@ -2321,15 +2321,14 @@ class ImageAcquirer:
                 except RuntimeException as e:
                     if file_dict:
                         if do_clean_up:
-                            os.remove(file_path)
-                        _logger.error(e, exc_info=True)
+                            self._remove_intermediate_file(file_path)
+                        self._logger.error(e, exc_info=True)
                         raise
                     else:
-                        _logger.warning(e, exc_info=True)
+                        self._logger.warning(e, exc_info=True)
 
             if do_clean_up:
-                os.remove(file_path)
-                _logger.info('{} has been removed'.format(file_path))
+                self._remove_intermediate_file(file_path)
 
             if has_valid_file:
                 # Instantiate a concrete port object of the remote device's
@@ -2342,6 +2341,10 @@ class ImageAcquirer:
 
         # Then return the node map:
         return node_map
+
+    def _remove_intermediate_file(self, file_path: str):
+        os.remove(file_path)
+        self._logger.info('{} has been removed'.format(file_path))
 
     @staticmethod
     def _retrieve_file_path(

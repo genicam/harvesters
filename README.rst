@@ -274,6 +274,21 @@ You should be able to see the expected version number in its return as follows:
 
     Python 3.6.5 :: Anaconda, Inc.
 
+Next, it is not necessary but install IPython; it is a convenient place
+anytime when you want to give it a try; note that we executed ``conda
+install`` instead of ``python -m pip install`` because we want to avoid using
+the IPython in the system Python by mistake:
+
+.. code-block:: shell
+
+    $ conda install ipython
+
+And then, install Harvester, too:
+
+.. code-block:: shell
+
+    $ python -m install harvesters
+
 Finally, to deactivate the environment, type the following command:
 
 .. code-block:: shell

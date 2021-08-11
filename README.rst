@@ -44,9 +44,9 @@ The main features of Harvester are listed as follows:
 * Multiple loading of GenTL Producers in a single Python script
 * GenICam feature node manipulation of the target remote device
 
-Note that the second item implies you can involve multiple types of transport layers in your Python script. Each transport layer has own advantages and disadvantages and you should choose appropriate transport layers following your application's requirement. You just need to acquire images for some purposes and the GenTL Producers deliver the images somehow. It truly is the great benefit of the GenTL Standard! And of course, not only GenTL Producers but Harvester Core offer you a way to manipulate multiple remote devices in a single Python script with an intuitive manner.
+Note that the second item implies you can involve multiple types of transport layers in your Python script. Each transport layer has own advantages and disadvantages and you should choose appropriate transport layers following your application's requirement. You just need to acquire images for some purposes and the GenTL Producers deliver the images somehow. It truly is the great benefit of the GenTL Standard! And of course, not only GenTL Producers but Harvester offer you a way to manipulate multiple remote devices in a single Python script with an intuitive manner.
 
-On the other hand, Harvester Core could be considered as a simplified version of the GenTL-Python Binding; actually, Harvester Core hides it in its back and shows only intuitive interfaces to its clients. Harvester Core just offers you a relationship between you and a remote device. Nothing more. We say it again, just you and a remote device. If you need to manipulate more relevant GenTL modules or have to achieve something over a hardcore way, then you should directly work with the GenTL-Python Binding.
+On the other hand, Harvester could be considered as a simplified version of the GenTL-Python Binding; actually, Harvester hides it in its back and shows only intuitive interfaces to its clients. Harvester just offers you a relationship between you and a remote device. Nothing more. We say it again, just you and a remote device. If you need to manipulate more relevant GenTL modules or have to achieve something over a hardcore way, then you should directly work with the GenTL-Python Binding.
 
 
 ***********
@@ -171,11 +171,9 @@ Before start talking about the detail, let's take a look at some important termi
 
 * *The GenTL-Python Binding*: A Python module that communicates with GenTL Producers.
 
-* *Harvester*: A Python module that consists of Harvester Core and Harvester GUI.
+* *Harvester*: An image acquisition engine.
 
-* *Harvester Core*: A part of Harvester that works as an image acquisition engine.
-
-* *Harvester GUI*: A part of Harvester that works as a graphical user interface of Harvester Core.
+* *Harvester GUI*: A Harvester-based graphical user interface.
 
 * *A GenICam compliant device*: It's typically a camera. Just involving the GenICam reference implementation, it offers consumers a way to dynamically configure/control the target remote devices.
 
@@ -302,9 +300,9 @@ Once you installed their SDK, you can find the appropriate GenTL Producer just g
 This is just for your information but you can find the list of other reliable GenTL Producers `here <https://github.com/genicam/harvesters#gentl-producers>`_.
 
 
-*************************
-Installing Harvester Core
-*************************
+********************
+Installing Harvester
+********************
 
 Before installing Harvester, let's make sure that you are working in the environment that you created in `the previous chapter <https://github.com/genicam/harvesters#id18>`_.
 
@@ -345,20 +343,20 @@ Getting back to the original topic, you could install the latest development ver
 Working with Harvester
 ######################
 
-Harvester Core is an image acquisition engine. No GUI. You can use it as an image acquisition library which acquires images from GenTL Producers through the GenTL-Python Binding and controls the target remote device (it's typically a camera) through the GenApi-Python Binding.
+Harvester is an image acquisition engine. No GUI. You can use it as an image acquisition library which acquires images from GenTL Producers through the GenTL-Python Binding and controls the target remote device (it's typically a camera) through the GenApi-Python Binding.
 
-Harvester Core works as a minimalistic front-end for image acquisition. Just importing it from your Python script, you should immediately be able to set images on your table.
+Harvester works as a minimalistic front-end for image acquisition. Just importing it from your Python script, you should immediately be able to set images on your table.
 
 You'll be able to download the these language binding runtime libraries from the `EMVA website <https://www.emva.org/standards-technology/genicam/genicam-downloads/>`_, however, it's not available as of May 2018, because they have not officially released yet. Fortunately they are in the final reviewing process so hopefully they'll be released by the end of 2018.
 
-If you don't have to care about the display rate for visualizing acquired images, the combination of Harvester Core and `Matplotlib <https://matplotlib.org>`_ might be a realistic option for that purpose.
+If you don't have to care about the display rate for visualizing acquired images, the combination of Harvester and `Matplotlib <https://matplotlib.org>`_ might be a realistic option for that purpose.
 
 
-*************************
-Harvester Core on IPython
-*************************
+********************
+Harvester on IPython
+********************
 
-The following code block shows Harvester Core is running on IPython. An acquired image is delivered as the payload of a buffer and the buffer can be fetched by calling the ``fetch_buffer`` method of the ``ImageAcquirer`` class. Once you get an image you should be able to immediately start image processing. If you're running on the Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
+The following code block shows Harvester is running on IPython. An acquired image is delivered as the payload of a buffer and the buffer can be fetched by calling the ``fetch_buffer`` method of the ``ImageAcquirer`` class. Once you get an image you should be able to immediately start image processing. If you're running on the Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
 .. code-block:: python
 
@@ -477,7 +475,7 @@ Producer:
 
     h.add_file('path/to/gentl_producer.cti')
 
-Note that you can add **one or more CTI files** on a single Harvester Core object. To add another CTI file, just repeat calling ``add_file`` method passing another target CTI file:
+Note that you can add **one or more CTI files** on a single Harvester object. To add another CTI file, just repeat calling ``add_file`` method passing another target CTI file:
 
 .. code-block:: python
 
@@ -606,14 +604,14 @@ Reshaping a NumPy Array as an Image
 
 We have learned how to acquire images from a target remote device through an ``ImageAcquirer`` class object. In this section, we will learn how to reshape the acquired image into another that can be used by your application.
 
-First, you should know that Harvester Core returns you an image as a 1D NumPy array.
+First, you should know that Harvester returns you an image as a 1D NumPy array.
 
 .. code-block:: python
 
     buffer = ia.fetch_buffer()
     _1d = buffer.payload.components[0].data
 
-Perhaps you may expect to have it as a 2D array but Harvester Core doesn't in reality because if Harvester Core provides an image as a specific shape, then it could limit your algorithm that you can apply to get the image that fits to your expected shape. Instead, Harvester Core provides you an image as a 1D array and also provides you required information that you would need while you're reshaping the original array to another.
+Perhaps you may expect to have it as a 2D array but Harvester doesn't in reality because if Harvester provides an image as a specific shape, then it could limit your algorithm that you can apply to get the image that fits to your expected shape. Instead, Harvester provides you an image as a 1D array and also provides you required information that you would need while you're reshaping the original array to another.
 
 The following code is an except from Harvester GUI that reshapes the source 1D array to another to draw it on the VisPy canvas. VisPy canvas takes ``content`` as an image to draw:
 
@@ -755,7 +753,7 @@ Appendix
 Open Source Resources
 *********************
 
-Harvester Core uses the following open source libraries/resources:
+Harvester uses the following open source libraries/resources:
 
 * Pympler
 

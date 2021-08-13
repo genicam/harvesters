@@ -47,8 +47,7 @@ import tempfile
 import numpy
 
 from genicam.genapi import NodeMap
-from genicam.genapi import LogicalErrorException, RuntimeException, \
-    AccessException
+from genicam.genapi import LogicalErrorException, RuntimeException
 from genicam.genapi import ChunkAdapterGeneric, ChunkAdapterU3V, \
     ChunkAdapterGEV
 
@@ -2950,10 +2949,7 @@ class ImageAcquirer:
 
             with MutexLocker(self.thread_image_acquisition):
                 #
-                try:
-                    self.remote_device.node_map.AcquisitionStop.execute()
-                except (GenericException, AccessException) as e:
-                    self._logger.error(e, exc_info=True)
+                self.remote_device.node_map.AcquisitionStop.execute()
 
                 try:
                     # Unlock TLParamsLocked in order to allow full device

@@ -77,6 +77,9 @@ _is_logging_buffer_manipulation = True if 'HARVESTERS_LOG_BUFFER_MANIPULATION' i
 _sleep_duration_default = 0.000001  # s
 
 
+_logger = get_logger(name=__name__)
+
+
 def _deprecated(deprecated: object, alternative: object) -> None:
     #
     items = []
@@ -407,9 +410,7 @@ class _SignalHandler:
 
     def __init__(
             self, *,
-            event=None, threads=None, logger: Optional[Logger] = None):
-        #
-        self._logger = logger or get_logger(name=__name__)
+            event=None, threads=None):
 
         #
         super().__init__()
@@ -426,8 +427,9 @@ class _SignalHandler:
         """
         A registered Python signal modules will call this method.
         """
+        global _logger
 
-        self._logger.debug(
+        _logger.debug(
             'Going to terminate threads having triggered '
             'by the event {0}.'.format(
                 self._event
@@ -442,7 +444,7 @@ class _SignalHandler:
             thread.stop()
             thread.join()
 
-        self._logger.debug(
+        _logger.debug(
             'Has terminated threads having triggered by '
             'the event {0}.'.format(
                 self._event
@@ -456,19 +458,19 @@ class ThreadBase:
     use. For example, in general, PyQt application should implement a
     thread using QThread instead of Python's built-in Thread class.
     """
-    def __init__(self, *, logger: Optional[Logger] = None, mutex=None):
+    def __init__(self, *, mutex=None):
         #
         super().__init__()
-        #
-        self._logger = logger or get_logger(name=__name__)
         #
         self._mutex = mutex
         self._is_running = False
         self._id = None
 
     def start(self) -> None:
+        global _logger
+
         self._internal_start()
-        self._logger.debug(
+        _logger.debug(
             'Started thread {:0X}.'.format(self.id_)
         )
 
@@ -483,8 +485,10 @@ class ThreadBase:
         raise NotImplementedError
 
     def stop(self) -> None:
+        global _logger
+
         self._internal_stop()
-        self._logger.debug(
+        _logger.debug(
             'Stopped thread {:0X}.'.format(self.id_)
         )
 
@@ -579,18 +583,15 @@ class MutexLocker:
 class _ImageAcquisitionThread(ThreadBase):
     def __init__(
             self, *,
-            image_acquire=None, logger: Optional[Logger] = None):
+            image_acquire=None):
         """
 
         :param image_acquire:
-        :param logger:
         """
         #
         assert image_acquire
         #
-        super().__init__(
-            mutex=Lock(), logger=logger
-        )
+        super().__init__(mutex=Lock())
 
         #
         self._ia = image_acquire
@@ -818,7 +819,7 @@ class Component2DImage(ComponentBase):
     def __init__(
             self, *,
             buffer=None, part=None, node_map: Optional[NodeMap] = None,
-            logger: Optional[Logger] = None):
+            ):
         """
         :param buffer:
         :param part:
@@ -830,8 +831,6 @@ class Component2DImage(ComponentBase):
 
         #
         super().__init__(buffer=buffer)
-
-        self._logger = logger or get_logger(name=__name__)
 
         #
         self._part = part
@@ -1109,19 +1108,15 @@ class Buffer:
     def __init__(
             self, *,
             buffer=None, node_map: Optional[NodeMap] = None,
-            logger: Optional[Logger] = None):
+            ):
         """
         :param buffer:
         :param node_map:
-        :param logger:
         """
 
         #
         assert buffer
         assert node_map
-
-        #
-        self._logger = logger or get_logger(name=__name__)
 
         #
         super().__init__()
@@ -1132,8 +1127,7 @@ class Buffer:
 
         self._payload = self._build_payload(
             buffer=buffer,
-            node_map=node_map,
-            logger=self._logger
+            node_map=node_map
         )
 
     def __enter__(self):
@@ -1230,9 +1224,11 @@ class Buffer:
         calling this method because the :class:`ImageAcquirer` object tries
         to clear the self-allocated buffers when it stops image acquisition.
         """
+        global _logger
+
         #
         if _is_logging_buffer_manipulation:
-            self._logger.debug(
+            _logger.debug(
                 'Queued Buffer module #{0}'
                 ' containing frame #{1}'
                 ' to DataStream module {2}'
@@ -1251,7 +1247,7 @@ class Buffer:
     def _build_payload(
             *,
             buffer=None, node_map: Optional[NodeMap] = None,
-            logger: Optional[Logger] = None):
+            ):
         #
         assert buffer
         assert node_map
@@ -1260,41 +1256,41 @@ class Buffer:
         p_type = buffer.payload_type
         if p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_UNKNOWN:
             payload = PayloadUnknown(
-                buffer=buffer, node_map=node_map, logger=logger
+                buffer=buffer, node_map=node_map
             )
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE or \
                 buffer.payload_type == \
                 PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_DATA:
             payload = PayloadImage(
-                buffer=buffer, node_map=node_map, logger=logger
+                buffer=buffer, node_map=node_map
             )
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_RAW_DATA:
             payload = PayloadRawData(
-                buffer=buffer, node_map=node_map, logger=logger
+                buffer=buffer, node_map=node_map
             )
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_FILE:
             payload = PayloadFile(
-                buffer=buffer, node_map=node_map, logger=logger
+                buffer=buffer, node_map=node_map
             )
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG:
             payload = PayloadJPEG(
-                buffer=buffer, node_map=node_map, logger=logger
+                buffer=buffer, node_map=node_map
             )
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG2000:
             payload = PayloadJPEG2000(
-                buffer=buffer, node_map=node_map, logger=logger
+                buffer=buffer, node_map=node_map
             )
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_H264:
             payload = PayloadH264(
-                buffer=buffer, node_map=node_map, logger=logger
+                buffer=buffer, node_map=node_map
             )
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_ONLY:
             payload = PayloadChunkOnly(
-                buffer=buffer, node_map=node_map, logger=logger
+                buffer=buffer, node_map=node_map
             )
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART:
             payload = PayloadMultiPart(
-                buffer=buffer, node_map=node_map, logger=logger
+                buffer=buffer, node_map=node_map
             )
         else:
             payload = None
@@ -1311,16 +1307,12 @@ class PayloadBase:
     def __init__(
             self, *,
             buffer: Optional[Buffer] = None,
-            logger: Optional[Logger] = None):
+            ):
         """
         :param buffer:
-        :param logger:
         """
         #
         assert buffer
-
-        #
-        self._logger = logger or get_logger(name=__name__)
 
         #
         super().__init__()
@@ -1341,6 +1333,8 @@ class PayloadBase:
     def _build_component(
             self,
             buffer=None, part=None, node_map: Optional[NodeMap] = None):
+        global _logger
+
         #
         try:
             if part:
@@ -1364,11 +1358,10 @@ class PayloadBase:
         symbolic = dict_by_ints[data_format]
         if symbolic in component_2d_formats:
             return Component2DImage(
-                buffer=buffer, part=part, node_map=node_map,
-                logger=self._logger
+                buffer=buffer, part=part, node_map=node_map
             )
 
-        self._logger.warning(
+        _logger.warning(
             "Pixel format \'{}\' is not supported.".format(symbolic))
 
         return None
@@ -1395,12 +1388,11 @@ class PayloadUnknown(PayloadBase):
             self, *,
             buffer: Optional[Buffer] = None,
             node_map: Optional[NodeMap] = None,
-            logger: Optional[Logger] = None):
+            ):
         """
 
         :param buffer:
         :param node_map:
-        :param logger:
         """
 
         #
@@ -1408,10 +1400,7 @@ class PayloadUnknown(PayloadBase):
         assert node_map
 
         #
-        self._logger = logger or get_logger(name=__name__)
-
-        #
-        super().__init__(buffer=buffer, logger=self._logger)
+        super().__init__(buffer=buffer)
 
 
 class PayloadImage(PayloadBase):
@@ -1424,12 +1413,11 @@ class PayloadImage(PayloadBase):
             self, *,
             buffer: Optional[Buffer] = None,
             node_map: Optional[NodeMap] = None,
-            logger: Optional[Logger] = None):
+            ):
         """
 
         :param buffer:
         :param node_map:
-        :param logger:
         """
 
         #
@@ -1437,10 +1425,7 @@ class PayloadImage(PayloadBase):
         assert node_map
 
         #
-        self._logger = logger or get_logger(name=__name__)
-
-        #
-        super().__init__(buffer=buffer, logger=self._logger)
+        super().__init__(buffer=buffer)
 
         # Build data components.
         self._components.append(
@@ -1463,12 +1448,11 @@ class PayloadRawData(PayloadBase):
             self, *,
             buffer: Optional[Buffer] = None,
             node_map: Optional[NodeMap] = None,
-            logger: Optional[Logger] = None):
+            ):
         """
 
         :param buffer:
         :param node_map:
-        :param logger:
         """
 
         #
@@ -1476,10 +1460,7 @@ class PayloadRawData(PayloadBase):
         assert node_map
 
         #
-        self._logger = logger or get_logger(name=__name__)
-
-        #
-        super().__init__(buffer=buffer, logger=self._logger)
+        super().__init__(buffer=buffer)
 
 
 class PayloadFile(PayloadBase):
@@ -1492,16 +1473,13 @@ class PayloadFile(PayloadBase):
             self, *,
             buffer: Optional[Buffer] = None,
             node_map: Optional[NodeMap] = None,
-            logger: Optional[Logger] = None):
+            ):
         #
         assert buffer
         assert node_map
 
         #
-        self._logger = logger or get_logger(name=__name__)
-
-        #
-        super().__init__(buffer=buffer, logger=self._logger)
+        super().__init__(buffer=buffer)
 
 
 class PayloadJPEG(PayloadBase):
@@ -1514,12 +1492,11 @@ class PayloadJPEG(PayloadBase):
             self, *,
             buffer: Optional[Buffer] = None,
             node_map: Optional[NodeMap] = None,
-            logger: Optional[Logger] = None):
+            ):
         """
 
         :param buffer:
         :param node_map:
-        :param logger:
         """
 
         #
@@ -1527,10 +1504,7 @@ class PayloadJPEG(PayloadBase):
         assert node_map
 
         #
-        self._logger = logger or get_logger(name=__name__)
-
-        #
-        super().__init__(buffer=buffer, logger=self._logger)
+        super().__init__(buffer=buffer)
 
 
 class PayloadJPEG2000(PayloadBase):
@@ -1543,12 +1517,11 @@ class PayloadJPEG2000(PayloadBase):
             self, *,
             buffer: Optional[Buffer] = None,
             node_map: Optional[NodeMap] = None,
-            logger: Optional[Logger] = None):
+            ):
         """
 
         :param buffer:
         :param node_map:
-        :param logger:
         """
 
         #
@@ -1556,10 +1529,7 @@ class PayloadJPEG2000(PayloadBase):
         assert node_map
 
         #
-        self._logger = logger or get_logger(name=__name__)
-
-        #
-        super().__init__(buffer=buffer, logger=self._logger)
+        super().__init__(buffer=buffer)
 
 
 class PayloadH264(PayloadBase):
@@ -1572,12 +1542,11 @@ class PayloadH264(PayloadBase):
             self, *,
             buffer: Optional[Buffer] = None,
             node_map: Optional[NodeMap] = None,
-            logger: Optional[Logger] = None):
+            ):
         """
 
         :param buffer:
         :param node_map:
-        :param logger:
         """
 
         #
@@ -1585,10 +1554,7 @@ class PayloadH264(PayloadBase):
         assert node_map
 
         #
-        self._logger = logger or get_logger(name=__name__)
-
-        #
-        super().__init__(buffer=buffer, logger=self._logger)
+        super().__init__(buffer=buffer)
 
 
 class PayloadChunkOnly(PayloadBase):
@@ -1601,16 +1567,13 @@ class PayloadChunkOnly(PayloadBase):
             self, *,
             buffer: Optional[Buffer] = None,
             node_map: Optional[NodeMap] = None,
-            logger: Optional[Logger] = None):
+            ):
         #
         assert buffer
         assert node_map
 
         #
-        self._logger = logger or get_logger(name=__name__)
-
-        #
-        super().__init__(buffer=buffer, logger=self._logger)
+        super().__init__(buffer=buffer)
 
 
 class PayloadMultiPart(PayloadBase):
@@ -1622,12 +1585,11 @@ class PayloadMultiPart(PayloadBase):
     def __init__(
             self, *,
             buffer=None, node_map: Optional[NodeMap] = None,
-            logger: Optional[Logger] = None):
+            ):
         """
 
         :param buffer:
         :param node_map:
-        :param logger:
         """
 
         #
@@ -1635,10 +1597,7 @@ class PayloadMultiPart(PayloadBase):
         assert node_map
 
         #
-        self._logger = logger or get_logger(name=__name__)
-
-        #
-        super().__init__(buffer=buffer, logger=self._logger)
+        super().__init__(buffer=buffer)
         #
 
         # Build data components.
@@ -1691,13 +1650,11 @@ class ImageAcquirer:
         INCOMPLETE_BUFFER = 4,
 
     def _create_acquisition_thread(self) -> _ImageAcquisitionThread:
-        return _ImageAcquisitionThread(
-            image_acquire=self, logger=self._logger
-        )
+        return _ImageAcquisitionThread(image_acquire=self)
 
     def __init__(
             self, *, device=None,
-            profiler=None, logger: Optional[Logger] = None,
+            profiler=None,
             sleep_duration: float = _sleep_duration_default,
             file_path: Optional[str] = None,
             file_dict: Dict[str, bytes] = None,
@@ -1706,13 +1663,10 @@ class ImageAcquirer:
 
         :param device:
         :param profiler:
-        :param logger:
         :param sleep_duration:
         :param file_path: Set a path to camera description file which you want to load on the target node map instead of the one which the device declares.
         """
-
-        #
-        self._logger = logger or get_logger(name=__name__)
+        global _logger
 
         #
         assert device
@@ -1774,7 +1728,7 @@ class ImageAcquirer:
             except exceptions as e:
                 # Accept a case where the target GenTL entity does not
                 # provide any device description XML file:
-                self._logger.error(e, exc_info=True)
+                _logger.error(e, exc_info=True)
                 node_map = None
             #
             node_maps.append(node_map)
@@ -1835,10 +1789,10 @@ class ImageAcquirer:
         self._sigint_handler = None
         if current_thread() is main_thread():
             self._sigint_handler = _SignalHandler(
-                event=self._event, threads=self._threads, logger=self._logger
+                event=self._event, threads=self._threads
             )
             signal.signal(signal.SIGINT, self._sigint_handler)
-            self._logger.info('Created a signal handler for SIGINT.')
+            _logger.info('Created a signal handler for SIGINT.')
 
         #
         self._num_images_to_acquire = 0
@@ -1867,7 +1821,7 @@ class ImageAcquirer:
             # STREAM_INFO_BUF_ANNOUNCE_MIN because it is totally legal
             # but we have observed a fact that there is at least one on
             # the market. As a workaround we involve this try-except block:
-            self._logger.debug(e, exc_info=True)
+            _logger.debug(e, exc_info=True)
             self._min_num_buffers = num_buffers_default
             self._num_buffers = num_buffers_default
         else:
@@ -1876,7 +1830,7 @@ class ImageAcquirer:
             )
 
         #
-        self._logger.info(
+        _logger.info(
             'Instantiated an ImageAcquirer object for {0}.'.format(
                 self._device.id_
             )
@@ -1964,6 +1918,8 @@ class ImageAcquirer:
 
         :return: None
         """
+        global _logger
+
         id_ = None
         if self.device:
             #
@@ -1983,12 +1939,12 @@ class ImageAcquirer:
 
         #
         if id_:
-            self._logger.info(
+            _logger.info(
                 'Destroyed the ImageAcquirer object which {0} '
                 'had belonged to.'.format(id_)
             )
         else:
-            self._logger.info(
+            _logger.info(
                 'Destroyed an ImageAcquirer.'
             )
 
@@ -2078,6 +2034,8 @@ class ImageAcquirer:
 
     @num_filled_buffers_to_hold.setter
     def num_filled_buffers_to_hold(self, value: int = 1):
+        global _logger
+
         if value > 0:
             # Update the value:
             self._num_filled_buffers_to_hold = value
@@ -2099,7 +2057,7 @@ class ImageAcquirer:
                 except Full as e:
                     # Can't put it because the queue is full.
                     # Discard the buffer:
-                    self._logger.debug(e, exc_info=True)
+                    _logger.debug(e, exc_info=True)
                     buffer = buffers.pop(0)
                     buffer.parent.queue_buffer(buffer)
 
@@ -2239,6 +2197,8 @@ class ImageAcquirer:
         return self._statistics
 
     def _setup_data_streams(self, file_dict: Dict[str, bytes] = None):
+        global _logger
+
         for i, stream_id in enumerate(self._device.data_stream_ids):
             #
             _data_stream = self._device.create_data_stream()
@@ -2246,9 +2206,9 @@ class ImageAcquirer:
             try:
                 _data_stream.open(stream_id)
             except GenericException as e:
-                self._logger.debug(e, exc_info=True)
+                _logger.debug(e, exc_info=True)
             else:
-                self._logger.info(
+                _logger.info(
                     'Opened DataStream module {0} of {1}.'.format(
                         _data_stream.id_, _data_stream.parent.id_
                     )
@@ -2264,7 +2224,7 @@ class ImageAcquirer:
             except exceptions as e:
                 # Accept a case where the target GenTL entity does not
                 # provide any device description XML file:
-                self._logger.error(e, exc_info=True)
+                _logger.error(e, exc_info=True)
                 node_map = None
 
             self._data_streams.append(
@@ -2288,6 +2248,8 @@ class ImageAcquirer:
             xml_dir_to_store: Optional[str] = None,
             file_dict: Dict[str, bytes] = None,
             do_clean_up: bool = True):
+        global _logger
+
         #
         assert port
 
@@ -2319,10 +2281,10 @@ class ImageAcquirer:
                     if file_dict:
                         if do_clean_up:
                             self._remove_intermediate_file(file_path)
-                        self._logger.error(e, exc_info=True)
+                        _logger.error(e, exc_info=True)
                         raise
                     else:
-                        self._logger.warning(e, exc_info=True)
+                        _logger.warning(e, exc_info=True)
 
             if do_clean_up:
                 self._remove_intermediate_file(file_path)
@@ -2340,8 +2302,10 @@ class ImageAcquirer:
         return node_map
 
     def _remove_intermediate_file(self, file_path: str):
+        global _logger
+
         os.remove(file_path)
-        self._logger.info('{} has been removed'.format(file_path))
+        _logger.info('{} has been removed'.format(file_path))
 
     @staticmethod
     def _retrieve_file_path(
@@ -2349,11 +2313,9 @@ class ImageAcquirer:
             port: Optional[Port] = None,
             url: Optional[str] = None,
             file_path_to_load: Optional[str] = None,
-            logger: Optional[Logger] = None,
             xml_dir_to_store: Optional[str] = None,
             file_dict: Dict[str, bytes] = None):
-        #
-        _logger = logger or get_logger(name=__name__)
+        global _logger
 
         #
         if file_path_to_load:
@@ -2398,7 +2360,7 @@ class ImageAcquirer:
                 # file or a plain XML file:
                 file_path_to_load = _save_file(
                     xml_dir_to_store=xml_dir_to_store, file_name=file_name,
-                    binary_data=binary_data, logger=logger,
+                    binary_data=binary_data,
                     file_dict=file_dict)
 
             elif location == 'file':
@@ -2434,6 +2396,7 @@ class ImageAcquirer:
 
         :return: None.
         """
+        global _logger
 
         #
         if not self.is_acquiring():
@@ -2449,7 +2412,7 @@ class ImageAcquirer:
             except GenericException as e:
                 # The node doesn't exist.
                 num_images_to_acquire = -1
-                self._logger.debug(e, exc_info=True)
+                _logger.debug(e, exc_info=True)
             else:
                 if acq_mode == 'Continuous':
                     num_images_to_acquire = -1
@@ -2486,7 +2449,7 @@ class ImageAcquirer:
                         num_buffers = num_required_buffers
                 except GenericException as e:
                     num_buffers = num_required_buffers
-                    self._logger.debug(e, exc_info=True)
+                    _logger.debug(e, exc_info=True)
 
                 # The number of buffers must be greater than or equal to
                 # the number of images to acquire:
@@ -2532,7 +2495,7 @@ class ImageAcquirer:
         # Start image acquisition on the device side:
         self.remote_device.node_map.AcquisitionStart.execute()
 
-        self._logger.info(
+        _logger.info(
             '{0} started image acquisition.'.format(self._device.id_)
         )
 
@@ -2545,6 +2508,9 @@ class ImageAcquirer:
 
         :return: None
         """
+        #
+        global _logger
+
         #
         queue = self._queue
 
@@ -2564,7 +2530,7 @@ class ImageAcquirer:
                 if event_manager.buffer.is_complete():
                     #
                     if _is_logging_buffer_manipulation:
-                        self._logger.debug(
+                        _logger.debug(
                             'Acquired Buffer module #{0}'
                             ' containing frame #{1}'
                             ' from DataStream module {2}'
@@ -2588,7 +2554,7 @@ class ImageAcquirer:
                                 _buffer = queue.get()
 
                                 if _is_logging_buffer_manipulation:
-                                    self._logger.debug(
+                                    _logger.debug(
                                         'Queued Buffer module #{0}'
                                         ' containing frame #{1}'
                                         ' to DataStream module {2}'
@@ -2643,7 +2609,7 @@ class ImageAcquirer:
 
                 else:
                     # Discard/queue the latest buffer when incomplete
-                    self._logger.debug(
+                    _logger.debug(
                         'Acquired buffer is complete: {0}'.format(
                             event_manager.buffer.is_complete()
                         )
@@ -2660,26 +2626,29 @@ class ImageAcquirer:
                             return
 
     def _update_chunk_data(self, buffer: Optional[Buffer] = None):
+        #
+        global _logger
+
         try:
             if buffer.num_chunks == 0:
                 """
-                self._logger.debug(
+                logger.debug(
                     'The buffer does not contain any chunk data.'
                 )
                 """
                 return
         except (ParsingChunkDataException, ErrorException) as e:
-            #self._logger.error(e, exc_info=True)
+            #logger.error(e, exc_info=True)
             pass
         except (
                 NotImplementedException, NoDataException,
                 InvalidBufferException
             ) as e:
-            #self._logger.debug(e, exc_info=True)
+            #logger.debug(e, exc_info=True)
             pass
         else:
             """
-            self._logger.debug(
+            logger.debug(
                 'The buffer contains chunk data.'
             )
             """
@@ -2698,10 +2667,10 @@ class ImageAcquirer:
                     self._chunk_adapter.attach_buffer(buffer.raw_buffer)
             except GenericException as e:
                 # Failed to parse the chunk data. Something must be wrong.
-                self._logger.error(e, exc_info=True)
+                _logger.error(e, exc_info=True)
             else:
                 """
-                self._logger.debug(
+                logger.debug(
                     'Updated the node map of {0}.'.format(
                         buffer.parent.parent.id_
                     )
@@ -2724,6 +2693,9 @@ class ImageAcquirer:
         :return: A :class:`Buffer` object.
         :rtype: Buffer
         """
+        #
+        global _logger
+
         #
         if not self.is_acquiring():
             # Does not make any sense. Raise TimeoutException:
@@ -2779,7 +2751,7 @@ class ImageAcquirer:
                     if event_manager.buffer.is_complete():
                         #
                         if _is_logging_buffer_manipulation:
-                            self._logger.debug(
+                            _logger.debug(
                                 'Acquired Buffer module #{0}'
                                 ' containing frame #{1}'
                                 ' from DataStream module {2}'
@@ -2792,7 +2764,7 @@ class ImageAcquirer:
                                 )
                             )
                     else:
-                        self._logger.debug(
+                        _logger.debug(
                             'Acquired buffer was incomplete.'
                         )
                         ds = event_manager.buffer.parent
@@ -2813,8 +2785,7 @@ class ImageAcquirer:
             if not is_raw:
                 _buffer = Buffer(
                     buffer=_buffer,
-                    node_map=self.remote_device.node_map,
-                    logger=self._logger
+                    node_map=self.remote_device.node_map
                 )
 
         #
@@ -2881,6 +2852,9 @@ class ImageAcquirer:
             data_stream: DataStream = None,
             _buffer_tokens: List[BufferToken] = None) -> List[Buffer]:
         #
+        global _logger
+
+        #
         assert data_stream
 
         #
@@ -2895,7 +2869,7 @@ class ImageAcquirer:
             announced_buffers.append(announced_buffer)
 
             #
-            self._logger.debug(
+            _logger.debug(
                 'Announced Buffer #{0} to DataStraem {1}.'.format(
                     announced_buffer.context,
                     data_stream.id_
@@ -2910,12 +2884,15 @@ class ImageAcquirer:
             data_stream: Optional[DataStream] = None,
             buffers: Optional[List[Buffer]] = None) -> None:
         #
+        global _logger
+
+        #
         assert data_stream
 
         #
         for buffer in buffers:
             data_stream.queue_buffer(buffer)
-            self._logger.debug(
+            _logger.debug(
                 'Queued Buffer module #{0}'
                 ' to DataStream module {1}'
                 ' of Device module {2}'
@@ -2939,6 +2916,9 @@ class ImageAcquirer:
 
         :return: None.
         """
+        #
+        global _logger
+
         if self.is_acquiring():
             #
             self._is_acquiring = False
@@ -2953,7 +2933,7 @@ class ImageAcquirer:
                 try:
                     self.remote_device.node_map.AcquisitionStop.execute()
                 except (GenericException, AccessException) as e:
-                    self._logger.error(e, exc_info=True)
+                    _logger.error(e, exc_info=True)
 
                 try:
                     # Unlock TLParamsLocked in order to allow full device
@@ -2970,7 +2950,7 @@ class ImageAcquirer:
                             ACQ_STOP_FLAGS_LIST.ACQ_STOP_FLAGS_KILL
                         )
                     except GenericException as e:
-                        self._logger.error(e, exc_info=True)
+                        _logger.error(e, exc_info=True)
 
                     # Flash the queue for image acquisition process.
                     self._flush_buffers(data_stream)
@@ -2990,7 +2970,7 @@ class ImageAcquirer:
             self._chunk_adapter.detach_buffer()
 
             #
-            self._logger.info(
+            _logger.info(
                 '{0} stopped image acquisition.'.format(self._device.id_)
             )
 
@@ -3008,6 +2988,9 @@ class ImageAcquirer:
 
     def _release_data_streams(self) -> None:
         #
+        global _logger
+
+        #
         self._release_buffers()
 
         #
@@ -3016,7 +2999,7 @@ class ImageAcquirer:
                 name_ds = data_stream.id_
                 name_dev = data_stream.parent.id_
                 data_stream.close()
-                self._logger.info(
+                _logger.info(
                     'Closed DataStream module {0} of {1}.'.format(
                         name_ds, name_dev
                     )
@@ -3028,11 +3011,14 @@ class ImageAcquirer:
 
     def _release_buffers(self) -> None:
         #
+        global _logger
+
+        #
         for data_stream in self._data_streams:
             if data_stream.is_open():
                 #
                 for buffer in self._announced_buffers:
-                    self._logger.debug(
+                    _logger.debug(
                         'Revoked Buffer module #{0}.'.format(
                             buffer.context,
                             data_stream.id_,
@@ -3053,10 +3039,9 @@ def _save_file(
         xml_dir_to_store: Optional[str] = None,
         file_name: Optional[str] = None,
         binary_data=None,
-        logger=None,
         file_dict: Dict[str, bytes] = None):
     #
-    _logger = logger or get_logger(name=__name__)
+    global _logger
 
     #
     assert binary_data
@@ -3156,9 +3141,11 @@ class Harvester:
         :param profile:
         :param logger:
         """
+        #
+        global _logger
 
         #
-        self._logger = logger or get_logger(name=__name__)
+        _logger = logger or _logger
 
         #
         super().__init__()
@@ -3302,6 +3289,9 @@ class Harvester:
 
         """
         #
+        global _logger
+
+        #
         if self.device_info_list is None:
             # TODO: Throw an exception to tell clients that there's no
             # device to connect.
@@ -3330,7 +3320,7 @@ class Harvester:
                                 items_to_be_removed.append(item)
                         except GenericException as e:
                             # The candidate doesn't support the information.
-                            self._logger.warning(e, exc_info=True)
+                            _logger.warning(e, exc_info=True)
                             pass
                     # Remove irrelevant items from the candidates.
                     for item in items_to_be_removed:
@@ -3370,19 +3360,19 @@ class Harvester:
             device.open(_privilege)
 
         except GenericException as e:
-            self._logger.debug(e, exc_info=True)
+            _logger.debug(e, exc_info=True)
             # Just re-throw the exception. The decision should be made by
             # the client but not Harvester:
             raise
         else:
-            self._logger.info(
+            _logger.info(
                 'Opened Device module, {0}.'.format(device.id_)
             )
 
             # Create an :class:`ImageAcquirer` object and return it.
             ia = ImageAcquirer(
                 device=device, profiler=self._profiler,
-                logger=self._logger, sleep_duration=sleep_duration,
+                sleep_duration=sleep_duration,
                 file_path=file_path,
                 file_dict=file_dict, do_clean_up=self._do_clean_up
             )
@@ -3412,11 +3402,13 @@ class Harvester:
 
         :return: None.
         """
+        #
+        global _logger
 
         # Check if the file exists:
         if check_existence:
             if not os.path.exists(file_path):
-                self._logger.error(
+                _logger.error(
                     'Attempted to add {0} which does not exist.'.format(file_path)
                 )
                 raise FileNotFoundError
@@ -3426,7 +3418,7 @@ class Harvester:
             try:
                 _ = CDLL(file_path)
             except OSError as e:
-                self._logger.error(e, exc_info=True)
+                _logger.error(e, exc_info=True)
                 raise
             else:
                 # We let the library being loaded.
@@ -3434,7 +3426,7 @@ class Harvester:
 
         if file_path not in self._cti_files:
             self._cti_files.append(file_path)
-            self._logger.info(
+            _logger.info(
                 'Added {0} to the CTI file list.'.format(file_path)
             )
 
@@ -3453,9 +3445,12 @@ class Harvester:
 
         :return: None.
         """
+        #
+        global _logger
+
         if file_path in self._cti_files:
             self._cti_files.remove(file_path)
-            self._logger.info(
+            _logger.info(
                 'Removed {0} from the CTI file list.'.format(file_path)
             )
 
@@ -3472,38 +3467,46 @@ class Harvester:
 
         :return: None.
         """
+        #
+        global _logger
 
         self._cti_files.clear()
 
         #
-        self._logger.info('Removed the all CTI file from the list.')
+        _logger.info('Removed the all CTI file from the list.')
 
     def _open_gentl_producers(self) -> None:
+        #
+        global _logger
+
         #
         for file_path in self._cti_files:
             producer = GenTLProducer.create_producer()
             try:
                 producer.open(file_path)
             except GenericException as e:
-                self._logger.debug(e, exc_info=True)
+                _logger.debug(e, exc_info=True)
             else:
                 self._producers.append(producer)
-                self._logger.info(
+                _logger.info(
                     'Initialized GenTL Producer, {0}.'.format(
                         producer.path_name
                     )
                 )
 
     def _open_systems(self) -> None:
+        #
+        global _logger
+
         for producer in self._producers:
             system = producer.create_system()
             try:
                 system.open()
             except GenericException as e:
-                self._logger.debug(e, exc_info=True)
+                _logger.debug(e, exc_info=True)
             else:
                 self._systems.append(system)
-                self._logger.info('Opened System module, {0}.'.format(
+                _logger.info('Opened System module, {0}.'.format(
                         system.id_
                     )
                 )
@@ -3523,7 +3526,7 @@ class Harvester:
         self._ias.clear()
 
         #
-        self._logger.info('Started resetting the Harvester object.')
+        _logger.info('Started resetting the Harvester object.')
         self.remove_files()
         self._release_gentl_producers()
 
@@ -3531,9 +3534,12 @@ class Harvester:
             self._profiler.print_diff()
 
         #
-        self._logger.info('Completed resetting the Harvester object.')
+        _logger.info('Completed resetting the Harvester object.')
 
     def _release_gentl_producers(self) -> None:
+        #
+        global _logger
+
         #
         self._release_systems()
 
@@ -3542,12 +3548,15 @@ class Harvester:
             if producer and producer.is_open():
                 name = producer.path_name
                 producer.close()
-                self._logger.info('Closed {0}.'.format(name))
+                _logger.info('Closed {0}.'.format(name))
 
         #
         self._producers.clear()
 
     def _release_systems(self) -> None:
+        #
+        global _logger
+
         #
         self._release_interfaces()
 
@@ -3556,12 +3565,15 @@ class Harvester:
             if system is not None and system.is_open():
                 name = system.id_
                 system.close()
-                self._logger.info('Closed System module, {0}.'.format(name))
+                _logger.info('Closed System module, {0}.'.format(name))
 
         #
         self._systems.clear()
 
     def _release_interfaces(self) -> None:
+        #
+        global _logger
+
         #
         self._release_device_info_list()
 
@@ -3571,7 +3583,7 @@ class Harvester:
                 if iface.is_open():
                     name = iface.id_
                     iface.close()
-                    self._logger.info(
+                    _logger.info(
                         'Closed Interface module, {0}.'.format(name)
                     )
 
@@ -3580,11 +3592,14 @@ class Harvester:
 
     def _release_device_info_list(self) -> None:
         #
+        global _logger
+
+        #
         if self.device_info_list is not None:
             self._device_info_list.clear()
 
         #
-        self._logger.info('Discarded the device information list.')
+        _logger.info('Discarded the device information list.')
 
     def update_device_info_list(self):
         """
@@ -3602,6 +3617,9 @@ class Harvester:
         :return: None.
         """
         #
+        global _logger
+
+        #
         self._release_gentl_producers()
 
         try:
@@ -3618,9 +3636,9 @@ class Harvester:
                     try:
                         iface.open()
                     except GenericException as e:
-                        self._logger.debug(e, exc_info=True)
+                        _logger.debug(e, exc_info=True)
                     else:
-                        self._logger.info(
+                        _logger.info(
                             'Opened Interface module, {0}.'.format(iface.id_)
                         )
                         iface.update_device_info_list(self.timeout_for_update)
@@ -3631,13 +3649,13 @@ class Harvester:
                             )
 
         except GenericException as e:
-            self._logger.error(e, exc_info=True)
+            _logger.error(e, exc_info=True)
             self._has_revised_device_list = False
         else:
             self._has_revised_device_list = True
 
         #
-        self._logger.info('Updated the device information list.')
+        _logger.info('Updated the device information list.')
 
 
 if __name__ == '__main__':

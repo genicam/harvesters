@@ -80,6 +80,29 @@ _sleep_duration_default = 0.000001  # s
 _logger = get_logger(name=__name__)
 
 
+def _family_tree(node, tree=""):
+    is_origin = True if tree == "" else False
+
+    try:
+        name = node.id_
+    except AttributeError:
+        return tree
+    else:
+        if is_origin:
+            tree = name
+        else:
+            tree += " of " + name
+
+    try:
+        parent = node.parent
+    except AttributeError:
+        return tree
+    else:
+        tree = _family_tree(parent, tree)
+
+    return tree
+
+
 def _deprecated(deprecated: object, alternative: object) -> None:
     #
     items = []
@@ -88,7 +111,7 @@ def _deprecated(deprecated: object, alternative: object) -> None:
 
     keys = {'deprecated': 0, 'alternative': 1}
     warn(
-        '{0} will be deprecated shortly. Use {1} instead.'.format(
+        '{} will be deprecated shortly. Use {} instead.'.format(
             items[keys['deprecated']], items[keys['alternative']]
         ),
         DeprecationWarning, stacklevel=3
@@ -366,10 +389,10 @@ class DeviceInfo:
         delimiter = ', '
         for i, r in enumerate(results):
             if r:
-                r = '\'{0}\''.format(r)
+                r = '\'{}\''.format(r)
             else:
                 r = 'None'
-            info += '{0}={1}'.format(properties[i], r)
+            info += '{}={}'.format(properties[i], r)
             info += delimiter
         info = info[:-len(delimiter)]
         info += ')'
@@ -431,7 +454,7 @@ class _SignalHandler:
 
         _logger.debug(
             'Going to terminate threads having triggered '
-            'by the event {0}.'.format(
+            'by the event {}.'.format(
                 self._event
             )
         )
@@ -446,7 +469,7 @@ class _SignalHandler:
 
         _logger.debug(
             'Has terminated threads having triggered by '
-            'the event {0}.'.format(
+            'the event {}.'.format(
                 self._event
             )
         )
@@ -471,7 +494,7 @@ class ThreadBase:
 
         self._internal_start()
         _logger.debug(
-            'Started thread {:0X}.'.format(self.id_)
+            'Thread {:0X} has been launched.'.format(self.id_)
         )
 
     def _internal_start(self) -> None:
@@ -489,7 +512,7 @@ class ThreadBase:
 
         self._internal_stop()
         _logger.debug(
-            'Stopped thread {:0X}.'.format(self.id_)
+            'Thread {:0X} has been terminated.'.format(self.id_)
         )
 
     def join(self):
@@ -920,7 +943,7 @@ class Component2DImage(ComponentBase):
         return self._nr_components
 
     def __repr__(self):
-        return '{0} x {1}, {2}, {3} elements,\n{4}'.format(
+        return '{} x {}, {}, {} elements,\n{}'.format(
             self.width,
             self.height,
             self.data_format,
@@ -1137,7 +1160,7 @@ class Buffer:
         self.queue()
 
     def __repr__(self):
-        return '{0}'.format(self.payload.__repr__())
+        return '{}'.format(self.payload.__repr__())
 
     @property
     def timestamp_ns(self) -> int:
@@ -1229,15 +1252,9 @@ class Buffer:
         #
         if _is_logging_buffer_manipulation:
             _logger.debug(
-                'Queued Buffer module #{0}'
-                ' containing frame #{1}'
-                ' to DataStream module {2}'
-                ' of Device module {3}'
-                '.'.format(
-                    self._buffer.context,
-                    self._buffer.frame_id,
-                    self._buffer.parent.id_,
-                    self._buffer.parent.parent.id_
+                '{} has queued buffer {} to data stream {}.'.format(
+                    self, self._buffer.context,
+                    _family_tree(self._buffer.module.parent)
                 )
             )
 
@@ -1435,7 +1452,7 @@ class PayloadImage(PayloadBase):
         )
 
     def __repr__(self):
-        return '{0}'.format(self.components[0].__repr__())
+        return '{}'.format(self.components[0].__repr__())
 
 
 class PayloadRawData(PayloadBase):
@@ -1613,7 +1630,7 @@ class PayloadMultiPart(PayloadBase):
     def __repr__(self):
         ret = ''
         for i, c in enumerate(self.components):
-            ret += 'Component #{0}: {1}\n'.format(i, c.__repr__())
+            ret += 'Component {}: {}\n'.format(i, c.__repr__())
         ret = ret[:-1]
         return ret
 
@@ -1667,6 +1684,10 @@ class ImageAcquirer:
         :param file_path: Set a path to camera description file which you want to load on the target node map instead of the one which the device declares.
         """
         global _logger
+
+        _logger.debug(
+            '{} has been instantiated.'.format(self)
+        )
 
         #
         assert device
@@ -1792,7 +1813,9 @@ class ImageAcquirer:
                 event=self._event, threads=self._threads
             )
             signal.signal(signal.SIGINT, self._sigint_handler)
-            _logger.info('Created a signal handler for SIGINT.')
+            _logger.info(
+                '{} has created a signal handler {} for SIGINT.'.format(
+                    self, self._sigint_handler))
 
         #
         self._num_images_to_acquire = 0
@@ -1830,13 +1853,6 @@ class ImageAcquirer:
             )
 
         #
-        _logger.info(
-            'Instantiated an ImageAcquirer object for {0}.'.format(
-                self._device.id_
-            )
-        )
-
-        #
         self._chunk_adapter = self._get_chunk_adapter(
             device=self.device, node_map=self.remote_device.node_map
         )
@@ -1857,6 +1873,9 @@ class ImageAcquirer:
             self._callback_dict[event] = None
 
     def _emit_callbacks(self, event: Events) -> None:
+        #
+        global _logger
+
         callbacks = self._callback_dict[event]
         if isinstance(callbacks, Iterable):
             for callback in callbacks:
@@ -1870,6 +1889,8 @@ class ImageAcquirer:
             callback: Optional[Union[Callback, List[Callback]]]) -> None:
         if callback:
             if isinstance(callback, Callback):
+                _logger.debug(
+                    "{} is going to emit callback {}.".format(self, callback))
                 callback.emit(context=self)
             else:
                 raise TypeError
@@ -1935,18 +1956,13 @@ class ImageAcquirer:
             if self._device.is_open():
                 self._device.close()
 
-        self._device = None
+            #
+            _logger.debug(
+                '{} has finished releasing '
+                'the external resources.'.format(self)
+            )
 
-        #
-        if id_:
-            _logger.info(
-                'Destroyed the ImageAcquirer object which {0} '
-                'had belonged to.'.format(id_)
-            )
-        else:
-            _logger.info(
-                'Destroyed an ImageAcquirer.'
-            )
+        self._device = None
 
         if self._profiler:
             self._profiler.print_diff()
@@ -1989,7 +2005,7 @@ class ImageAcquirer:
         else:
             raise ValueError(
                 'The number of buffers must be '
-                'greater than or equal to {0}'.format(
+                'greater than or equal to {}'.format(
                     self._min_num_buffers
                 )
             )
@@ -2209,10 +2225,8 @@ class ImageAcquirer:
                 _logger.debug(e, exc_info=True)
             else:
                 _logger.info(
-                    'Opened DataStream module {0} of {1}.'.format(
-                        _data_stream.id_, _data_stream.parent.id_
-                    )
-                )
+                    '{} has opened data stream {}.'.format(
+                        self, _family_tree(_data_stream)))
 
             #
             exceptions = (GenericException, LogicalErrorException)
@@ -2305,7 +2319,7 @@ class ImageAcquirer:
         global _logger
 
         os.remove(file_path)
-        _logger.info('{} has been removed'.format(file_path))
+        _logger.info('{} has been deleted.'.format(file_path))
 
     @staticmethod
     def _retrieve_file_path(
@@ -2322,7 +2336,7 @@ class ImageAcquirer:
             # A file that is specified by the client will be used:
             if not os.path.exists(file_path_to_load):
                 raise LogicalErrorException(
-                    '{0} does not exist.'.format(file_path_to_load)
+                    '{} does not exist.'.format(file_path_to_load)
                 )
         else:
             if url is None:
@@ -2334,7 +2348,7 @@ class ImageAcquirer:
                         'The target port does not hold any URL.'
                     )
 
-            _logger.info('URL: {0}'.format(url))
+            _logger.info('URL: {}'.format(url))
 
             # And parse the URL.
             location, others = url.split(':', 1)
@@ -2368,7 +2382,7 @@ class ImageAcquirer:
 
             elif location == 'http' or location == 'https':
                 raise NotImplementedError(
-                    'Failed to parse URL {0}: Harvester has not supported '
+                    'Failed to parse URL {}: Harvester has not supported '
                     'downloading a device description file from vendor '
                     'web site. If you must rely on the current condition,'
                     'just try to make a request to the Harvester '
@@ -2376,7 +2390,7 @@ class ImageAcquirer:
                 )
             else:
                 raise LogicalErrorException(
-                    'Failed to parse URL {0}: Unknown format.'.format(url)
+                    'Failed to parse URL {}: Unknown format.'.format(url)
                 )
 
         return file_path_to_load
@@ -2496,8 +2510,8 @@ class ImageAcquirer:
         self.remote_device.node_map.AcquisitionStart.execute()
 
         _logger.info(
-            '{0} started image acquisition.'.format(self._device.id_)
-        )
+            '{} has started image acquisition with {}.'.format(
+                self, _family_tree(self._device.module)))
 
         if self._profiler:
             self._profiler.print_diff()
@@ -2531,15 +2545,14 @@ class ImageAcquirer:
                     #
                     if _is_logging_buffer_manipulation:
                         _logger.debug(
-                            'Acquired Buffer module #{0}'
-                            ' containing frame #{1}'
-                            ' from DataStream module {2}'
-                            ' of Device module {3}'
+                            '{} has fetched buffer {}'
+                            ' containing frame {}'
+                            ' from data stream {}'
                             '.'.format(
+                                self,
                                 event_manager.buffer.context,
                                 event_manager.buffer.frame_id,
-                                event_manager.parent.id_,
-                                event_manager.parent.parent.id_
+                                _family_tree(event_manager.parent)
                             )
                         )
                     #
@@ -2555,15 +2568,9 @@ class ImageAcquirer:
 
                                 if _is_logging_buffer_manipulation:
                                     _logger.debug(
-                                        'Queued Buffer module #{0}'
-                                        ' containing frame #{1}'
-                                        ' to DataStream module {2}'
-                                        ' of Device module {3}'
-                                        '.'.format(
-                                            _buffer.context,
-                                            _buffer.frame_id,
-                                            _buffer.parent.id_,
-                                            _buffer.parent.parent.id_
+                                        '{} has queued buffer {} to data stream {}'.format(
+                                            self, _buffer.context,
+                                            _family_tree(_buffer.parent)
                                         )
                                     )
                                 # Then discard/queue it:
@@ -2610,7 +2617,8 @@ class ImageAcquirer:
                 else:
                     # Discard/queue the latest buffer when incomplete
                     _logger.debug(
-                        'Acquired buffer is complete: {0}'.format(
+                        '{} is complete: {}'.format(
+                            event_manager.buffer,
                             event_manager.buffer.is_complete()
                         )
                     )
@@ -2638,20 +2646,16 @@ class ImageAcquirer:
                 """
                 return
         except (ParsingChunkDataException, ErrorException) as e:
-            #logger.error(e, exc_info=True)
+            _logger.warning(e, exc_info=True)
             pass
         except (
                 NotImplementedException, NoDataException,
                 InvalidBufferException
             ) as e:
-            #logger.debug(e, exc_info=True)
+            _logger.warning(e, exc_info=True)
             pass
         else:
-            """
-            logger.debug(
-                'The buffer contains chunk data.'
-            )
-            """
+            _logger.debug('{} contains chunk data.'.format(buffer))
 
             #
             is_generic = False
@@ -2671,7 +2675,7 @@ class ImageAcquirer:
             else:
                 """
                 logger.debug(
-                    'Updated the node map of {0}.'.format(
+                    'Updated the node map of {}.'.format(
                         buffer.parent.parent.id_
                     )
                 )
@@ -2752,20 +2756,20 @@ class ImageAcquirer:
                         #
                         if _is_logging_buffer_manipulation:
                             _logger.debug(
-                                'Acquired Buffer module #{0}'
-                                ' containing frame #{1}'
-                                ' from DataStream module {2}'
-                                ' of Device module {3}'
+                                '{} has fetched buffer {}'
+                                ' containing frame {}'
+                                ' from {}'
                                 '.'.format(
+                                    self,
                                     event_manager.buffer.context,
                                     event_manager.buffer.frame_id,
-                                    event_manager.parent.id_,
-                                    event_manager.parent.parent.id_
+                                    _family_tree(event_manager.parent)
                                 )
                             )
                     else:
-                        _logger.debug(
-                            'Acquired buffer was incomplete.'
+                        _logger.info(
+                            'The acquired buffer was incomplete; '
+                            'it will be discarded.'
                         )
                         ds = event_manager.buffer.parent
                         ds.queue_buffer(event_manager.buffer)
@@ -2811,9 +2815,8 @@ class ImageAcquirer:
         self._statistics.increment_num_images()
         self._statistics.update_timestamp(buffer)
 
-    @staticmethod
     def _create_raw_buffers(
-            num_buffers: int = 0, size: int = 0) -> List[bytes]:
+            self, num_buffers: int = 0, size: int = 0) -> List[bytes]:
         #
         assert num_buffers >= 0
         assert size >= 0
@@ -2825,6 +2828,8 @@ class ImageAcquirer:
         # The number is specified by num_buffer and the buffer size is
         # specified by size.
         for _ in range(num_buffers):
+            _logger.info(
+                "{} has allocated a {} bytes buffer.".format(self, size))
             raw_buffers.append(bytes(size))
 
         # Then return the list.
@@ -2870,9 +2875,9 @@ class ImageAcquirer:
 
             #
             _logger.debug(
-                'Announced Buffer #{0} to DataStraem {1}.'.format(
-                    announced_buffer.context,
-                    data_stream.id_
+                '{} has announced buffer {} to data stream {}.'.format(
+                    self, announced_buffer.context,
+                    _family_tree(data_stream.module)
                 )
             )
 
@@ -2893,14 +2898,8 @@ class ImageAcquirer:
         for buffer in buffers:
             data_stream.queue_buffer(buffer)
             _logger.debug(
-                'Queued Buffer module #{0}'
-                ' to DataStream module {1}'
-                ' of Device module {2}'
-                '.'.format(
-                    buffer.context,
-                    data_stream.id_,
-                    data_stream.parent.id_
-                )
+                '{} has queued buffer {} to data stream {}.'.format(
+                    self, buffer.context, _family_tree(buffer.parent))
             )
 
     def stop_image_acquisition(self):
@@ -2971,8 +2970,8 @@ class ImageAcquirer:
 
             #
             _logger.info(
-                '{0} stopped image acquisition.'.format(self._device.id_)
-            )
+                '{} has stopped image acquisition with {}.'.format(
+                    self, _family_tree(self._device.module)))
 
         if self._profiler:
             self._profiler.print_diff()
@@ -2996,12 +2995,11 @@ class ImageAcquirer:
         #
         for data_stream in self._data_streams:
             if data_stream and data_stream.is_open():
-                name_ds = data_stream.id_
-                name_dev = data_stream.parent.id_
+                names = _family_tree(data_stream.module)
                 data_stream.close()
                 _logger.info(
-                    'Closed DataStream module {0} of {1}.'.format(
-                        name_ds, name_dev
+                    '{} has closed data stream {}.'.format(
+                        self, names
                     )
                 )
 
@@ -3019,10 +3017,9 @@ class ImageAcquirer:
                 #
                 for buffer in self._announced_buffers:
                     _logger.debug(
-                        'Revoked Buffer module #{0}.'.format(
-                            buffer.context,
-                            data_stream.id_,
-                            data_stream.parent.id_
+                        '{} has revoked buffer {} from data stream {}.'.format(
+                            self, buffer.context,
+                            _family_tree(buffer.parent)
                         )
                     )
                     _ = data_stream.revoke_buffer(buffer)
@@ -3088,6 +3085,8 @@ def _save_file(
         e = sys.exc_info()[0]
         _logger.error(e, exc_info=True)
         raise
+    else:
+        _logger.info("{} has been created.".format(file_path))
 
     return file_path
 
@@ -3095,6 +3094,9 @@ def _save_file(
 def _drop_padding_data(
         data_to_write: bytes, *, file_name: str = None,
         file_dict: Dict[str, bytes] = None):
+    #
+    global _logger
+
     assert data_to_write
     data_to_be_found = b'\x00'
     if file_dict and file_name:
@@ -3111,6 +3113,9 @@ def _drop_padding_data(
     pos = data_to_write.find(data_to_be_found)
     if pos != -1:
         # Found a \x00:
+        _logger.debug(
+            "A x00 has been found in {}; "
+            "the array will be truncated.".format(file_name))
         return data_to_write[:pos]
     else:
         return data_to_write
@@ -3353,7 +3358,7 @@ class Harvester:
                 _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_READONLY
             else:
                 raise NotImplementedError(
-                    '{0} is not supported.'.format(privilege)
+                    '{} is not supported.'.format(privilege)
                 )
 
             #
@@ -3366,8 +3371,7 @@ class Harvester:
             raise
         else:
             _logger.info(
-                'Opened Device module, {0}.'.format(device.id_)
-            )
+                '{} has opened {}.'.format(self, _family_tree(device)))
 
             # Create an :class:`ImageAcquirer` object and return it.
             ia = ImageAcquirer(
@@ -3409,7 +3413,7 @@ class Harvester:
         if check_existence:
             if not os.path.exists(file_path):
                 _logger.error(
-                    'Attempted to add {0} which does not exist.'.format(file_path)
+                    'Attempted to add {} but it does not exist.'.format(file_path)
                 )
                 raise FileNotFoundError
 
@@ -3427,8 +3431,8 @@ class Harvester:
         if file_path not in self._cti_files:
             self._cti_files.append(file_path)
             _logger.info(
-                'Added {0} to the CTI file list.'.format(file_path)
-            )
+                '{} has added {} to its CTI file list.'.format(
+                    self, file_path))
 
     def remove_cti_file(self, file_path: str):
         """
@@ -3451,7 +3455,7 @@ class Harvester:
         if file_path in self._cti_files:
             self._cti_files.remove(file_path)
             _logger.info(
-                'Removed {0} from the CTI file list.'.format(file_path)
+                '{} has removed {}.'.format(self, file_path)
             )
 
     def remove_cti_files(self) -> None:
@@ -3473,7 +3477,7 @@ class Harvester:
         self._cti_files.clear()
 
         #
-        _logger.info('Removed the all CTI file from the list.')
+        _logger.info('{} has cleared its CTI file list.'.format(self))
 
     def _open_gentl_producers(self) -> None:
         #
@@ -3489,10 +3493,7 @@ class Harvester:
             else:
                 self._producers.append(producer)
                 _logger.info(
-                    'Initialized GenTL Producer, {0}.'.format(
-                        producer.path_name
-                    )
-                )
+                    '{} has initialized {}.'.format(self, producer.path_name))
 
     def _open_systems(self) -> None:
         #
@@ -3506,10 +3507,8 @@ class Harvester:
                 _logger.debug(e, exc_info=True)
             else:
                 self._systems.append(system)
-                _logger.info('Opened System module, {0}.'.format(
-                        system.id_
-                    )
-                )
+                _logger.info('{} has opened {}.'.format(
+                    self, _family_tree(system)))
 
     def _reset(self) -> None:
         """
@@ -3526,7 +3525,7 @@ class Harvester:
         self._ias.clear()
 
         #
-        _logger.info('Started resetting the Harvester object.')
+        _logger.info('{} is being reset.'.format(self))
         self.remove_files()
         self._release_gentl_producers()
 
@@ -3534,7 +3533,7 @@ class Harvester:
             self._profiler.print_diff()
 
         #
-        _logger.info('Completed resetting the Harvester object.')
+        _logger.info('{} has been reset.'.format(self))
 
     def _release_gentl_producers(self) -> None:
         #
@@ -3548,7 +3547,7 @@ class Harvester:
             if producer and producer.is_open():
                 name = producer.path_name
                 producer.close()
-                _logger.info('Closed {0}.'.format(name))
+                _logger.info('{} has closed {}.'.format(self, name))
 
         #
         self._producers.clear()
@@ -3563,9 +3562,9 @@ class Harvester:
         #
         for system in self._systems:
             if system is not None and system.is_open():
-                name = system.id_
+                names = _family_tree(system)
                 system.close()
-                _logger.info('Closed System module, {0}.'.format(name))
+                _logger.info('{} has closed {}.'.format(self, names))
 
         #
         self._systems.clear()
@@ -3581,10 +3580,10 @@ class Harvester:
         if self._interfaces is not None:
             for iface in self._interfaces:
                 if iface.is_open():
-                    name = iface.id_
+                    names = _family_tree(iface)
                     iface.close()
                     _logger.info(
-                        'Closed Interface module, {0}.'.format(name)
+                        '{} has closed {}.'.format(self, names)
                     )
 
         #
@@ -3599,7 +3598,8 @@ class Harvester:
             self._device_info_list.clear()
 
         #
-        _logger.info('Discarded the device information list.')
+        _logger.info(
+            '{} has discarded its device information list.'.format(self))
 
     def update_device_info_list(self):
         """
@@ -3639,8 +3639,9 @@ class Harvester:
                         _logger.debug(e, exc_info=True)
                     else:
                         _logger.info(
-                            'Opened Interface module, {0}.'.format(iface.id_)
-                        )
+                            '{} has opened {}.'.format(
+                                self, _family_tree(iface)))
+
                         iface.update_device_info_list(self.timeout_for_update)
                         self._interfaces.append(iface)
                         for d_info in iface.device_info_list:

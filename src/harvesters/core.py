@@ -1607,7 +1607,7 @@ class ImageAcquirer:
         self._is_acquiring = False
         self._buffer_handling_mode = 'OldestFirstOverwrite'
 
-        num_buffers_default = 16
+        num_buffers_default = 3
         try:
             self._min_num_buffers = self._data_streams[0].buffer_announce_min
         except InvalidParameterException as e:

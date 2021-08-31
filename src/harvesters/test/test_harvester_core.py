@@ -310,7 +310,7 @@ class TestHarvesterCore(TestHarvester):
             self._test_issue_120_1
         ]
         for test in tests:
-            for num_images in [1, 2, 4, 8]:
+            for num_images in [1, 2]:
                 #
                 self.ia.num_filled_buffers_to_hold = num_images
 
@@ -406,7 +406,7 @@ class TestHarvesterCore(TestHarvester):
         self.ia = self.harvester.create_image_acquirer(0)
 
         # Check the number of buffers:
-        self.assertEqual(16, self.ia.num_buffers)
+        self.assertEqual(5, self.ia.num_buffers)
 
     def _callback_on_new_buffer_arrival(self):
         # Fetch a buffer and keep it:

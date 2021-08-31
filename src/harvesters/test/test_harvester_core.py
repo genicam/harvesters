@@ -408,47 +408,6 @@ class TestHarvesterCore(TestHarvester):
         # Check the number of buffers:
         self.assertEqual(16, self.ia.num_buffers)
 
-    @unittest.skip('It has been obsolete; see issue #141.')
-    def test_issue_61(self):
-        if not self.is_running_with_default_target():
-            return
-
-        # Connect to the first camera in the list.
-        self.ia = self.harvester.create_image_acquirer(0)
-
-        # Register a call back method:
-        self.ia.on_new_buffer_arrival = self._callback_on_new_buffer_arrival
-
-        # We turn software trigger on:
-        self.setup_camera()
-
-        # We have not fetched any buffer:
-        self.assertEqual(0, len(self._buffers))
-
-        # Start image acquisition:
-        self.ia.start_acquisition(run_in_background=True)
-
-        # Trigger the target device:
-        num_images = self.ia.num_buffers
-        self.assertTrue(num_images > 0)
-
-        # Trigger the target device:
-        for _ in range(num_images):
-            self.generate_software_trigger(sleep_s=self.sleep_duration)
-
-        # If the callback method was called, then we should have the same
-        # number of buffers with num_images:
-        self.assertEqual(num_images, len(self._buffers))
-
-        # Release the buffers before stopping image acquisition:
-        for buffer in self._buffers:
-            buffer.queue()
-
-        self._buffers.clear()
-
-        # Then stop image acquisition:
-        self.ia.stop_acquisition()
-
     def _callback_on_new_buffer_arrival(self):
         # Fetch a buffer and keep it:
         self._buffers.append(self.ia.fetch_buffer())
@@ -1037,12 +996,6 @@ class TestUtility(unittest.TestCase):
         data = _drop_padding_data(data)
         self.assertEqual(data, body)
         self.assertEqual('°', str(data, encoding='utf-8'))
-
-    @unittest.skip  # experimental
-    def test_issue_207_and_226_in_original_way(self):
-        data = b'\xc2\xb0'  # °
-        decoded = data.decode()
-        self.assertEqual('°', decoded)
 
     def test_issue_207(self):
         data = b'\xc2\xb0'  # '°'

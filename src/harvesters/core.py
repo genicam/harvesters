@@ -638,8 +638,8 @@ class _ImageAcquisitionThread(ThreadBase):
         return self._mutex
 
     @property
-    def id_(self):
-        return self._thread.id_
+    def id_(self) -> str:
+        return self._thread.id_ if self._thread else "Not available"
 
     def is_running(self):
         return self._is_running

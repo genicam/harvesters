@@ -62,7 +62,7 @@ setuptools.setup(
     author_email='genicam@list.stemmer-imaging.com',
     # Tells the index and pip some additional metadata about our package:
     classifiers=(
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Science/Research',
         'Intended Audience :: Education',
         'Intended Audience :: Developers',
@@ -70,10 +70,6 @@ setuptools.setup(
         'Operating System :: MacOS :: MacOS X',
         'Operating System :: Microsoft :: Windows',
         'Operating System :: POSIX',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
     ),
     # A short, on-sentence summary of the package:
     description=description,
@@ -81,7 +77,7 @@ setuptools.setup(
     download_url='https://pypi.org/project/harvesters/',
     # A list of required Python modules:
     install_requires=[
-        'genicam',
+        'genicam<1.2',
         'numpy'
     ],
     #

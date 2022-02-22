@@ -131,6 +131,9 @@ class TestHarvesterCore(TestHarvester):
         ia.stop_acquisition()
 
     def test_multiple_image_acquirers(self):
+        if not self.is_running_with_default_target():
+            return
+
         num_devices = len(self.harvester.device_info_list)
         self._test_image_acquirers(num_ias=num_devices)
 

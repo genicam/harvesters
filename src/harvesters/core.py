@@ -2299,19 +2299,29 @@ class ImageAcquirer:
             if buffer.tl_type not in self._specialized_tl_type:
                 is_generic = True
 
-            try:
-                if is_generic:
+            exceptions = (GenericException, RuntimeException,
+                          NotAvailableException)
+            if is_generic:
+                try:
                     self._chunk_adapter.attach_buffer(
                         buffer.raw_buffer, buffer.chunk_data_info_list)
-                else:
-                    if (len(buffer.raw_buffer) > buffer.delivered_chunk_payload_size):
-                        self._chunk_adapter.attach_buffer(buffer.raw_buffer[:buffer.delivered_chunk_payload_size])
-                    else:
-                        self._chunk_adapter.attach_buffer(buffer.raw_buffer)
-            except GenericException as e:
-                _logger.error(e, exc_info=True)
+                except exceptions as e:
+                    _logger.error(e, exc_info=True)
             else:
-                pass
+                try:
+                    chunk_payload_size = buffer.delivered_chunk_payload_size
+                    self._chunk_adapter.attach_buffer(
+                        buffer.raw_buffer[:chunk_payload_size])
+                except exceptions as e:
+                    try:
+                        size_filled = buffer.size_filled
+                        self._chunk_adapter.attach_buffer(
+                            buffer.raw_buffer[:size_filled])
+                    except exceptions as e:
+                        try:
+                            self._chunk_adapter.attach_buffer(buffer.raw_buffer)
+                        except exceptions as e:
+                            _logger.error(e, exc_info=True)
 
     def fetch_buffer(self, *, timeout: float = 0, is_raw: bool = False,
             cycle_s: float = None) -> Optional[Buffer]:

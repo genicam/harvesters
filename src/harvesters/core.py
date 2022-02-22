@@ -2304,7 +2304,10 @@ class ImageAcquirer:
                     self._chunk_adapter.attach_buffer(
                         buffer.raw_buffer, buffer.chunk_data_info_list)
                 else:
-                    self._chunk_adapter.attach_buffer(buffer.raw_buffer)
+                    if (len(buffer.raw_buffer) > buffer.delivered_chunk_payload_size):
+                        self._chunk_adapter.attach_buffer(buffer.raw_buffer[:buffer.delivered_chunk_payload_size])
+                    else:
+                        self._chunk_adapter.attach_buffer(buffer.raw_buffer)
             except GenericException as e:
                 _logger.error(e, exc_info=True)
             else:

@@ -83,12 +83,12 @@ def _family_tree(node, tree=""):
     try:
         name = node.id_
     except AttributeError:
-        return tree
+        name = str(node)
+
+    if is_origin:
+        tree = name
     else:
-        if is_origin:
-            tree = name
-        else:
-            tree += " of " + name
+        tree += " :: " + name
 
     try:
         parent = node.parent
@@ -435,17 +435,13 @@ class _SignalHandler:
         """
         global _logger
 
-        _logger.debug('Going to terminate threads having triggered '
-                      'by the event {}.'.format(self._event))
-
         self._event.set()
 
         for thread in self._threads:
+            _logger.debug('being terminated: {}'.format(thread))
             thread.stop()
             thread.join()
-
-        _logger.debug('Has terminated threads having triggered by '
-                      'the event {}.'.format(self._event))
+            _logger.debug('terminated: {}'.format(thread))
 
 
 class ThreadBase:
@@ -465,7 +461,7 @@ class ThreadBase:
         global _logger
 
         self._internal_start()
-        _logger.debug('Thread {:0X} has been launched.'.format(self.id_))
+        _logger.debug('launched: 0x{:0X}'.format(self.id_))
 
     def _internal_start(self) -> None:
         """
@@ -481,7 +477,7 @@ class ThreadBase:
         global _logger
 
         self._internal_stop()
-        _logger.debug('Thread {:0X} has been terminated.'.format(self.id_))
+        _logger.debug('terminated: 0x{:0X}'.format(self.id_))
 
     def join(self):
         """
@@ -1159,10 +1155,7 @@ class Buffer:
 
         #
         if _is_logging_buffer_manipulation:
-            _logger.debug(
-                '{} has queued buffer {} to data stream {}.'.format(
-                    self, self._buffer.context,
-                    _family_tree(self._buffer.module.parent)))
+            _logger.debug('queued: {0}'.format(_family_tree(self._buffer)))
 
         self._buffer.parent.queue_buffer(self._buffer)
 
@@ -1264,7 +1257,7 @@ class PayloadBase:
             )
 
         _logger.warning(
-            "Pixel format \'{}\' is not supported.".format(symbolic))
+            "unsupported format: \'{}\'".format(symbolic))
 
         return None
 
@@ -1507,7 +1500,7 @@ class ImageAcquirer:
         """
         global _logger
 
-        _logger.debug('{} has been instantiated.'.format(self))
+        _logger.debug('instantiated: {}'.format(self))
 
         assert device
 
@@ -1586,9 +1579,7 @@ class ImageAcquirer:
             self._sigint_handler = _SignalHandler(
                 event=self._event, threads=self._threads)
             signal.signal(signal.SIGINT, self._sigint_handler)
-            _logger.info(
-                '{} has created a signal handler {} for SIGINT.'.format(
-                    self, self._sigint_handler))
+            _logger.info('created: {0}'.format(self._sigint_handler))
 
         self._num_images_to_acquire = 0
         self._timeout_for_image_acquisition = 1  # ms
@@ -1644,8 +1635,7 @@ class ImageAcquirer:
             self, callback: Optional[Union[Callback, List[Callback]]]) -> None:
         if callback:
             if isinstance(callback, Callback):
-                _logger.debug(
-                    "{} is going to emit callback {}.".format(self, callback))
+                _logger.debug("going to emit: {0}".format(callback))
                 callback.emit(context=self)
             else:
                 raise TypeError
@@ -1708,9 +1698,7 @@ class ImageAcquirer:
             if self._device.is_open():
                 self._device.close()
 
-            _logger.debug(
-                '{} has finished releasing the external resources.'.format(
-                    self))
+            _logger.debug('released resources: {}'.format(self))
 
         self._device = None
 
@@ -1959,9 +1947,7 @@ class ImageAcquirer:
             except GenTL_GenericException as e:
                 _logger.debug(e, exc_info=True)
             else:
-                _logger.info(
-                    '{} has opened data stream {}.'.format(
-                        self, _family_tree(_data_stream)))
+                _logger.info('opened: {0}'.format(_family_tree(_data_stream)))
 
             #
             try:
@@ -2035,7 +2021,7 @@ class ImageAcquirer:
     def _remove_intermediate_file(file_path: str):
         global _logger
         os.remove(file_path)
-        _logger.info('{} has been deleted.'.format(file_path))
+        _logger.info('deleted: {0}'.format(file_path))
 
     @staticmethod
     def _retrieve_file_path(
@@ -2057,7 +2043,7 @@ class ImageAcquirer:
                     raise LogicalErrorException(
                         'The target port does not hold any URL.')
 
-            _logger.info('URL: {}'.format(url))
+            _logger.info('fetched url: {}'.format(url))
 
             location, others = url.split(':', 1)
             location = location.lower()
@@ -2187,9 +2173,8 @@ class ImageAcquirer:
 
         self.remote_device.node_map.AcquisitionStart.execute()
 
-        _logger.info(
-            '{} has started image acquisition with {}.'.format(
-                self, _family_tree(self._device.module)))
+        _logger.info('started streaming: {0}'.format(
+                _family_tree(self._device.module)))
 
         if self._profiler:
             self._profiler.print_diff()
@@ -2216,14 +2201,10 @@ class ImageAcquirer:
             else:
                 if event_manager.buffer.is_complete():
                     if _is_logging_buffer_manipulation:
-                        _logger.debug(
-                            '{} has fetched buffer {}'
-                            ' containing frame {}'
-                            ' from data stream {}'
-                            '.'.format(
-                                self, event_manager.buffer.context,
-                                event_manager.buffer.frame_id,
-                                _family_tree(event_manager.parent)))
+                        _logger.debug('fetched: {0} (#{1}); {2}'.format(
+                            event_manager.buffer.context,
+                            event_manager.buffer.frame_id,
+                            _family_tree(event_manager.buffer)))
 
                     if self.buffer_handling_mode == 'OldestFirstOverwrite':
                         with MutexLocker(self.thread_image_acquisition):
@@ -2235,9 +2216,10 @@ class ImageAcquirer:
 
                                 if _is_logging_buffer_manipulation:
                                     _logger.debug(
-                                        '{} has queued buffer {} to data stream {}'.format(
-                                            self, _buffer.context,
-                                            _family_tree(_buffer.parent)))
+                                        'fetched: {0} (#{1}); {2}'.format(
+                                            event_manager.buffer.context,
+                                            event_manager.buffer.frame_id,
+                                            _family_tree(event_manager.buffer)))
 
                                 _buffer.parent.queue_buffer(_buffer)
 
@@ -2261,9 +2243,7 @@ class ImageAcquirer:
                     self._update_num_images_to_acquire()
                 else:
                     _logger.debug(
-                        '{} is complete: {}'.format(
-                            event_manager.buffer,
-                            event_manager.buffer.is_complete()))
+                        'not complete: {}'.format(event_manager.buffer))
 
                     data_stream = event_manager.buffer.parent
                     data_stream.queue_buffer(event_manager.buffer)
@@ -2281,7 +2261,8 @@ class ImageAcquirer:
         except GenTL_GenericException as e:
             _logger.warning(e, exc_info=True)
         else:
-            _logger.debug('{} contains chunk data.'.format(buffer))
+            _logger.debug('contains chunk data: {0}'.format(
+                _family_tree(buffer)))
 
             is_generic = False
             if buffer.tl_type not in self._specialized_tl_type:
@@ -2359,17 +2340,17 @@ class ImageAcquirer:
                     if event_manager.buffer.is_complete():
                         if _is_logging_buffer_manipulation:
                             _logger.debug(
-                                '{} has fetched buffer {}'
-                                ' containing frame {}'
-                                ' from {}'
-                                '.'.format(
-                                    self, event_manager.buffer.context,
+                                'fetched: {0} (#{1}); {2}'.format(
+                                    event_manager.buffer.context,
                                     event_manager.buffer.frame_id,
-                                    _family_tree(event_manager.parent)))
+                                    _family_tree(event_manager.buffer)))
                     else:
-                        _logger.info(
-                            'The acquired buffer was incomplete; '
-                            'it will be discarded.')
+                        _logger.debug(
+                            'incomplete: {0} (#{1}); {2}'.format(
+                                event_manager.buffer.context,
+                                event_manager.buffer.frame_id,
+                                _family_tree(event_manager.buffer)))
+
                         ds = event_manager.buffer.parent
                         ds.queue_buffer(event_manager.buffer)
                         self._emit_callbacks(self.Events.INCOMPLETE_BUFFER)
@@ -2408,7 +2389,7 @@ class ImageAcquirer:
         raw_buffers = []
         for _ in range(num_buffers):
             _logger.info(
-                "{} has allocated a {} bytes buffer.".format(self, size))
+                "allocated: {0} bytes by {1}".format(size, self))
             raw_buffers.append(bytes(size))
 
         return raw_buffers
@@ -2436,9 +2417,7 @@ class ImageAcquirer:
             announced_buffer = data_stream.announce_buffer(token)
             announced_buffers.append(announced_buffer)
             _logger.debug(
-                '{} has announced buffer {} to data stream {}.'.format(
-                    self, announced_buffer.context,
-                    _family_tree(data_stream.module)))
+                'announced: {0}'.format(_family_tree(announced_buffer)))
 
         return announced_buffers
 
@@ -2451,9 +2430,7 @@ class ImageAcquirer:
 
         for buffer in buffers:
             data_stream.queue_buffer(buffer)
-            _logger.debug(
-                '{} has queued buffer {} to data stream {}.'.format(
-                    self, buffer.context, _family_tree(buffer.parent)))
+            _logger.debug('queued: {0}'.format(_family_tree(buffer)))
 
     def stop_image_acquisition(self):
         """
@@ -2508,9 +2485,8 @@ class ImageAcquirer:
 
             self._has_acquired_1st_image = False
             self._chunk_adapter.detach_buffer()
-            _logger.info(
-                '{} has stopped image acquisition with {}.'.format(
-                    self, _family_tree(self._device.module)))
+            _logger.info('stopped acquisition: {}'.format(
+                _family_tree(self._device.module)))
 
         if self._profiler:
             self._profiler.print_diff()
@@ -2527,10 +2503,9 @@ class ImageAcquirer:
 
         for data_stream in self._data_streams:
             if data_stream and data_stream.is_open():
-                names = _family_tree(data_stream.module)
+                name = _family_tree(data_stream.module)
                 data_stream.close()
-                _logger.info(
-                    '{} has closed data stream {}.'.format(self, names))
+                _logger.info('closed: {}'.format(name))
 
         self._data_streams.clear()
         self._event_new_buffer_managers.clear()
@@ -2541,10 +2516,9 @@ class ImageAcquirer:
         for data_stream in self._data_streams:
             if data_stream.is_open():
                 for buffer in self._announced_buffers:
-                    _logger.debug(
-                        '{} has revoked buffer {} from data stream {}.'.format(
-                            self, buffer.context, _family_tree(buffer.parent)))
+                    name = _family_tree(buffer)
                     _ = data_stream.revoke_buffer(buffer)
+                    _logger.debug('revoked: {0}'.format(name))
 
         self._announced_buffers.clear()
 
@@ -2597,7 +2571,7 @@ def _save_file(
         _logger.error(e, exc_info=True)
         raise
     else:
-        _logger.info("{} has been created.".format(file_path))
+        _logger.info("created: {}".format(file_path))
 
     return file_path
 
@@ -2624,7 +2598,7 @@ def _drop_padding_data(
     pos = data_to_write.find(data_to_be_found)
     if pos != -1:
         _logger.debug(
-            "A x00 has been found in {}; "
+            "an x00 has been found in {}; "
             "the array will be truncated.".format(file_name))
         return data_to_write[:pos]
     else:
@@ -2840,7 +2814,7 @@ class Harvester:
                 _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_READONLY
             else:
                 raise NotImplementedError(
-                    '{} is not supported.'.format(privilege))
+                    'not supported: {}'.format(privilege))
 
             device.open(_privilege)
 
@@ -2849,7 +2823,7 @@ class Harvester:
             raise
         else:
             _logger.info(
-                '{} has opened {}.'.format(self, _family_tree(device)))
+                'opened: {}'.format(_family_tree(device)))
 
             ia = ImageAcquirer(
                 device=device, profiler=self._profiler,
@@ -2885,9 +2859,8 @@ class Harvester:
 
         if check_existence:
             if not os.path.exists(file_path):
-                _logger.error(
-                    'Attempted to add {} but it does '
-                    'not exist.'.format(file_path))
+                _logger.error('attempted to add but doesn\'t exist: {}'.format(
+                    file_path))
                 raise FileNotFoundError
 
         if check_validity:
@@ -2901,9 +2874,7 @@ class Harvester:
 
         if file_path not in self._cti_files:
             self._cti_files.append(file_path)
-            _logger.info(
-                '{} has added {} to its CTI file list.'.format(
-                    self, file_path))
+            _logger.info('added: {0}'.format(file_path))
 
     def remove_cti_file(self, file_path: str):
         """
@@ -2924,7 +2895,7 @@ class Harvester:
 
         if file_path in self._cti_files:
             self._cti_files.remove(file_path)
-            _logger.info('{} has removed {}.'.format(self, file_path))
+            _logger.info('removed: {0}'.format(file_path))
 
     def remove_cti_files(self) -> None:
         """
@@ -2942,7 +2913,7 @@ class Harvester:
         global _logger
 
         self._cti_files.clear()
-        _logger.info('{} has cleared its CTI file list.'.format(self))
+        _logger.info('cleared file list: {}'.format(self))
 
     def _open_gentl_producers(self) -> None:
         global _logger
@@ -2955,8 +2926,7 @@ class Harvester:
                 _logger.debug(e, exc_info=True)
             else:
                 self._producers.append(producer)
-                _logger.info(
-                    '{} has initialized {}.'.format(self, producer.path_name))
+                _logger.info('initialized file: {0}'.format(producer.path_name))
 
     def _open_systems(self) -> None:
         global _logger
@@ -2969,8 +2939,7 @@ class Harvester:
                 _logger.debug(e, exc_info=True)
             else:
                 self._systems.append(system)
-                _logger.info('{} has opened {}.'.format(
-                    self, _family_tree(system)))
+                _logger.info('opened: {0}'.format(_family_tree(system)))
 
     def _reset(self) -> None:
         """
@@ -2987,7 +2956,7 @@ class Harvester:
 
         self._ias.clear()
 
-        _logger.info('{} is being reset.'.format(self))
+        _logger.info('being reset: {}'.format(self))
         self.remove_files()
         self._release_gentl_producers()
 
@@ -2995,7 +2964,7 @@ class Harvester:
             self._profiler.print_diff()
 
         #
-        _logger.info('{} has been reset.'.format(self))
+        _logger.info('has been reset: {}'.format(self))
 
     def _release_gentl_producers(self) -> None:
         global _logger
@@ -3006,7 +2975,7 @@ class Harvester:
             if producer and producer.is_open():
                 name = producer.path_name
                 producer.close()
-                _logger.info('{} has closed {}.'.format(self, name))
+                _logger.info('closed: {0}'.format(name))
 
         self._producers.clear()
 
@@ -3017,9 +2986,9 @@ class Harvester:
 
         for system in self._systems:
             if system is not None and system.is_open():
-                names = _family_tree(system)
+                name = _family_tree(system)
                 system.close()
-                _logger.info('{} has closed {}.'.format(self, names))
+                _logger.info('closed: {0}'.format(name))
 
         self._systems.clear()
 
@@ -3031,9 +3000,9 @@ class Harvester:
         if self._interfaces is not None:
             for iface in self._interfaces:
                 if iface.is_open():
-                    names = _family_tree(iface)
+                    name = _family_tree(iface)
                     iface.close()
-                    _logger.info('{} has closed {}.'.format(self, names))
+                    _logger.info('closed: {0}'.format(name))
 
         self._interfaces.clear()
 
@@ -3044,7 +3013,7 @@ class Harvester:
             self._device_info_list.clear()
 
         _logger.info(
-            '{} has discarded its device information list.'.format(self))
+            'discarded device information: {}'.format(self))
 
     def update_device_info_list(self):
         """
@@ -3078,9 +3047,7 @@ class Harvester:
                     except GenTL_GenericException as e:
                         _logger.debug(e, exc_info=True)
                     else:
-                        _logger.info(
-                            '{} has opened {}.'.format(
-                                self, _family_tree(iface)))
+                        _logger.info('opened: {0}'.format(_family_tree(iface)))
 
                         iface.update_device_info_list(self.timeout_for_update)
                         self._interfaces.append(iface)
@@ -3094,7 +3061,7 @@ class Harvester:
         else:
             self._has_revised_device_list = True
 
-        _logger.info('Updated the device information list.')
+        _logger.info('updated device information: {}'.format(self))
 
 
 if __name__ == '__main__':

@@ -1,0 +1,17 @@
+digraph G {
+  c [label="Your Python App"]
+  h [label="harvesters"]
+  a [label="genicam.genapi"]
+  t [label="genicam.gentl"]
+  p [label="GenTL Producer"]
+  r [label="GenApi Reference\nImplementation"]
+  d [label="GenICam Compliant\nDevice"]
+
+  c -> h [arrowhead=none];
+  h -> p [arrowhead=none];
+  h -> t [arrowhead=none];
+  t -> p [arrowhead=none];
+  a -> r [arrowhead=none];
+  r -> p [arrowhead=none];
+  p -> d [arrowhead=none];
+}

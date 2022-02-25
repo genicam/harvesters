@@ -47,16 +47,13 @@ import tempfile
 import numpy
 
 from genicam.genapi import NodeMap
-from genicam.genapi import LogicalErrorException, RuntimeException, \
-    AccessException
+from genicam.genapi import GenericException as GenApi_GenericException
+from genicam.genapi import LogicalErrorException
 from genicam.genapi import ChunkAdapterGeneric, ChunkAdapterU3V, \
     ChunkAdapterGEV
 
-from genicam.gentl import TimeoutException, \
-    NotImplementedException, ParsingChunkDataException, NoDataException, \
-    ErrorException, InvalidBufferException, InvalidParameterException, \
-    NotAvailableException
-from genicam.gentl import GenericException
+from genicam.gentl import TimeoutException
+from genicam.gentl import GenericException as GenTL_GenericException
 from genicam.gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
 from genicam.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
@@ -820,23 +817,20 @@ class Component2DImage(ComponentBase):
         if self.has_part():
             nr_bytes = self._part.data_size
         else:
-            exceptions = (NotAvailableException, NotImplementedException,
-                          InvalidParameterException)
-
             try:
                 w = self._buffer.width
-            except exceptions:
+            except GenTL_GenericException:
                 w = self._node_map.Width.value
             try:
                 h = self._buffer.height
-            except exceptions:
+            except GenTL_GenericException:
                 h = self._node_map.Height.value
 
             nr_bytes = self._get_nr_bytes(pf_proxy=pf_proxy, width=w, height=h)
 
             try:
                 padding_y = self._buffer.padding_y
-            except exceptions:
+            except GenTL_GenericException:
                 padding_y = 0
             nr_bytes += padding_y
 
@@ -891,7 +885,7 @@ class Component2DImage(ComponentBase):
                 value = self._part.width
             else:
                 value = self._buffer.width
-        except GenericException:
+        except GenTL_GenericException:
             try:
                 value = self._node_map.Width.value
             except AttributeError:
@@ -913,7 +907,7 @@ class Component2DImage(ComponentBase):
                 value = self._buffer.height
                 if value == 0:
                     value = self._buffer.delivered_image_height
-        except GenericException:
+        except GenTL_GenericException:
             try:
                 value = self._node_map.Height.value
             except AttributeError:
@@ -933,7 +927,7 @@ class Component2DImage(ComponentBase):
                 value = self._part.data_format
             else:
                 value = self._buffer.pixel_format
-        except GenericException:
+        except GenTL_GenericException:
             value = self._node_map.PixelFormat.get_int_value()
         assert type(value) is int
         return value
@@ -961,7 +955,7 @@ class Component2DImage(ComponentBase):
                 value = self._part.delivered_image_height
             else:
                 value = self._buffer.delivered_image_height
-        except GenericException:
+        except GenTL_GenericException:
             value = 0
         return value
 
@@ -979,7 +973,7 @@ class Component2DImage(ComponentBase):
                 value = self._part.x_offset
             else:
                 value = self._buffer.offset_x
-        except GenericException:
+        except GenTL_GenericException:
             value = self._node_map.OffsetX.value
         return value
 
@@ -997,7 +991,7 @@ class Component2DImage(ComponentBase):
                 value = self._part.y_offset
             else:
                 value = self._buffer.offset_y
-        except GenericException:
+        except GenTL_GenericException:
             value = self._node_map.OffsetY.value
         return value
 
@@ -1014,7 +1008,7 @@ class Component2DImage(ComponentBase):
                 value = self._part.x_padding
             else:
                 value = self._buffer.padding_x
-        except GenericException:
+        except GenTL_GenericException:
             value = 0
         return value
 
@@ -1031,7 +1025,7 @@ class Component2DImage(ComponentBase):
                 value = self._part.y_padding
             else:
                 value = self._buffer.padding_y
-        except GenericException:
+        except GenTL_GenericException:
             value = 0
         return value
 
@@ -1098,10 +1092,10 @@ class Buffer:
         """
         try:
             timestamp = self._buffer.timestamp_ns
-        except GenericException:
+        except GenTL_GenericException:
             try:
                 timestamp = self._buffer.timestamp
-            except GenericException:
+            except GenTL_GenericException:
                 timestamp = 0
 
         return timestamp
@@ -1119,13 +1113,13 @@ class Buffer:
 
         try:
             _ = self._buffer.timestamp_ns
-        except GenericException:
+        except GenTL_GenericException:
             try:
                 frequency = self._buffer.parent.parent.timestamp_frequency
-            except GenericException:
+            except GenTL_GenericException:
                 try:
                     frequency = self._node_map.GevTimestampTickFrequency.value
-                except GenericException:
+                except GenTL_GenericException:
                     pass
 
         return frequency
@@ -1249,7 +1243,7 @@ class PayloadBase:
                 data_format = part.data_format
             else:
                 data_format = buffer.pixel_format
-        except GenericException:
+        except GenTL_GenericException:
             # As a workaround, we are going to retrive a data format
             # value from the remote device node map; note that there
             # could be a case where the value is not synchronized with
@@ -1531,8 +1525,6 @@ class ImageAcquirer:
         else:
             self._xml_dir = None
 
-        exceptions = (GenericException, LogicalErrorException)
-
         self._system = None
         self._interface = None
         self._device = None
@@ -1551,7 +1543,7 @@ class ImageAcquirer:
                     port=port, xml_dir_to_store=self._xml_dir,
                     file_path=file_path_, file_dict=self._file_dict,
                     do_clean_up=self._do_clean_up)
-            except exceptions as e:
+            except GenTL_GenericException as e:
                 # Accept a case where the target GenTL entity does not
                 # provide any device description XML file:
                 _logger.error(e, exc_info=True)
@@ -1610,7 +1602,7 @@ class ImageAcquirer:
         num_buffers_default = 3
         try:
             self._min_num_buffers = self._data_streams[0].buffer_announce_min
-        except InvalidParameterException as e:
+        except GenTL_GenericException as e:
             # In general, a GenTL Producer should not raise the
             # InvalidParameterException to the inquiry for
             # STREAM_INFO_BUF_ANNOUNCE_MIN because it is totally legal
@@ -1964,7 +1956,7 @@ class ImageAcquirer:
 
             try:
                 _data_stream.open(stream_id)
-            except GenericException as e:
+            except GenTL_GenericException as e:
                 _logger.debug(e, exc_info=True)
             else:
                 _logger.info(
@@ -1972,12 +1964,11 @@ class ImageAcquirer:
                         self, _family_tree(_data_stream)))
 
             #
-            exceptions = (GenericException, LogicalErrorException)
             try:
                 node_map = self._get_port_connected_node_map(
                     port=_data_stream.port, file_dict=file_dict,
                     do_clean_up=self._do_clean_up)
-            except exceptions as e:
+            except GenTL_GenericException as e:
                 # Accept a case where the target GenTL entity does not
                 # provide any device description XML file:
                 _logger.error(e, exc_info=True)
@@ -2019,10 +2010,10 @@ class ImageAcquirer:
             # Let the NodeMap object load the file from the path:
             try:
                 node_map.load_xml_from_zip_file(file_path)
-            except RuntimeException:
+            except GenApi_GenericException:
                 try:
                     node_map.load_xml_from_file(file_path)
-                except RuntimeException as e:
+                except GenApi_GenericException as e:
                     if file_dict:
                         if do_clean_up:
                             self._remove_intermediate_file(file_path)
@@ -2132,7 +2123,7 @@ class ImageAcquirer:
             # to acquire in the next session:
             try:
                 acq_mode = self.remote_device.node_map.AcquisitionMode.value
-            except GenericException as e:
+            except GenTL_GenericException as e:
                 num_images_to_acquire = -1
                 _logger.debug(e, exc_info=True)
             else:
@@ -2166,7 +2157,7 @@ class ImageAcquirer:
                     num_buffers = ds.buffer_announce_min
                     if num_buffers < num_required_buffers:
                         num_buffers = num_required_buffers
-                except GenericException as e:
+                except GenTL_GenericException as e:
                     num_buffers = num_required_buffers
                     _logger.debug(e, exc_info=True)
 
@@ -2181,7 +2172,7 @@ class ImageAcquirer:
 
                 try:
                     self.remote_device.node_map.TLParamsLocked.value = 1
-                except (GenericException, AttributeError):
+                except GenTL_GenericException:
                     # SFNC < 2.0
                     pass
 
@@ -2287,10 +2278,7 @@ class ImageAcquirer:
         try:
             if buffer.num_chunks == 0:
                 return
-        except (ParsingChunkDataException, ErrorException) as e:
-            _logger.warning(e, exc_info=True)
-        except (NotImplementedException, NoDataException,
-                InvalidBufferException) as e:
+        except GenTL_GenericException as e:
             _logger.warning(e, exc_info=True)
         else:
             _logger.debug('{} contains chunk data.'.format(buffer))
@@ -2299,28 +2287,26 @@ class ImageAcquirer:
             if buffer.tl_type not in self._specialized_tl_type:
                 is_generic = True
 
-            exceptions = (GenericException, RuntimeException,
-                          NotAvailableException)
             if is_generic:
                 try:
                     self._chunk_adapter.attach_buffer(
                         buffer.raw_buffer, buffer.chunk_data_info_list)
-                except exceptions as e:
+                except GenTL_GenericException as e:
                     _logger.error(e, exc_info=True)
             else:
                 try:
                     chunk_payload_size = buffer.delivered_chunk_payload_size
                     self._chunk_adapter.attach_buffer(
                         buffer.raw_buffer[:chunk_payload_size])
-                except exceptions as e:
+                except GenTL_GenericException:
                     try:
                         size_filled = buffer.size_filled
                         self._chunk_adapter.attach_buffer(
                             buffer.raw_buffer[:size_filled])
-                    except exceptions as e:
+                    except GenTL_GenericException:
                         try:
                             self._chunk_adapter.attach_buffer(buffer.raw_buffer)
-                        except exceptions as e:
+                        except GenTL_GenericException as e:
                             _logger.error(e, exc_info=True)
 
     def fetch_buffer(self, *, timeout: float = 0, is_raw: bool = False,
@@ -2494,12 +2480,12 @@ class ImageAcquirer:
             with MutexLocker(self.thread_image_acquisition):
                 try:
                     self.remote_device.node_map.AcquisitionStop.execute()
-                except (GenericException, AccessException) as e:
+                except GenApi_GenericException as e:
                     _logger.error(e, exc_info=True)
 
                 try:
                     self.remote_device.node_map.TLParamsLocked.value = 0
-                except (GenericException, AttributeError):
+                except GenApi_GenericException:
                     pass
 
                 for data_stream in self._data_streams:
@@ -2507,7 +2493,7 @@ class ImageAcquirer:
                         data_stream.stop_acquisition(
                             ACQ_STOP_FLAGS_LIST.ACQ_STOP_FLAGS_KILL
                         )
-                    except GenericException as e:
+                    except GenTL_GenericException as e:
                         _logger.error(e, exc_info=True)
 
                     self._flush_buffers(data_stream)
@@ -2824,7 +2810,7 @@ class Harvester:
                         try:
                             if key_value != eval('item.' + key):
                                 items_to_be_removed.append(item)
-                        except GenericException as e:
+                        except GenTL_GenericException as e:
                             _logger.warning(e, exc_info=True)
                             pass
 
@@ -2858,7 +2844,7 @@ class Harvester:
 
             device.open(_privilege)
 
-        except GenericException as e:
+        except GenTL_GenericException as e:
             _logger.debug(e, exc_info=True)
             raise
         else:
@@ -2965,7 +2951,7 @@ class Harvester:
             producer = GenTLProducer.create_producer()
             try:
                 producer.open(file_path)
-            except GenericException as e:
+            except GenTL_GenericException as e:
                 _logger.debug(e, exc_info=True)
             else:
                 self._producers.append(producer)
@@ -2979,7 +2965,7 @@ class Harvester:
             system = producer.create_system()
             try:
                 system.open()
-            except GenericException as e:
+            except GenTL_GenericException as e:
                 _logger.debug(e, exc_info=True)
             else:
                 self._systems.append(system)
@@ -3089,7 +3075,7 @@ class Harvester:
                     iface = i_info.create_interface()
                     try:
                         iface.open()
-                    except GenericException as e:
+                    except GenTL_GenericException as e:
                         _logger.debug(e, exc_info=True)
                     else:
                         _logger.info(
@@ -3102,7 +3088,7 @@ class Harvester:
                             self.device_info_list.append(
                                 DeviceInfo(device_info=d_info))
 
-        except GenericException as e:
+        except GenTL_GenericException as e:
             _logger.error(e, exc_info=True)
             self._has_revised_device_list = False
         else:

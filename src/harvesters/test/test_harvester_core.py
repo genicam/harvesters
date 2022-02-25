@@ -277,6 +277,40 @@ class TestHarvesterCore(TestHarvester):
         ia.stop_acquisition()
         ia.destroy()
 
+    def test_try_fetch_with_timeout(self):
+        if not self.is_running_with_default_target():
+            return
+
+        # Create an image acquirer:
+        ia = self.harvester.create_image_acquirer(0)
+
+        # We do not start image acquisition:
+        #ia.start_acquisition()
+
+        timeout = 3  # sec
+
+        # Setup the device for software trigger mode:
+        ia.remote_device.node_map.TriggerMode.value = 'On'
+        ia.remote_device.node_map.TriggerSource.value = 'Software'
+
+        # We're ready to start image acquisition:
+        ia.start_acquisition()
+
+        # Try to fetch a buffer but None will be returned
+        # because we've not triggered the device so far:
+        buffer = ia.try_fetch(timeout=timeout)
+        self.assertIsNone(buffer)
+
+        ia.remote_device.node_map.TriggerSoftware.execute()
+        buffer = ia.try_fetch(timeout=timeout)
+        self.assertIsNotNone(buffer)
+        self._logger.info('{0}'.format(buffer))
+        buffer.queue()
+
+        # Now we stop image acquisition:
+        ia.stop_acquisition()
+        ia.destroy()
+
     def test_stop_start_and_stop(self):
         # Create an image acquirer:
         ia = self.harvester.create_image_acquirer(0)

@@ -2189,22 +2189,22 @@ class ImageAcquirer:
 
         queue = self._queue
 
-        for event_manager in self._event_new_buffer_managers:
+        for manager in self._event_new_buffer_managers:
             try:
                 if self.is_acquiring():
-                    event_manager.update_event_data(
+                    manager.update_event_data(
                         self._timeout_for_image_acquisition)
                 else:
                     return
             except TimeoutException:
                 continue
             else:
-                if event_manager.buffer.is_complete():
+                if manager.buffer.is_complete():
                     if _is_logging_buffer_manipulation:
                         _logger.debug('fetched: {0} (#{1}); {2}'.format(
-                            event_manager.buffer.context,
-                            event_manager.buffer.frame_id,
-                            _family_tree(event_manager.buffer)))
+                            manager.buffer.context,
+                            manager.buffer.frame_id,
+                            _family_tree(manager.buffer)))
 
                     if self.buffer_handling_mode == 'OldestFirstOverwrite':
                         with MutexLocker(self.thread_image_acquisition):
@@ -2217,17 +2217,17 @@ class ImageAcquirer:
                                 if _is_logging_buffer_manipulation:
                                     _logger.debug(
                                         'fetched: {0} (#{1}); {2}'.format(
-                                            event_manager.buffer.context,
-                                            event_manager.buffer.frame_id,
-                                            _family_tree(event_manager.buffer)))
+                                            manager.buffer.context,
+                                            manager.buffer.frame_id,
+                                            _family_tree(manager.buffer)))
 
                                 _buffer.parent.queue_buffer(_buffer)
 
-                            _buffer = event_manager.buffer
+                            _buffer = manager.buffer
                             queue.put(_buffer)
                             self._update_statistics(_buffer)
                     else:
-                        _buffer = event_manager.buffer
+                        _buffer = manager.buffer
                         self._update_statistics(_buffer)
                         with MutexLocker(self.thread_image_acquisition):
                             if not self._is_acquiring:
@@ -2243,10 +2243,10 @@ class ImageAcquirer:
                     self._update_num_images_to_acquire()
                 else:
                     _logger.debug(
-                        'not complete: {}'.format(event_manager.buffer))
+                        'not complete: {}'.format(manager.buffer))
 
-                    data_stream = event_manager.buffer.parent
-                    data_stream.queue_buffer(event_manager.buffer)
+                    ds = manager.buffer.parent
+                    ds.queue_buffer(manager.buffer)
 
                     with MutexLocker(self.thread_image_acquisition):
                         if not self._is_acquiring:
@@ -2259,7 +2259,7 @@ class ImageAcquirer:
             if buffer.num_chunks == 0:
                 return
         except GenTL_GenericException as e:
-            _logger.warning(e, exc_info=True)
+            return
         else:
             _logger.debug('contains chunk data: {0}'.format(
                 _family_tree(buffer)))
@@ -2290,84 +2290,129 @@ class ImageAcquirer:
                         except GenTL_GenericException as e:
                             _logger.error(e, exc_info=True)
 
+    def try_fetch(self, *, timeout: float = 0, is_raw: bool = False) -> Optional[Buffer]:
+        """
+        Unlike the fetch_buffer method, the try_fetch method gives up and
+        returns None if no complete buffer was acquired during the defined
+        period.
+
+        :param timeout: Set the period that defines the expiration for an
+        available buffer delivery; if no buffer is fetched within the period
+        then None will be returned. The unit is [s].
+
+        :param is_raw: Set :const:`True` if you need a raw GenTL Buffer
+        module; note that you'll have to manipulate the object by yourself.
+
+        :return: A :class:`Buffer` object if it is complete; otherwise None.
+        :rtype: Optional[Buffer]
+        """
+        return self._try_fetch(timeout, is_raw)
+
+    def _try_fetch(self, timeout: float = 0, is_raw: bool = False,
+                   throw_except: bool = False) -> Optional[Buffer]:
+        global _logger
+
+        if not self.is_acquiring():
+            return None
+
+        buffer = None
+        watch_timeout = True if timeout > 0 else False
+        base = time.time()
+
+        manager = self._event_new_buffer_managers[0]
+        while not buffer:
+            if watch_timeout and (time.time() - base) > timeout:
+                if throw_except:
+                    raise TimeoutException
+                else:
+                    return None
+
+            try:
+                manager.update_event_data(
+                    self._timeout_for_image_acquisition)
+            except TimeoutException:
+                continue
+            else:
+                if manager.buffer.is_complete():
+                    buffer = manager.buffer
+                    if _is_logging_buffer_manipulation:
+                        _logger.debug(
+                            'fetched: {0} (#{1}); {2}'.format(
+                                manager.buffer.context,
+                                manager.buffer.frame_id,
+                                _family_tree(manager.buffer)))
+                else:
+                    _logger.debug(
+                        'incomplete: {0} (#{1}); {2}'.format(
+                            manager.buffer.context,
+                            manager.buffer.frame_id,
+                            _family_tree(manager.buffer)))
+
+                    ds = manager.buffer.parent
+                    ds.queue_buffer(manager.buffer)
+                    self._emit_callbacks(self.Events.INCOMPLETE_BUFFER)
+                    return None
+
+        return self._finalize_fetching_process(buffer, is_raw)
+
+    def _fetch_on_thread(self, is_raw: bool = False, cycle_s: float = None):
+        _cycle_s = cycle_s if cycle_s else 0.0001
+        buffer = None
+        while not buffer:
+            with MutexLocker(self.thread_image_acquisition):
+                try:
+                    buffer = self._queue.get(block=True, timeout=_cycle_s)
+                except Empty:
+                    continue
+
+        return self._finalize_fetching_process(buffer, is_raw)
+
+    def _finalize_fetching_process(self, buffer: Buffer_, is_raw: bool):
+        if not buffer:
+            return None
+
+        self._update_chunk_data(buffer=buffer)
+        self._update_statistics(buffer)
+
+        if not is_raw:
+            buffer = Buffer(
+                buffer=buffer, node_map=self.remote_device.node_map)
+
+        self._update_num_images_to_acquire()
+
+        return buffer
+
     def fetch_buffer(self, *, timeout: float = 0, is_raw: bool = False,
-            cycle_s: float = None) -> Optional[Buffer]:
+                     cycle_s: float = None) -> Buffer:
         """
         Fetches an available :class:`Buffer` object that has been filled up
         with a single image and returns it.
 
-        :param timeout: Set the period that defines the expiration for an available buffer delivery; if no buffer is fetched within the period then TimeoutException will be raised. The unit is [s].
-        :param is_raw: Set :const:`True` if you need a raw GenTL Buffer module; note that you'll have to manipulate the object by yourself.
-        :param cycle_s: Set the cycle that defines how frequently check if a buffer is available. The unit is [s].
+        :param timeout: Set the period that defines the expiration for an
+        available buffer delivery; if no buffer is fetched within the period
+        then TimeoutException will be raised. The unit is [s].
+
+        :param is_raw: Set :const:`True` if you need a raw GenTL Buffer
+        module; note that you'll have to manipulate the object by yourself.
+
+        :param cycle_s: Set the cycle that defines how frequently check if a
+        buffer is available. The unit is [s].
 
         :return: A :class:`Buffer` object.
         :rtype: Buffer
         """
-        global _logger
-
         if not self.is_acquiring():
             raise TimeoutException
 
-        _buffer = None
-        watch_timeout = True if timeout > 0 else False
-        base = time.time()
-
         if self.thread_image_acquisition and \
                 self.thread_image_acquisition.is_running():
-            if cycle_s:
-                _cycle_s = cycle_s
-            else:
-                _cycle_s = 0.0001
-
-            while _buffer is None:
-                with MutexLocker(self.thread_image_acquisition):
-                    try:
-                        _buffer = self._queue.get(block=True, timeout=_cycle_s)
-                    except Empty:
-                        continue
+            buffer = self._fetch_on_thread(is_raw, cycle_s)
         else:
-            event_manager = self._event_new_buffer_managers[0]
-            while _buffer is None:
-                if watch_timeout and (time.time() - base) > timeout:
-                    raise TimeoutException
+            buffer = None
+            while not buffer:
+                buffer = self._try_fetch(timeout=timeout, throw_except=True)
 
-                try:
-                    event_manager.update_event_data(
-                        self._timeout_for_image_acquisition)
-                except TimeoutException:
-                    continue
-                else:
-                    if event_manager.buffer.is_complete():
-                        if _is_logging_buffer_manipulation:
-                            _logger.debug(
-                                'fetched: {0} (#{1}); {2}'.format(
-                                    event_manager.buffer.context,
-                                    event_manager.buffer.frame_id,
-                                    _family_tree(event_manager.buffer)))
-                    else:
-                        _logger.debug(
-                            'incomplete: {0} (#{1}); {2}'.format(
-                                event_manager.buffer.context,
-                                event_manager.buffer.frame_id,
-                                _family_tree(event_manager.buffer)))
-
-                        ds = event_manager.buffer.parent
-                        ds.queue_buffer(event_manager.buffer)
-                        self._emit_callbacks(self.Events.INCOMPLETE_BUFFER)
-
-                    _buffer = event_manager.buffer
-
-        if _buffer:
-            self._update_chunk_data(buffer=_buffer)
-            self._update_statistics(_buffer)
-
-            if not is_raw:
-                _buffer = Buffer(
-                    buffer=_buffer, node_map=self.remote_device.node_map)
-
-        self._update_num_images_to_acquire()
-
-        return _buffer
+        return buffer
 
     def _update_num_images_to_acquire(self) -> None:
         if self._num_images_to_acquire >= 1:

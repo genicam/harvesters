@@ -66,7 +66,7 @@ class TestTutorials(TestHarvester):
     def _test_performance_on_image_acquisition(self, sleep_duration=0.0):
         #
         self._logger.info(
-            'Sleep duration: {0} s'.format(sleep_duration)
+            'sleep duration: {0} s'.format(sleep_duration)
         )
 
         # Connect to the first camera in the list.

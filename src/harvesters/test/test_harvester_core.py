@@ -31,7 +31,7 @@ import unittest
 from urllib.parse import quote
 
 # Related third party imports
-from genicam.genapi import RuntimeException
+from genicam.genapi import GenericException as GenApi_GenericException
 from genicam.gentl import TimeoutException
 import numpy as np
 
@@ -782,7 +782,7 @@ class TestHarvesterCore(TestHarvester):
         if not self.is_running_with_default_target():
             return
 
-        with self.assertRaises(RuntimeException):
+        with self.assertRaises(GenApi_GenericException):
             _ = self.harvester.create_image_acquirer(
                 0, file_dict={r'\.xml$': bytes('<', encoding='utf-8')})
 

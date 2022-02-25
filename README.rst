@@ -179,7 +179,7 @@ Before start talking about the detail, let's take a look at some important termi
 
 The following diagram shows the hierarchy and relationship of the relevant modules:
 
-.. figure:: https://user-images.githubusercontent.com/8652625/117859101-8e452980-b2c9-11eb-9d63-53559c21d96f.png
+.. figure:: https://user-images.githubusercontent.com/8652625/155761972-c131d638-a0cc-4c51-aa3b-752d8f3d1284.svg
     :align: center
     :alt: Module hierarchy
 

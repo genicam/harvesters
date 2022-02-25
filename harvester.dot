@@ -1,14 +1,24 @@
 digraph G {
-  c [label="Your Python App"]
-  h [label="harvesters"]
-  a [label="genicam.genapi"]
-  t [label="genicam.gentl"]
+  node [style=filled]
+
+  subgraph cluster {
+    style=filled;
+    color="#009933";
+    node [shape="box",color=white];
+    a [label="genapi", shape="box", fontname="consolas"]
+    t [label="gentl", shape="box", fontname="consolas"]
+    label = "genicam";
+    fontname="consolas";
+  }
+  
+  c [label="Your Python App", shape="box", color="#ffff00"]
+  h [label="harvesters", shape="box", fontname="consolas", color="#ff9900"]
   p [label="GenTL Producer"]
   r [label="GenApi Reference\nImplementation"]
-  d [label="GenICam Compliant\nDevice"]
+  d [label="GenICam Compliant\nDevice", shape="box3d", color="#3399ff"]
 
   c -> h [arrowhead=none];
-  h -> p [arrowhead=none];
+  h -> a [arrowhead=none];
   h -> t [arrowhead=none];
   t -> p [arrowhead=none];
   a -> r [arrowhead=none];

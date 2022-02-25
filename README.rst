@@ -179,33 +179,9 @@ Before start talking about the detail, let's take a look at some important termi
 
 The following diagram shows the hierarchy and relationship of the relevant modules:
 
-.. code-block::
-
-                          +===================+
-                          |  Your Python App  |
-                          +===================+
-                            |
-    +===============+     +===================+
-    | genicam.gentl | --- |    harvesters     |
-    +===============+     +===================+
-      |                     |
-      |                   +===================+
-      |                   |  genicam.genapi   |
-      |                   +===================+
-      |                     |
-      |                   +-------------------+
-      |                   | GenApi Reference  |
-      |                   |  Implementation   |
-      |                   +-------------------+
-      |                     |
-      |                   +-------------------+
-      +------------------ |  GenTL Producer   |
-                          +-------------------+
-                            |
-                          +-------------------+
-                          | GenICam Compliant |
-                          |      Device       |
-                          +-------------------+
+.. figure:: https://user-images.githubusercontent.com/8652625/117859101-8e452980-b2c9-11eb-9d63-53559c21d96f.png
+    :align: center
+    :alt: Module hierarchy
 
 
 ###############

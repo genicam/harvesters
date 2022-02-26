@@ -2190,70 +2190,35 @@ class ImageAcquirer:
         queue = self._queue
 
         for manager in self._event_new_buffer_managers:
-            try:
-                if self.is_acquiring():
-                    manager.update_event_data(
-                        self._timeout_for_image_acquisition)
-                else:
-                    return
-            except TimeoutException:
-                continue
-            else:
-                if manager.buffer.is_complete():
-                    if _is_logging_buffer_manipulation:
-                        _logger.debug('fetched: {0} (#{1}); {2}'.format(
-                            manager.buffer.context,
-                            manager.buffer.frame_id,
-                            _family_tree(manager.buffer)))
-
-                    if self.buffer_handling_mode == 'OldestFirstOverwrite':
-                        with MutexLocker(self.thread_image_acquisition):
-                            if not self._is_acquiring:
-                                return
-
-                            if queue.full():
-                                _buffer = queue.get()
-
-                                if _is_logging_buffer_manipulation:
-                                    _logger.debug(
-                                        'fetched: {0} (#{1}); {2}'.format(
-                                            manager.buffer.context,
-                                            manager.buffer.frame_id,
-                                            _family_tree(manager.buffer)))
-
-                                _buffer.parent.queue_buffer(_buffer)
-
-                            _buffer = manager.buffer
-                            queue.put(_buffer)
-                            self._update_statistics(_buffer)
-                    else:
-                        _buffer = manager.buffer
-                        self._update_statistics(_buffer)
-                        with MutexLocker(self.thread_image_acquisition):
-                            if not self._is_acquiring:
-                                return
-
-                            if queue.full():
-                                _buffer.parent.queue_buffer(_buffer)
-                            else:
-                                if queue:
-                                    queue.put(_buffer)
-
-                    self._emit_callbacks(self.Events.NEW_BUFFER_AVAILABLE)
-                    self._update_num_images_to_acquire()
-                else:
-                    _logger.debug(
-                        'not complete: {}'.format(manager.buffer))
-
-                    ds = manager.buffer.parent
-                    ds.queue_buffer(manager.buffer)
-
+            buffer = self._fetch(manager=manager,
+                                 timeout=self._timeout_for_image_acquisition*2)
+            if buffer:
+                if self.buffer_handling_mode == 'OldestFirstOverwrite':
                     with MutexLocker(self.thread_image_acquisition):
                         if not self._is_acquiring:
                             return
+                        if queue.full():
+                            _buffer = queue.get()
+                            _buffer.parent.queue_buffer(_buffer)
+                        queue.put(buffer)
+                else:
+                    with MutexLocker(self.thread_image_acquisition):
+                        if not self._is_acquiring:
+                            return
+                        if queue.full():
+                            buffer.parent.queue_buffer(buffer)
+                        else:
+                            if queue:
+                                queue.put(buffer)
+                self._update_num_images_to_acquire()
+                self._update_statistics(buffer)
+                self._emit_callbacks(self.Events.NEW_BUFFER_AVAILABLE)
 
     def _update_chunk_data(self, buffer: Optional[Buffer] = None):
         global _logger
+
+        if not buffer:
+            return
 
         try:
             if buffer.num_chunks == 0:
@@ -2290,7 +2255,8 @@ class ImageAcquirer:
                         except GenTL_GenericException as e:
                             _logger.error(e, exc_info=True)
 
-    def try_fetch(self, *, timeout: float = 0, is_raw: bool = False) -> Optional[Buffer]:
+    def try_fetch(self, *, timeout: float = 0,
+                  is_raw: bool = False) -> Optional[Buffer]:
         """
         Unlike the fetch_buffer method, the try_fetch method gives up and
         returns None if no complete buffer was acquired during the defined
@@ -2306,26 +2272,34 @@ class ImageAcquirer:
         :return: A :class:`Buffer` object if it is complete; otherwise None.
         :rtype: Optional[Buffer]
         """
-        return self._try_fetch(timeout, is_raw)
+        buffer = self._fetch(manager=self._event_new_buffer_managers[0],
+                             timeout=timeout, throw_except=False)
 
-    def _try_fetch(self, timeout: float = 0, is_raw: bool = False,
-                   throw_except: bool = False) -> Optional[Buffer]:
+        if buffer:
+            buffer = self._finalize_fetching_process(buffer, is_raw)
+            self._emit_callbacks(self.Events.NEW_BUFFER_AVAILABLE)
+        return buffer
+
+    def _fetch(self, *, manager: EventManagerNewBuffer, timeout: float = 0,
+               throw_except: bool = False) -> Optional[Buffer_]:
         global _logger
 
-        if not self.is_acquiring():
-            return None
+        assert manager
 
         buffer = None
         watch_timeout = True if timeout > 0 else False
         base = time.time()
 
-        manager = self._event_new_buffer_managers[0]
         while not buffer:
-            if watch_timeout and (time.time() - base) > timeout:
-                if throw_except:
-                    raise TimeoutException
-                else:
-                    return None
+            if watch_timeout:
+                elapsed = time.time() - base
+                if elapsed > timeout:
+                    _logger.info(
+                        'timeout: elapsed {0} sec.'.format(timeout))
+                    if throw_except:
+                        raise TimeoutException
+                    else:
+                        return None
 
             try:
                 manager.update_event_data(
@@ -2335,12 +2309,11 @@ class ImageAcquirer:
             else:
                 if manager.buffer.is_complete():
                     buffer = manager.buffer
-                    if _is_logging_buffer_manipulation:
-                        _logger.debug(
-                            'fetched: {0} (#{1}); {2}'.format(
-                                manager.buffer.context,
-                                manager.buffer.frame_id,
-                                _family_tree(manager.buffer)))
+                    _logger.debug(
+                        'fetched: {0} (#{1}); {2}'.format(
+                            manager.buffer.context,
+                            manager.buffer.frame_id,
+                            _family_tree(manager.buffer)))
                 else:
                     _logger.debug(
                         'incomplete: {0} (#{1}); {2}'.format(
@@ -2353,19 +2326,17 @@ class ImageAcquirer:
                     self._emit_callbacks(self.Events.INCOMPLETE_BUFFER)
                     return None
 
-        return self._finalize_fetching_process(buffer, is_raw)
+        return buffer
 
-    def _fetch_on_thread(self, is_raw: bool = False, cycle_s: float = None):
+    def _try_fetch_from_queue(self, *, is_raw: bool = False,
+                              cycle_s: float = None) -> Optional[Buffer]:
         _cycle_s = cycle_s if cycle_s else 0.0001
-        buffer = None
-        while not buffer:
-            with MutexLocker(self.thread_image_acquisition):
-                try:
-                    buffer = self._queue.get(block=True, timeout=_cycle_s)
-                except Empty:
-                    continue
-
-        return self._finalize_fetching_process(buffer, is_raw)
+        with MutexLocker(self.thread_image_acquisition):
+            try:
+                buffer = self._queue.get(block=True, timeout=_cycle_s)
+                return self._finalize_fetching_process(buffer, is_raw)
+            except Empty:
+                return None
 
     def _finalize_fetching_process(self, buffer: Buffer_, is_raw: bool):
         if not buffer:
@@ -2401,16 +2372,20 @@ class ImageAcquirer:
         :return: A :class:`Buffer` object.
         :rtype: Buffer
         """
-        if not self.is_acquiring():
-            raise TimeoutException
 
-        if self.thread_image_acquisition and \
-                self.thread_image_acquisition.is_running():
-            buffer = self._fetch_on_thread(is_raw, cycle_s)
-        else:
-            buffer = None
-            while not buffer:
-                buffer = self._try_fetch(timeout=timeout, throw_except=True)
+        buffer = None
+        while not buffer:
+            if self.thread_image_acquisition and \
+                    self.thread_image_acquisition.is_running():
+                buffer = self._try_fetch_from_queue(is_raw=is_raw,
+                                                    cycle_s=cycle_s)
+            else:
+                buffer = self._fetch(
+                    manager=self._event_new_buffer_managers[0], timeout=timeout,
+                    throw_except=True)
+                if buffer:
+                    buffer = self._finalize_fetching_process(buffer, is_raw)
+                    self._emit_callbacks(self.Events.NEW_BUFFER_AVAILABLE)
 
         return buffer
 

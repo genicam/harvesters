@@ -50,7 +50,7 @@ class TestTutorials(TestHarvester):
         # Setup your equipment then trigger the camera.
         self.setup_equipment_and_trigger_camera()
 
-        while num_images_to_acquire < 100:
+        while num_images_to_acquire < 10:
             #
             with self.ia.fetch_buffer() as buffer:
                 #
@@ -107,7 +107,7 @@ class TestTutorials2(unittest.TestCase):
         # Then start image acquisition:
         ia.start_acquisition()
 
-        while num_images_to_acquire < 100:
+        while num_images_to_acquire < 10:
             #
             with ia.fetch_buffer() as buffer:
                 # self.do_something(buffer)

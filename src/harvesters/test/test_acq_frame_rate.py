@@ -79,7 +79,7 @@ class TestTutorials(TestHarvester):
 
         # Run the image acquisition thread:
         thread = ThreadWithTimeLimit(
-            worker=self._worker_update_statistics, timeout=5
+            worker=self._worker_update_statistics, timeout=3
         )
         thread.start()
         thread.join()
@@ -136,7 +136,7 @@ class TestTutorials(TestHarvester):
         self.ia.start_acquisition(run_in_background=True)
 
         #
-        nr = 10
+        nr = 3
 
         # Run the image acquisition thread:
         threads = []
@@ -144,7 +144,7 @@ class TestTutorials(TestHarvester):
             threads.append(
                 ThreadWithTimeLimit(
                     worker=self._worker_update_statistics,
-                    timeout=10, sleep=0
+                    timeout=3, sleep=0
                 )
             )
 

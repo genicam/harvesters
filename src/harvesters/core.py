@@ -1400,7 +1400,7 @@ class ImageAcquirer:
             self._sigint_handler = _SignalHandler(
                 event=self._event, threads=self._threads)
             signal.signal(signal.SIGINT, self._sigint_handler)
-            _logger.info('created: {0}'.format(self._sigint_handler))
+            _logger.debug('created: {0}'.format(self._sigint_handler))
 
         self._num_images_to_acquire = 0
         self._timeout_for_image_acquisition = 1  # ms
@@ -1420,7 +1420,7 @@ class ImageAcquirer:
             # STREAM_INFO_BUF_ANNOUNCE_MIN because it is totally legal
             # but we have observed a fact that there is at least one on
             # the market. As a workaround we involve this try-except block:
-            _logger.debug(e, exc_info=True)
+            _logger.warning(e, exc_info=True)
             self._min_num_buffers = num_buffers_default
             self._num_buffers = num_buffers_default
         else:
@@ -1519,7 +1519,7 @@ class ImageAcquirer:
             if self._device.is_open():
                 self._device.close()
 
-            _logger.debug('released resources: {}'.format(self))
+            _logger.info('released resources: {}'.format(self))
 
         self._device = None
 
@@ -1766,9 +1766,9 @@ class ImageAcquirer:
             try:
                 _data_stream.open(stream_id)
             except GenTL_GenericException as e:
-                _logger.debug(e, exc_info=True)
+                _logger.error(e, exc_info=True)
             else:
-                _logger.info('opened: {0}'.format(_family_tree(_data_stream)))
+                _logger.debug('opened: {0}'.format(_family_tree(_data_stream)))
 
             #
             try:
@@ -1824,7 +1824,7 @@ class ImageAcquirer:
                     if file_dict:
                         if do_clean_up:
                             self._remove_intermediate_file(file_path)
-                        _logger.error(e, exc_info=True)
+                        _logger.warning(e, exc_info=True)
                         raise
                     else:
                         _logger.warning(e, exc_info=True)
@@ -1842,7 +1842,7 @@ class ImageAcquirer:
     def _remove_intermediate_file(file_path: str):
         global _logger
         os.remove(file_path)
-        _logger.info('deleted: {0}'.format(file_path))
+        _logger.debug('deleted: {0}'.format(file_path))
 
     @staticmethod
     def _retrieve_file_path(
@@ -1864,7 +1864,7 @@ class ImageAcquirer:
                     raise LogicalErrorException(
                         'The target port does not hold any URL.')
 
-            _logger.info('fetched url: {}'.format(url))
+            _logger.debug('fetched url: {}'.format(url))
 
             location, others = url.split(':', 1)
             location = location.lower()
@@ -1932,7 +1932,7 @@ class ImageAcquirer:
                 acq_mode = self.remote_device.node_map.AcquisitionMode.value
             except GenTL_GenericException as e:
                 num_images_to_acquire = -1
-                _logger.debug(e, exc_info=True)
+                _logger.warning(e, exc_info=True)
             else:
                 if acq_mode == 'Continuous':
                     num_images_to_acquire = -1
@@ -1966,7 +1966,7 @@ class ImageAcquirer:
                         num_buffers = num_required_buffers
                 except GenTL_GenericException as e:
                     num_buffers = num_required_buffers
-                    _logger.debug(e, exc_info=True)
+                    _logger.warning(e, exc_info=True)
 
                 num_buffers = max(num_buffers, self._num_images_to_acquire)
 
@@ -1992,9 +1992,10 @@ class ImageAcquirer:
                 if self.thread_image_acquisition:
                     self.thread_image_acquisition.start()
 
-        self.remote_device.node_map.AcquisitionStart.execute()
+        _logger.info('started acquisition: {0}'.format(self))
 
-        _logger.info('started streaming: {0}'.format(
+        self.remote_device.node_map.AcquisitionStart.execute()
+        _logger.debug('started streaming: {0}'.format(
                 _family_tree(self._device.module)))
 
         if self._profiler:
@@ -2109,7 +2110,7 @@ class ImageAcquirer:
             if watch_timeout:
                 elapsed = time.time() - base
                 if elapsed > timeout:
-                    _logger.info(
+                    _logger.debug(
                         'timeout: elapsed {0} sec.'.format(timeout))
                     if throw_except:
                         raise TimeoutException
@@ -2126,13 +2127,14 @@ class ImageAcquirer:
                     self._update_num_images_to_acquire()
                     self._update_statistics(manager.buffer)
                     buffer = manager.buffer
-                    _logger.debug(
-                        'fetched: {0} (#{1}); {2}'.format(
-                            manager.buffer.context,
-                            manager.buffer.frame_id,
-                            _family_tree(manager.buffer)))
+                    if _is_logging_buffer_manipulation:
+                        _logger.debug(
+                            'fetched: {0} (#{1}); {2}'.format(
+                                manager.buffer.context,
+                                manager.buffer.frame_id,
+                                _family_tree(manager.buffer)))
                 else:
-                    _logger.debug(
+                    _logger.warning(
                         'incomplete: {0} (#{1}); {2}'.format(
                             manager.buffer.context,
                             manager.buffer.frame_id,
@@ -2222,7 +2224,7 @@ class ImageAcquirer:
 
         raw_buffers = []
         for _ in range(num_buffers):
-            _logger.info(
+            _logger.debug(
                 "allocated: {0} bytes by {1}".format(size, self))
             raw_buffers.append(bytes(size))
 
@@ -2292,7 +2294,10 @@ class ImageAcquirer:
                 try:
                     self.remote_device.node_map.AcquisitionStop.execute()
                 except GenApi_GenericException as e:
-                    _logger.error(e, exc_info=True)
+                    _logger.warning(e, exc_info=True)
+                else:
+                    _logger.debug('stopped streaming: {}'.format(
+                        _family_tree(self._device.module)))
 
                 try:
                     self.remote_device.node_map.TLParamsLocked.value = 0
@@ -2305,7 +2310,7 @@ class ImageAcquirer:
                             ACQ_STOP_FLAGS_LIST.ACQ_STOP_FLAGS_KILL
                         )
                     except GenTL_GenericException as e:
-                        _logger.error(e, exc_info=True)
+                        _logger.warning(e, exc_info=True)
 
                     self._flush_buffers(data_stream)
 
@@ -2319,8 +2324,7 @@ class ImageAcquirer:
 
             self._has_acquired_1st_image = False
             self._chunk_adapter.detach_buffer()
-            _logger.info('stopped acquisition: {}'.format(
-                _family_tree(self._device.module)))
+            _logger.info('stopped acquisition: {}'.format(self))
 
         if self._profiler:
             self._profiler.print_diff()
@@ -2339,7 +2343,7 @@ class ImageAcquirer:
             if data_stream and data_stream.is_open():
                 name = _family_tree(data_stream.module)
                 data_stream.close()
-                _logger.info('closed: {}'.format(name))
+                _logger.debug('closed: {}'.format(name))
 
         self._data_streams.clear()
         self._event_new_buffer_managers.clear()
@@ -2405,7 +2409,7 @@ def _save_file(
         _logger.error(e, exc_info=True)
         raise
     else:
-        _logger.info("created: {}".format(file_path))
+        _logger.debug("created: {}".format(file_path))
 
     return file_path
 
@@ -2490,6 +2494,7 @@ class Harvester:
             self._profiler.print_diff()
 
         self._finalizer = weakref.finalize(self, self._reset)
+        _logger.info('created: {0}'.format(self))
 
     @property
     def image_acquirers(self):
@@ -2619,8 +2624,7 @@ class Harvester:
                             if key_value != eval('item.' + key):
                                 items_to_be_removed.append(item)
                         except GenTL_GenericException as e:
-                            _logger.warning(e, exc_info=True)
-                            pass
+                            _logger.debug(e, exc_info=True)
 
                     for item in items_to_be_removed:
                         candidates.remove(item)
@@ -2653,10 +2657,10 @@ class Harvester:
             device.open(_privilege)
 
         except GenTL_GenericException as e:
-            _logger.debug(e, exc_info=True)
+            _logger.warning(e, exc_info=True)
             raise
         else:
-            _logger.info(
+            _logger.debug(
                 'opened: {}'.format(_family_tree(device)))
 
             ia = ImageAcquirer(
@@ -2667,6 +2671,9 @@ class Harvester:
 
             if self._profiler:
                 self._profiler.print_diff()
+
+        _logger.info('created: {0} for {1} by {2}'.format(
+            ia, device.id_, self))
 
         return ia
 
@@ -2708,7 +2715,7 @@ class Harvester:
 
         if file_path not in self._cti_files:
             self._cti_files.append(file_path)
-            _logger.info('added: {0}'.format(file_path))
+            _logger.info('added: {0} to {1}'.format(file_path, self))
 
     def remove_cti_file(self, file_path: str):
         """
@@ -2729,7 +2736,7 @@ class Harvester:
 
         if file_path in self._cti_files:
             self._cti_files.remove(file_path)
-            _logger.info('removed: {0}'.format(file_path))
+            _logger.info('removed: {0} from {1}'.format(file_path, self))
 
     def remove_cti_files(self) -> None:
         """
@@ -2747,7 +2754,7 @@ class Harvester:
         global _logger
 
         self._cti_files.clear()
-        _logger.info('cleared file list: {}'.format(self))
+        _logger.info('flushed file list: {}'.format(self))
 
     def _open_gentl_producers(self) -> None:
         global _logger
@@ -2757,10 +2764,10 @@ class Harvester:
             try:
                 producer.open(file_path)
             except GenTL_GenericException as e:
-                _logger.debug(e, exc_info=True)
+                _logger.warning(e, exc_info=True)
             else:
                 self._producers.append(producer)
-                _logger.info('initialized file: {0}'.format(producer.path_name))
+                _logger.debug('initialized file: {0}'.format(producer.path_name))
 
     def _open_systems(self) -> None:
         global _logger
@@ -2770,10 +2777,10 @@ class Harvester:
             try:
                 system.open()
             except GenTL_GenericException as e:
-                _logger.debug(e, exc_info=True)
+                _logger.warning(e, exc_info=True)
             else:
                 self._systems.append(system)
-                _logger.info('opened: {0}'.format(_family_tree(system)))
+                _logger.debug('opened: {0}'.format(_family_tree(system)))
 
     def _reset(self) -> None:
         """
@@ -2790,7 +2797,7 @@ class Harvester:
 
         self._ias.clear()
 
-        _logger.info('being reset: {}'.format(self))
+        _logger.debug('being reset: {}'.format(self))
         self.remove_files()
         self._release_gentl_producers()
 
@@ -2798,7 +2805,7 @@ class Harvester:
             self._profiler.print_diff()
 
         #
-        _logger.info('has been reset: {}'.format(self))
+        _logger.info('reset completed: {}'.format(self))
 
     def _release_gentl_producers(self) -> None:
         global _logger
@@ -2809,7 +2816,7 @@ class Harvester:
             if producer and producer.is_open():
                 name = producer.path_name
                 producer.close()
-                _logger.info('closed: {0}'.format(name))
+                _logger.debug('closed: {0}'.format(name))
 
         self._producers.clear()
 
@@ -2822,7 +2829,7 @@ class Harvester:
             if system is not None and system.is_open():
                 name = _family_tree(system)
                 system.close()
-                _logger.info('closed: {0}'.format(name))
+                _logger.debug('closed: {0}'.format(name))
 
         self._systems.clear()
 
@@ -2836,7 +2843,7 @@ class Harvester:
                 if iface.is_open():
                     name = _family_tree(iface)
                     iface.close()
-                    _logger.info('closed: {0}'.format(name))
+                    _logger.debug('closed: {0}'.format(name))
 
         self._interfaces.clear()
 
@@ -2846,7 +2853,7 @@ class Harvester:
         if self.device_info_list is not None:
             self._device_info_list.clear()
 
-        _logger.info(
+        _logger.debug(
             'discarded device information: {}'.format(self))
 
     def update_device_info_list(self):
@@ -2879,9 +2886,9 @@ class Harvester:
                     try:
                         iface.open()
                     except GenTL_GenericException as e:
-                        _logger.debug(e, exc_info=True)
+                        _logger.error(e, exc_info=True)
                     else:
-                        _logger.info('opened: {0}'.format(_family_tree(iface)))
+                        _logger.debug('opened: {0}'.format(_family_tree(iface)))
 
                         iface.update_device_info_list(self.timeout_for_update)
                         self._interfaces.append(iface)
@@ -2890,12 +2897,12 @@ class Harvester:
                                 DeviceInfo(device_info=d_info))
 
         except GenTL_GenericException as e:
-            _logger.error(e, exc_info=True)
+            _logger.warning(e, exc_info=True)
             self._has_revised_device_list = False
         else:
             self._has_revised_device_list = True
 
-        _logger.info('updated device information: {}'.format(self))
+        _logger.info('updated: {}'.format(self))
 
 
 if __name__ == '__main__':

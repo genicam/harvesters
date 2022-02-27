@@ -115,16 +115,41 @@ def _deprecated(deprecated: object, alternative: object) -> None:
     )
 
 
-class Module:
-    def __init__(
-            self, module=None,
-            node_map: Optional[NodeMap] = None, parent=None):
+class _Delegate:
+    def __init__(self, source):
+        self._attributes = [f for f in dir(type(source)) if not f.startswith('_')]
+
+    def __getattr__(self, attribute):
+        if attribute in self._attributes:
+            if isinstance(getattr(type(self._module), attribute, None), property):
+                return getattr(self._module, attribute)
+            else:
+                def method(*args):
+                    return getattr(self._module, attribute)(*args)
+                return method
+        else:
+            raise AttributeError
+
+
+class Module(_Delegate):
+    def __init__(self, module, parent, node_map: Optional[NodeMap]):
+        assert module
+
+        super().__init__(module)
         self._module = module
-        self._node_map = node_map
         self._parent = parent
+        self._node_map = node_map
 
     @property
     def module(self):
+        """
+        The corresponding raw GenTL module that the genicam package offers.
+
+        :getter: Returns itself.
+        :type: Union[genicam.genapi.System, genicam.genapi.Interface,
+        genicam.genapi.Device, genicam.genapi.DataStream,
+        genicam.genapi.Buffer]
+        """
         return self._module
 
     @property
@@ -140,227 +165,52 @@ class Module:
     @property
     def parent(self):
         """
-        The parent GenTL entity.
+        The parent raw GenTL module.
 
         :getter: Returns itself.
-        :type: Module
+        :type: Union[None, genicam.genapi.System, genicam.genapi.Interface,
+        genicam.genapi.Device, genicam.genapi.DataStream]
         """
         return self._parent
 
-    @property
-    def port(self) -> Port:
-        """
-        The GenTL Port entity that belongs to the GenTL entity.
-
-        :getter: Returns itself.
-        :type: Port
-        """
-
-        return self._module.port
-
-    def register_event(self, event_type=None) -> EventToken:
-        """
-        Registers an even that is defined by the GenTL standard.
-
-        :param event_type: Set an event type to register.
-        :return: Returns an event token that is used to retrieve the event.
-        :type: EventToken
-        """
-        return self._module.register_event(event_type)
-
 
 class DataStream(Module):
-    def __init__(
-            self, module: Optional[Module] = None,
-            node_map: Optional[NodeMap] = None,
-            parent: Optional[Module] = None):
-        super().__init__(module=module, node_map=node_map, parent=parent)
-
-    def open(self, data_stream_id: str = None) -> None:
-        """
-        Opens the GenTL data stream entity.
-
-        :param data_stream_id: Set a data stream ID to open.
-        :return: None
-        """
-        self._module.open(data_stream_id)
-
-    @property
-    def id_(self):
-        """
-        The ID of the GenTL entity.
-
-        :getter: Returns itself.
-        :type: str
-        """
-        return self._module.id_
-
-    @property
-    def buffer_announce_min(self):
-        """
-        The minimum number that is required to run image acquisition process.
-
-        :getter: Returns itself.
-        :type: int
-        """
-        return self._module.buffer_announce_min
-
-    def defines_payload_size(self) -> bool:
-        """
-        Returns the truth value of a proposition: The target GenTL Producer
-        defines payload size.
-
-        :return: The truth value.
-        """
-        return self._module.defines_payload_size()
-
-    @property
-    def payload_size(self) -> int:
-        """
-        The size of the payload. The unit is [Bytes].
-
-        :getter: Returns itself.
-        :type: int
-        """
-        return self._module.payload_size
-
-    def queue_buffer(self, announced_buffer: Buffer_ = None) -> None:
-        """
-        Queues the announced buffer to the input buffer pool of the image
-        acquisition engine.
-
-        :param announced_buffer:
-        :return: None
-        """
-        self._module.queue_buffer(announced_buffer)
-
-    def start_acquisition(self, flags=None, num_images=None) -> None:
-        """
-        Starts image acquisition.
-
-        :param flags:
-        :param num_images:
-        :return: None.
-        """
-        self._module.start_acquisition(flags, num_images)
-
-    def is_open(self) -> bool:
-        """
-        Returns the truth value of a proposition: The DataStream entity has
-        been opened.
-
-        :return: :const:`True` if it's been opened. Otherwise :const:`False`.
-        :rtype: bool
-        """
-        return self._module.is_open()
-
-    def stop_acquisition(self, flags=None):
-        """
-        Stops image acquisition.
-
-        :param flags:
-        :return: None
-        """
-        self._module.stop_acquisition(flags)
-
-    def revoke_buffer(self, buffer=None):
-        """
-        Revokes the specified buffer from the queue.
-
-        :param buffer: Set an announced :class:`Buffer` object to revoke.
-        :return: The revoked buffer object.
-        :rtype: :class:`Buffer`
-        """
-        return self._module.revoke_buffer(buffer)
-
-    def flush_buffer_queue(self, operation=None) -> None:
-        """
-        Flushes the queue.
-
-        :param operation: Set an operation to execute.
-        :return: None
-        """
-        self._module.flush_buffer_queue(operation)
-
-    def close(self) -> None:
-        """
-        Closes the given DataStream entity.
-        :return:  None
-        """
-        self._module.close()
-
-    def announce_buffer(self, buffer_token=None) -> Buffer_:
-        """
-        Announces the give buffer.
-
-        :param buffer_token: Set a buffer to announce.
-        :return: An announced buffer.
-        :type: :class:`Buffer_`
-        """
-        return self._module.announce_buffer(buffer_token)
+    def __init__(self, module, parent, node_map: Optional[NodeMap]):
+        super().__init__(module=module, parent=parent, node_map=node_map)
 
 
 class RemoteDevice(Module):
-    def __init__(
-            self, module=None, node_map: NodeMap = None, parent=None):
-        super().__init__(module=module, node_map=node_map, parent=parent)
+    def __init__(self, module, parent, node_map: Optional[NodeMap]):
+        super().__init__(module=module, parent=parent, node_map=node_map)
 
     @property
     def port(self):
-        return self._parent.module.remote_port
+        return self.parent.remote_port
 
 
 class Device(Module):
-    def __init__(self, module=None, node_map: NodeMap = None, parent=None):
-        super().__init__(module=module, node_map=node_map, parent=parent)
-
-    @property
-    def data_stream_ids(self):
-        return self._module.data_stream_ids
-
-    def create_data_stream(self):
-        return self._module.create_data_stream()
-
-    @property
-    def id_(self):
-        return self._module.id_
-
-    @property
-    def tl_type(self):
-        return self._module.tl_type
-
-    def is_open(self):
-        return self._module.is_open()
-
-    def close(self):
-        self._module.close()
+    def __init__(self, module, parent, node_map: Optional[NodeMap]):
+        super().__init__(module=module, parent=parent, node_map=node_map)
 
     @property
     def port(self):
-        return self._module.local_port
+        return self.module.local_port
 
 
 class Interface(Module):
-    def __init__(
-            self, module=None, node_map: Optional[NodeMap] = None,
-            parent=None):
-        super().__init__(module=module, node_map=node_map, parent=parent)
+    def __init__(self, module, parent, node_map: Optional[NodeMap]):
+        super().__init__(module=module, parent=parent, node_map=node_map)
 
 
 class System(Module):
-    def __init__(
-            self,
-            module=None, node_map: Optional[NodeMap] = None, parent=None):
-        assert parent is None
-        super().__init__(module=module, node_map=node_map, parent=parent)
+    def __init__(self, module, parent, node_map: Optional[NodeMap]):
+        super().__init__(module=module, parent=parent, node_map=node_map)
 
 
-class DeviceInfo:
-    def __init__(self, device_info=None):
-        self._device_info = device_info
-
-    def create_device(self):
-        return self._device_info.create_device()
+class DeviceInfo(_Delegate):
+    def __init__(self, device_info):
+        super().__init__(device_info)
+        self._module = device_info
 
     def __repr__(self):
         properties = ['id_', 'vendor', 'model', 'tl_type', 'user_defined_name',
@@ -386,34 +236,6 @@ class DeviceInfo:
         info = info[:-len(delimiter)]
         info += ')'
         return info
-
-    @property
-    def id_(self):
-        return self._device_info.id_
-
-    @property
-    def vendor(self):
-        return self._device_info.vendor
-
-    @property
-    def model(self):
-        return self._device_info.model
-
-    @property
-    def tl_type(self):
-        return self._device_info.tl_type
-
-    @property
-    def user_defined_name(self):
-        return self._device_info.user_defined_name
-
-    @property
-    def serial_number(self):
-        return self._device_info.serial_number
-
-    @property
-    def version(self):
-        return self._device_info.version
 
 
 class _SignalHandler:
@@ -1036,7 +858,7 @@ class Component2DImage(ComponentBase):
             return 0
 
 
-class Buffer:
+class Buffer(Module):
     """
     Is provided by an :class:`ImageAcquire` object when you call its
     :meth:`~harvesters.core.ImageAcquirer.fetch_buffer` method. It provides
@@ -1045,19 +867,16 @@ class Buffer:
     Note that it will never be necessary to create this object by yourself
     in general.
     """
-    def __init__(self, *, buffer=None, node_map: Optional[NodeMap] = None,):
+    def __init__(self, *, module: Buffer_, parent: Module, node_map: Optional[NodeMap]):
         """
-        :param buffer:
+        :param module:
         :param node_map:
         """
-        assert buffer
-        assert node_map
+        assert module
 
-        super().__init__()
+        super().__init__(module, parent, node_map)
 
-        self._buffer = buffer
-        self._node_map = node_map
-        self._payload = self._build_payload(buffer=buffer, node_map=node_map)
+        self._payload = self._build_payload(buffer=module, node_map=node_map)
 
     def __enter__(self):
         return self
@@ -1076,7 +895,7 @@ class Buffer:
         :getter: Returns itself.
         :type: int
         """
-        return self._buffer.timestamp_ns
+        return self.module.timestamp_ns
 
     @property
     def timestamp(self) -> int:
@@ -1087,10 +906,10 @@ class Buffer:
         :type: int
         """
         try:
-            timestamp = self._buffer.timestamp_ns
+            timestamp = self.module.timestamp_ns
         except GenTL_GenericException:
             try:
-                timestamp = self._buffer.timestamp
+                timestamp = self.module.timestamp
             except GenTL_GenericException:
                 timestamp = 0
 
@@ -1108,10 +927,10 @@ class Buffer:
         frequency = 1000000000  # Hz
 
         try:
-            _ = self._buffer.timestamp_ns
+            _ = self.module.timestamp_ns
         except GenTL_GenericException:
             try:
-                frequency = self._buffer.parent.parent.timestamp_frequency
+                frequency = self.module.parent.parent.timestamp_frequency
             except GenTL_GenericException:
                 try:
                     frequency = self._node_map.GevTimestampTickFrequency.value
@@ -1128,7 +947,7 @@ class Buffer:
         :getter: Returns itself.
         :type: TODO
         """
-        return self._buffer.payload_type
+        return self.module.payload_type
 
     @property
     def payload(self):
@@ -1155,9 +974,9 @@ class Buffer:
 
         #
         if _is_logging_buffer_manipulation:
-            _logger.debug('queued: {0}'.format(_family_tree(self._buffer)))
+            _logger.debug('queued: {0}'.format(_family_tree(self.module)))
 
-        self._buffer.parent.queue_buffer(self._buffer)
+        self.module.parent.queue_buffer(self.module)
 
     @staticmethod
     def _build_payload(*, buffer=None, node_map: Optional[NodeMap] = None,):
@@ -1549,9 +1368,11 @@ class ImageAcquirer:
         for (ctor, destination, node_map, parent, source) in \
                 zip(ctors, destinations, node_maps, parents, sources):
             _parent = getattr(self, parent) if parent else None
+            if _parent:
+                _parent = _parent.module
 
             setattr(self, destination,
-                    ctor(module=source, node_map=node_map, parent=_parent))
+                    ctor(module=source, parent=_parent, node_map=node_map))
 
         if self._remote_device:
             assert self._remote_device.node_map
@@ -1961,8 +1782,8 @@ class ImageAcquirer:
                 node_map = None
 
             self._data_streams.append(
-                DataStream(module=_data_stream, node_map=node_map,
-                           parent=self._device))
+                DataStream(module=_data_stream, parent=self._device,
+                           node_map=node_map))
 
             event_token = self._data_streams[i].register_event(
                 EVENT_TYPE_LIST.EVENT_NEW_BUFFER)
@@ -2212,11 +2033,8 @@ class ImageAcquirer:
                                 queue.put(buffer)
                 self._emit_callbacks(self.Events.NEW_BUFFER_AVAILABLE)
 
-    def _update_chunk_data(self, buffer: Optional[Buffer] = None):
+    def _update_chunk_data(self, buffer: Buffer_):
         global _logger
-
-        if not buffer:
-            return
 
         try:
             if buffer.num_chunks == 0:
@@ -2227,19 +2045,17 @@ class ImageAcquirer:
             _logger.debug('contains chunk data: {0}'.format(
                 _family_tree(buffer)))
 
-            is_generic = False
             if buffer.tl_type not in self._specialized_tl_type:
-                is_generic = True
-
-            if is_generic:
                 try:
                     self._chunk_adapter.attach_buffer(
-                        buffer.raw_buffer, buffer.chunk_data_info_list)
+                        buffer.raw_buffer,
+                        buffer.chunk_data_info_list)
                 except GenTL_GenericException as e:
                     _logger.error(e, exc_info=True)
             else:
                 try:
-                    chunk_payload_size = buffer.delivered_chunk_payload_size
+                    chunk_payload_size = \
+                        buffer.delivered_chunk_payload_size
                     self._chunk_adapter.attach_buffer(
                         buffer.raw_buffer[:chunk_payload_size])
                 except GenTL_GenericException:
@@ -2249,7 +2065,8 @@ class ImageAcquirer:
                             buffer.raw_buffer[:size_filled])
                     except GenTL_GenericException:
                         try:
-                            self._chunk_adapter.attach_buffer(buffer.raw_buffer)
+                            self._chunk_adapter.attach_buffer(
+                                buffer.raw_buffer)
                         except GenTL_GenericException as e:
                             _logger.error(e, exc_info=True)
 
@@ -2345,8 +2162,8 @@ class ImageAcquirer:
         self._update_chunk_data(buffer=buffer)
 
         if not is_raw:
-            buffer = Buffer(
-                buffer=buffer, node_map=self.remote_device.node_map)
+            buffer = Buffer(module=buffer, parent=buffer.parent,
+                            node_map=self.remote_device.node_map)
 
         return buffer
 

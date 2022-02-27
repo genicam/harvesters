@@ -2210,8 +2210,6 @@ class ImageAcquirer:
                         else:
                             if queue:
                                 queue.put(buffer)
-                self._update_num_images_to_acquire()
-                self._update_statistics(buffer)
                 self._emit_callbacks(self.Events.NEW_BUFFER_AVAILABLE)
 
     def _update_chunk_data(self, buffer: Optional[Buffer] = None):
@@ -2308,6 +2306,8 @@ class ImageAcquirer:
                 continue
             else:
                 if manager.buffer.is_complete():
+                    self._update_num_images_to_acquire()
+                    self._update_statistics(manager.buffer)
                     buffer = manager.buffer
                     _logger.debug(
                         'fetched: {0} (#{1}); {2}'.format(
@@ -2343,13 +2343,10 @@ class ImageAcquirer:
             return None
 
         self._update_chunk_data(buffer=buffer)
-        self._update_statistics(buffer)
 
         if not is_raw:
             buffer = Buffer(
                 buffer=buffer, node_map=self.remote_device.node_map)
-
-        self._update_num_images_to_acquire()
 
         return buffer
 

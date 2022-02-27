@@ -136,7 +136,7 @@ class TestTutorials(TestHarvester):
         self.ia.start_acquisition(run_in_background=True)
 
         #
-        nr = 100
+        nr = 10
 
         # Run the image acquisition thread:
         threads = []

@@ -64,6 +64,7 @@ from genicam.gentl import Buffer as Buffer_
 # Local application/library specific imports
 from harvesters._private.core.port import ConcretePort
 from harvesters._private.core.statistics import Statistics
+from harvesters._private.core.helper.system import is_running_on_windows
 from harvesters.util.logging import get_logger
 from harvesters.util.pfnc import dict_by_names, dict_by_ints
 from harvesters.util.pfnc import Dictionary, _PixelFormat
@@ -1889,6 +1890,8 @@ class ImageAcquirer:
 
             elif location == 'file':
                 file_path_to_load = urlparse(url).path
+                if is_running_on_windows():
+                    file_path_to_load = re.sub(r'^/+', '', file_path_to_load)
 
             elif location == 'http' or location == 'https':
                 raise NotImplementedError(

@@ -36,6 +36,7 @@ from genicam.gentl import TimeoutException
 import numpy as np
 
 # Local application/library specific imports
+from harvesters._private.core.helper.system import is_running_on_windows
 from harvesters.test.base_harvester import TestHarvester, \
     TestHarvesterNoCleanUp
 from harvesters.test.base_harvester import get_cti_file_path
@@ -1044,6 +1045,16 @@ class TestUtility(unittest.TestCase):
             file_dict={file_name_pattern: bytes('-en', encoding='utf-8')}
         )
         self.assertEqual(data, result)
+
+    def test_issue_277(self):
+        if not is_running_on_windows():
+            return
+
+        prefix = 'file:///'
+        path = 'C:/ProgramData/GenICam/xml/cache/Optronis_Cyclone_V1_7_8.xml'
+        url = prefix + path
+        result = ImageAcquirer._retrieve_file_path(url=url)
+        self.assertEqual(path, result)
 
 
 if __name__ == '__main__':

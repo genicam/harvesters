@@ -490,6 +490,9 @@ class TestHarvesterCore(TestHarvester):
         )
 
     def test_issue_121(self):
+        if is_running_on_windows():
+            return
+
         #
         expected_file_path = '/Foo.xml'
 

@@ -118,15 +118,18 @@ def _deprecated(deprecated: object, alternative: object) -> None:
 
 class _Delegate:
     def __init__(self, source):
-        self._attributes = [f for f in dir(type(source)) if not f.startswith('_')]
+        self._source_object = source
+        self._attributes = [
+            f for f in dir(type(self._source_object)) if not f.startswith('_')]
 
     def __getattr__(self, attribute):
         if attribute in self._attributes:
-            if isinstance(getattr(type(self._module), attribute, None), property):
+            if isinstance(getattr(type(self._source_object), attribute, None),
+                          property):
                 return getattr(self._module, attribute)
             else:
                 def method(*args):
-                    return getattr(self._module, attribute)(*args)
+                    return getattr(self._source_object, attribute)(*args)
                 return method
         else:
             raise AttributeError

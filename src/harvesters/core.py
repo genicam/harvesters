@@ -2153,12 +2153,10 @@ class ImageAcquirer:
 
         return buffer
 
-    def _try_fetch_from_queue(self, *, is_raw: bool = False,
-                              cycle_s: float = None) -> Optional[Buffer]:
-        _cycle_s = cycle_s if cycle_s else 0.0001
+    def _try_fetch_from_queue(self, *, is_raw: bool = False) -> Optional[Buffer]:
         with MutexLocker(self.thread_image_acquisition):
             try:
-                buffer = self._queue.get(block=True, timeout=_cycle_s)
+                buffer = self._queue.get(block=False)
                 return self._finalize_fetching_process(buffer, is_raw)
             except Empty:
                 return None
@@ -2199,8 +2197,9 @@ class ImageAcquirer:
         while not buffer:
             if self.thread_image_acquisition and \
                     self.thread_image_acquisition.is_running():
-                buffer = self._try_fetch_from_queue(is_raw=is_raw,
-                                                    cycle_s=cycle_s)
+                buffer = self._try_fetch_from_queue(is_raw=is_raw)
+                if not buffer:
+                    time.sleep(cycle_s if cycle_s else 0.0001)
             else:
                 buffer = self._fetch(
                     manager=self._event_new_buffer_managers[0], timeout=timeout,

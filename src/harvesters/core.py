@@ -2019,7 +2019,7 @@ class ImageAcquirer:
 
         for manager in self._event_new_buffer_managers:
             buffer = self._fetch(manager=manager,
-                                 timeout=self._timeout_for_image_acquisition*2)
+                                 timeout=self._timeout_for_image_acquisition*2/1000)
             if buffer:
                 if self.buffer_handling_mode == 'OldestFirstOverwrite':
                     with MutexLocker(self.thread_image_acquisition):

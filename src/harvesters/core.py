@@ -1738,10 +1738,16 @@ class ImageAcquirer:
         client = value
         internal = float(self.timeout_on_internal_fetch_call / 1000)
         if isclose(client, internal):
-            _logger.warning("may cause timeout: {}".format(value))
+            _logger.warning(
+                "may cause timeout: " + f"{{" +
+                "\"internal\":{},\"client\":{}".format(internal, client) +
+                f"}}")
         else:
             if client < internal:
-                _logger.warning("may cause timeout: {}".format(value))
+                _logger.warning(
+                    "may cause timeout: " + f"{{" +
+                    "\"internal\":{},\"client\":{}".format(internal, client) +
+                    f"}}")
         self._timeout_on_client_fetch_call = value
 
     @property
@@ -1761,10 +1767,16 @@ class ImageAcquirer:
         internal = float(value)
         client = self.timeout_on_client_fetch_call * 1000.
         if isclose(internal, client):
-            _logger.warning("may cause timeout: {}".format(value))
+            _logger.warning(
+                "may cause timeout: " + f"{{" +
+                "\"internal\":{},\"client\":{}".format(internal, client) +
+                f"}}")
         else:
             if internal > client:
-                _logger.warning("may cause timeout: {}".format(value))
+                _logger.warning(
+                    "may cause timeout: " + f"{{" +
+                    "\"internal\":{},\"client\":{}".format(internal, client) +
+                    f"}}")
         self._timeout_on_internal_fetch_call = value
 
     @property

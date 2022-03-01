@@ -1017,8 +1017,17 @@ class Buffer(Module):
 
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART:
             payload = PayloadMultiPart(buffer=buffer, node_map=node_map)
+
         else:
-            payload = None
+            info = json.dumps({"payload type": "{}".format(p_type)})
+            _logger.warning(
+                "unsupported; trying to assume it as an image: {}".format(
+                    info))
+            try:
+                payload = PayloadImage(buffer=buffer, node_map=node_map)
+            except (GenTL_GenericException, GenApi_GenericException):
+                _logger.error("remedy failed: {}".format(info))
+                payload = None
 
         return payload
 

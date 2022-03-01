@@ -1408,7 +1408,7 @@ class ImageAcquirer:
 
         self._num_images_to_acquire = 0
         self._timeout_on_internal_fetch_call = 1  # ms
-        self._timeout_on_client_fetch_call = 0.001  # s
+        self._timeout_on_client_fetch_call = 0.01  # s
         self._statistics = Statistics()
         self._announced_buffers = []
 
@@ -1735,6 +1735,8 @@ class ImageAcquirer:
 
     @timeout_on_client_fetch_call.setter
     def timeout_on_client_fetch_call(self, value: float):
+        if value <= self.timeout_on_internal_fetch_call:
+            raise ValueError("it must be > timeout_on_internal_fetch_call")
         self._timeout_on_client_fetch_call = value
 
     @property
@@ -2148,7 +2150,8 @@ class ImageAcquirer:
                 elapsed = time.time() - base
                 if elapsed > timeout_on_client_fetch_call:
                     _logger.debug(
-                        'timeout: elapsed {0} sec.'.format(timeout_on_client_fetch_call))
+                        'timeout: elapsed {0} sec.'.format(
+                            timeout_on_client_fetch_call))
                     if throw_except:
                         raise TimeoutException
                     else:
@@ -2183,12 +2186,10 @@ class ImageAcquirer:
 
         return buffer
 
-    def _try_fetch_from_queue(self, *, is_raw: bool = False,
-                              cycle_s: float = None) -> Optional[Buffer]:
-        _cycle_s = cycle_s if cycle_s else 0.0001
+    def _try_fetch_from_queue(self, *, is_raw: bool = False) -> Optional[Buffer]:
         with MutexLocker(self.thread_image_acquisition):
             try:
-                buffer = self._queue.get(block=True, timeout=_cycle_s)
+                buffer = self._queue.get(block=False)
                 return self._finalize_fetching_process(buffer, is_raw)
             except Empty:
                 return None
@@ -2229,8 +2230,9 @@ class ImageAcquirer:
         while not buffer:
             if self.thread_image_acquisition and \
                     self.thread_image_acquisition.is_running():
-                buffer = self._try_fetch_from_queue(is_raw=is_raw,
-                                                    cycle_s=cycle_s)
+                buffer = self._try_fetch_from_queue(is_raw=is_raw)
+                if not buffer:
+                    time.sleep(cycle_s if cycle_s else 0.0001)
             else:
                 buffer = self._fetch(
                     manager=self._event_new_buffer_managers[0],

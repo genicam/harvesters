@@ -834,6 +834,41 @@ class TestHarvesterCore(TestHarvester):
             _ = self.harvester.create_image_acquirer(
                 0, file_dict={r'\.xml$': bytes('<', encoding='utf-8')})
 
+    def test_fix_for_bfd47ca_1(self):
+        # Create an image acquirer:
+        self.ia = self.harvester.create_image_acquirer(0)
+
+        self.ia.timeout_on_internal_fetch_call = 1
+        internal = self.ia.timeout_on_internal_fetch_call
+
+        self._logger.info("larger")
+        value = internal + 1
+        value /= 1000
+        self.ia.timeout_on_client_fetch_call = value
+
+        self._logger.info("equal")
+        value = 0.001
+        self.ia.timeout_on_client_fetch_call = value
+
+        self._logger.info("smaller")
+        value = internal * 1000
+        value -= 1
+        value /= 1000
+        value /= 1000
+        self.ia.timeout_on_client_fetch_call = value
+
+    def test_fix_for_bfd47ca_2(self):
+        # Create an image acquirer:
+        self.ia = self.harvester.create_image_acquirer(0)
+
+        self.ia.timeout_on_client_fetch_call = 2.
+        self._logger.info("larger")
+        self.ia.timeout_on_internal_fetch_call = 2001
+        self._logger.info("equal")
+        self.ia.timeout_on_internal_fetch_call = 2000
+        self._logger.info("smaller")
+        self.ia.timeout_on_internal_fetch_call = 1000
+
 
 class _TestIssue81(threading.Thread):
     def __init__(self, message_queue=None, cti_file_path=None):

@@ -25,7 +25,7 @@ from datetime import datetime
 from enum import IntEnum
 import io
 from logging import Logger
-from math import ceil
+from math import ceil, isclose
 import ntpath
 import os
 import pathlib
@@ -1735,8 +1735,13 @@ class ImageAcquirer:
 
     @timeout_on_client_fetch_call.setter
     def timeout_on_client_fetch_call(self, value: float):
-        if value <= self.timeout_on_internal_fetch_call:
-            raise ValueError("it must be > timeout_on_internal_fetch_call")
+        client = value
+        internal = float(self.timeout_on_internal_fetch_call / 1000)
+        if isclose(client, internal):
+            _logger.warning("may cause timeout: {}".format(value))
+        else:
+            if client < internal:
+                _logger.warning("may cause timeout: {}".format(value))
         self._timeout_on_client_fetch_call = value
 
     @property
@@ -1753,6 +1758,13 @@ class ImageAcquirer:
 
     @timeout_on_internal_fetch_call.setter
     def timeout_on_internal_fetch_call(self, value):
+        internal = float(value)
+        client = self.timeout_on_client_fetch_call * 1000.
+        if isclose(internal, client):
+            _logger.warning("may cause timeout: {}".format(value))
+        else:
+            if internal > client:
+                _logger.warning("may cause timeout: {}".format(value))
         self._timeout_on_internal_fetch_call = value
 
     @property

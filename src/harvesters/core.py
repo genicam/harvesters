@@ -24,6 +24,7 @@ from ctypes import CDLL
 from datetime import datetime
 from enum import IntEnum
 import io
+import json
 from logging import Logger
 from math import ceil, isclose
 import ntpath
@@ -1737,17 +1738,12 @@ class ImageAcquirer:
     def timeout_on_client_fetch_call(self, value: float):
         client = value
         internal = float(self.timeout_on_internal_fetch_call / 1000)
+        info = json.dumps({"internal": internal, "client": client})
         if isclose(client, internal):
-            _logger.warning(
-                "may cause timeout: " + f"{{" +
-                "\"internal\":{},\"client\":{}".format(internal, client) +
-                f"}}")
+            _logger.warning("may cause timeout: {}".format(info))
         else:
             if client < internal:
-                _logger.warning(
-                    "may cause timeout: " + f"{{" +
-                    "\"internal\":{},\"client\":{}".format(internal, client) +
-                    f"}}")
+                _logger.warning("may cause timeout: {}".format(info))
         self._timeout_on_client_fetch_call = value
 
     @property
@@ -1766,17 +1762,12 @@ class ImageAcquirer:
     def timeout_on_internal_fetch_call(self, value):
         internal = float(value)
         client = self.timeout_on_client_fetch_call * 1000.
+        info = json.dumps({"internal": internal, "client": client})
         if isclose(internal, client):
-            _logger.warning(
-                "may cause timeout: " + f"{{" +
-                "\"internal\":{},\"client\":{}".format(internal, client) +
-                f"}}")
+            _logger.warning("may cause timeout: {}".format(info))
         else:
             if internal > client:
-                _logger.warning(
-                    "may cause timeout: " + f"{{" +
-                    "\"internal\":{},\"client\":{}".format(internal, client) +
-                    f"}}")
+                _logger.warning("may cause timeout: {}".format(info))
         self._timeout_on_internal_fetch_call = value
 
     @property

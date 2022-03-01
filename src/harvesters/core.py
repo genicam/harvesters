@@ -72,7 +72,7 @@ from harvesters.util.pfnc import Dictionary, _PixelFormat
 from harvesters.util.pfnc import component_2d_formats
 
 
-_is_logging_buffer_manipulation = True if 'HARVESTERS_LOG_BUFFER_MANIPULATION' in os.environ else False
+_is_logging_buffer = True if 'HARVESTERS_LOG_BUFFER' in os.environ else False
 _sleep_duration_default = 0.000001  # s
 
 
@@ -978,7 +978,7 @@ class Buffer(Module):
         global _logger
 
         #
-        if _is_logging_buffer_manipulation:
+        if _is_logging_buffer:
             _logger.debug('queued: {0}'.format(_family_tree(self.module)))
 
         self.module.parent.queue_buffer(self.module)
@@ -2090,39 +2090,47 @@ class ImageAcquirer:
         global _logger
 
         try:
-            if buffer.num_chunks == 0:
+            if not buffer.is_containing_chunk_data():
                 return
-        except GenTL_GenericException as e:
-            return
-        else:
-            if _is_logging_buffer_manipulation:
-                _logger.debug('contains chunk data: {0}'.format(
-                    _family_tree(buffer)))
-
-            if buffer.tl_type not in self._specialized_tl_type:
-                try:
-                    self._chunk_adapter.attach_buffer(
-                        buffer.raw_buffer,
-                        buffer.chunk_data_info_list)
-                except GenTL_GenericException as e:
-                    _logger.error(e, exc_info=True)
+        except GenTL_GenericException:
+            try:
+                if buffer.num_chunks == 0:
+                    return
+            except GenTL_GenericException:
+                if _is_logging_buffer:
+                    _logger.warning(
+                        'no way to check chunk availability: {0}'.format(
+                            _family_tree(buffer)))
+                    return
             else:
+                if _is_logging_buffer:
+                    _logger.debug('contains chunk data: {0}'.format(
+                        _family_tree(buffer)))
+
+        if buffer.tl_type not in self._specialized_tl_type:
+            try:
+                self._chunk_adapter.attach_buffer(
+                    buffer.raw_buffer,
+                    buffer.chunk_data_info_list)
+            except GenTL_GenericException as e:
+                _logger.error(e, exc_info=True)
+        else:
+            try:
+                chunk_payload_size = \
+                    buffer.delivered_chunk_payload_size
+                self._chunk_adapter.attach_buffer(
+                    buffer.raw_buffer[:chunk_payload_size])
+            except GenTL_GenericException:
                 try:
-                    chunk_payload_size = \
-                        buffer.delivered_chunk_payload_size
+                    size_filled = buffer.size_filled
                     self._chunk_adapter.attach_buffer(
-                        buffer.raw_buffer[:chunk_payload_size])
+                        buffer.raw_buffer[:size_filled])
                 except GenTL_GenericException:
                     try:
-                        size_filled = buffer.size_filled
                         self._chunk_adapter.attach_buffer(
-                            buffer.raw_buffer[:size_filled])
-                    except GenTL_GenericException:
-                        try:
-                            self._chunk_adapter.attach_buffer(
-                                buffer.raw_buffer)
-                        except GenTL_GenericException as e:
-                            _logger.error(e, exc_info=True)
+                            buffer.raw_buffer)
+                    except GenTL_GenericException as e:
+                        _logger.error(e, exc_info=True)
 
     def try_fetch(self, *, timeout: float = 0,
                   is_raw: bool = False) -> Optional[Buffer]:
@@ -2182,7 +2190,7 @@ class ImageAcquirer:
                     self._update_num_images_to_acquire()
                     self._update_statistics(manager.buffer)
                     buffer = manager.buffer
-                    if _is_logging_buffer_manipulation:
+                    if _is_logging_buffer:
                         _logger.debug(
                             'fetched: {0} (#{1}); {2}'.format(
                                 manager.buffer.context,

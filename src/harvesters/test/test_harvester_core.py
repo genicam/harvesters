@@ -247,6 +247,7 @@ class TestHarvesterCore(TestHarvester):
 
         timeout = 3  # sec
 
+        self._logger.info("you will see timeout but that's intentional.")
         with self.assertRaises(TimeoutException):
             # Try to fetch a buffer but the IA will immediately raise
             # TimeoutException because it's not started image acquisition:
@@ -259,6 +260,7 @@ class TestHarvesterCore(TestHarvester):
         # We're ready to start image acquisition:
         ia.start_acquisition()
 
+        self._logger.info("you will see timeout but that's intentional.")
         with self.assertRaises(TimeoutException):
             # Try to fetch a buffer but the IA will raise TimeoutException
             # because we've not triggered the device so far:
@@ -299,6 +301,7 @@ class TestHarvesterCore(TestHarvester):
 
         # Try to fetch a buffer but None will be returned
         # because we've not triggered the device so far:
+        self._logger.info("you will see timeout but that's intentional.")
         buffer = ia.try_fetch(timeout=timeout)
         self.assertIsNone(buffer)
 
@@ -353,6 +356,8 @@ class TestHarvesterCore(TestHarvester):
                 self.ia.num_filled_buffers_to_hold = num_images
 
                 # Start image acquisition:
+                self._logger.info(
+                    "you will see timeout but that's intentional.")
                 self.ia.start_acquisition(run_in_background=True)
 
                 # Run a test:
@@ -371,6 +376,7 @@ class TestHarvesterCore(TestHarvester):
 
             # Trigger it:
             self.generate_software_trigger(sleep_s=self.sleep_duration)
+            self._logger.info("triggered.")
 
             # It must be incremented:
             self.assertEqual(
@@ -380,6 +386,7 @@ class TestHarvesterCore(TestHarvester):
         # Trigger it again, we know it's redundant compared to the
         # maximum capacity:
         self.generate_software_trigger(sleep_s=self.sleep_duration)
+        self._logger.info("triggered.")
 
         # Make sure num_holding_filled_buffers does not exceed
         # num_filled_buffers_to_hold:
@@ -576,6 +583,7 @@ class TestHarvesterCore(TestHarvester):
             self.assertEqual(0, len(self.on_new_buffer_available.buffers))
 
             # Run a sub-test:
+            self._logger.info("you will see timeout but that's intentional.")
             test()
 
             # Then stop image acquisition:
@@ -616,11 +624,13 @@ class TestHarvesterCore(TestHarvester):
 
     def _test_141_body(self):
         # Start image acquisition:
+        self._logger.info("going to start acquisition in the background.")
         self.ia.start_acquisition(run_in_background=True)
 
         # Trigger the target device:
         for _ in range(self.num_images):
             self.generate_software_trigger(sleep_s=self.sleep_duration)
+            self._logger.info("triggered.")
 
     def test_issue_150(self):
         # Create an image acquirer:

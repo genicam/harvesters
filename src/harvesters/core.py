@@ -2095,8 +2095,9 @@ class ImageAcquirer:
         except GenTL_GenericException as e:
             return
         else:
-            _logger.debug('contains chunk data: {0}'.format(
-                _family_tree(buffer)))
+            if _is_logging_buffer_manipulation:
+                _logger.debug('contains chunk data: {0}'.format(
+                    _family_tree(buffer)))
 
             if buffer.tl_type not in self._specialized_tl_type:
                 try:

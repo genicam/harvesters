@@ -1407,7 +1407,8 @@ class ImageAcquirer:
             _logger.debug('created: {0}'.format(self._sigint_handler))
 
         self._num_images_to_acquire = 0
-        self._timeout_for_image_acquisition = 1  # ms
+        self._timeout_on_internal_fetch_call = 1  # ms
+        self._timeout_on_client_fetch_call = 0.001  # s
         self._statistics = Statistics()
         self._announced_buffers = []
 
@@ -1721,19 +1722,47 @@ class ImageAcquirer:
             return True
 
     @property
-    def timeout_for_image_acquisition(self) -> int:
+    def timeout_on_client_fetch_call(self) -> float:
         """
-        The unit is [ms].
+        It is used to define the timeout duration on a single fetch
+        method calL. The unit is [s].
+
+        :getter:
+        :setter:
+        :type: float
+        """
+        return self._timeout_on_client_fetch_call
+
+    @timeout_on_client_fetch_call.setter
+    def timeout_on_client_fetch_call(self, value: float):
+        self._timeout_on_client_fetch_call = value
+
+    @property
+    def timeout_on_internal_fetch_call(self) -> int:
+        """
+        It is used to define the timeout duration on an internal single GenTL
+        fetch calL. The unit is [ms].
 
         :getter:
         :setter:
         :type: int
         """
-        return self._timeout_for_image_acquisition
+        return self._timeout_on_internal_fetch_call
+
+    @timeout_on_internal_fetch_call.setter
+    def timeout_on_internal_fetch_call(self, value):
+        self._timeout_on_internal_fetch_call = value
+
+    @property
+    def timeout_for_image_acquisition(self) -> int:
+        """
+        Deprecated: Use timeout_on_internal_fetch_call instead.
+        """
+        return self._timeout_on_internal_fetch_call
 
     @timeout_for_image_acquisition.setter
     def timeout_for_image_acquisition(self, ms):
-        self._timeout_for_image_acquisition = ms
+        self._timeout_on_internal_fetch_call = ms
 
     @property
     def thread_image_acquisition(self) -> ThreadBase:
@@ -2019,7 +2048,7 @@ class ImageAcquirer:
 
         for manager in self._event_new_buffer_managers:
             buffer = self._fetch(manager=manager,
-                                 timeout=self._timeout_for_image_acquisition*2/1000)
+                                 timeout_on_client_fetch_call=self.timeout_on_client_fetch_call)
             if buffer:
                 if self.buffer_handling_mode == 'OldestFirstOverwrite':
                     with MutexLocker(self.thread_image_acquisition):
@@ -2095,37 +2124,38 @@ class ImageAcquirer:
         :rtype: Optional[Buffer]
         """
         buffer = self._fetch(manager=self._event_new_buffer_managers[0],
-                             timeout=timeout, throw_except=False)
+                             timeout_on_client_fetch_call=timeout,
+                             throw_except=False)
 
         if buffer:
             buffer = self._finalize_fetching_process(buffer, is_raw)
             self._emit_callbacks(self.Events.NEW_BUFFER_AVAILABLE)
         return buffer
 
-    def _fetch(self, *, manager: EventManagerNewBuffer, timeout: float = 0,
+    def _fetch(self, *, manager: EventManagerNewBuffer,
+               timeout_on_client_fetch_call: float = 0,
                throw_except: bool = False) -> Optional[Buffer_]:
         global _logger
 
         assert manager
 
         buffer = None
-        watch_timeout = True if timeout > 0 else False
+        watch_timeout = True if timeout_on_client_fetch_call > 0 else False
         base = time.time()
 
         while not buffer:
             if watch_timeout:
                 elapsed = time.time() - base
-                if elapsed > timeout:
+                if elapsed > timeout_on_client_fetch_call:
                     _logger.debug(
-                        'timeout: elapsed {0} sec.'.format(timeout))
+                        'timeout: elapsed {0} sec.'.format(timeout_on_client_fetch_call))
                     if throw_except:
                         raise TimeoutException
                     else:
                         return None
 
             try:
-                manager.update_event_data(
-                    self._timeout_for_image_acquisition)
+                manager.update_event_data(self.timeout_on_internal_fetch_call)
             except TimeoutException:
                 continue
             else:
@@ -2203,8 +2233,8 @@ class ImageAcquirer:
                                                     cycle_s=cycle_s)
             else:
                 buffer = self._fetch(
-                    manager=self._event_new_buffer_managers[0], timeout=timeout,
-                    throw_except=True)
+                    manager=self._event_new_buffer_managers[0],
+                    timeout_on_client_fetch_call=timeout, throw_except=True)
                 if buffer:
                     buffer = self._finalize_fetching_process(buffer, is_raw)
                     self._emit_callbacks(self.Events.NEW_BUFFER_AVAILABLE)

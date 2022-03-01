@@ -2173,9 +2173,10 @@ class ImageAcquirer:
             if watch_timeout:
                 elapsed = time.time() - base
                 if elapsed > timeout_on_client_fetch_call:
-                    _logger.debug(
-                        'timeout: elapsed {0} sec.'.format(
-                            timeout_on_client_fetch_call))
+                    if _is_logging_buffer:
+                        _logger.debug(
+                            'timeout: elapsed {0} sec.'.format(
+                                timeout_on_client_fetch_call))
                     if throw_except:
                         raise TimeoutException
                     else:

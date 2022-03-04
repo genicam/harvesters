@@ -47,6 +47,8 @@ import tempfile
 # Related third party imports
 import numpy
 
+from genicam import __version__ as genicam_version
+
 from genicam.genapi import NodeMap
 from genicam.genapi import GenericException as GenApi_GenericException
 from genicam.genapi import LogicalErrorException
@@ -2118,8 +2120,15 @@ class ImageAcquirer:
             try:
                 chunk_payload_size = \
                     buffer.delivered_chunk_payload_size
-                self._chunk_adapter.attach_buffer(
-                    buffer.raw_buffer[:chunk_payload_size])
+                split_genicam_version = genicam_version.split('.')
+                if (int(split_genicam_version[0] <= 1 and
+                    int(split_genicam_version[1] < 2):
+                        
+                    self._chunk_adapter.attach_buffer(
+                        buffer.raw_buffer[:chunk_payload_size])
+                else:
+                    self._chunk_adapter.attach_buffer(
+                        buffer.raw_buffer, chunk_payload_size)
             except GenTL_GenericException:
                 try:
                     size_filled = buffer.size_filled

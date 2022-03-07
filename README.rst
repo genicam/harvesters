@@ -62,27 +62,6 @@ https://github.com/genicam/harvesters_gui
     :alt: Image data visualizer
 
 
-*************
-Announcements
-*************
-
-- **Version 1.3.2**: Resolves issues `#207 <https://github.com/genicam/harvesters/issues/207>`_, `#242 <https://github.com/genicam/harvesters/issues/242>`_, `#243 <https://github.com/genicam/harvesters/issues/243>`_, and `#244 <https://github.com/genicam/harvesters/issues/244>`_.
-- **Version 1.3.1**: Resolves issue `#238 <https://github.com/genicam/harvesters/issues/238>`_.
-- **Version 1.3**: Resolves issue `#237 <https://github.com/genicam/harvesters/issues/237>`_.
-- **Version 1.2.9**: Resolves issues `#150 <https://github.com/genicam/harvesters/issues/150>`_, `#195 <https://github.com/genicam/harvesters/issues/195>`_, `#198 <https://github.com/genicam/harvesters/issues/198>`_, `#204 <https://github.com/genicam/harvesters/issues/204>`_, `#214 <https://github.com/genicam/harvesters/issues/214>`_, `#215 <https://github.com/genicam/harvesters/issues/215>`_, `#219 <https://github.com/genicam/harvesters/issues/219>`_, `#222 <https://github.com/genicam/harvesters/issues/222>`_, and `#236 <https://github.com/genicam/harvesters/issues/236>`_.
-- **Version 1.2.8**: Resolves issue `#191 <https://github.com/genicam/harvesters/issues/191>`_.
-- **Version 1.2.7**: Resolves issues `#167 <https://github.com/genicam/harvesters/issues/167>`_, `#181 <https://github.com/genicam/harvesters/issues/181>`_, `#183 <https://github.com/genicam/harvesters/issues/183>`_, `#184 <https://github.com/genicam/harvesters/issues/184>`_, `#185 <https://github.com/genicam/harvesters/issues/185>`_, and `#188 <https://github.com/genicam/harvesters/issues/188>`_.
-- **Version 1.2.6**: Reverted the change made for version 1.2.5.
-- **Version 1.2.5**: Resolves issue `#180 <https://github.com/genicam/harvesters/issues/180>`_.
-- **Version 1.2.4**: Resolves issues `#125 <https://github.com/genicam/harvesters/issues/125>`_, `#169 <https://github.com/genicam/harvesters/issues/169>`_, `#172 <https://github.com/genicam/harvesters/issues/172>`_, `#175 <https://github.com/genicam/harvesters/issues/175>`_, and `#178 <https://github.com/genicam/harvesters/issues/178>`_.
-- **Version 1.2.3**: Resolves issue `#165 <https://github.com/genicam/harvesters/issues/165>`_.
-- **Version 1.2.2**: Resolves issue `#146 <https://github.com/genicam/harvesters/issues/146>`_; please let me know if it breaks something on your side. I will revert the change as soon as possible.
-- **Version 1.2.1**: Resolves issues `#145 <https://github.com/genicam/harvesters/issues/145>`_, `#155 <https://github.com/genicam/harvesters/issues/155>`_, `#157 <https://github.com/genicam/harvesters/issues/157>`_, and `#159 <https://github.com/genicam/harvesters/issues/159>`_.
-- **Version 1.2.0**: Resolves issues `#127 <https://github.com/genicam/harvesters/issues/127>`_, `#131 <https://github.com/genicam/harvesters/issues/131>`_, `#141 <https://github.com/genicam/harvesters/issues/141>`_, and `#142 <https://github.com/genicam/harvesters/issues/142>`_. The fix for ticket #131 improves the performance of both stability and capable acquisition rate of the image acquisition.
-
-Other older releases should be found at `Milestones page <https://github.com/genicam/harvesters/milestones>`_ on GitHub.
-
-
 ################
 Online Resources
 ################
@@ -195,16 +174,14 @@ In this section, we will learn how to instruct procedures to get Harvester work.
 System Requirements
 *******************
 
-The following software modules are required to get Harvester working:
-
-* Python >= 3.4
+Harvester itself works with CPython >= 3.4 but the reality is defined by the ``genicam`` package. If the target CPython is not supported by the ``genicam`` package then Harvester will not be available.
 
 In addition, please note that we don't supported Cygwin GCC on Windows. This restriction is coming from a fact that the GenICam reference implementation has not supported it.
 
 In addition, you will need the following items to let Harvester make something meaningful:
 
 * GenTL Producers
-* GenICam compliant machine vision cameras
+* GenICam compliant machine vision cameras/devices
 
 
 *****************
@@ -795,4 +772,4 @@ The initial idea about Harvester suddenly came up to a software engineer, Kazuna
 
 The following individuals have directly or indirectly contributed to the development activity of Harvester or encouraged the developers by their thoughtful warm words; they are our respectable wonderful colleagues:
 
-Rod Barman, Stefan Battmer, David Beek, Jan Becvar, David Bernecker, Chris Beynon, Eric Bourbonnais, Benedikt Busch, George Chamberlain, Thomas Detjen, Friedrich Dierks, Dana Diezemann, Emile Dodin, Reynold Dodson, Sascha Dorenbeck, Jozsa Elod, Erik Eloff, Katie Ensign, Andreas Ertl, James Falconer, Werner Feith, Maciej Gara, Andreas Gau, Sebastien Gendreau, Francois Gobeil, Werner Goeman, Jean-Paul Goglio, Markus Grebing, Eric Gross, Ioannis Hadjicharalambous, Uwe Hagmaier, Tim Handschack, Christopher Hartmann, Reinhard Heister, Gerhard Helfrich, Jochem Herrmann, Heiko Hirschmueller, Tom Hopfner, David Hoese, Karsten Ingeman Christensen, Severi Jaaskelainen, Mattias Johannesson, Mark Jones, Mattias Josefsson, Martin Kersting, Stephan Kieneke, Tom Kirchner, Lutz Koschorreck, Frank Krehl, Maarten Kuijk, Max Larin, Ralf Lay, Min Liu, Sergey Loginonvskikh, Thomas Lueck, Alain Marchand, Rocco Matano, Masahide Matsubara, Stephane Maurice, Robert McCurrach, Mike Miethig, Thies Moeller, Roman Moie, Katsura Muramatsu, Marcel Naggatz, Hartmut Nebelung, Damian Nesbitt, Quang Nhan Nguyen, Klaus-Henning Noffz, Neerav Patel, Jan Pech, Merlin Plock, Joerg Preckwinkel, Benjamin Pussacq, Dave Reaves, Thomas Reuter, Gordon Rice, Andreas Rittinger, Ryan Robe, Nicolas P. Rougier, Felix Ruess, Matthias Schaffland, Michael Schmidt, Jan Scholze, Martin Schwarzbauer, Rupert Stelz, Madhura Suresh, Chendra Hadi Suryanto, Andrew Wei Chuen Tan, Timo Teifel, Albert Theuwissen, Laval Tremblay, Tim Vlaar, Silvio Voitzsch, Stefan Von Weihe, Frederik Voncken, Roman Wagner, Ansger Waschki, Anne Wendel, Michael Williamson, Jean-Michel Wintgens, Manfred Wuetschner, Jang Xu, Christoph Zierl, Sebastian Yap, and Juraj Zopp
+Rod Barman, Stefan Battmer, David Beek, Jan Becvar, David Bernecker, Chris Beynon, Eric Bourbonnais, Benedikt Busch, George Chamberlain, Thomas Detjen, Friedrich Dierks, Dana Diezemann, Emile Dodin, Reynold Dodson, Sascha Dorenbeck, Jozsa Elod, Erik Eloff, Katie Ensign, Andreas Ertl, James Falconer, Werner Feith, Maciej Gara, Andreas Gau, Sebastien Gendreau, Francois Gobeil, Werner Goeman, Jean-Paul Goglio, Markus Grebing, Eric Gross, Ioannis Hadjicharalambous, Uwe Hagmaier, Tim Handschack, Christopher Hartmann, Reinhard Heister, Gerhard Helfrich, Jochem Herrmann, Heiko Hirschmueller, Tom Hopfner, David Hoese, Karsten Ingeman Christensen, Severi Jaaskelainen, Alfred Johannesson, Mattias Johannesson, Mark Jones, Mattias Josefsson, Martin Kersting, Stephan Kieneke, Tom Kirchner, Lutz Koschorreck, Frank Krehl, Maarten Kuijk, Max Larin, Ralf Lay, Min Liu, Sergey Loginonvskikh, Thomas Lueck, Alain Marchand, Rocco Matano, Masahide Matsubara, Stephane Maurice, Robert McCurrach, Mike Miethig, Thies Moeller, Roman Moie, Katsura Muramatsu, Marcel Naggatz, Hartmut Nebelung, Damian Nesbitt, Quang Nhan Nguyen, Klaus-Henning Noffz, Neerav Patel, Jan Pech, Merlin Plock, Joerg Preckwinkel, Benjamin Pussacq, Dave Reaves, Thomas Reuter, Gordon Rice, Andreas Rittinger, Ryan Robe, Nicolas P. Rougier, Felix Ruess, Matthias Schaffland, Michael Schmidt, Jan Scholze, Martin Schwarzbauer, Rupert Stelz, Madhura Suresh, Chendra Hadi Suryanto, Andrew Wei Chuen Tan, Timo Teifel, Albert Theuwissen, Laval Tremblay, Tim Vlaar, Silvio Voitzsch, Stefan Von Weihe, Frederik Voncken, Roman Wagner, Ansger Waschki, Anne Wendel, Michael Williamson, Jean-Michel Wintgens, Manfred Wuetschner, Jang Xu, Christoph Zierl, Sebastian Yap, and Juraj Zopp

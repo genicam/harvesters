@@ -633,6 +633,9 @@ class TestHarvesterCore(TestHarvester):
             self._logger.info("triggered.")
 
     def test_issue_150(self):
+        if not self.is_running_with_default_target():
+            return
+
         # Create an image acquirer:
         self.ia = self.harvester.create_image_acquirer(0)
 

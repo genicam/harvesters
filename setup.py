@@ -77,7 +77,7 @@ setuptools.setup(
     download_url='https://pypi.org/project/harvesters/',
     # A list of required Python modules:
     install_requires=[
-        'genicam<1.2',
+        'genicam>=1.2',
         'numpy'
     ],
     #

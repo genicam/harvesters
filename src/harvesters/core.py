@@ -2125,19 +2125,16 @@ class ImageAcquirer:
                 _logger.error(e, exc_info=True)
         else:
             try:
-                chunk_payload_size = \
-                    buffer.delivered_chunk_payload_size
                 self._chunk_adapter.attach_buffer(
-                    buffer.raw_buffer[:chunk_payload_size])
+                    buffer.raw_buffer, buffer.delivered_chunk_payload_size)
             except GenTL_GenericException:
                 try:
-                    size_filled = buffer.size_filled
                     self._chunk_adapter.attach_buffer(
-                        buffer.raw_buffer[:size_filled])
+                        buffer.raw_buffer, buffer.size_filled)
                 except GenTL_GenericException:
                     try:
                         self._chunk_adapter.attach_buffer(
-                            buffer.raw_buffer)
+                            buffer.raw_buffer, len(buffer.raw_buffer))
                     except GenTL_GenericException as e:
                         _logger.error(e, exc_info=True)
 

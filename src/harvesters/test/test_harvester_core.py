@@ -872,6 +872,26 @@ class TestHarvesterCore(TestHarvester):
         self._logger.info("smaller")
         self.ia.timeout_on_internal_fetch_call = 1000
 
+    def test_manual_chunk_update(self):
+        # Create an image acquirer:
+        self.ia = self.harvester.create_image_acquirer(
+            0, auto_chunk_data_update=False)
+
+        # Then start it:
+        self.ia.start_acquisition()
+
+        for i in range(32):
+            # Fetch a buffer to make sure it's working:
+            with self.ia.fetch_buffer() as buffer:
+                self._logger.info('going to update chunk data'.format(buffer))
+                buffer.update_chunk_data()
+                self._logger.info('did it update?')
+
+        # Then stop image acquisition:
+        self.ia.stop_acquisition()
+
+        # And destroy the ImageAcquirer:
+        self.ia.destroy()
 
 class _TestIssue81(threading.Thread):
     def __init__(self, message_queue=None, cti_file_path=None):

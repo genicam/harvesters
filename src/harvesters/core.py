@@ -19,6 +19,7 @@
 
 
 # Standard library imports
+from __future__ import annotations
 from collections.abc import Iterable
 from ctypes import CDLL
 from datetime import datetime
@@ -872,16 +873,15 @@ class Buffer(Module):
     Note that it will never be necessary to create this object by yourself
     in general.
     """
-    def __init__(self, *, module: Buffer_, parent: Module, node_map: Optional[NodeMap]):
+    def __init__(self, *, module: Buffer_, parent: Module, node_map: Optional[NodeMap], acquire: Optional[ImageAcquirer]):
         """
         :param module:
         :param node_map:
         """
         assert module
-
         super().__init__(module, parent, node_map)
-
         self._payload = self._build_payload(buffer=module, node_map=node_map)
+        self._acquire = acquire
 
     def __enter__(self):
         return self
@@ -1030,6 +1030,9 @@ class Buffer(Module):
                 payload = None
 
         return payload
+
+    def update_chunk_data(self):
+        self._acquire._update_chunk_data(self.module)
 
 
 class PayloadBase:
@@ -1323,7 +1326,8 @@ class ImageAcquirer:
             sleep_duration: float = _sleep_duration_default,
             file_path: Optional[str] = None,
             file_dict: Dict[str, bytes] = None,
-            do_clean_up: bool = True):
+            do_clean_up: bool = True,
+            update_chunk_automatically=True):
         """
 
         :param device:
@@ -1341,6 +1345,8 @@ class ImageAcquirer:
 
         self._file_dict = file_dict
         self._do_clean_up = do_clean_up
+        self._update_chunk_automatically = update_chunk_automatically
+        self._has_attached_chunk = False
 
         interface = device.parent
         system = interface.parent
@@ -2047,6 +2053,7 @@ class ImageAcquirer:
                 ds.start_acquisition(
                     ACQ_START_FLAGS_LIST.ACQ_START_FLAGS_DEFAULT, -1)
 
+            self._has_attached_chunk = False
             self._is_acquiring = True
 
             if run_in_background:
@@ -2125,18 +2132,24 @@ class ImageAcquirer:
                 _logger.error(e, exc_info=True)
         else:
             try:
-                self._chunk_adapter.attach_buffer(
-                    buffer.raw_buffer, buffer.delivered_chunk_payload_size)
+                size = buffer.delivered_chunk_payload_size
             except GenTL_GenericException:
                 try:
-                    self._chunk_adapter.attach_buffer(
-                        buffer.raw_buffer, buffer.size_filled)
+                    size = buffer.size_filled
                 except GenTL_GenericException:
-                    try:
-                        self._chunk_adapter.attach_buffer(
-                            buffer.raw_buffer, len(buffer.raw_buffer))
-                    except GenTL_GenericException as e:
-                        _logger.error(e, exc_info=True)
+                    size = len(buffer.raw_buffer)
+
+            if self._has_attached_chunk:
+                self._chunk_adapter.update_buffer(buffer.raw_buffer)
+                action = 'updated'
+            else:
+                self._chunk_adapter.attach_buffer(buffer.raw_buffer, size)
+                self._has_attached_chunk = True
+                action = 'attached'
+
+            if _is_logging_buffer:
+                _logger.debug('chunk data: {}, {}'.format(
+                    action, _family_tree(buffer)))
 
     def try_fetch(self, *, timeout: float = 0,
                   is_raw: bool = False) -> Optional[Buffer]:
@@ -2229,11 +2242,13 @@ class ImageAcquirer:
         if not buffer:
             return None
 
-        self._update_chunk_data(buffer=buffer)
+        if self._update_chunk_automatically:
+            self._update_chunk_data(buffer=buffer)
 
         if not is_raw:
             buffer = Buffer(module=buffer, parent=buffer.parent,
-                            node_map=self.remote_device.node_map)
+                            node_map=self.remote_device.node_map,
+                            acquire=self)
 
         return buffer
 
@@ -2647,7 +2662,8 @@ class Harvester:
             serial_number: Optional[str] = None, version: Optional[str] = None,
             sleep_duration: Optional[float] = _sleep_duration_default,
             file_path: Optional[str] = None, privilege: str = 'exclusive',
-            file_dict: Dict[str, bytes] = None):
+            file_dict: Dict[str, bytes] = None,
+            auto_chunk_data_update=True):
         """
         Creates an image acquirer for the specified remote device and return
         the created :class:`ImageAcquirer` object.
@@ -2735,7 +2751,8 @@ class Harvester:
             ia = ImageAcquirer(
                 device=device, profiler=self._profiler,
                 sleep_duration=sleep_duration, file_path=file_path,
-                file_dict=file_dict, do_clean_up=self._do_clean_up)
+                file_dict=file_dict, do_clean_up=self._do_clean_up,
+                update_chunk_automatically=auto_chunk_data_update)
             self._ias.append(ia)
 
             if self._profiler:

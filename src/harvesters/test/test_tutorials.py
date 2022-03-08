@@ -55,6 +55,23 @@ class AcquisitionThread(Thread):
 
 class TestTutorials(TestHarvester):
 
+    def test_free_running(self):
+        # Connect to the first camera in the list.
+        self.ia = self.harvester.create_image_acquirer(0)
+
+        #
+        num_images_to_acquire = 0
+
+        # Then start image acquisition.
+        self.ia.start_acquisition()
+
+        while num_images_to_acquire < 10:
+            #
+            with self.ia.fetch_buffer() as buffer:
+                #
+                self._logger.info('{0}'.format(buffer))
+            num_images_to_acquire += 1
+
     def test_severis_usage(self):
         if not self.is_running_with_default_target():
             return

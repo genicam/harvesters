@@ -22,35 +22,27 @@
 from __future__ import annotations
 from collections.abc import Iterable
 from ctypes import CDLL
-from datetime import datetime
 from enum import IntEnum
-import io
 import json
 from logging import Logger
 from math import ceil, isclose
-import ntpath
 import os
-import pathlib
 from queue import Queue
 from queue import Full, Empty
-import re
 import signal
 import sys
 from threading import Lock, Thread, Event
 from threading import current_thread, main_thread
 import time
 from typing import Union, List, Optional, Dict
-from urllib.parse import urlparse
 from warnings import warn
 import weakref
-import tempfile
 
 # Related third party imports
 import numpy
 
 from genicam.genapi import NodeMap
 from genicam.genapi import GenericException as GenApi_GenericException
-from genicam.genapi import LogicalErrorException
 from genicam.genapi import ChunkAdapterGeneric, ChunkAdapterU3V, \
     ChunkAdapterGEV
 
@@ -64,10 +56,8 @@ from genicam.gentl import EventToken, Port, PIXELFORMAT_NAMESPACE_IDS
 from genicam.gentl import Buffer as Buffer_
 
 # Local application/library specific imports
-from harvesters._private.core.port import ConcretePort
 from harvesters._private.core.port import _get_port_connected_node_map
 from harvesters._private.core.statistics import Statistics
-from harvesters._private.core.helper.system import is_running_on_windows
 from harvesters.util.logging import get_logger
 from harvesters.util.pfnc import dict_by_names, dict_by_ints
 from harvesters.util.pfnc import Dictionary, _PixelFormat

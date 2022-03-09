@@ -33,10 +33,11 @@ from urllib.parse import urlparse
 # Related third party imports
 from genicam.genapi import AbstractPort
 from genicam.genapi import EAccessMode
-from genicam.gentl import Port
 from genicam.genapi import NodeMap
 from genicam.genapi import GenericException as GenApi_GenericException
 from genicam.genapi import LogicalErrorException
+
+from genicam.gentl import Port
 
 # Local application/library specific imports
 from harvesters.util.logging import get_logger
@@ -47,7 +48,7 @@ _logger = get_logger(name=__name__)
 
 
 def _get_port_connected_node_map(
-        port, file_path: Optional[str] = None,
+        *, port: Optional[Port] = None, file_path: Optional[str] = None,
         xml_dir_to_store: Optional[str] = None,
         file_dict: Dict[str, bytes] = None, do_clean_up: bool = True):
     global _logger

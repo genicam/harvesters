@@ -138,13 +138,130 @@ class _Delegate:
 
 
 class Module(_Delegate):
-    def __init__(self, module, parent, node_map: Optional[NodeMap]):
-        assert module
-
+    def __init__(self, *, module, parent, port: Port = None,
+                 file_path: Optional[str] = None,
+                 file_dict: Optional[Dict[str, bytes]] = None,
+                 do_clean_up: bool = True,
+                 xml_dir_to_store: Optional[str] = None):
         super().__init__(module)
         self._module = module
         self._parent = parent
-        self._node_map = node_map
+        self._node_map = self._create_node_map(
+            port=port, file_path=file_path, file_dict=file_dict,
+            do_clean_up=do_clean_up, xml_dir_to_store=xml_dir_to_store) if \
+            port else None
+
+    def _create_node_map(
+            self, *, port: Optional[Port] = None,
+            file_path: Optional[str] = None,
+            xml_dir_to_store: Optional[str] = None,
+            file_dict: Dict[str, bytes] = None, do_clean_up: bool = True):
+        global _logger
+
+        node_map = NodeMap()
+
+        file_path = self._retrieve_file_path(
+            port=port, file_path_to_load=file_path,
+            xml_dir_to_store=xml_dir_to_store, file_dict=file_dict)
+
+        if file_path is not None:
+            # Every valid (zipped) XML file MUST be parsed as expected and the
+            # method returns the file path where the file is located:
+            # Then load the XML file content on the node map object.
+            has_valid_file = True
+
+            # In this case, the file has been identified as a Zip file but
+            # has been diagnosed as BadZipFile due to a technical reason.
+            # Let the NodeMap object load the file from the path:
+            try:
+                node_map.load_xml_from_zip_file(file_path)
+            except GenApi_GenericException:
+                try:
+                    node_map.load_xml_from_file(file_path)
+                except GenApi_GenericException as e:
+                    if file_dict:
+                        if do_clean_up:
+                            self._remove_intermediate_file(file_path)
+                        _logger.warning(e, exc_info=True)
+                        raise
+                    else:
+                        _logger.warning(e, exc_info=True)
+
+            if do_clean_up:
+                self._remove_intermediate_file(file_path)
+
+            if has_valid_file:
+                concrete_port = ConcretePort(port)
+                node_map.connect(concrete_port, port.name)
+
+        return node_map
+
+    @staticmethod
+    def _retrieve_file_path(
+            *, port: Optional[Port] = None, url: Optional[str] = None,
+            file_path_to_load: Optional[str] = None,
+            xml_dir_to_store: Optional[str] = None,
+            file_dict: Dict[str, bytes] = None):
+        global _logger
+
+        if file_path_to_load:
+            if not os.path.exists(file_path_to_load):
+                raise LogicalErrorException(
+                    '{} does not exist.'.format(file_path_to_load))
+        else:
+            if url is None:
+                if len(port.url_info_list) > 0:
+                    url = port.url_info_list[0].url
+                else:
+                    raise LogicalErrorException(
+                        'The target port does not hold any URL.')
+
+            _logger.debug('fetched url: {}'.format(url))
+
+            location, others = url.split(':', 1)
+            location = location.lower()
+
+            if location == 'local':
+                file_name, address, size = others.split(';')
+                address = int(address, 16)
+                # Remove optional /// after local: See section 4.1.2 in GenTL
+                # v1.4 Standard
+                file_name = file_name.lstrip('/')
+
+                delimiter = '?'
+                if delimiter in size:
+                    size, _ = size.split(delimiter)
+                size = int(size, 16)  # From Hex to Dec
+
+                size, binary_data = port.read(address, size)
+
+                file_path_to_load = _save_file(
+                    xml_dir_to_store=xml_dir_to_store, file_name=file_name,
+                    binary_data=binary_data, file_dict=file_dict)
+
+            elif location == 'file':
+                file_path_to_load = urlparse(url).path
+                if is_running_on_windows():
+                    file_path_to_load = re.sub(r'^/+', '', file_path_to_load)
+
+            elif location == 'http' or location == 'https':
+                raise NotImplementedError(
+                    'Failed to parse URL {}: Harvester has not supported '
+                    'downloading a device description file from vendor '
+                    'web site. If you must rely on the current condition,'
+                    'just try to make a request to the Harvester '
+                    'maintainer.'.format(url))
+            else:
+                raise LogicalErrorException(
+                    'Failed to parse URL {}: Unknown format.'.format(url))
+
+        return file_path_to_load
+
+    @staticmethod
+    def _remove_intermediate_file(file_path: str):
+        global _logger
+        os.remove(file_path)
+        _logger.debug('deleted: {0}'.format(file_path))
 
     @property
     def module(self):
@@ -181,22 +298,30 @@ class Module(_Delegate):
 
 
 class DataStream(Module):
-    def __init__(self, module, parent, node_map: Optional[NodeMap]):
-        super().__init__(module=module, parent=parent, node_map=node_map)
+    def __init__(self, *, module, parent=None):
+        super().__init__(module=module, port=module.port, parent=parent)
 
 
 class RemoteDevice(Module):
-    def __init__(self, module, parent, node_map: Optional[NodeMap]):
-        super().__init__(module=module, parent=parent, node_map=node_map)
+    def __init__(self, *, module, parent=None,
+                 file_path: Optional[str] = None,
+                 file_dict: Optional[Dict[str, bytes]] = None,
+                 do_clean_up: bool = True,
+                 xml_dir_to_store: Optional[str] = None):
+        super().__init__(
+            module=module, port=module.remote_port, parent=parent,
+            file_path=file_path,
+            file_dict=file_dict, do_clean_up=do_clean_up,
+            xml_dir_to_store=xml_dir_to_store)
 
     @property
     def port(self):
-        return self.parent.remote_port
+        return self.module.remote_port
 
 
 class Device(Module):
-    def __init__(self, module, parent, node_map: Optional[NodeMap]):
-        super().__init__(module=module, parent=parent, node_map=node_map)
+    def __init__(self, *, module, parent=None):
+        super().__init__(module=module, port=module.local_port, parent=parent)
 
     @property
     def port(self):
@@ -204,19 +329,23 @@ class Device(Module):
 
 
 class Interface(Module):
-    def __init__(self, module, parent, node_map: Optional[NodeMap]):
-        super().__init__(module=module, parent=parent, node_map=node_map)
+    def __init__(self, *, module, parent=None):
+        super().__init__(module=module, port=module.port, parent=parent)
 
 
 class System(Module):
-    def __init__(self, module, parent, node_map: Optional[NodeMap]):
-        super().__init__(module=module, parent=parent, node_map=node_map)
+    def __init__(self, *, module, parent):
+        super().__init__(module=module, parent=parent, port=module.port)
 
 
-class DeviceInfo(_Delegate):
-    def __init__(self, device_info):
-        super().__init__(device_info)
-        self._module = device_info
+class Producer(Module):
+    def __init__(self, *, module):
+        super().__init__(module=module, parent=None)
+
+
+class DeviceInfo(Module):
+    def __init__(self, *, module, parent=None):
+        super().__init__(module=module, parent=parent)
 
     def __repr__(self):
         properties = ['id_', 'vendor', 'model', 'tl_type', 'user_defined_name',
@@ -225,7 +354,7 @@ class DeviceInfo(_Delegate):
         for _property in properties:
             assert _property != ''
             try:
-                result = eval('self._device_info.' + _property)
+                result = eval('self._module.' + _property)
             except:
                 result = None
             results.append(result)
@@ -873,13 +1002,12 @@ class Buffer(Module):
     Note that it will never be necessary to create this object by yourself
     in general.
     """
-    def __init__(self, *, module: Buffer_, parent: Module, node_map: Optional[NodeMap], acquire: Optional[ImageAcquirer]):
+    def __init__(self, *, module: Buffer_, node_map: Optional[NodeMap], acquire: Optional[ImageAcquirer]):
         """
         :param module:
         :param node_map:
         """
-        assert module
-        super().__init__(module, parent, node_map)
+        super().__init__(module=module, parent=module.parent)
         self._payload = self._build_payload(buffer=module, node_map=node_map)
         self._acquire = acquire
 
@@ -1041,12 +1169,10 @@ class PayloadBase:
     GenTL Standard. In general, you should not have to design a class that
     derives from this base class.
     """
-    def __init__(self, *, buffer: Optional[Buffer] = None, ):
+    def __init__(self, *, buffer: Buffer):
         """
         :param buffer:
         """
-        assert buffer
-
         super().__init__()
 
         self._buffer = buffer
@@ -1115,16 +1241,13 @@ class PayloadUnknown(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_UNKNOWN`
     by the GenTL Standard.
     """
-    def __init__(self, *, buffer: Optional[Buffer] = None,
-                 node_map: Optional[NodeMap] = None):
+    def __init__(self, *, buffer: Buffer):
         """
 
         :param buffer:
         :param node_map:
         """
         assert buffer
-        assert node_map
-
         super().__init__(buffer=buffer)
 
 
@@ -1134,16 +1257,13 @@ class PayloadImage(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE` by
     the GenTL Standard.
     """
-    def __init__(self, *, buffer: Optional[Buffer] = None,
+    def __init__(self, *, buffer: Buffer,
                  node_map: Optional[NodeMap] = None):
         """
 
         :param buffer:
         :param node_map:
         """
-        assert buffer
-        assert node_map
-
         super().__init__(buffer=buffer)
 
         self._components.append(
@@ -1160,16 +1280,10 @@ class PayloadRawData(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_RAW_DATA`
     by the GenTL Standard.
     """
-    def __init__(self, *, buffer: Optional[Buffer] = None,
-                 node_map: Optional[NodeMap] = None):
+    def __init__(self, *, buffer: Buffer):
         """
-
         :param buffer:
-        :param node_map:
         """
-        assert buffer
-        assert node_map
-
         super().__init__(buffer=buffer)
 
 
@@ -1179,11 +1293,7 @@ class PayloadFile(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_FILE` by
     the GenTL Standard.
     """
-    def __init__(self, *, buffer: Optional[Buffer] = None,
-                 node_map: Optional[NodeMap] = None):
-        assert buffer
-        assert node_map
-
+    def __init__(self, *, buffer: Buffer):
         super().__init__(buffer=buffer)
 
 
@@ -1193,16 +1303,10 @@ class PayloadJPEG(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG` by
     the GenTL Standard.
     """
-    def __init__(self, *, buffer: Optional[Buffer] = None,
-                 node_map: Optional[NodeMap] = None):
+    def __init__(self, *, buffer: Buffer):
         """
-
         :param buffer:
-        :param node_map:
         """
-        assert buffer
-        assert node_map
-
         super().__init__(buffer=buffer)
 
 
@@ -1212,16 +1316,10 @@ class PayloadJPEG2000(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG2000`
     by the GenTL Standard.
     """
-    def __init__(self, *, buffer: Optional[Buffer] = None,
-                 node_map: Optional[NodeMap] = None):
+    def __init__(self, *, buffer: Buffer):
         """
-
         :param buffer:
-        :param node_map:
         """
-        assert buffer
-        assert node_map
-
         super().__init__(buffer=buffer)
 
 
@@ -1231,16 +1329,10 @@ class PayloadH264(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_H264` by
     the GenTL Standard.
     """
-    def __init__(self, *, buffer: Optional[Buffer] = None,
-                 node_map: Optional[NodeMap] = None):
+    def __init__(self, *, buffer: Buffer):
         """
-
         :param buffer:
-        :param node_map:
         """
-        assert buffer
-        assert node_map
-
         super().__init__(buffer=buffer)
 
 
@@ -1250,11 +1342,7 @@ class PayloadChunkOnly(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_ONLY`
     by the GenTL Standard.
     """
-    def __init__(self, *, buffer: Optional[Buffer] = None,
-                 node_map: Optional[NodeMap] = None):
-        assert buffer
-        assert node_map
-
+    def __init__(self, *, buffer: Buffer):
         super().__init__(buffer=buffer)
 
 
@@ -1264,15 +1352,11 @@ class PayloadMultiPart(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART`
     by the GenTL Standard.
     """
-    def __init__(self, *, buffer=None, node_map: Optional[NodeMap] = None):
+    def __init__(self, *, buffer: Buffer, node_map: NodeMap):
         """
-
         :param buffer:
         :param node_map:
         """
-        assert buffer
-        assert node_map
-
         super().__init__(buffer=buffer)
 
         for i, part in enumerate(self._buffer.parts):
@@ -1348,51 +1432,19 @@ class ImageAcquirer:
         self._update_chunk_automatically = update_chunk_automatically
         self._has_attached_chunk = False
 
-        interface = device.parent
-        system = interface.parent
-
         env_var = 'HARVESTERS_XML_FILE_DIR'
         if env_var in os.environ:
             self._xml_dir = os.getenv(env_var)
         else:
             self._xml_dir = None
 
-        self._system = None
-        self._interface = None
-        self._device = None
-        self._remote_device = None
-
-        sources = [system, interface, device, device]
-        ports = [system.port, interface.port, device.local_port,
-                 device.remote_port]
-        destinations = ['_system', '_interface', '_device', '_remote_device']
-        file_paths = [None, None, None, file_path]
-
-        node_maps = []
-        for (file_path_, port) in zip(file_paths, ports):
-            try:
-                node_map_ = self._get_port_connected_node_map(
-                    port=port, xml_dir_to_store=self._xml_dir,
-                    file_path=file_path_, file_dict=self._file_dict,
-                    do_clean_up=self._do_clean_up)
-            except GenTL_GenericException as e:
-                # Accept a case where the target GenTL entity does not
-                # provide any device description XML file:
-                _logger.error(e, exc_info=True)
-            else:
-                node_maps.append(node_map_)
-
-        ctors = [System, Interface, Device, RemoteDevice]
-        parents = [None, '_system', '_interface', '_device']
-
-        for (ctor, destination, node_map, parent, source) in \
-                zip(ctors, destinations, node_maps, parents, sources):
-            _parent = getattr(self, parent) if parent else None
-            if _parent:
-                _parent = _parent.module
-
-            setattr(self, destination,
-                    ctor(module=source, parent=_parent, node_map=node_map))
+        self._device = device
+        self._remote_device = RemoteDevice(
+            module=device.module, parent=device, file_path=file_path,
+            file_dict=file_dict, do_clean_up=do_clean_up,
+            xml_dir_to_store=self._xml_dir)
+        self._interface = device.parent
+        self._system = self._interface.parent
 
         if self._remote_device:
             assert self._remote_device.node_map
@@ -1835,140 +1887,13 @@ class ImageAcquirer:
             else:
                 _logger.debug('opened: {0}'.format(_family_tree(_data_stream)))
 
-            #
-            try:
-                node_map = self._get_port_connected_node_map(
-                    port=_data_stream.port, file_dict=file_dict,
-                    do_clean_up=self._do_clean_up)
-            except GenTL_GenericException as e:
-                # Accept a case where the target GenTL entity does not
-                # provide any device description XML file:
-                _logger.error(e, exc_info=True)
-                node_map = None
-
-            self._data_streams.append(
-                DataStream(module=_data_stream, parent=self._device,
-                           node_map=node_map))
+            self._data_streams.append(DataStream(module=_data_stream))
 
             event_token = self._data_streams[i].register_event(
                 EVENT_TYPE_LIST.EVENT_NEW_BUFFER)
 
             self._event_new_buffer_managers.append(
                 EventManagerNewBuffer(event_token))
-
-    def _get_port_connected_node_map(
-            self, *, port: Optional[Port] = None,
-            file_path: Optional[str] = None,
-            xml_dir_to_store: Optional[str] = None,
-            file_dict: Dict[str, bytes] = None, do_clean_up: bool = True):
-        global _logger
-
-        assert port
-
-        node_map = NodeMap()
-
-        file_path = self._retrieve_file_path(
-            port=port, file_path_to_load=file_path,
-            xml_dir_to_store=xml_dir_to_store, file_dict=file_dict)
-
-        if file_path is not None:
-            # Every valid (zipped) XML file MUST be parsed as expected and the
-            # method returns the file path where the file is located:
-            # Then load the XML file content on the node map object.
-            has_valid_file = True
-
-            # In this case, the file has been identified as a Zip file but
-            # has been diagnosed as BadZipFile due to a technical reason.
-            # Let the NodeMap object load the file from the path:
-            try:
-                node_map.load_xml_from_zip_file(file_path)
-            except GenApi_GenericException:
-                try:
-                    node_map.load_xml_from_file(file_path)
-                except GenApi_GenericException as e:
-                    if file_dict:
-                        if do_clean_up:
-                            self._remove_intermediate_file(file_path)
-                        _logger.warning(e, exc_info=True)
-                        raise
-                    else:
-                        _logger.warning(e, exc_info=True)
-
-            if do_clean_up:
-                self._remove_intermediate_file(file_path)
-
-            if has_valid_file:
-                concrete_port = ConcretePort(port)
-                node_map.connect(concrete_port, port.name)
-
-        return node_map
-
-    @staticmethod
-    def _remove_intermediate_file(file_path: str):
-        global _logger
-        os.remove(file_path)
-        _logger.debug('deleted: {0}'.format(file_path))
-
-    @staticmethod
-    def _retrieve_file_path(
-            *, port: Optional[Port] = None, url: Optional[str] = None,
-            file_path_to_load: Optional[str] = None,
-            xml_dir_to_store: Optional[str] = None,
-            file_dict: Dict[str, bytes] = None):
-        global _logger
-
-        if file_path_to_load:
-            if not os.path.exists(file_path_to_load):
-                raise LogicalErrorException(
-                    '{} does not exist.'.format(file_path_to_load))
-        else:
-            if url is None:
-                if len(port.url_info_list) > 0:
-                    url = port.url_info_list[0].url
-                else:
-                    raise LogicalErrorException(
-                        'The target port does not hold any URL.')
-
-            _logger.debug('fetched url: {}'.format(url))
-
-            location, others = url.split(':', 1)
-            location = location.lower()
-
-            if location == 'local':
-                file_name, address, size = others.split(';')
-                address = int(address, 16)
-                # Remove optional /// after local: See section 4.1.2 in GenTL
-                # v1.4 Standard
-                file_name = file_name.lstrip('/')
-
-                delimiter = '?'
-                if delimiter in size:
-                    size, _ = size.split(delimiter)
-                size = int(size, 16)  # From Hex to Dec
-
-                size, binary_data = port.read(address, size)
-
-                file_path_to_load = _save_file(
-                    xml_dir_to_store=xml_dir_to_store, file_name=file_name,
-                    binary_data=binary_data, file_dict=file_dict)
-
-            elif location == 'file':
-                file_path_to_load = urlparse(url).path
-                if is_running_on_windows():
-                    file_path_to_load = re.sub(r'^/+', '', file_path_to_load)
-
-            elif location == 'http' or location == 'https':
-                raise NotImplementedError(
-                    'Failed to parse URL {}: Harvester has not supported '
-                    'downloading a device description file from vendor '
-                    'web site. If you must rely on the current condition,'
-                    'just try to make a request to the Harvester '
-                    'maintainer.'.format(url))
-            else:
-                raise LogicalErrorException(
-                    'Failed to parse URL {}: Unknown format.'.format(url))
-
-        return file_path_to_load
 
     def start_image_acquisition(self, run_in_background=False):
         """
@@ -2246,7 +2171,7 @@ class ImageAcquirer:
             self._update_chunk_data(buffer=buffer)
 
         if not is_raw:
-            buffer = Buffer(module=buffer, parent=buffer.parent,
+            buffer = Buffer(module=buffer,
                             node_map=self.remote_device.node_map,
                             acquire=self)
 
@@ -2561,7 +2486,7 @@ class Harvester:
         self._cti_files = []
         self._producers = []
         self._systems = []
-        self._interfaces = []
+        self._ifaces = []
         self._device_info_list = []
         self._ias = []
         self._do_clean_up = do_clean_up
@@ -2692,8 +2617,11 @@ class Harvester:
         if self.device_info_list is None:
             return None
 
+        dev_info = None
+
         if list_index is not None:
-            device = self.device_info_list[list_index].create_device()
+            dev_info = self.device_info_list[list_index]
+            raw_device = dev_info.create_device()
         else:
             keys = ['id_', 'vendor', 'model', 'tl_type', 'user_defined_name',
                     'serial_number', 'version']
@@ -2726,7 +2654,8 @@ class Harvester:
                     'You have to pass one or more keys so that '
                     'a single candidate is specified.')
             else:
-                device = candidates[0].create_device()
+                dev_info = candidates[0]
+                raw_device = dev_info.create_device()
 
         try:
             if privilege == 'exclusive':
@@ -2739,7 +2668,8 @@ class Harvester:
                 raise NotImplementedError(
                     'not supported: {}'.format(privilege))
 
-            device.open(_privilege)
+            raw_device.open(_privilege)
+            device = Device(module=raw_device, parent=dev_info.parent)
 
         except GenTL_GenericException as e:
             _logger.warning(e, exc_info=True)
@@ -2846,27 +2776,27 @@ class Harvester:
         global _logger
 
         for file_path in self._cti_files:
-            producer = GenTLProducer.create_producer()
+            raw_producer = GenTLProducer.create_producer()
             try:
-                producer.open(file_path)
+                raw_producer.open(file_path)
             except GenTL_GenericException as e:
                 _logger.warning(e, exc_info=True)
             else:
-                self._producers.append(producer)
-                _logger.debug('initialized file: {0}'.format(producer.path_name))
+                self._producers.append(Producer(module=raw_producer))
+                _logger.debug('initialized file: {0}'.format(raw_producer.path_name))
 
     def _open_systems(self) -> None:
         global _logger
 
         for producer in self._producers:
-            system = producer.create_system()
+            raw_system = producer.create_system()
             try:
-                system.open()
+                raw_system.open()
             except GenTL_GenericException as e:
                 _logger.warning(e, exc_info=True)
             else:
-                self._systems.append(system)
-                _logger.debug('opened: {0}'.format(_family_tree(system)))
+                self._systems.append(System(module=raw_system, parent=producer))
+                _logger.debug('opened: {0}'.format(_family_tree(raw_system)))
 
     def _reset(self) -> None:
         """
@@ -2924,14 +2854,14 @@ class Harvester:
 
         self._release_device_info_list()
 
-        if self._interfaces is not None:
-            for iface in self._interfaces:
+        if self._ifaces is not None:
+            for iface in self._ifaces:
                 if iface.is_open():
                     name = _family_tree(iface)
                     iface.close()
                     _logger.debug('closed: {0}'.format(name))
 
-        self._interfaces.clear()
+        self._ifaces.clear()
 
     def _release_device_info_list(self) -> None:
         global _logger
@@ -2964,23 +2894,25 @@ class Harvester:
         try:
             self._open_gentl_producers()
             self._open_systems()
-            for system in self._systems:
-                system.update_interface_info_list(self.timeout_for_update)
+            for raw_system in self._systems:
+                raw_system.update_interface_info_list(self.timeout_for_update)
 
-                for i_info in system.interface_info_list:
-                    iface = i_info.create_interface()
+                for i_info in raw_system.interface_info_list:
+                    raw_iface = i_info.create_interface()
                     try:
-                        iface.open()
+                        raw_iface.open()
                     except GenTL_GenericException as e:
                         _logger.error(e, exc_info=True)
                     else:
-                        _logger.debug('opened: {0}'.format(_family_tree(iface)))
+                        _logger.debug('opened: {0}'.format(_family_tree(raw_iface)))
 
-                        iface.update_device_info_list(self.timeout_for_update)
-                        self._interfaces.append(iface)
-                        for d_info in iface.device_info_list:
+                        iface_ = Interface(module=raw_iface, parent=raw_system)
+                        self._ifaces.append(iface_)
+
+                        raw_iface.update_device_info_list(self.timeout_for_update)
+                        for dev_info in raw_iface.device_info_list:
                             self.device_info_list.append(
-                                DeviceInfo(device_info=d_info))
+                                DeviceInfo(module=dev_info, parent=iface_))
 
         except GenTL_GenericException as e:
             _logger.warning(e, exc_info=True)

@@ -32,6 +32,7 @@ from urllib.parse import quote
 
 # Related third party imports
 from genicam.genapi import GenericException as GenApi_GenericException
+from genicam.genapi import NodeMap
 from genicam.gentl import TimeoutException
 import numpy as np
 
@@ -41,9 +42,10 @@ from harvesters.test.base_harvester import TestHarvester, \
     TestHarvesterNoCleanUp
 from harvesters.test.base_harvester import get_cti_file_path
 from harvesters.core import Callback
-from harvesters.core import Harvester
+from harvesters.core import Harvester, Interface
 from harvesters.core import ImageAcquirer
 from harvesters.core import _drop_padding_data
+from harvesters.core import Module
 from harvesters.test.helper import get_package_dir
 from harvesters.util.pfnc import Dictionary
 from harvesters.core import Component2DImage
@@ -54,7 +56,7 @@ from harvesters.util.pfnc import RGB10p, BGR10p
 from harvesters.util.pfnc import RGB12p, BGR12p
 
 
-class TestHarvesterCore(TestHarvesterNoCleanUp):
+class TestHarvesterCoreNoCleanUp(TestHarvesterNoCleanUp):
     def test_issue_66(self):
         if not self.is_running_with_default_target():
             return
@@ -72,8 +74,7 @@ class TestHarvesterCore(TestHarvesterNoCleanUp):
 
         # Connect to the first camera in the list.
         self.ia = self.harvester.create_image_acquirer(
-            0, file_path=os.path.join(xml_dir, file_name), do_clean_up=False
-        )
+            0, file_path=os.path.join(xml_dir, file_name))
 
         # Compare DeviceModelNames:
         self.assertEqual(
@@ -87,6 +88,26 @@ class TestHarvesterCore(TestHarvesterNoCleanUp):
 
 class TestHarvesterCore(TestHarvester):
     sleep_duration = .5  # Time to keep sleeping [s]
+
+    def test_ticket_300(self):
+        if not self.is_running_with_default_target():
+            return
+
+        info_list = self.harvester.device_info_list
+        self.assertTrue(len(info_list) > 0)
+
+        dev_info = info_list[0]
+        self.assertEqual(Interface, type(dev_info.parent))
+
+        iface = dev_info.parent
+        self.assertIsNotNone(iface.node_map)
+        self.assertEqual(NodeMap, type(iface.node_map))
+        self.assertEqual("XX::InterfaceA", iface.node_map.InterfaceID.value)
+
+        system = iface.parent
+        self.assertIsNotNone(system.node_map)
+        self.assertEqual(NodeMap, type(system.node_map))
+        self.assertEqual("TLSimu.cti", system.node_map.TLID.value)
 
     def test_basic_usage_1(self):
         """
@@ -488,7 +509,7 @@ class TestHarvesterCore(TestHarvester):
         url += file_path
 
         # Parse the URL:
-        retrieved_file_path = ImageAcquirer._retrieve_file_path(url=url)
+        retrieved_file_path = Module._retrieve_file_path(url=url)
 
         # Compare file names:
         self.assertEqual(
@@ -505,7 +526,7 @@ class TestHarvesterCore(TestHarvester):
 
         #
         url = 'file://' + expected_file_path
-        retrieved_file_path = ImageAcquirer._retrieve_file_path(url=url)
+        retrieved_file_path = Module._retrieve_file_path(url=url)
 
         # Compare file names:
         self.assertEqual(
@@ -892,6 +913,7 @@ class TestHarvesterCore(TestHarvester):
 
         # And destroy the ImageAcquirer:
         self.ia.destroy()
+
 
 class _TestIssue81(threading.Thread):
     def __init__(self, message_queue=None, cti_file_path=None):

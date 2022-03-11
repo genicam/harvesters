@@ -15,9 +15,8 @@
 
 ----
 
-******************
 What Is Harvester?
-******************
+==================
 
 Harvester is a Python library that helps you to acquire images from a GenICam compliant camera through a GenTL Producer library.
 
@@ -32,9 +31,8 @@ You can freely use, modify, distribute Harvester under `Apache License-2.0 <http
 
 ----
 
-****************************
 Tasks Harvester Does for You
-****************************
+----------------------------
 
 The main features of Harvester are:
 
@@ -44,9 +42,8 @@ The main features of Harvester are:
 
 Note that the second item implies you can involve various types of transport layers in your Python script. Each transport layer has own advantages and disadvantages and you should choose appropriate one based on your application's requirement. You just need to acquire images for some purposes and the GenTL Producers deliver the images somehow. It truly is the great benefit of the GenTL Standard! And of course, not only GenTL Producers but Harvester offer you a way to manipulate multiple GenICam compliant entities such as a camera in a single Python script with an intuitive manner.
 
-***********
 Need a GUI?
-***********
+-----------
 
 Do you need a GUI? Harvester has a sister project that is called **Harvester GUI**. Please visit there if you are interested in it:
 
@@ -56,13 +53,11 @@ https://github.com/genicam/harvesters_gui
     :align: center
     :alt: Image data visualizer
 
-################
 Online Resources
 ################
 
-****************
 Asking Questions
-****************
+----------------
 
 We have prepared an FAQ page. Perhaps your issue could be resolved just reading through it:
 
@@ -72,9 +67,8 @@ If any article was not mentioning about the issue you are facing, please try to 
 
 https://github.com/genicam/harvesters/issues
 
-***************
-Important Links
-***************
+Links
+-----
 
 .. list-table::
 
@@ -93,9 +87,8 @@ Important Links
     - - Source repository
       - https://github.com/genicam/harvesters
 
-********************
 Harvester on IPython
-********************
+--------------------
 
 The following code block shows Harvester is running on IPython. An acquired image is delivered as the payload of a buffer and the buffer can be fetched by calling the ``fetch_buffer`` method of the ``ImageAcquirer`` class. Once you get an image you should be able to immediately start image processing. If you're running on the Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
@@ -182,19 +175,43 @@ The following code block shows Harvester is running on IPython. An acquired imag
     In [17]: quit
     (genicam) kznr@Kazunaris-MacBook:~%
 
-##############################
+Terminology
+-----------
+
+Before start talking about the detail, let's take a look at some important terminologies that frequently appear in this document. These terminologies are listed as follows:
+
+* *The GenApi-Python Binding*: A Python module that communicates with the GenICam GenApi reference implementation.
+
+* *A GenTL Producer*: A library that has C interface and offers consumers a way to communicate with cameras over physical transport layer dependent technology hiding the detail from the consumer.
+
+* *The GenTL-Python Binding*: A Python module that communicates with GenTL Producers.
+
+* *Harvester*: An image acquisition engine.
+
+* *Harvester GUI*: A Harvester-based graphical user interface.
+
+* *A GenICam compliant device*: It's typically a camera. Just involving the GenICam reference implementation, it offers consumers a way to dynamically configure/control the target remote devices.
+
+The following diagram shows the hierarchy and relationship of the relevant modules:
+
+.. figure:: https://user-images.githubusercontent.com/8652625/155761972-c131d638-a0cc-4c51-aa3b-752d8f3d1284.svg
+    :align: center
+    :alt: Module hierarchy
+
 Getting Started with Harvester
 ##############################
 
-Are you ready to start working with Harvester? Please visit `the getting started section <INSTALL.rst>`_ to learn the instructions you will need to get Harvester running and to learn how a typical image acquisition workflow goes with Harvester.
+Are you ready to start working with Harvester? You can learn some more topics
+on these pages:
 
-########
+* `INSTALL.rst <INSTALL.rst>`_: Learn how to install Harvester and its prerequisites.
+* `TUTORIAL.rst <TUTORIAL.rst>`_: Learn how Harvester can be used on  a typical image acquisition workflow.
+
 Appendix
 ########
 
-*********************
 Open Source Resources
-*********************
+---------------------
 
 Harvester uses the following open source libraries/resources:
 
@@ -215,9 +232,8 @@ Harvester uses the following open source libraries/resources:
   | https://github.com/warner/python-versioneer
 
 
-***************
 Acknowledgement
-***************
+---------------
 
 The following individuals have directly or indirectly contributed to the development activity of Harvester; they truly are wonderful GenICam colleagues:
 

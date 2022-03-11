@@ -1576,6 +1576,11 @@ class ImageAcquirer:
         Destroys itself; releases all preserved external resources such as
         buffers or the connected remote device.
 
+        Note that once the destroy method is called on the object then the
+        object will immediately turn obsolete and there will never be any
+        way to make the object usable. Just throw the object away and
+        create another object by calling Harvester.create_image_acquire method.
+
         :return: None
         """
         global _logger
@@ -2892,6 +2897,12 @@ class Harvester:
         Updates the list that holds available devices. You'll have to call
         this method every time you added CTI files or plugged/unplugged
         devices.
+
+        Please note that the update method call will eventually turn the
+        existing ImageAcquire objects immediately obsolete even if the object
+        is still owned by someone. The owner should drop those obsolete
+        objects and create another ImageAcquisition object by calling
+        the Harvester.create_image_acquire method.
 
         :return: None.
         """

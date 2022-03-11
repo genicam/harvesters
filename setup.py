@@ -35,14 +35,6 @@ log.info('Entered setup.py')
 log.info('$PATH=%s' % os.environ['PATH'])
 
 
-# Check the Python version:
-supported_versions = [(3, 5), (3, 6), (3, 7), (3, 8)]
-if sys.version_info in supported_versions:
-    raise RuntimeError(
-        'See https://github.com/genicam/harvesters#requirements'
-    )
-
-
 with open('README.rst', 'r',encoding='utf-8_sig') as fh:
     __doc__ = fh.read()
 

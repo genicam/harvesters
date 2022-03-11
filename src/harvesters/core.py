@@ -1420,13 +1420,10 @@ class ImageAcquirer:
         :param file_path: Set a path to camera description file which you want to load on the target node map instead of the one which the device declares.
         """
         global _logger
-
         _logger.debug('instantiated: {}'.format(self))
-
-        assert device
-
         super().__init__()
 
+        self._is_valid = True
         self._file_dict = file_dict
         self._do_clean_up = do_clean_up
         self._update_chunk_automatically = update_chunk_automatically
@@ -1514,6 +1511,9 @@ class ImageAcquirer:
         for event in self._supported_events:
             self._callback_dict[event] = None
 
+    def is_valid(self):
+        return self._is_valid
+
     def _emit_callbacks(self, event: Events) -> None:
         global _logger
 
@@ -1576,6 +1576,11 @@ class ImageAcquirer:
         Destroys itself; releases all preserved external resources such as
         buffers or the connected remote device.
 
+        Note that once the destroy method is called on the object then the
+        object will immediately turn obsolete and there will never be any
+        way to make the object usable. Just throw the object away and
+        create another object by calling Harvester.create_image_acquire method.
+
         :return: None
         """
         global _logger
@@ -1589,12 +1594,19 @@ class ImageAcquirer:
             if self.remote_device.node_map:
                 self.remote_device.node_map.disconnect()
 
+            if self._chunk_adapter:
+                self._chunk_adapter = None
+
             if self._device.is_open():
                 self._device.close()
 
             _logger.info('released resources: {}'.format(self))
 
+        self._remote_device = None
         self._device = None
+        self._interface = None
+        self._system = None
+        self._is_valid = False
 
         if self._profiler:
             self._profiler.print_diff()
@@ -2798,6 +2810,11 @@ class Harvester:
                 self._systems.append(System(module=raw_system, parent=producer))
                 _logger.debug('opened: {0}'.format(_family_tree(raw_system)))
 
+    def _release_acquires(self):
+        for ia in self._ias:
+            ia.destroy()
+        self._ias.clear()
+
     def _reset(self) -> None:
         """
         Initializes the :class:`Harvester` object. Once you reset the
@@ -2807,11 +2824,7 @@ class Harvester:
         :return: None.
         """
         global _logger
-
-        for ia in self._ias:
-            ia.destroy()
-
-        self._ias.clear()
+        self._release_acquires()
 
         _logger.debug('being reset: {}'.format(self))
         self.remove_files()
@@ -2885,10 +2898,17 @@ class Harvester:
         this method every time you added CTI files or plugged/unplugged
         devices.
 
+        Please note that the update method call will eventually turn the
+        existing ImageAcquire objects immediately obsolete even if the object
+        is still owned by someone. The owner should drop those obsolete
+        objects and create another ImageAcquisition object by calling
+        the Harvester.create_image_acquire method.
+
         :return: None.
         """
         global _logger
 
+        self._release_acquires()
         self._release_gentl_producers()
 
         try:

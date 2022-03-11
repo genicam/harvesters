@@ -301,6 +301,23 @@ class TestHarvesterCore(TestHarvester):
         ia.stop_acquisition()
         ia.destroy()
 
+    def test_releasing_resource_on_update_call(self):
+        #
+        acquires = []
+        nr_devices = len(self.harvester.device_info_list)
+        for i in range(nr_devices):
+            acquires.append(self.harvester.create_image_acquirer(i))
+        #
+        for acquire in acquires:
+            acquire.start_acquisition()
+        #
+        self._logger.info("finished allocating resource.")
+        self.harvester.update()
+        self._logger.info("finished the update method call.")
+        #
+        for acquire in acquires:
+            self.assertFalse(acquire.is_valid())
+
     def test_try_fetch_with_timeout(self):
         if not self.is_running_with_default_target():
             return

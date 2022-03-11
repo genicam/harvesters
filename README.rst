@@ -19,7 +19,7 @@
 What Is Harvester?
 ******************
 
-Harvester is a Python library that helps you to acquire images from a GenICam compliant camera through a GenICam compliant GenTL Producer library.
+Harvester is a Python library that helps you to acquire images from a GenICam compliant camera through a GenTL Producer library.
 
 You can freely use, modify, distribute Harvester under `Apache License-2.0 <https://www.apache.org/licenses/LICENSE-2.0>`_ without worrying about the use of your software: personal, internal or commercial.
 
@@ -38,22 +38,20 @@ You can freely use, modify, distribute Harvester under `Apache License-2.0 <http
 Tasks Harvester Does for You
 ****************************
 
-The main features of Harvester are listed as follows:
+The main features of Harvester are:
 
 * Image acquisition through GenTL Producers
 * Multiple loading of GenTL Producers in a single Python script
-* GenICam feature node manipulation of the target remote device
+* GenICam feature node manipulation
 
-Note that the second item implies you can involve multiple types of transport layers in your Python script. Each transport layer has own advantages and disadvantages and you should choose appropriate transport layers following your application's requirement. You just need to acquire images for some purposes and the GenTL Producers deliver the images somehow. It truly is the great benefit of the GenTL Standard! And of course, not only GenTL Producers but Harvester offer you a way to manipulate multiple remote devices in a single Python script with an intuitive manner.
-
-On the other hand, Harvester could be considered as a simplified version of the GenTL-Python Binding; actually, Harvester hides it in its back and shows only intuitive interfaces to its clients. Harvester just offers you a relationship between you and a remote device. Nothing more. We say it again, just you and a remote device. If you need to manipulate more relevant GenTL modules or have to achieve something over a hardcore way, then you should directly work with the GenTL-Python Binding.
+Note that the second item implies you can involve various types of transport layers in your Python script. Each transport layer has own advantages and disadvantages and you should choose appropriate one based on your application's requirement. You just need to acquire images for some purposes and the GenTL Producers deliver the images somehow. It truly is the great benefit of the GenTL Standard! And of course, not only GenTL Producers but Harvester offer you a way to manipulate multiple GenICam compliant entities such as a camera in a single Python script with an intuitive manner.
 
 
 ***********
 Need a GUI?
 ***********
 
-Would you like to have a GUI? Harvester has a sister project that is called **Harvester GUI**. Please take a look at the repository if you are interested in it:
+Do you need a GUI? Harvester has a sister project that is called **Harvester GUI**. Please visit there if you are interested in it:
 
 https://github.com/genicam/harvesters_gui
 
@@ -104,38 +102,7 @@ Important Links
 GenTL Producers
 ***************
 
-As of today, we have tested Harvester with the following GenTL Producers and it definitely is the shortest way to get one from the following list to get Harvester working with tangible machine vision cameras:
-
-.. list-table::
-    :header-rows: 1
-    :align: center
-
-    - - Company Name
-      - SDK Name
-      - Camera Manufacturer Free
-    - - Basler AG
-      - `Pylon <https://www.baslerweb.com/en/products/software/basler-pylon-camera-software-suite/>`_
-      - No
-    - - Baumer Optronic
-      - `Baumer GAPI SDK <https://www.baumer.com/ae/en/product-overview/image-processing-identification/software/baumer-gapi-sdk/c/14174>`_
-      - Yes for GEV and No for U3V
-    - - DAHENG VISION
-      - `MER Galaxy View <http://en.daheng-image.com/products_list/&pmcId=a1dda1e7-5d40-4538-9572-f4234be49c9c.html>`_
-      - No
-    - - JAI
-      - `JAI SDK <https://www.jai.com/support-software/jai-software>`_
-      - Yes
-    - - MATRIX VISION GmbH
-      - `mvGenTL Acquire <http://static.matrix-vision.com/mvIMPACT_Acquire/>`_
-      - Yes
-    - - OMRON SENTECH
-      - `SentechSDK <https://sentech.co.jp/en/data/>`_
-      - No
-    - - STEMMER IMAGING
-      - `Common Vision Blox <https://www.commonvisionblox.com/en/cvb-download/>`_
-      - Yes
-
-You might be able to directly download one at their website but please note that perhaps some of them could require you to register your information to get one. In addition, some GenTL Producers might block you to connect other competitors' cameras.
+You can find available GenTL Producers on `our Wiki page <https://github.com/genicam/harvesters/wiki#gentl-producers>`_.
 
 
 ###########
@@ -144,7 +111,7 @@ Terminology
 
 Before start talking about the detail, let's take a look at some important terminologies that frequently appear in this document. These terminologies are listed as follows:
 
-* *The GenApi-Python Binding*: A Python module that communicates with the GenICam reference implementation.
+* *The GenApi-Python Binding*: A Python module that communicates with the GenICam GenApi reference implementation.
 
 * *A GenTL Producer*: A library that has C interface and offers consumers a way to communicate with cameras over physical transport layer dependent technology hiding the detail from the consumer.
 
@@ -768,8 +735,6 @@ Harvester uses the following open source libraries/resources:
 Acknowledgement
 ***************
 
-The initial idea about Harvester suddenly came up to a software engineer, Kazunari Kudo's head in the early April of year 2018 and he immediately decided to bring the first prototype to the International Vision Standards Meeting, IVSM in short, that was going to be held in Frankfurt am Main in the following early May. During the Frankfurt IVSM, interested engineers tried out Harvester and confirmed it really worked using commercial machine vision cameras provided by well-known machine vision camera manufacturers in the world. Having that fact, the attendees of the IVSM warmly welcomed Harvester.
-
-The following individuals have directly or indirectly contributed to the development activity of Harvester or encouraged the developers by their thoughtful warm words; they are our respectable wonderful colleagues:
+The following individuals have directly or indirectly contributed to the development activity of Harvester; they are our respectable wonderful GenICam colleagues:
 
 Rod Barman, Stefan Battmer, David Beek, Jan Becvar, David Bernecker, Chris Beynon, Eric Bourbonnais, Benedikt Busch, George Chamberlain, Thomas Detjen, Friedrich Dierks, Dana Diezemann, Emile Dodin, Reynold Dodson, Sascha Dorenbeck, Jozsa Elod, Erik Eloff, Katie Ensign, Andreas Ertl, James Falconer, Werner Feith, Maciej Gara, Andreas Gau, Sebastien Gendreau, Francois Gobeil, Werner Goeman, Jean-Paul Goglio, Markus Grebing, Eric Gross, Ioannis Hadjicharalambous, Uwe Hagmaier, Tim Handschack, Christopher Hartmann, Reinhard Heister, Gerhard Helfrich, Jochem Herrmann, Heiko Hirschmueller, Tom Hopfner, David Hoese, Karsten Ingeman Christensen, Severi Jaaskelainen, Alfred Johannesson, Mattias Johannesson, Mark Jones, Mattias Josefsson, Martin Kersting, Stephan Kieneke, Tom Kirchner, Lutz Koschorreck, Frank Krehl, Maarten Kuijk, Max Larin, Ralf Lay, Min Liu, Sergey Loginonvskikh, Thomas Lueck, Alain Marchand, Rocco Matano, Masahide Matsubara, Stephane Maurice, Robert McCurrach, Mike Miethig, Thies Moeller, Roman Moie, Katsura Muramatsu, Marcel Naggatz, Hartmut Nebelung, Damian Nesbitt, Quang Nhan Nguyen, Klaus-Henning Noffz, Jonas Olofsson, Neerav Patel, Jan Pech, Merlin Plock, Joerg Preckwinkel, Benjamin Pussacq, Dave Reaves, Thomas Reuter, Gordon Rice, Andreas Rittinger, Ryan Robe, Nicolas P. Rougier, Felix Ruess, Matthias Schaffland, Michael Schmidt, Jan Scholze, Martin Schwarzbauer, Rupert Stelz, Madhura Suresh, Chendra Hadi Suryanto, Andrew Wei Chuen Tan, Timo Teifel, Albert Theuwissen, Laval Tremblay, Tim Vlaar, Silvio Voitzsch, Stefan Von Weihe, Frederik Voncken, Roman Wagner, Ansger Waschki, Anne Wendel, Michael Williamson, Jean-Michel Wintgens, Manfred Wuetschner, Jang Xu, Christoph Zierl, Sebastian Yap, and Juraj Zopp

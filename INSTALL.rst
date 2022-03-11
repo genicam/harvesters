@@ -6,18 +6,19 @@
 
 ----
 
-Installation
-############
-
-In this section, we will learn how to install Harvester and prerequiresites.
-
 .. contents:: Table of Contents
-    :depth: 2
+    :depth: 1
 
 ----
 
+Installation
+============
+
+In this section, we will learn how to install Harvester and prerequiresites.
+
+
 System Requirements
--------------------
+===================
 
 The supported CPython versions are defined by the ``genicam`` package. If the target CPython is not supported by the ``genicam`` package then Harvester will not be available.
 
@@ -29,7 +30,7 @@ In addition, you will need the following items:
 * GenICam compliant machine vision cameras/devices
 
 Installing Python
------------------
+=================
 
 First, let's install Python. There are several options for you but I would like to introduce you Anaconda here; I say this again, Anaconda is just an option and we bring it up here just for our convenience!
 
@@ -55,8 +56,9 @@ Then activate the root environment:
 
 Now you can start working for installing Harvester.
 
+
 Creating an Environment
------------------------
+=======================
 
 After installing a Python, let's create an isolated environment where does not interfere in your system. An environment is very helpful for developers because everything will be okay just deleting the environment if you completely corrupted it by accident. Please imagine a case where you corrupt the system-wide Python. It's obviously a nightmare and it will enforce you to spend some days to recover it so it is very recommended to work in an isolated environment when you need to develop something.
 
@@ -113,8 +115,9 @@ Finally, to deactivate the environment, type the following command:
 
     $ conda deactivate
 
+
 Installing a GenTL Producer
----------------------------
+===========================
 
 Now we install a GenTL Producer that works with Harvester. Harvester can't acquire images without it.
 
@@ -128,8 +131,9 @@ Once you installed their SDK, you can find the appropriate GenTL Producer just g
 
 This is just for your information but you can find the list of other reliable GenTL Producers `here <https://github.com/genicam/harvesters/wiki#gentl-producers>`_.
 
+
 Installing Harvester
---------------------
+====================
 
 Before installing Harvester, let's make sure that you are working in the environment that you created in `the previous chapter <https://github.com/genicam/harvesters#id18>`_.
 

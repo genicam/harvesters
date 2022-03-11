@@ -1,4 +1,3 @@
-
 .. figure:: https://user-images.githubusercontent.com/8652625/157881952-523736e0-01b4-48fe-b636-b24208d05e12.jpg
     :align: center
     :alt: The Peasant Dance
@@ -7,18 +6,19 @@
 
 ----
 
-Tutorial
-########
-
-In this section, we will learn how to instruct procedures to get Harvester working.
-
 .. contents:: Table of Contents
-    :depth: 2
+    :depth: 1
 
 ----
 
+Tutorial
+========
+
+In this section, we will learn how to instruct procedures to get Harvester working.
+
+
 Workflow
-########
+========
 
 Harvester is an image acquisition engine. No GUI. You can use it as an image acquisition library which acquires images from GenTL Producers through the GenTL-Python Binding and controls the target remote device (it's typically a camera) through the GenApi-Python Binding.
 
@@ -28,8 +28,9 @@ You'll be able to download the these language binding runtime libraries from the
 
 If you don't have to care about the display rate for visualizing acquired images, the combination of Harvester and `Matplotlib <https://matplotlib.org>`_ might be a realistic option for that purpose.
 
+
 Acquiring Images
-----------------
+================
 
 First, let's import Harvester:
 
@@ -179,8 +180,9 @@ Now you can quit the program! Please not that ``Harvester`` and ``ImageAcquirer`
 
 This way prevents you forget to release the acquired external resources. If this notation doesn't block your use case then you should rely on the ``with`` statement.
 
+
 Reshaping a NumPy Array as an Image
------------------------------------
+===================================
 
 We have learned how to acquire images from a target remote device through an ``ImageAcquirer`` class object. In this section, we will learn how to reshape the acquired image into another that can be used by your application.
 
@@ -277,8 +279,9 @@ Once you finished filling up each pixel with a set of RGB values, then you'll be
 
 You can download the standard document of PFNC at the `EMVA website <https://www.emva.org/standards-technology/genicam/genicam-downloads/>`_.
 
+
 Manipulating GenICam Feature Nodes
-----------------------------------
+==================================
 
 Probably almost of the Harvester users would be interested in manipulating GenIcam feature nodes through Harvester. Let's assume that we are going to control a GenICam feature node called ``Foo``.
 

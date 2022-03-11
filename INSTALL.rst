@@ -4,6 +4,11 @@ Getting Started
 
 In this section, we will learn how to instruct procedures to get Harvester working.
 
+.. contents:: Table of Contents
+    :depth: 1
+
+----
+
 ***********
 Terminology
 ***********
@@ -184,8 +189,10 @@ Getting back to the original topic, you could install the latest development ver
 
     $ git clone https://github.com/genicam/harvesters.git && cd harvesters && python setup.py install
 
+----
+
 ######################
-Working with Harvester
+The Harvester Workflow
 ######################
 
 Harvester is an image acquisition engine. No GUI. You can use it as an image acquisition library which acquires images from GenTL Producers through the GenTL-Python Binding and controls the target remote device (it's typically a camera) through the GenApi-Python Binding.
@@ -195,10 +202,6 @@ Harvester works as a minimalistic front-end for image acquisition. Just importin
 You'll be able to download the these language binding runtime libraries from the `EMVA website <https://www.emva.org/standards-technology/genicam/genicam-downloads/>`_, however, it's not available as of May 2018, because they have not officially released yet. Fortunately they are in the final reviewing process so hopefully they'll be released by the end of 2018.
 
 If you don't have to care about the display rate for visualizing acquired images, the combination of Harvester and `Matplotlib <https://matplotlib.org>`_ might be a realistic option for that purpose.
-
-######################
-The Harvester Workflow
-######################
 
 ****************
 Acquiring Images

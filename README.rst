@@ -186,7 +186,7 @@ The following code block shows Harvester is running on IPython. An acquired imag
 Getting Started with Harvester
 ##############################
 
-Are you ready to start working with Harvester? Please open `the getting started sectionn <INSTALL.rst>`_.
+Are you ready to start working with Harvester? Please visit `the getting started section <INSTALL.rst>`_ to learn the instructions you will need to get Harvester running and to learn how a typical image acquisition workflow goes with Harvester.
 
 ########
 Appendix

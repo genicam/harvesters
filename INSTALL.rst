@@ -5,7 +5,7 @@ Getting Started
 In this section, we will learn how to instruct procedures to get Harvester working.
 
 .. contents:: Table of Contents
-    :depth: 1
+    :depth: 2
 
 ----
 

@@ -43,7 +43,7 @@ class AcquisitionThread(Thread):
         self._acquire.start_acquisition()
         nr = 0
         while nr < self._nr:
-            with self._acquire.fetch_buffer() as buffer:
+            with self._acquire.fetch() as buffer:
                 self._logger.info(
                     'fetched: #{}, buffer: {}, acquire: {}'.format(
                         nr, buffer, self._acquire))
@@ -67,7 +67,7 @@ class TestTutorials(TestHarvester):
 
         while num_images_to_acquire < 10:
             #
-            with self.ia.fetch_buffer() as buffer:
+            with self.ia.fetch() as buffer:
                 #
                 self._logger.info('{0}'.format(buffer))
             num_images_to_acquire += 1
@@ -93,7 +93,7 @@ class TestTutorials(TestHarvester):
 
         while num_images_to_acquire < 10:
             #
-            with self.ia.fetch_buffer() as buffer:
+            with self.ia.fetch() as buffer:
                 #
                 self._logger.info('{0}'.format(buffer))
 
@@ -172,7 +172,7 @@ class TestTutorials2(unittest.TestCase):
 
         while num_images_to_acquire < 10:
             #
-            with ia.fetch_buffer() as buffer:
+            with ia.fetch() as buffer:
                 # self.do_something(buffer)
                 pass
 

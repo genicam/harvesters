@@ -131,7 +131,7 @@ Once you started image acquisition, you should definitely want to get an image. 
 
 .. code-block:: python
 
-    with ia.fetch_buffer() as buffer:
+    with ia.fetch() as buffer:
         # Work with the Buffer object. It consists of everything you need.
         print(buffer)
         # The buffer will automatically be queued.
@@ -140,7 +140,7 @@ Having that code, the fetched buffer is automatically queued once the code step 
 
 .. code-block:: python
 
-    buffer = ia.fetch_buffer()
+    buffer = ia.fetch()
     print(buffer)
     # Don't forget to queue the buffer.
     buffer.queue()
@@ -190,7 +190,7 @@ First, you should know that Harvester returns you an image as a 1D NumPy array.
 
 .. code-block:: python
 
-    buffer = ia.fetch_buffer()
+    buffer = ia.fetch()
     _1d = buffer.payload.components[0].data
 
 Perhaps you may expect to have it as a 2D array but Harvester doesn't in reality because if Harvester provides an image as a specific shape, then it could limit your algorithm that you can apply to get the image that fits to your expected shape. Instead, Harvester provides you an image as a 1D array and also provides you required information that you would need while you're reshaping the original array to another.

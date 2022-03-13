@@ -988,7 +988,7 @@ class Component2DImage(ComponentBase):
 class Buffer(Module):
     """
     Is provided by an :class:`ImageAcquire` object when you call its
-    :meth:`~harvesters.core.ImageAcquirer.fetch_buffer` method. It provides
+    :meth:`~harvesters.core.ImageAcquirer.fetch` method. It provides
     you a way to access acquired data and its relevant information.
 
     Note that it will never be necessary to create this object by yourself
@@ -1669,7 +1669,7 @@ class ImageAcquirer:
         """
         The number of buffers that is used for a case where the image
         acquisition process runs in the background. You will fetch buffers
-        from the buffers when you call the :meth:`fetch_buffer` method in a
+        from the buffers when you call the :meth:`fetch` method in a
         case you started the image acquisition passing :const:`True` to
         :data:`run_in_background` of the :meth:`start_acquisition` method.
 
@@ -1896,7 +1896,7 @@ class ImageAcquirer:
         """
         Starts image acquisition.
 
-        :param run_in_background: Set `True` if you want to let the ImageAcquire keep acquiring images in the background and the images you get calling `fetch_buffer` will be from the ImageAcquirer. Otherwise, the images will directly come from the target GenTL Producer.
+        :param run_in_background: Set `True` if you want to let the ImageAcquire keep acquiring images in the background and the images you get calling `fetch` will be from the ImageAcquirer. Otherwise, the images will directly come from the target GenTL Producer.
 
         :return: None.
         """
@@ -2069,7 +2069,7 @@ class ImageAcquirer:
     def try_fetch(self, *, timeout: float = 0,
                   is_raw: bool = False) -> Optional[Buffer]:
         """
-        Unlike the fetch_buffer method, the try_fetch method gives up and
+        Unlike the fetch method, the try_fetch method gives up and
         returns None if no complete buffer was acquired during the defined
         period.
 
@@ -2168,6 +2168,12 @@ class ImageAcquirer:
         return buffer
 
     def fetch_buffer(self, *, timeout: float = 0, is_raw: bool = False,
+                     cycle_s: float = None) -> Buffer:
+
+        _deprecated(self.fetch_buffer, self.fetch)
+        return self.fetch(timeout=timeout, is_raw=is_raw, cycle_s=cycle_s)
+
+    def fetch(self, *, timeout: float = 0, is_raw: bool = False,
                      cycle_s: float = None) -> Buffer:
         """
         Fetches an available :class:`Buffer` object that has been filled up

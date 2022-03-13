@@ -1007,7 +1007,7 @@ class TestIssue85(unittest.TestCase):
         self.assertFalse(os.listdir(temp_dir))
 
         #
-        with Harvester(do_clean_up=False) as h:
+        with Harvester(_clean_up=False) as h:
             h.add_file(self._cti_file_path)
             h.update()
             with h.create_image_acquirer(0):

@@ -1398,16 +1398,16 @@ class ImageAcquirer:
 
     def __init__(
             self, *, device=None,
-            profiler=None,
             sleep_duration: float = _sleep_duration_default,
             file_path: Optional[str] = None,
             file_dict: Dict[str, bytes] = None,
-            do_clean_up: bool = True,
-            update_chunk_automatically=True):
+            update_chunk_automatically=True,
+            _clean_up: bool = True,
+            _profiler=None):
         """
 
         :param device:
-        :param profiler:
+        :param _profiler:
         :param sleep_duration:
         :param file_path: Set a path to camera description file which you want to load on the target node map instead of the one which the device declares.
         """
@@ -1417,7 +1417,7 @@ class ImageAcquirer:
 
         self._is_valid = True
         self._file_dict = file_dict
-        self._do_clean_up = do_clean_up
+        self._clean_up = _clean_up
         self._update_chunk_automatically = update_chunk_automatically
         self._has_attached_chunk = False
 
@@ -1430,7 +1430,7 @@ class ImageAcquirer:
         self._device = device
         self._remote_device = RemoteDevice(
             module=device.module, parent=device, file_path=file_path,
-            file_dict=file_dict, do_clean_up=do_clean_up,
+            file_dict=file_dict, do_clean_up=_clean_up,
             xml_dir_to_store=self._xml_dir)
         self._interface = device.parent
         self._system = self._interface.parent
@@ -1445,7 +1445,7 @@ class ImageAcquirer:
         if self._create_ds_at_connection:
             self._setup_data_streams()
 
-        self._profiler = profiler
+        self._profiler = _profiler
 
         self._num_filled_buffers_to_hold = 1
         self._queue = Queue(maxsize=self._num_filled_buffers_to_hold)
@@ -2454,7 +2454,7 @@ class Harvester:
     def __init__(
             self, *,
             profile=False, logger: Optional[Logger] = None,
-            do_clean_up: bool = True):
+            _clean_up: bool = True):
         """
 
         :param profile:
@@ -2472,7 +2472,7 @@ class Harvester:
         self._ifaces = []
         self._device_info_list = []
         self._ias = []
-        self._do_clean_up = do_clean_up
+        self._clean_up = _clean_up
         self._has_revised_device_list = False
         self._timeout_for_update = 1000  # ms
 
@@ -2662,9 +2662,9 @@ class Harvester:
                 'opened: {}'.format(_family_tree(device)))
 
             ia = ImageAcquirer(
-                device=device, profiler=self._profiler,
+                device=device, _profiler=self._profiler,
                 sleep_duration=sleep_duration, file_path=file_path,
-                file_dict=file_dict, do_clean_up=self._do_clean_up,
+                file_dict=file_dict, _clean_up=self._clean_up,
                 update_chunk_automatically=auto_chunk_data_update)
             self._ias.append(ia)
 

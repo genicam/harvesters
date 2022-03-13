@@ -126,7 +126,7 @@ class TestHarvester(TestHarvesterBase):
         super().setUp()
 
         #
-        self._harvester = Harvester(logger=self._logger, do_clean_up=True)
+        self._harvester = Harvester(logger=self._logger, _clean_up=True)
         self._harvester.add_file(self._cti_file_path)
         self._harvester.update()
 
@@ -141,7 +141,7 @@ class TestHarvesterNoCleanUp(TestHarvesterBase):
         super().setUp()
 
         #
-        self._harvester = Harvester(logger=self._logger, do_clean_up=False)
+        self._harvester = Harvester(logger=self._logger, _clean_up=False)
         self._harvester.add_file(self._cti_file_path)
         self._harvester.update()
 

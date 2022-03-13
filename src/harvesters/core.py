@@ -320,6 +320,7 @@ class RemoteDevice(Module):
 
 
 class Device(Module):
+    """Represents a GenTL Device module."""
     def __init__(self, *, module, parent=None):
         super().__init__(module=module, port=module.local_port, parent=parent)
 
@@ -329,21 +330,25 @@ class Device(Module):
 
 
 class Interface(Module):
+    """Represents a GenTL Interface module."""
     def __init__(self, *, module, parent=None):
         super().__init__(module=module, port=module.port, parent=parent)
 
 
 class System(Module):
+    """Represents a GenTL System module."""
     def __init__(self, *, module, parent):
         super().__init__(module=module, parent=parent, port=module.port)
 
 
 class Producer(Module):
+    """Represents a GenTL Producer."""
     def __init__(self, *, module):
         super().__init__(module=module, parent=None)
 
 
 class DeviceInfo(Module):
+    """Represents a GenTL Device Information module."""
     def __init__(self, *, module, parent=None):
         super().__init__(module=module, parent=parent)
 
@@ -996,7 +1001,7 @@ class Component2DImage(ComponentBase):
 class Buffer(Module):
     """
     Is provided by an :class:`ImageAcquire` object when you call its
-    :meth:`~harvesters.core.ImageAcquirer.fetch_buffer` method. It provides
+    :meth:`~harvesters.core.ImageAcquirer.fetch` method. It provides
     you a way to access acquired data and its relevant information.
 
     Note that it will never be necessary to create this object by yourself
@@ -1406,16 +1411,16 @@ class ImageAcquirer:
 
     def __init__(
             self, *, device=None,
-            profiler=None,
             sleep_duration: float = _sleep_duration_default,
             file_path: Optional[str] = None,
             file_dict: Dict[str, bytes] = None,
-            do_clean_up: bool = True,
-            update_chunk_automatically=True):
+            update_chunk_automatically=True,
+            _clean_up: bool = True,
+            _profiler=None):
         """
 
         :param device:
-        :param profiler:
+        :param _profiler:
         :param sleep_duration:
         :param file_path: Set a path to camera description file which you want to load on the target node map instead of the one which the device declares.
         """
@@ -1425,7 +1430,7 @@ class ImageAcquirer:
 
         self._is_valid = True
         self._file_dict = file_dict
-        self._do_clean_up = do_clean_up
+        self._clean_up = _clean_up
         self._update_chunk_automatically = update_chunk_automatically
         self._has_attached_chunk = False
 
@@ -1438,7 +1443,7 @@ class ImageAcquirer:
         self._device = device
         self._remote_device = RemoteDevice(
             module=device.module, parent=device, file_path=file_path,
-            file_dict=file_dict, do_clean_up=do_clean_up,
+            file_dict=file_dict, do_clean_up=_clean_up,
             xml_dir_to_store=self._xml_dir)
         self._interface = device.parent
         self._system = self._interface.parent
@@ -1453,7 +1458,7 @@ class ImageAcquirer:
         if self._create_ds_at_connection:
             self._setup_data_streams()
 
-        self._profiler = profiler
+        self._profiler = _profiler
 
         self._num_filled_buffers_to_hold = 1
         self._queue = Queue(maxsize=self._num_filled_buffers_to_hold)
@@ -1677,7 +1682,7 @@ class ImageAcquirer:
         """
         The number of buffers that is used for a case where the image
         acquisition process runs in the background. You will fetch buffers
-        from the buffers when you call the :meth:`fetch_buffer` method in a
+        from the buffers when you call the :meth:`fetch` method in a
         case you started the image acquisition passing :const:`True` to
         :data:`run_in_background` of the :meth:`start_acquisition` method.
 
@@ -1777,13 +1782,6 @@ class ImageAcquirer:
         :type: System
         """
         return self._system
-
-    def is_acquiring_images(self):
-        """
-        Will be deprecated shortly.
-        """
-        _deprecated(self.is_acquiring_images, self.is_acquiring)
-        return self.is_acquiring()
 
     def is_acquiring(self) -> bool:
         """
@@ -1907,18 +1905,11 @@ class ImageAcquirer:
             self._event_new_buffer_managers.append(
                 EventManagerNewBuffer(event_token))
 
-    def start_image_acquisition(self, run_in_background=False):
-        """
-        Will be deprecated shortly.
-        """
-        _deprecated(self.start_image_acquisition, self.start_acquisition)
-        self.start_acquisition(run_in_background=run_in_background)
-
     def start_acquisition(self, run_in_background: bool = False) -> None:
         """
         Starts image acquisition.
 
-        :param run_in_background: Set `True` if you want to let the ImageAcquire keep acquiring images in the background and the images you get calling `fetch_buffer` will be from the ImageAcquirer. Otherwise, the images will directly come from the target GenTL Producer.
+        :param run_in_background: Set `True` if you want to let the ImageAcquire keep acquiring images in the background and the images you get calling `fetch` will be from the ImageAcquirer. Otherwise, the images will directly come from the target GenTL Producer.
 
         :return: None.
         """
@@ -2091,7 +2082,7 @@ class ImageAcquirer:
     def try_fetch(self, *, timeout: float = 0,
                   is_raw: bool = False) -> Optional[Buffer]:
         """
-        Unlike the fetch_buffer method, the try_fetch method gives up and
+        Unlike the fetch method, the try_fetch method gives up and
         returns None if no complete buffer was acquired during the defined
         period.
 
@@ -2191,6 +2182,12 @@ class ImageAcquirer:
 
     def fetch_buffer(self, *, timeout: float = 0, is_raw: bool = False,
                      cycle_s: float = None) -> Buffer:
+
+        _deprecated(self.fetch_buffer, self.fetch)
+        return self.fetch(timeout=timeout, is_raw=is_raw, cycle_s=cycle_s)
+
+    def fetch(self, *, timeout: float = 0, is_raw: bool = False,
+                     cycle_s: float = None) -> Buffer:
         """
         Fetches an available :class:`Buffer` object that has been filled up
         with a single image and returns it.
@@ -2288,13 +2285,6 @@ class ImageAcquirer:
         for buffer in buffers:
             data_stream.queue_buffer(buffer)
             _logger.debug('queued: {0}'.format(_family_tree(buffer)))
-
-    def stop_image_acquisition(self):
-        """
-        Will be deprecated shortly.
-        """
-        _deprecated(self.stop_image_acquisition, self.stop_acquisition)
-        self.stop_acquisition()
 
     def stop_acquisition(self) -> None:
         """
@@ -2483,7 +2473,7 @@ class Harvester:
     def __init__(
             self, *,
             profile=False, logger: Optional[Logger] = None,
-            do_clean_up: bool = True):
+            _clean_up: bool = True):
         """
 
         :param profile:
@@ -2501,7 +2491,7 @@ class Harvester:
         self._ifaces = []
         self._device_info_list = []
         self._ias = []
-        self._do_clean_up = do_clean_up
+        self._clean_up = _clean_up
         self._has_revised_device_list = False
         self._timeout_for_update = 1000  # ms
 
@@ -2691,9 +2681,9 @@ class Harvester:
                 'opened: {}'.format(_family_tree(device)))
 
             ia = ImageAcquirer(
-                device=device, profiler=self._profiler,
+                device=device, _profiler=self._profiler,
                 sleep_duration=sleep_duration, file_path=file_path,
-                file_dict=file_dict, do_clean_up=self._do_clean_up,
+                file_dict=file_dict, _clean_up=self._clean_up,
                 update_chunk_automatically=auto_chunk_data_update)
             self._ias.append(ia)
 
@@ -2745,13 +2735,6 @@ class Harvester:
             self._cti_files.append(file_path)
             _logger.info('added: {0} to {1}'.format(file_path, self))
 
-    def remove_cti_file(self, file_path: str):
-        """
-        Will be deprecated shortly.
-        """
-        _deprecated(self.remove_cti_file, self.remove_file)
-        self.remove_file(file_path)
-
     def remove_file(self, file_path: str) -> None:
         """
         Removes the specified CTI file from the list.
@@ -2765,13 +2748,6 @@ class Harvester:
         if file_path in self._cti_files:
             self._cti_files.remove(file_path)
             _logger.info('removed: {0} from {1}'.format(file_path, self))
-
-    def remove_cti_files(self) -> None:
-        """
-        Will be deprecated shortly.
-        """
-        _deprecated(self.remove_cti_files, self.remove_files)
-        self.remove_files()
 
     def remove_files(self) -> None:
         """
@@ -2884,13 +2860,6 @@ class Harvester:
 
         _logger.debug(
             'discarded device information: {}'.format(self))
-
-    def update_device_info_list(self):
-        """
-        Will be deprecated shortly.
-        """
-        _deprecated(self.update_device_info_list, self.update)
-        self.update()
 
     def update(self) -> None:
         """

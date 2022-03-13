@@ -43,7 +43,7 @@ class AcquisitionThread(Thread):
         self._acquire.start_acquisition()
         nr = 0
         while nr < self._nr:
-            with self._acquire.fetch_buffer() as buffer:
+            with self._acquire.fetch() as buffer:
                 self._logger.info(
                     'fetched: #{}, buffer: {}, acquire: {}'.format(
                         nr, buffer, self._acquire))
@@ -67,7 +67,7 @@ class TestTutorials(TestHarvester):
 
         while num_images_to_acquire < 10:
             #
-            with self.ia.fetch_buffer() as buffer:
+            with self.ia.fetch() as buffer:
                 #
                 self._logger.info('{0}'.format(buffer))
             num_images_to_acquire += 1
@@ -93,7 +93,7 @@ class TestTutorials(TestHarvester):
 
         while num_images_to_acquire < 10:
             #
-            with self.ia.fetch_buffer() as buffer:
+            with self.ia.fetch() as buffer:
                 #
                 self._logger.info('{0}'.format(buffer))
 
@@ -172,7 +172,7 @@ class TestTutorials2(unittest.TestCase):
 
         while num_images_to_acquire < 10:
             #
-            with ia.fetch_buffer() as buffer:
+            with ia.fetch() as buffer:
                 # self.do_something(buffer)
                 pass
 
@@ -180,31 +180,6 @@ class TestTutorials2(unittest.TestCase):
 
         # We don't need the ImageAcquirer object. Destroy it:
         ia.destroy()
-
-    def test_ticket_127(self):
-        #
-        self.harvester.add_cti_file(self._cti_file_path)
-        self.harvester.remove_cti_file(self._cti_file_path)
-
-        #
-        self.harvester.add_cti_file(self._cti_file_path)
-        self.harvester.remove_cti_files()
-
-        #
-        self.harvester.add_cti_file(self._cti_file_path)
-        self.assertIsNotNone(self.harvester.cti_files)
-
-        #
-        self.harvester.update_device_info_list()
-
-        # Connect to the first camera in the list:
-        ia = self.harvester.create_image_acquirer(0)
-
-        #
-        ia.start_image_acquisition()
-        self.assertTrue(ia.is_acquiring_images())
-        ia.stop_image_acquisition()
-        self.assertFalse(ia.is_acquiring_images())
 
 
 if __name__ == '__main__':

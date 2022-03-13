@@ -86,7 +86,7 @@ Links
 Harvester on IPython
 ====================
 
-The following code block shows Harvester is running on IPython. An acquired image is delivered as the payload of a buffer and the buffer can be fetched by calling the ``fetch_buffer`` method of the ``ImageAcquirer`` class. Once you get an image you should be able to immediately start image processing. If you're running on the Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
+The following code block shows Harvester is running on IPython. An acquired image is delivered as the payload of a buffer and the buffer can be fetched by calling the ``fetch`` method of the ``ImageAcquirer`` class. Once you get an image you should be able to immediately start image processing. If you're running on the Jupyter notebook, you should be able to visualize the image data using Matplotlib. This step should be helpful to check what's going on your trial in the image processing flow.
 
 .. code-block:: python
 
@@ -121,7 +121,7 @@ The following code block shows Harvester is running on IPython. An acquired imag
 
     In [12]: ia.start_acquisition()
 
-    In [13]: with ia.fetch_buffer() as buffer:
+    In [13]: with ia.fetch() as buffer:
         ...:     # Let's create an alias of the 2D image component:
         ...:     component = buffer.payload.components[0]
         ...:

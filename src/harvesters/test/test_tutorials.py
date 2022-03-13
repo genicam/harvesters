@@ -181,31 +181,6 @@ class TestTutorials2(unittest.TestCase):
         # We don't need the ImageAcquirer object. Destroy it:
         ia.destroy()
 
-    def test_ticket_127(self):
-        #
-        self.harvester.add_cti_file(self._cti_file_path)
-        self.harvester.remove_cti_file(self._cti_file_path)
-
-        #
-        self.harvester.add_cti_file(self._cti_file_path)
-        self.harvester.remove_cti_files()
-
-        #
-        self.harvester.add_cti_file(self._cti_file_path)
-        self.assertIsNotNone(self.harvester.cti_files)
-
-        #
-        self.harvester.update_device_info_list()
-
-        # Connect to the first camera in the list:
-        ia = self.harvester.create_image_acquirer(0)
-
-        #
-        ia.start_image_acquisition()
-        self.assertTrue(ia.is_acquiring_images())
-        ia.stop_image_acquisition()
-        self.assertFalse(ia.is_acquiring_images())
-
 
 if __name__ == '__main__':
     unittest.main()

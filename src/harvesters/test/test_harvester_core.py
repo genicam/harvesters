@@ -145,7 +145,7 @@ class TestHarvesterCore(TestHarvester):
         ia.start_acquisition()
 
         # Fetch a buffer that is filled with image data.
-        with ia.fetch_buffer() as buffer:
+        with ia.fetch() as buffer:
             # Reshape it.
             self._logger.info('{0}'.format(buffer))
 
@@ -198,13 +198,13 @@ class TestHarvesterCore(TestHarvester):
                         try:
                             # We know we've started image acquisition but this
                             # try-except block is demonstrating a case where
-                            # a client called fetch_buffer method even though
+                            # a client called fetch method even though
                             # he'd forgotten to start image acquisition.
-                            with ia.fetch_buffer() as buffer:
+                            with ia.fetch() as buffer:
                                 self._logger.info('{0}'.format(buffer))
                         except AttributeError:
                             # Harvester Core has not started image acquisition
-                            # so calling fetch_buffer() raises AttributeError
+                            # so calling fetch() raises AttributeError
                             # because None object is used for the with
                             # statement.
                             pass
@@ -212,7 +212,7 @@ class TestHarvesterCore(TestHarvester):
                         # Option 2: You can manually do the same job but not
                         # recommended because you might forget to queue the
                         # buffer.
-                        buffer = ia.fetch_buffer()
+                        buffer = ia.fetch()
                         self._logger.info('{0}'.format(buffer))
 
                 #
@@ -272,7 +272,7 @@ class TestHarvesterCore(TestHarvester):
         with self.assertRaises(TimeoutException):
             # Try to fetch a buffer but the IA will immediately raise
             # TimeoutException because it's not started image acquisition:
-            _ = ia.fetch_buffer(timeout=timeout)
+            _ = ia.fetch(timeout=timeout)
 
         # Then we setup the device for software trigger mode:
         ia.remote_device.node_map.TriggerMode.value = 'On'
@@ -285,14 +285,14 @@ class TestHarvesterCore(TestHarvester):
         with self.assertRaises(TimeoutException):
             # Try to fetch a buffer but the IA will raise TimeoutException
             # because we've not triggered the device so far:
-            _ = ia.fetch_buffer(timeout=timeout)
+            _ = ia.fetch(timeout=timeout)
 
         # We finally acquire an image triggering the device:
         buffer = None
         self.assertIsNone(buffer)
 
         ia.remote_device.node_map.TriggerSoftware.execute()
-        buffer = ia.fetch_buffer(timeout=timeout)
+        buffer = ia.fetch(timeout=timeout)
         self.assertIsNotNone(buffer)
         self._logger.info('{0}'.format(buffer))
         buffer.queue()
@@ -317,6 +317,17 @@ class TestHarvesterCore(TestHarvester):
         #
         for acquire in acquires:
             self.assertFalse(acquire.is_valid())
+
+    def test_deprecation_announced_items_fetch_buffer(self):
+        ia = self.harvester.create_image_acquirer(0)
+        ia.start_acquisition()
+        # Try to fetch a buffer but None will be returned
+        # because we've not triggered the device so far:
+        self._logger.info("you will see timeout but that's intentional.")
+        with ia.fetch_buffer(timeout=0.1) as buffer:
+            pass
+        self._logger.info("did you see deprecation announcement?")
+        ia.stop_acquisition()
 
     def test_try_fetch_with_timeout(self):
         if not self.is_running_with_default_target():
@@ -365,7 +376,7 @@ class TestHarvesterCore(TestHarvester):
         ia.start_acquisition()
 
         # Fetch a buffer to make sure it's working:
-        with ia.fetch_buffer() as buffer:
+        with ia.fetch() as buffer:
             self._logger.info('{0}'.format(buffer))
 
         # Then stop image acquisition:
@@ -442,7 +453,7 @@ class TestHarvesterCore(TestHarvester):
                 num_images - i
             )
             #
-            with self.ia.fetch_buffer():
+            with self.ia.fetch():
                 #
                 self.assertEqual(
                     self.ia.num_holding_filled_buffers,
@@ -493,7 +504,7 @@ class TestHarvesterCore(TestHarvester):
 
     def _callback_on_new_buffer_arrival(self):
         # Fetch a buffer and keep it:
-        self._buffers.append(self.ia.fetch_buffer())
+        self._buffers.append(self.ia.fetch())
 
     def test_issue_67(self):
         if not self.is_running_with_default_target():
@@ -585,7 +596,7 @@ class TestHarvesterCore(TestHarvester):
         #
         self.ia.start_acquisition(run_in_background=False)
         #
-        with self.ia.fetch_buffer() as buffer:
+        with self.ia.fetch() as buffer:
             self.assertIsNotNone(buffer)
         #
         self.ia.stop_acquisition()
@@ -690,7 +701,7 @@ class TestHarvesterCore(TestHarvester):
                 self.ia.start_acquisition()
 
                 # Fetch a buffer to make sure it's working:
-                with self.ia.fetch_buffer() as buffer:
+                with self.ia.fetch() as buffer:
                     self._logger.info('{0}'.format(buffer))
 
             # Then stop image acquisition:
@@ -920,7 +931,7 @@ class TestHarvesterCore(TestHarvester):
 
         for i in range(32):
             # Fetch a buffer to make sure it's working:
-            with self.ia.fetch_buffer() as buffer:
+            with self.ia.fetch() as buffer:
                 self._logger.info('going to update chunk data'.format(buffer))
                 buffer.update_chunk_data()
                 self._logger.info('did it update?')
@@ -1023,7 +1034,7 @@ class _OnNewBufferAvailable(Callback):
         self._buffers = buffers
 
     def emit(self, context: Optional[object] = None) -> None:
-        buffer = self._ia.fetch_buffer()
+        buffer = self._ia.fetch()
         self._buffers.append(buffer)
 
     @property

@@ -265,35 +265,22 @@ class Module(_Delegate):
 
     @property
     def module(self):
-        """
-        The corresponding raw GenTL module that the genicam package offers.
-
-        :getter: Returns itself.
-        :type: Union[genicam.genapi.System, genicam.genapi.Interface,
+        """Union[genicam.genapi.System, genicam.genapi.Interface,
         genicam.genapi.Device, genicam.genapi.DataStream,
-        genicam.genapi.Buffer]
+        genicam.genapi.Buffer]: The corresponding raw GenTL module.
         """
         return self._module
 
     @property
     def node_map(self):
-        """
-        The GenICam feature node map that belongs to the owner object.
-
-        :getter: Returns itself.
-        :type: genicam.genapi.NodeMap
-        """
+        """genicam.genapi.NodeMap: The GenICam feature node map that belongs
+        to the owner object."""
         return self._node_map
 
     @property
     def parent(self):
-        """
-        The parent raw GenTL module.
-
-        :getter: Returns itself.
-        :type: Union[None, genicam.genapi.System, genicam.genapi.Interface,
-        genicam.genapi.Device, genicam.genapi.DataStream]
-        """
+        """Union[None, System, Interface, Device, RemoveDevice, DataStream]:
+        Its parent GenTL module."""
         return self._parent
 
 
@@ -320,6 +307,7 @@ class RemoteDevice(Module):
 
 
 class Device(Module):
+    """Represents a GenTL Device module."""
     def __init__(self, *, module, parent=None):
         super().__init__(module=module, port=module.local_port, parent=parent)
 
@@ -329,21 +317,25 @@ class Device(Module):
 
 
 class Interface(Module):
+    """Represents a GenTL Interface module."""
     def __init__(self, *, module, parent=None):
         super().__init__(module=module, port=module.port, parent=parent)
 
 
 class System(Module):
+    """Represents a GenTL System module."""
     def __init__(self, *, module, parent):
         super().__init__(module=module, parent=parent, port=module.port)
 
 
 class Producer(Module):
+    """Represents a GenTL Producer."""
     def __init__(self, *, module):
         super().__init__(module=module, parent=None)
 
 
 class DeviceInfo(Module):
+    """Represents a GenTL Device Information module."""
     def __init__(self, *, module, parent=None):
         super().__init__(module=module, parent=parent)
 
@@ -1778,13 +1770,6 @@ class ImageAcquirer:
         """
         return self._system
 
-    def is_acquiring_images(self):
-        """
-        Will be deprecated shortly.
-        """
-        _deprecated(self.is_acquiring_images, self.is_acquiring)
-        return self.is_acquiring()
-
     def is_acquiring(self) -> bool:
         """
         Returns the truth value of a proposition: It's acquiring images.
@@ -1906,13 +1891,6 @@ class ImageAcquirer:
 
             self._event_new_buffer_managers.append(
                 EventManagerNewBuffer(event_token))
-
-    def start_image_acquisition(self, run_in_background=False):
-        """
-        Will be deprecated shortly.
-        """
-        _deprecated(self.start_image_acquisition, self.start_acquisition)
-        self.start_acquisition(run_in_background=run_in_background)
 
     def start_acquisition(self, run_in_background: bool = False) -> None:
         """
@@ -2288,13 +2266,6 @@ class ImageAcquirer:
         for buffer in buffers:
             data_stream.queue_buffer(buffer)
             _logger.debug('queued: {0}'.format(_family_tree(buffer)))
-
-    def stop_image_acquisition(self):
-        """
-        Will be deprecated shortly.
-        """
-        _deprecated(self.stop_image_acquisition, self.stop_acquisition)
-        self.stop_acquisition()
 
     def stop_acquisition(self) -> None:
         """
@@ -2745,13 +2716,6 @@ class Harvester:
             self._cti_files.append(file_path)
             _logger.info('added: {0} to {1}'.format(file_path, self))
 
-    def remove_cti_file(self, file_path: str):
-        """
-        Will be deprecated shortly.
-        """
-        _deprecated(self.remove_cti_file, self.remove_file)
-        self.remove_file(file_path)
-
     def remove_file(self, file_path: str) -> None:
         """
         Removes the specified CTI file from the list.
@@ -2765,13 +2729,6 @@ class Harvester:
         if file_path in self._cti_files:
             self._cti_files.remove(file_path)
             _logger.info('removed: {0} from {1}'.format(file_path, self))
-
-    def remove_cti_files(self) -> None:
-        """
-        Will be deprecated shortly.
-        """
-        _deprecated(self.remove_cti_files, self.remove_files)
-        self.remove_files()
 
     def remove_files(self) -> None:
         """
@@ -2884,13 +2841,6 @@ class Harvester:
 
         _logger.debug(
             'discarded device information: {}'.format(self))
-
-    def update_device_info_list(self):
-        """
-        Will be deprecated shortly.
-        """
-        _deprecated(self.update_device_info_list, self.update)
-        self.update()
 
     def update(self) -> None:
         """

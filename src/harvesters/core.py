@@ -265,22 +265,35 @@ class Module(_Delegate):
 
     @property
     def module(self):
-        """Union[genicam.genapi.System, genicam.genapi.Interface,
+        """
+        The corresponding raw GenTL module that the genicam package offers.
+
+        :getter: Returns itself.
+        :type: Union[genicam.genapi.System, genicam.genapi.Interface,
         genicam.genapi.Device, genicam.genapi.DataStream,
-        genicam.genapi.Buffer]: The corresponding raw GenTL module.
+        genicam.genapi.Buffer]
         """
         return self._module
 
     @property
     def node_map(self):
-        """genicam.genapi.NodeMap: The GenICam feature node map that belongs
-        to the owner object."""
+        """
+        The GenICam feature node map that belongs to the owner object.
+
+        :getter: Returns itself.
+        :type: genicam.genapi.NodeMap
+        """
         return self._node_map
 
     @property
     def parent(self):
-        """Union[None, System, Interface, Device, RemoveDevice, DataStream]:
-        Its parent GenTL module."""
+        """
+        The parent raw GenTL module.
+
+        :getter: Returns itself.
+        :type: Union[None, genicam.genapi.System, genicam.genapi.Interface,
+        genicam.genapi.Device, genicam.genapi.DataStream]
+        """
         return self._parent
 
 

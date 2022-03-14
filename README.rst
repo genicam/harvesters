@@ -119,7 +119,7 @@ The following code block shows Harvester is running on IPython. An acquired imag
 
     In [11]: ia.remote_device.node_map.PixelFormat.value = 'Mono8'
 
-    In [12]: ia.start_acquisition()
+    In [12]: ia.start()
 
     In [13]: with ia.fetch() as buffer:
         ...:     # Let's create an alias of the 2D image component:
@@ -162,7 +162,7 @@ The following code block shows Harvester is running on IPython. An acquired imag
      [130 131 132 133 134 135 136 137]]
     AVE: 130.0, MIN: 123, MAX: 137
 
-    In [14]: ia.stop_acquisition()
+    In [14]: ia.stop()
 
     In [15]: ia.destroy()
 

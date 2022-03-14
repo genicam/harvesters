@@ -40,7 +40,7 @@ class AcquisitionThread(Thread):
         self._logger = logger
 
     def run(self):
-        self._acquire.start_acquisition()
+        self._acquire.start()
         nr = 0
         while nr < self._nr:
             with self._acquire.fetch() as buffer:
@@ -49,7 +49,7 @@ class AcquisitionThread(Thread):
                         nr, buffer, self._acquire))
                 nr += 1
                 time.sleep(self._sleep)
-        self._acquire.stop_acquisition()
+        self._acquire.stop()
         self._acquire.destroy()
 
 
@@ -63,7 +63,7 @@ class TestTutorials(TestHarvester):
         num_images_to_acquire = 0
 
         # Then start image acquisition.
-        self.ia.start_acquisition()
+        self.ia.start()
 
         while num_images_to_acquire < 10:
             #
@@ -86,7 +86,7 @@ class TestTutorials(TestHarvester):
         self.setup_camera()
 
         # Then start image acquisition.
-        self.ia.start_acquisition()
+        self.ia.start()
 
         # Setup your equipment then trigger the camera.
         self.setup_equipment_and_trigger_camera()
@@ -168,7 +168,7 @@ class TestTutorials2(unittest.TestCase):
         num_images_to_acquire = 0
 
         # Then start image acquisition:
-        ia.start_acquisition()
+        ia.start()
 
         while num_images_to_acquire < 10:
             #

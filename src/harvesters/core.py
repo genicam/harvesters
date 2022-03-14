@@ -1592,7 +1592,7 @@ class ImageAcquirer:
 
         id_ = None
         if self.device:
-            self.stop_acquisition()
+            self.stop()
             self._release_data_streams()
             id_ = self._device.id_
 
@@ -1684,7 +1684,7 @@ class ImageAcquirer:
         acquisition process runs in the background. You will fetch buffers
         from the buffers when you call the :meth:`fetch` method in a
         case you started the image acquisition passing :const:`True` to
-        :data:`run_in_background` of the :meth:`start_acquisition` method.
+        :data:`run_in_background` of the :meth:`start` method.
 
         :getter: Returns itself.
         :setter: Overwrites itself with the given value.
@@ -1906,6 +1906,10 @@ class ImageAcquirer:
                 EventManagerNewBuffer(event_token))
 
     def start_acquisition(self, run_in_background: bool = False) -> None:
+        _deprecated(self.start_acquisition, self.start)
+        self.start(run_in_background=run_in_background)
+
+    def start(self, *, run_in_background: bool = False) -> None:
         """
         Starts image acquisition.
 
@@ -2287,6 +2291,10 @@ class ImageAcquirer:
             _logger.debug('queued: {0}'.format(_family_tree(buffer)))
 
     def stop_acquisition(self) -> None:
+        _deprecated(self.stop_acquisition, self.stop)
+        self.stop()
+
+    def stop(self) -> None:
         """
         Stops image acquisition.
 

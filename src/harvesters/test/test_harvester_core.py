@@ -142,7 +142,7 @@ class TestHarvesterCore(TestHarvester):
 
     def _basic_usage(self, ia: ImageAcquirer):
         # Start image acquisition.
-        ia.start_acquisition()
+        ia.start()
 
         # Fetch a buffer that is filled with image data.
         with ia.fetch() as buffer:
@@ -150,7 +150,7 @@ class TestHarvesterCore(TestHarvester):
             self._logger.info('{0}'.format(buffer))
 
         # Stop image acquisition.
-        ia.stop_acquisition()
+        ia.stop()
 
     def test_multiple_image_acquirers(self):
         if not self.is_running_with_default_target():
@@ -181,7 +181,7 @@ class TestHarvesterCore(TestHarvester):
             #
             self._logger.info('---> Round {0}: Set up'.format(i))
             for index, ia in enumerate(ias):
-                ia.start_acquisition()
+                ia.start()
                 self._logger.info(
                     'Device #{0} has started image acquisition.'.format(index)
                 )
@@ -221,7 +221,7 @@ class TestHarvesterCore(TestHarvester):
             #
             self._logger.info('<--- Round {0}: Tear down'.format(i))
             for index, ia in enumerate(ias):
-                ia.stop_acquisition()
+                ia.stop()
                 self._logger.info(
                     'Device #{0} has stopped image acquisition.'.format(index)
                 )
@@ -264,7 +264,7 @@ class TestHarvesterCore(TestHarvester):
         ia = self.harvester.create_image_acquirer(0)
 
         # We do not start image acquisition:
-        #ia.start_acquisition()
+        #ia.start()
 
         timeout = 3  # sec
 
@@ -279,7 +279,7 @@ class TestHarvesterCore(TestHarvester):
         ia.remote_device.node_map.TriggerSource.value = 'Software'
 
         # We're ready to start image acquisition:
-        ia.start_acquisition()
+        ia.start()
 
         self._logger.info("you will see timeout but that's intentional.")
         with self.assertRaises(TimeoutException):
@@ -298,7 +298,7 @@ class TestHarvesterCore(TestHarvester):
         buffer.queue()
 
         # Now we stop image acquisition:
-        ia.stop_acquisition()
+        ia.stop()
         ia.destroy()
 
     def test_releasing_resource_on_update_call(self):
@@ -309,7 +309,7 @@ class TestHarvesterCore(TestHarvester):
             acquires.append(self.harvester.create_image_acquirer(i))
         #
         for acquire in acquires:
-            acquire.start_acquisition()
+            acquire.start()
         #
         self._logger.info("finished allocating resource.")
         self.harvester.update()
@@ -320,14 +320,23 @@ class TestHarvesterCore(TestHarvester):
 
     def test_deprecation_announced_items_fetch_buffer(self):
         ia = self.harvester.create_image_acquirer(0)
-        ia.start_acquisition()
+        ia.start()
         # Try to fetch a buffer but None will be returned
         # because we've not triggered the device so far:
-        self._logger.info("you will see timeout but that's intentional.")
+        self._logger.info("you will see deprecation announcement.")
         with ia.fetch_buffer(timeout=0.1) as buffer:
             pass
         self._logger.info("did you see deprecation announcement?")
+        ia.stop()
+
+    def test_deprecation_announced_items_start_stop_image_acquisition(self):
+        ia = self.harvester.create_image_acquirer(0)
+        self._logger.info("you will see deprecation announcement.")
+        ia.start_acquisition()
+        self._logger.info("did you see deprecation announcement?")
+        self._logger.info("you will see deprecation announcement.")
         ia.stop_acquisition()
+        self._logger.info("did you see deprecation announcement?")
 
     def test_try_fetch_with_timeout(self):
         if not self.is_running_with_default_target():
@@ -337,7 +346,7 @@ class TestHarvesterCore(TestHarvester):
         ia = self.harvester.create_image_acquirer(0)
 
         # We do not start image acquisition:
-        #ia.start_acquisition()
+        #ia.start()
 
         timeout = 3  # sec
 
@@ -346,7 +355,7 @@ class TestHarvesterCore(TestHarvester):
         ia.remote_device.node_map.TriggerSource.value = 'Software'
 
         # We're ready to start image acquisition:
-        ia.start_acquisition()
+        ia.start()
 
         # Try to fetch a buffer but None will be returned
         # because we've not triggered the device so far:
@@ -361,7 +370,7 @@ class TestHarvesterCore(TestHarvester):
         buffer.queue()
 
         # Now we stop image acquisition:
-        ia.stop_acquisition()
+        ia.stop()
         ia.destroy()
 
     def test_stop_start_and_stop(self):
@@ -370,17 +379,17 @@ class TestHarvesterCore(TestHarvester):
 
         # It's not necessary but we stop image acquisition first;
         #
-        ia.stop_acquisition()
+        ia.stop()
 
         # Then start it:
-        ia.start_acquisition()
+        ia.start()
 
         # Fetch a buffer to make sure it's working:
         with ia.fetch() as buffer:
             self._logger.info('{0}'.format(buffer))
 
         # Then stop image acquisition:
-        ia.stop_acquisition()
+        ia.stop()
 
         # And destroy the ImageAcquirer:
         ia.destroy()
@@ -407,13 +416,13 @@ class TestHarvesterCore(TestHarvester):
                 # Start image acquisition:
                 self._logger.info(
                     "you will see timeout but that's intentional.")
-                self.ia.start_acquisition(run_in_background=True)
+                self.ia.start(run_in_background=True)
 
                 # Run a test:
                 test(num_images)
 
                 # Stop image acquisition:
-                self.ia.stop_acquisition()
+                self.ia.stop()
 
     def _test_issue_120_1(self, num_images):
         # Make sure num_holding_filled_buffers is incremented every trigger:
@@ -594,12 +603,12 @@ class TestHarvesterCore(TestHarvester):
         #
         self.ia = self.harvester.create_image_acquirer(0)
         #
-        self.ia.start_acquisition(run_in_background=False)
+        self.ia.start(run_in_background=False)
         #
         with self.ia.fetch() as buffer:
             self.assertIsNotNone(buffer)
         #
-        self.ia.stop_acquisition()
+        self.ia.stop()
 
     def test_issue_141(self):
         if not self.is_running_with_default_target():
@@ -636,7 +645,7 @@ class TestHarvesterCore(TestHarvester):
             test()
 
             # Then stop image acquisition:
-            self.ia.stop_acquisition()
+            self.ia.stop()
 
     def _test_141_with_callback(self):
         # Add it to the image acquire so that it can get notified when the
@@ -674,7 +683,7 @@ class TestHarvesterCore(TestHarvester):
     def _test_141_body(self):
         # Start image acquisition:
         self._logger.info("going to start acquisition in the background.")
-        self.ia.start_acquisition(run_in_background=True)
+        self.ia.start(run_in_background=True)
 
         # Trigger the target device:
         for _ in range(self.num_images):
@@ -698,14 +707,14 @@ class TestHarvesterCore(TestHarvester):
 
             for i in range(32):
                 # Then start it:
-                self.ia.start_acquisition()
+                self.ia.start()
 
                 # Fetch a buffer to make sure it's working:
                 with self.ia.fetch() as buffer:
                     self._logger.info('{0}'.format(buffer))
 
             # Then stop image acquisition:
-            self.ia.stop_acquisition()
+            self.ia.stop()
 
         # And destroy the ImageAcquirer:
         self.ia.destroy()
@@ -927,7 +936,7 @@ class TestHarvesterCore(TestHarvester):
             0, auto_chunk_data_update=False)
 
         # Then start it:
-        self.ia.start_acquisition()
+        self.ia.start()
 
         for i in range(32):
             # Fetch a buffer to make sure it's working:
@@ -937,7 +946,7 @@ class TestHarvesterCore(TestHarvester):
                 self._logger.info('did it update?')
 
         # Then stop image acquisition:
-        self.ia.stop_acquisition()
+        self.ia.stop()
 
         # And destroy the ImageAcquirer:
         self.ia.destroy()
@@ -959,8 +968,8 @@ class _TestIssue81(threading.Thread):
             # Transfer the exception anyway:
             self._message_queue.put(sys.exc_info())
         else:
-            ia.start_acquisition()
-            ia.stop_acquisition()
+            ia.start()
+            ia.stop()
             ia.destroy()
             h.reset()
 

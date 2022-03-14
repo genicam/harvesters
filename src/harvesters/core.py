@@ -2078,9 +2078,10 @@ class ImageAcquirer:
                              timeout_on_client_fetch_call=timeout,
                              throw_except=False)
 
+        buffer = self._finalize_fetching_process(buffer, is_raw)
         if buffer:
-            buffer = self._finalize_fetching_process(buffer, is_raw)
             self._emit_callbacks(self.Events.NEW_BUFFER_AVAILABLE)
+
         return buffer
 
     def _fetch(self, *, manager: EventManagerNewBuffer,
@@ -2146,24 +2147,34 @@ class ImageAcquirer:
     def _try_fetch_from_queue(self, *, is_raw: bool = False) -> Optional[Buffer]:
         with MutexLocker(self.thread_image_acquisition):
             try:
-                buffer = self._queue.get(block=False)
-                return self._finalize_fetching_process(buffer, is_raw)
+                raw_buffer = self._queue.get(block=False)
+                return self._finalize_fetching_process(raw_buffer, is_raw)
             except Empty:
                 return None
 
-    def _finalize_fetching_process(self, buffer: Buffer_, is_raw: bool):
-        if not buffer:
+    def _finalize_fetching_process(self, raw_buffer: Buffer_, is_raw: bool):
+        if not raw_buffer:
             return None
 
         if self._update_chunk_automatically:
-            self._update_chunk_data(buffer=buffer)
+            self._update_chunk_data(buffer=raw_buffer)
 
-        if not is_raw:
-            buffer = Buffer(module=buffer,
+        if is_raw:
+            return raw_buffer
+
+        try:
+            buffer = Buffer(module=raw_buffer,
                             node_map=self.remote_device.node_map,
                             acquire=self)
-
-        return buffer
+        except GenTL_GenericException:
+            family_tree = _family_tree(raw_buffer)
+            _logger.warning(
+                'information not available; discarded: {}'.format(
+                    family_tree))
+            raw_buffer.parent.queue_buffer(raw_buffer)
+            return None
+        else:
+            return buffer
 
     def fetch_buffer(self, *, timeout: float = 0, is_raw: bool = False,
                      cycle_s: float = None) -> Buffer:
@@ -2199,11 +2210,11 @@ class ImageAcquirer:
                 if not buffer:
                     time.sleep(cycle_s if cycle_s else 0.0001)
             else:
-                buffer = self._fetch(
+                raw_buffer = self._fetch(
                     manager=self._event_new_buffer_managers[0],
                     timeout_on_client_fetch_call=timeout, throw_except=True)
+                buffer = self._finalize_fetching_process(raw_buffer, is_raw)
                 if buffer:
-                    buffer = self._finalize_fetching_process(buffer, is_raw)
                     self._emit_callbacks(self.Events.NEW_BUFFER_AVAILABLE)
 
         return buffer

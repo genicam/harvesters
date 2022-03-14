@@ -2112,21 +2112,28 @@ class ImageAcquirer:
             except TimeoutException:
                 continue
             else:
-                if manager.buffer.is_complete():
+                context = None
+                frame_id = None
+                try:
+                    is_complete = manager.buffer.is_complete()
+                    if _is_logging_buffer:
+                        context = manager.buffer.context
+                        frame_id = manager.buffer.frame_id
+                except GenTL_GenericException:
+                    is_complete = False
+
+                if is_complete:
                     self._update_num_images_to_acquire()
                     self._update_statistics(manager.buffer)
                     buffer = manager.buffer
                     if _is_logging_buffer:
                         _logger.debug(
                             'fetched: {0} (#{1}); {2}'.format(
-                                manager.buffer.context,
-                                manager.buffer.frame_id,
+                                context, frame_id,
                                 _family_tree(manager.buffer)))
                 else:
                     _logger.warning(
-                        'incomplete: {0} (#{1}); {2}'.format(
-                            manager.buffer.context,
-                            manager.buffer.frame_id,
+                        'incomplete or not available; discarded: {}'.format(
                             _family_tree(manager.buffer)))
 
                     ds = manager.buffer.parent

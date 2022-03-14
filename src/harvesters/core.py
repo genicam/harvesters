@@ -668,40 +668,29 @@ class ComponentBase:
     @property
     def data_format(self) -> str:
         """
-        The type of the data component.
-
-        :getter: Returns itself.
-        :type: str
+        str: The type of the data component.
         """
         return self._buffer.data_format
 
     @property
     def data_format_namespace(self) -> PIXELFORMAT_NAMESPACE_IDS:
         """
-        The data type namespace of the data component.
-
-        :getter: Returns itself.
-        :type: :class:`genicam.gentl.PIXELFORMAT_NAMESPACE_IDS`
+        PIXELFORMAT_NAMESPACE_IDS: The data type namespace of the data
+        component.
         """
         return self._buffer.data_format
 
     @property
     def source_id(self) -> int:
         """
-        The source ID of the data component.
-
-        :getter: Returns itself.
-        :type: int
+        int: The source ID of the data component.
         """
         return self._buffer.source_id
 
     @property
     def data(self) -> Union[numpy.ndarray, None]:
         """
-        The raw image data.
-
-        :getter: Returns itself.
-        :type: :class:`numpy.ndarray`
+        Union[numpy.ndarray, None]: The raw image data.
         """
         return self._data
 
@@ -998,20 +987,14 @@ class Buffer(Module):
     @property
     def timestamp_ns(self) -> int:
         """
-        The timestamp. The unit is [ns].
-
-        :getter: Returns itself.
-        :type: int
+        int: The timestamp. The unit is [ns].
         """
         return self.module.timestamp_ns
 
     @property
     def timestamp(self) -> int:
         """
-        The timestamp. The unit is GenTL Producer dependent.
-
-        :getter: Returns itself.
-        :type: int
+        int: The timestamp. The unit is GenTL Producer dependent.
         """
         try:
             timestamp = self.module.timestamp_ns
@@ -1026,11 +1009,8 @@ class Buffer(Module):
     @property
     def timestamp_frequency(self) -> int:
         """
-        The timestamp tick frequency which is used to represent a timestamp.
-        The unit is [Hz].
-
-        :getter: Returns itself.
-        :type: int
+        int: The timestamp tick frequency which is used to represent a
+        timestamp. The unit is [Hz].
         """
         frequency = 1000000000  # Hz
 
@@ -1051,9 +1031,6 @@ class Buffer(Module):
     def payload_type(self):
         """
         The payload type that the :class:`Buffer` object contains.
-
-        :getter: Returns itself.
-        :type: TODO
         """
         return self.module.payload_type
 
@@ -1061,9 +1038,6 @@ class Buffer(Module):
     def payload(self):
         """
         A containing object which derives from :class:`PayloadBase` class.
-
-        :getter: Returns itself.
-        :type: :class:`PayloadBase`
         """
         return self._payload
 
@@ -1158,12 +1132,9 @@ class PayloadBase:
         self._components = []
 
     @property
-    def payload_type(self):
+    def payload_type(self) -> PAYLOADTYPE_INFO_IDS:
         """
-        The type of the payload.
-
-        :getter: Returns itself.
-        :type: :class:`genicam.gentl.PAYLOADTYPE_INFO_IDS`
+        PAYLOADTYPE_INFO_IDS: The type of the payload.
         """
         return self._buffer.payload_type
 
@@ -1207,9 +1178,6 @@ class PayloadBase:
         """
         A :class:`list` containing objects that derive from
         :const:`ComponentBase` class.
-
-        :getter: Returns itself.
-        :type: ComponentBase
         """
         return self._components
 
@@ -1805,10 +1773,6 @@ class ImageAcquirer:
     def thread_image_acquisition(self) -> ThreadBase:
         """
         The thread object that runs image acquisition.
-
-        :getter: Returns itself.
-        :setter: Overwrites itself with the given value.
-        :type: :class:`ThreadBase`
         """
         return self._thread_image_acquisition
 

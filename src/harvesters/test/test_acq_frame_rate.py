@@ -75,7 +75,7 @@ class TestTutorials(TestHarvester):
         )
 
         # Then start image acquisition.
-        self.ia.start_acquisition(run_in_background=True)
+        self.ia.start(run_in_background=True)
 
         # Run the image acquisition thread:
         thread = ThreadWithTimeLimit(
@@ -85,7 +85,7 @@ class TestTutorials(TestHarvester):
         thread.join()
 
         # Stop image acquisition:
-        self.ia.stop_acquisition()
+        self.ia.stop()
 
         # Destroy the image acquirer:
         self.ia.destroy()
@@ -133,7 +133,7 @@ class TestTutorials(TestHarvester):
         self.ia = self.harvester.create_image_acquirer(0)
 
         #
-        self.ia.start_acquisition(run_in_background=True)
+        self.ia.start(run_in_background=True)
 
         #
         nr = 3
@@ -155,7 +155,7 @@ class TestTutorials(TestHarvester):
             thread.join()
 
         #
-        self.ia.stop_acquisition()
+        self.ia.stop()
 
         # Destroy the image acquirer:
         self.ia.destroy()

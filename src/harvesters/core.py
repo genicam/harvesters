@@ -1460,8 +1460,8 @@ class ImageAcquirer:
 
         self._profiler = _profiler
 
-        self._num_filled_buffers_to_hold = 1
-        self._queue = Queue(maxsize=self._num_filled_buffers_to_hold)
+        self._num_buffers_to_hold = 1
+        self._queue = Queue(maxsize=self._num_buffers_to_hold)
 
         self._sleep_duration = sleep_duration
         self._thread_image_acquisition = self._create_acquisition_thread()
@@ -1484,7 +1484,6 @@ class ImageAcquirer:
 
         self._has_acquired_1st_image = False
         self._is_acquiring = False
-        self._buffer_handling_mode = 'OldestFirstOverwrite'
 
         num_buffers_default = 3
         try:
@@ -1592,7 +1591,7 @@ class ImageAcquirer:
 
         id_ = None
         if self.device:
-            self.stop_acquisition()
+            self.stop()
             self._release_data_streams()
             id_ = self._device.id_
 
@@ -1617,21 +1616,6 @@ class ImageAcquirer:
             self._profiler.print_diff()
 
         self._emit_callbacks(self.Events.TURNED_OBSOLETE)
-
-    @property
-    def buffer_handling_mode(self) -> str:
-        """
-        The buffer handling mode that's been applied.
-
-        :getter: Returns itself.
-        :setter: Overwrites itself with the given value.
-        :type: str
-        """
-        return self._buffer_handling_mode
-
-    @buffer_handling_mode.setter
-    def buffer_handling_mode(self, value):
-        self._buffer_handling_mode = value
 
     @property
     def num_buffers(self) -> int:
@@ -1684,26 +1668,26 @@ class ImageAcquirer:
         acquisition process runs in the background. You will fetch buffers
         from the buffers when you call the :meth:`fetch` method in a
         case you started the image acquisition passing :const:`True` to
-        :data:`run_in_background` of the :meth:`start_acquisition` method.
+        :data:`run_in_background` of the :meth:`start` method.
 
         :getter: Returns itself.
         :setter: Overwrites itself with the given value.
         :type: int
         """
-        return self._num_filled_buffers_to_hold
+        return self._num_buffers_to_hold
 
     @num_filled_buffers_to_hold.setter
     def num_filled_buffers_to_hold(self, value: int = 1):
         global _logger
 
         if value > 0:
-            self._num_filled_buffers_to_hold = value
+            self._num_buffers_to_hold = value
 
             buffers = []
             while not self._queue.empty():
                 buffers.append(self._queue.get_nowait())
 
-            self._queue = Queue(maxsize=self._num_filled_buffers_to_hold)
+            self._queue = Queue(maxsize=self._num_buffers_to_hold)
 
             while len(buffers) > 0:
                 try:
@@ -1906,6 +1890,10 @@ class ImageAcquirer:
                 EventManagerNewBuffer(event_token))
 
     def start_acquisition(self, run_in_background: bool = False) -> None:
+        _deprecated(self.start_acquisition, self.start)
+        self.start(run_in_background=run_in_background)
+
+    def start(self, *, run_in_background: bool = False) -> None:
         """
         Starts image acquisition.
 
@@ -2011,23 +1999,13 @@ class ImageAcquirer:
             buffer = self._fetch(manager=manager,
                                  timeout_on_client_fetch_call=self.timeout_on_client_fetch_call)
             if buffer:
-                if self.buffer_handling_mode == 'OldestFirstOverwrite':
-                    with MutexLocker(self.thread_image_acquisition):
-                        if not self._is_acquiring:
-                            return
-                        if queue.full():
-                            _buffer = queue.get()
-                            _buffer.parent.queue_buffer(_buffer)
-                        queue.put(buffer)
-                else:
-                    with MutexLocker(self.thread_image_acquisition):
-                        if not self._is_acquiring:
-                            return
-                        if queue.full():
-                            buffer.parent.queue_buffer(buffer)
-                        else:
-                            if queue:
-                                queue.put(buffer)
+                with MutexLocker(self.thread_image_acquisition):
+                    if not self._is_acquiring:
+                        return
+                    if queue.full():
+                        _buffer = queue.get()
+                        _buffer.parent.queue_buffer(_buffer)
+                    queue.put(buffer)
                 self._emit_callbacks(self.Events.NEW_BUFFER_AVAILABLE)
 
     def _update_chunk_data(self, buffer: Buffer_):
@@ -2287,6 +2265,10 @@ class ImageAcquirer:
             _logger.debug('queued: {0}'.format(_family_tree(buffer)))
 
     def stop_acquisition(self) -> None:
+        _deprecated(self.stop_acquisition, self.stop)
+        self.stop()
+
+    def stop(self) -> None:
         """
         Stops image acquisition.
 

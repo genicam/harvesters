@@ -125,7 +125,7 @@ Anyway, then now we start image acquisition:
 
 .. code-block:: python
 
-    ia.start_acquisition()
+    ia.start()
 
 Once you started image acquisition, you should definitely want to get an image. Images are delivered to the acquirer allocated buffers. To fetch a buffer that has been filled up with an image, you can have 2 options; the first option is to use the ``with`` statement:
 
@@ -151,7 +151,7 @@ Okay, then you would stop image acquisition with the following code:
 
 .. code-block:: python
 
-    ia.stop_acquisition()
+    ia.stop()
 
 And the following code disconnects the connecting remote device from the image acquirer; you'll have to create an image acquirer object again when you have to work with a remote device:
 

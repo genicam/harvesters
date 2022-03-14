@@ -1460,8 +1460,8 @@ class ImageAcquirer:
 
         self._profiler = _profiler
 
-        self._num_filled_buffers_to_hold = 1
-        self._queue = Queue(maxsize=self._num_filled_buffers_to_hold)
+        self._num_buffers_to_hold = 1
+        self._queue = Queue(maxsize=self._num_buffers_to_hold)
 
         self._sleep_duration = sleep_duration
         self._thread_image_acquisition = self._create_acquisition_thread()
@@ -1484,7 +1484,6 @@ class ImageAcquirer:
 
         self._has_acquired_1st_image = False
         self._is_acquiring = False
-        self._buffer_handling_mode = 'OldestFirstOverwrite'
 
         num_buffers_default = 3
         try:
@@ -1619,21 +1618,6 @@ class ImageAcquirer:
         self._emit_callbacks(self.Events.TURNED_OBSOLETE)
 
     @property
-    def buffer_handling_mode(self) -> str:
-        """
-        The buffer handling mode that's been applied.
-
-        :getter: Returns itself.
-        :setter: Overwrites itself with the given value.
-        :type: str
-        """
-        return self._buffer_handling_mode
-
-    @buffer_handling_mode.setter
-    def buffer_handling_mode(self, value):
-        self._buffer_handling_mode = value
-
-    @property
     def num_buffers(self) -> int:
         """
         The number of buffers that is prepared for the image acquisition
@@ -1690,20 +1674,20 @@ class ImageAcquirer:
         :setter: Overwrites itself with the given value.
         :type: int
         """
-        return self._num_filled_buffers_to_hold
+        return self._num_buffers_to_hold
 
     @num_filled_buffers_to_hold.setter
     def num_filled_buffers_to_hold(self, value: int = 1):
         global _logger
 
         if value > 0:
-            self._num_filled_buffers_to_hold = value
+            self._num_buffers_to_hold = value
 
             buffers = []
             while not self._queue.empty():
                 buffers.append(self._queue.get_nowait())
 
-            self._queue = Queue(maxsize=self._num_filled_buffers_to_hold)
+            self._queue = Queue(maxsize=self._num_buffers_to_hold)
 
             while len(buffers) > 0:
                 try:
@@ -2015,23 +1999,13 @@ class ImageAcquirer:
             buffer = self._fetch(manager=manager,
                                  timeout_on_client_fetch_call=self.timeout_on_client_fetch_call)
             if buffer:
-                if self.buffer_handling_mode == 'OldestFirstOverwrite':
-                    with MutexLocker(self.thread_image_acquisition):
-                        if not self._is_acquiring:
-                            return
-                        if queue.full():
-                            _buffer = queue.get()
-                            _buffer.parent.queue_buffer(_buffer)
-                        queue.put(buffer)
-                else:
-                    with MutexLocker(self.thread_image_acquisition):
-                        if not self._is_acquiring:
-                            return
-                        if queue.full():
-                            buffer.parent.queue_buffer(buffer)
-                        else:
-                            if queue:
-                                queue.put(buffer)
+                with MutexLocker(self.thread_image_acquisition):
+                    if not self._is_acquiring:
+                        return
+                    if queue.full():
+                        _buffer = queue.get()
+                        _buffer.parent.queue_buffer(_buffer)
+                    queue.put(buffer)
                 self._emit_callbacks(self.Events.NEW_BUFFER_AVAILABLE)
 
     def _update_chunk_data(self, buffer: Buffer_):

@@ -416,7 +416,7 @@ class TestHarvesterCore(TestHarvester):
                 # Start image acquisition:
                 self._logger.info(
                     "you will see timeout but that's intentional.")
-                self.ia.start(run_in_background=True)
+                self.ia.start(run_as_thread=True)
 
                 # Run a test:
                 test(num_images)
@@ -603,7 +603,7 @@ class TestHarvesterCore(TestHarvester):
         #
         self.ia = self.harvester.create_image_acquirer(0)
         #
-        self.ia.start(run_in_background=False)
+        self.ia.start(run_as_thread=False)
         #
         with self.ia.fetch() as buffer:
             self.assertIsNotNone(buffer)
@@ -683,7 +683,7 @@ class TestHarvesterCore(TestHarvester):
     def _test_141_body(self):
         # Start image acquisition:
         self._logger.info("going to start acquisition in the background.")
-        self.ia.start(run_in_background=True)
+        self.ia.start(run_as_thread=True)
 
         # Trigger the target device:
         for _ in range(self.num_images):

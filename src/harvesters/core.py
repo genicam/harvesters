@@ -39,7 +39,7 @@ import sys
 from threading import Lock, Thread, Event
 from threading import current_thread, main_thread
 import time
-from typing import Union, List, Optional, Dict
+from typing import Union, List, Optional, Dict, TypeVar
 from urllib.parse import urlparse
 from warnings import warn
 import weakref
@@ -60,8 +60,10 @@ from genicam.gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
 from genicam.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
     PAYLOADTYPE_INFO_IDS
-from genicam.gentl import EventToken, Port, PIXELFORMAT_NAMESPACE_IDS
-from genicam.gentl import Buffer as Buffer_
+from genicam.gentl import Port, PIXELFORMAT_NAMESPACE_IDS
+from genicam.gentl import Buffer as _Buffer, Device as _Device, \
+    DataStream as _DataStream, Interface as _Interface, System as _System, \
+    GenTLProducer as _GenTLProducer
 
 # Local application/library specific imports
 from harvesters._private.core.port import ConcretePort
@@ -122,7 +124,8 @@ class _Delegate:
     def __init__(self, source):
         self._source_object = source
         self._attributes = [
-            f for f in dir(type(self._source_object)) if not f.startswith('_')]
+            f for f in dir(
+                type(self._source_object)) if not f.startswith('_')]
 
     def __getattr__(self, attribute):
         if attribute in self._attributes:
@@ -264,50 +267,45 @@ class Module(_Delegate):
         _logger.debug('deleted: {0}'.format(file_path))
 
     @property
-    def module(self):
+    def module(self) -> Union[System, Interface, Device, RemoteDevice,
+                              DataStream, Buffer]:
         """
-        The corresponding raw GenTL module that the genicam package offers.
-
-        :getter: Returns itself.
-        :type: Union[genicam.genapi.System, genicam.genapi.Interface,
-        genicam.genapi.Device, genicam.genapi.DataStream,
-        genicam.genapi.Buffer]
+        Union[System, Interface, Device, RemoteDevice, DataStream, Buffer]:
+        The corresponding GenTL module.
         """
         return self._module
 
     @property
-    def node_map(self):
+    def node_map(self) -> NodeMap:
         """
-        The GenICam feature node map that belongs to the owner object.
-
-        :getter: Returns itself.
-        :type: genicam.genapi.NodeMap
+        NodeMap: The GenICam feature node map that belongs to the owner
+        object.
         """
         return self._node_map
 
     @property
-    def parent(self):
+    def parent(self) -> Union[None, System, Interface, Device,
+                              RemoteDevice, DataStream]:
         """
+        Union[None, System, Interface, Device, RemoteDevice, DataStream]:
         The parent raw GenTL module.
-
-        :getter: Returns itself.
-        :type: Union[None, genicam.genapi.System, genicam.genapi.Interface,
-        genicam.genapi.Device, genicam.genapi.DataStream]
         """
         return self._parent
 
 
 class DataStream(Module):
-    def __init__(self, *, module, parent=None):
+    def __init__(self, *, module: _DataStream, parent=None):
+        """Represents a GenTL Data Stream module."""
         super().__init__(module=module, port=module.port, parent=parent)
 
 
 class RemoteDevice(Module):
-    def __init__(self, *, module, parent=None,
+    def __init__(self, *, module: _Device, parent=None,
                  file_path: Optional[str] = None,
                  file_dict: Optional[Dict[str, bytes]] = None,
                  do_clean_up: bool = True,
                  xml_dir_to_store: Optional[str] = None):
+        """Represents a GenTL Remote Device module."""
         super().__init__(
             module=module, port=module.remote_port, parent=parent,
             file_path=file_path,
@@ -320,8 +318,8 @@ class RemoteDevice(Module):
 
 
 class Device(Module):
-    """Represents a GenTL Device module."""
-    def __init__(self, *, module, parent=None):
+    """Represents a GenTL Device module that is a proxy of a remote device."""
+    def __init__(self, *, module: _Device, parent=None):
         super().__init__(module=module, port=module.local_port, parent=parent)
 
     @property
@@ -331,19 +329,19 @@ class Device(Module):
 
 class Interface(Module):
     """Represents a GenTL Interface module."""
-    def __init__(self, *, module, parent=None):
+    def __init__(self, *, module: _Interface, parent=None):
         super().__init__(module=module, port=module.port, parent=parent)
 
 
 class System(Module):
     """Represents a GenTL System module."""
-    def __init__(self, *, module, parent):
+    def __init__(self, *, module: _System, parent):
         super().__init__(module=module, parent=parent, port=module.port)
 
 
 class Producer(Module):
     """Represents a GenTL Producer."""
-    def __init__(self, *, module):
+    def __init__(self, *, module: _GenTLProducer):
         super().__init__(module=module, parent=None)
 
 
@@ -353,8 +351,8 @@ class DeviceInfo(Module):
         super().__init__(module=module, parent=parent)
 
     def __repr__(self):
-        properties = ['id_', 'vendor', 'model', 'tl_type', 'user_defined_name',
-            'serial_number', 'version',]
+        properties = ['id_', 'vendor', 'model', 'tl_type',
+                      'user_defined_name', 'serial_number', 'version',]
         results = []
         for _property in properties:
             assert _property != ''
@@ -430,8 +428,6 @@ class ThreadBase:
         Releases the acquired mutex.
 
         This method is abstract and should be reimplemented in any sub-class.
-
-        :return: None.
         """
         raise NotImplementedError
 
@@ -446,8 +442,6 @@ class ThreadBase:
         Waits until the given task is completed.
 
         This method is abstract and should be reimplemented in any sub-class.
-
-        :return: None.
         """
         raise NotImplementedError
 
@@ -456,8 +450,6 @@ class ThreadBase:
         Releases the acquired mutex.
 
         This method is abstract and should be reimplemented in any sub-class.
-
-        :return: None.
         """
         raise NotImplementedError
 
@@ -477,8 +469,6 @@ class ThreadBase:
         Releases the acquired mutex.
 
         This method is abstract and should be reimplemented in any sub-class.
-
-        :return: None.
         """
         raise NotImplementedError
 
@@ -488,8 +478,11 @@ class ThreadBase:
 
         This method is abstract and should be reimplemented in any sub-class.
 
-        :return: :const:`True` if the thread is running. Otherwise it returns :const:`False`.
-        :type: bool
+        Returns
+        -------
+        bool
+            :const:`True` if the thread is running. Otherwise it returns
+            :const:`False`.
         """
         raise NotImplementedError
 
@@ -542,10 +535,6 @@ class _ImageAcquisitionThread(ThreadBase):
         self._thread = None
 
     def _internal_start(self):
-        """
-
-        :return: None.
-        """
         self._thread = _NativeThread(thread_owner=self, worker=self._worker,
                                      sleep_duration=self._sleep_duration)
         self._id = self._thread.id_
@@ -685,42 +674,34 @@ class ComponentBase:
     @property
     def data_format(self) -> str:
         """
-        The type of the data component.
-
-        :getter: Returns itself.
-        :type: str
+        str: The type of the data component.
         """
         return self._buffer.data_format
 
     @property
     def data_format_namespace(self) -> PIXELFORMAT_NAMESPACE_IDS:
         """
-        The data type namespace of the data component.
-
-        :getter: Returns itself.
-        :type: :class:`genicam.gentl.PIXELFORMAT_NAMESPACE_IDS`
+        PIXELFORMAT_NAMESPACE_IDS: The data type namespace of the data
+        component.
         """
         return self._buffer.data_format
 
     @property
     def source_id(self) -> int:
         """
-        The source ID of the data component.
-
-        :getter: Returns itself.
-        :type: int
+        int: The source ID of the data component.
         """
         return self._buffer.source_id
 
     @property
-    def data(self) -> Optional[numpy.ndarray]:
+    def data(self) -> Union[numpy.ndarray, None]:
         """
-        The raw image data.
-
-        :getter: Returns itself.
-        :type: :class:`numpy.ndarray`
+        Union[numpy.ndarray, None]: The raw image data.
         """
         return self._data
+
+
+Component = TypeVar('Component', bound=ComponentBase)
 
 
 class ComponentUnknown(ComponentBase):
@@ -784,7 +765,8 @@ class Component2DImage(ComponentBase):
             except GenTL_GenericException:
                 h = self._node_map.Height.value
 
-            nr_bytes = self._get_nr_bytes(pf_proxy=pf_proxy, width=w, height=h)
+            nr_bytes = self._get_nr_bytes(
+                pf_proxy=pf_proxy, width=w, height=h)
 
             try:
                 padding_y = self._buffer.padding_y
@@ -797,7 +779,7 @@ class Component2DImage(ComponentBase):
 
         return pf_proxy.expand(array)
 
-    def represent_pixel_location(self) -> Optional[numpy.ndarray]:
+    def represent_pixel_location(self) -> Union[numpy.ndarray, None]:
         """
         Returns a NumPy array that represents the 2D pixel location,
         which is defined by PFNC, of the original image data.
@@ -805,8 +787,10 @@ class Component2DImage(ComponentBase):
         You may use the returned NumPy array for a calculation to map the
         original image to another format.
 
-        :return: A NumPy array that represents the 2D pixel location.
-        :rtype: numpy.ndarray
+        Returns
+        -------
+        Union[numpy.ndarray, None]
+            A NumPy array that represents the 2D pixel location.
         """
         if self.data is None:
             return None
@@ -818,10 +802,7 @@ class Component2DImage(ComponentBase):
     @property
     def num_components_per_pixel(self) -> float:
         """
-        The number of data components per pixel.
-
-        :getter: Returns itself.
-        :type: float
+        float: The number of data components per pixel.
         """
         return self._nr_components
 
@@ -833,10 +814,8 @@ class Component2DImage(ComponentBase):
     @property
     def width(self) -> int:
         """
-        The width of the data component in the buffer in number of pixels.
-
-        :getter: Returns itself.
-        :type: int
+        int: The width of the data component in the buffer in number of
+        pixels.
         """
         try:
             if self._part:
@@ -853,10 +832,8 @@ class Component2DImage(ComponentBase):
     @property
     def height(self) -> int:
         """
-        The height of the data component in the buffer in number of pixels.
-
-        :getter: Returns itself.
-        :type: int
+        int: The height of the data component in the buffer in number of
+        pixels.
         """
         try:
             if self._part:
@@ -875,10 +852,7 @@ class Component2DImage(ComponentBase):
     @property
     def data_format_value(self) -> int:
         """
-        The data type of the data component as integer value.
-
-        :getter: Returns itself.
-        :type: int
+        int: The data type of the data component as integer value.
         """
         try:
             if self._part:
@@ -893,20 +867,14 @@ class Component2DImage(ComponentBase):
     @property
     def data_format(self) -> str:
         """
-        The data type of the data component as string.
-
-        :getter: Returns itself.
-        :type: str
+        str: The data type of the data component as string.
         """
         return dict_by_ints[self.data_format_value]
 
     @property
     def delivered_image_height(self) -> int:
         """
-        The image height of the data component.
-
-        :getter: Returns itself.
-        :type: int
+        int: The image height of the data component.
         """
         try:
             if self._part:
@@ -920,11 +888,8 @@ class Component2DImage(ComponentBase):
     @property
     def x_offset(self) -> int:
         """
-        The X offset of the data in the buffer in number of pixels from the
-        image origin to handle areas of interest.
-
-        :getter: Returns itself.
-        :type: int
+        int: The X offset of the data in the buffer in number of pixels from
+        the image origin to handle areas of interest.
         """
         try:
             if self._part:
@@ -938,11 +903,8 @@ class Component2DImage(ComponentBase):
     @property
     def y_offset(self) -> int:
         """
-        The Y offset of the data in the buffer in number of pixels from the
-        image origin to handle areas of interest.
-
-        :getter: Returns itself.
-        :type: int
+        int: The Y offset of the data in the buffer in number of pixels from
+        the image origin to handle areas of interest.
         """
         try:
             if self._part:
@@ -956,10 +918,8 @@ class Component2DImage(ComponentBase):
     @property
     def x_padding(self) -> int:
         """
-        The X padding of the data component in the buffer in number of pixels.
-
-        :getter: Returns itself.
-        :type: int
+        int: The X padding of the data component in the buffer in number of
+        pixels.
         """
         try:
             if self._part:
@@ -973,10 +933,8 @@ class Component2DImage(ComponentBase):
     @property
     def y_padding(self) -> int:
         """
-        The Y padding of the data component in the buffer in number of pixels.
-
-        :getter: Returns itself.
-        :type: int
+        int: The Y padding of the data component in the buffer in number of
+        pixels.
         """
         try:
             if self._part:
@@ -991,7 +949,7 @@ class Component2DImage(ComponentBase):
         return self._part is not None
 
     @property
-    def data_offset(self):
+    def data_offset(self) -> int:
         if self.has_part():
             return self._part.data_offset
         else:
@@ -1007,10 +965,20 @@ class Buffer(Module):
     Note that it will never be necessary to create this object by yourself
     in general.
     """
-    def __init__(self, *, module: Buffer_, node_map: Optional[NodeMap], acquire: Optional[ImageAcquirer]):
+    def __init__(self, *, module: _Buffer, node_map: Optional[NodeMap] = None,
+                 acquire: Optional[ImageAcquirer] = None):
         """
-        :param module:
-        :param node_map:
+        Parameters
+        ----------
+        module : _Buffer
+            Set a GenTL Buffer object to be wrapped.
+        node_map: NodeMap
+            Set a node map which blongs to the owner remote device.
+
+        Raises
+        ------
+        genicam.gentl.GenericException
+            If the buffer contains unusable information.
         """
         super().__init__(module=module, parent=module.parent)
         self._payload = self._build_payload(buffer=module, node_map=node_map)
@@ -1028,20 +996,14 @@ class Buffer(Module):
     @property
     def timestamp_ns(self) -> int:
         """
-        The timestamp. The unit is [ns].
-
-        :getter: Returns itself.
-        :type: int
+        int: The timestamp. The unit is [ns].
         """
         return self.module.timestamp_ns
 
     @property
     def timestamp(self) -> int:
         """
-        The timestamp. The unit is GenTL Producer dependent.
-
-        :getter: Returns itself.
-        :type: int
+        int: The timestamp. The unit is GenTL Producer dependent.
         """
         try:
             timestamp = self.module.timestamp_ns
@@ -1056,11 +1018,8 @@ class Buffer(Module):
     @property
     def timestamp_frequency(self) -> int:
         """
-        The timestamp tick frequency which is used to represent a timestamp.
-        The unit is [Hz].
-
-        :getter: Returns itself.
-        :type: int
+        int: The timestamp tick frequency which is used to represent a
+        timestamp. The unit is [Hz].
         """
         frequency = 1000000000  # Hz
 
@@ -1080,20 +1039,16 @@ class Buffer(Module):
     @property
     def payload_type(self):
         """
-        The payload type that the :class:`Buffer` object contains.
-
-        :getter: Returns itself.
-        :type: TODO
+        PAYLOADTYPE_INFO_IDS: The payload type that the :class:`Buffer`
+        object contains.
         """
         return self.module.payload_type
 
     @property
     def payload(self):
         """
-        A containing object which derives from :class:`PayloadBase` class.
-
-        :getter: Returns itself.
-        :type: :class:`PayloadBase`
+        Payload: A containing object which derives from :class:`PayloadBase`
+        class.
         """
         return self._payload
 
@@ -1117,13 +1072,21 @@ class Buffer(Module):
         self.module.parent.queue_buffer(self.module)
 
     @staticmethod
-    def _build_payload(*, buffer=None, node_map: Optional[NodeMap] = None,):
+    def _build_payload(*, buffer: _Buffer,
+                       node_map: Optional[NodeMap] = None):
+        """
+        Raises
+        ------
+        genicam.gentl.GenericException
+            If the buffer does not provide sufficient information that is
+            required to compose a logical payload object.
+        """
         assert buffer
         assert node_map
 
         p_type = buffer.payload_type
         if p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_UNKNOWN:
-            payload = PayloadUnknown(buffer=buffer, node_map=node_map)
+            payload = PayloadUnknown(buffer=buffer)
 
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE or \
                 buffer.payload_type == \
@@ -1131,22 +1094,22 @@ class Buffer(Module):
             payload = PayloadImage(buffer=buffer, node_map=node_map)
 
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_RAW_DATA:
-            payload = PayloadRawData(buffer=buffer, node_map=node_map)
+            payload = PayloadRawData(buffer=buffer)
 
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_FILE:
-            payload = PayloadFile(buffer=buffer, node_map=node_map)
+            payload = PayloadFile(buffer=buffer)
 
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG:
-            payload = PayloadJPEG(buffer=buffer, node_map=node_map)
+            payload = PayloadJPEG(buffer=buffer)
 
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG2000:
-            payload = PayloadJPEG2000(buffer=buffer, node_map=node_map)
+            payload = PayloadJPEG2000(buffer=buffer)
 
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_H264:
-            payload = PayloadH264(buffer=buffer, node_map=node_map)
+            payload = PayloadH264(buffer=buffer)
 
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_ONLY:
-            payload = PayloadChunkOnly(buffer=buffer, node_map=node_map)
+            payload = PayloadChunkOnly(buffer=buffer)
 
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART:
             payload = PayloadMultiPart(buffer=buffer, node_map=node_map)
@@ -1184,17 +1147,14 @@ class PayloadBase:
         self._components = []
 
     @property
-    def payload_type(self):
+    def payload_type(self) -> PAYLOADTYPE_INFO_IDS:
         """
-        The type of the payload.
-
-        :getter: Returns itself.
-        :type: :class:`genicam.gentl.PAYLOADTYPE_INFO_IDS`
+        PAYLOADTYPE_INFO_IDS: The type of the payload.
         """
         return self._buffer.payload_type
 
     @staticmethod
-    def _build_component(buffer=None, part=None,
+    def _build_component(buffer: _Buffer, part=None,
                          node_map: Optional[NodeMap] = None):
         global _logger
 
@@ -1229,15 +1189,15 @@ class PayloadBase:
         return None
 
     @property
-    def components(self):
+    def components(self) -> List[Component]:
         """
-        A :class:`list` containing objects that derive from
+        List[Component]: A :class:`list` containing objects that derive from
         :const:`ComponentBase` class.
-
-        :getter: Returns itself.
-        :type: ComponentBase
         """
         return self._components
+
+
+Payload = TypeVar('Payload', bound=PayloadBase)
 
 
 class PayloadUnknown(PayloadBase):
@@ -1246,11 +1206,10 @@ class PayloadUnknown(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_UNKNOWN`
     by the GenTL Standard.
     """
-    def __init__(self, *, buffer: Buffer):
+    def __init__(self, *, buffer: _Buffer):
         """
 
         :param buffer:
-        :param node_map:
         """
         assert buffer
         super().__init__(buffer=buffer)
@@ -1262,7 +1221,7 @@ class PayloadImage(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE` by
     the GenTL Standard.
     """
-    def __init__(self, *, buffer: Buffer,
+    def __init__(self, *, buffer: _Buffer,
                  node_map: Optional[NodeMap] = None):
         """
 
@@ -1285,7 +1244,7 @@ class PayloadRawData(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_RAW_DATA`
     by the GenTL Standard.
     """
-    def __init__(self, *, buffer: Buffer):
+    def __init__(self, *, buffer: _Buffer):
         """
         :param buffer:
         """
@@ -1298,7 +1257,7 @@ class PayloadFile(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_FILE` by
     the GenTL Standard.
     """
-    def __init__(self, *, buffer: Buffer):
+    def __init__(self, *, buffer: _Buffer):
         super().__init__(buffer=buffer)
 
 
@@ -1308,7 +1267,7 @@ class PayloadJPEG(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG` by
     the GenTL Standard.
     """
-    def __init__(self, *, buffer: Buffer):
+    def __init__(self, *, buffer: _Buffer):
         """
         :param buffer:
         """
@@ -1321,7 +1280,7 @@ class PayloadJPEG2000(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG2000`
     by the GenTL Standard.
     """
-    def __init__(self, *, buffer: Buffer):
+    def __init__(self, *, buffer: _Buffer):
         """
         :param buffer:
         """
@@ -1334,7 +1293,7 @@ class PayloadH264(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_H264` by
     the GenTL Standard.
     """
-    def __init__(self, *, buffer: Buffer):
+    def __init__(self, *, buffer: _Buffer):
         """
         :param buffer:
         """
@@ -1347,7 +1306,7 @@ class PayloadChunkOnly(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_ONLY`
     by the GenTL Standard.
     """
-    def __init__(self, *, buffer: Buffer):
+    def __init__(self, *, buffer: _Buffer):
         super().__init__(buffer=buffer)
 
 
@@ -1357,7 +1316,7 @@ class PayloadMultiPart(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART`
     by the GenTL Standard.
     """
-    def __init__(self, *, buffer: Buffer, node_map: NodeMap):
+    def __init__(self, *, buffer: _Buffer, node_map: NodeMap):
         """
         :param buffer:
         :param node_map:
@@ -1386,8 +1345,6 @@ class Callback:
         Is called when a specific condition is met.
 
         This method is abstract and should be reimplemented in any sub-class.
-
-        :return: None.
         """
         raise NotImplementedError
 
@@ -1419,10 +1376,18 @@ class ImageAcquirer:
             _profiler=None):
         """
 
-        :param device:
-        :param _profiler:
-        :param sleep_duration:
-        :param file_path: Set a path to camera description file which you want to load on the target node map instead of the one which the device declares.
+        Parameters
+        ----------
+        device : Device_
+        sleep_duration : float
+        file_path : str
+            Set a path to camera description file which you want to load on
+            the target node map instead of the one which the device declares.
+        update_chunk_automatically : bool
+            Set :const:`True` if you want to let the chunk data being updated
+            when a buffer is newly fetched. :const:`False` means you will
+            explicitly update the chunk data by yourself when needed.
+        file_dict : Dict[str, bytes]
         """
         global _logger
         _logger.debug('instantiated: {}'.format(self))
@@ -1498,7 +1463,8 @@ class ImageAcquirer:
             self._min_num_buffers = num_buffers_default
             self._num_buffers = num_buffers_default
         else:
-            self._num_buffers = max(num_buffers_default, self._min_num_buffers)
+            self._num_buffers = max(
+                num_buffers_default, self._min_num_buffers)
 
         self._chunk_adapter = self._get_chunk_adapter(
             device=self.device, node_map=self.remote_device.node_map)
@@ -1515,7 +1481,17 @@ class ImageAcquirer:
         for event in self._supported_events:
             self._callback_dict[event] = None
 
-    def is_valid(self):
+    def is_valid(self) -> bool:
+        """
+        bool: Returns :const:`False` and it means the object has been
+        obsolete and there is nothing to do for you. Just leave the object
+        and start working with another newly created object.
+
+        The :meth:`Harvester.update` method call on its parent
+        :class:`Harvester` object make its owning :class:`ImageAcquirer`
+        objects obsolete as the available device information is completely
+        reconstructed.
+        """
         return self._is_valid
 
     def _emit_callbacks(self, event: Events) -> None:
@@ -1530,7 +1506,8 @@ class ImageAcquirer:
             self._emit_callback(callback)
 
     def _emit_callback(
-            self, callback: Optional[Union[Callback, List[Callback]]]) -> None:
+            self,
+            callback: Optional[Union[Callback, List[Callback]]]) -> None:
         if callback:
             if isinstance(callback, Callback):
                 _logger.debug("going to emit: {0}".format(callback))
@@ -1583,17 +1560,14 @@ class ImageAcquirer:
         Note that once the destroy method is called on the object then the
         object will immediately turn obsolete and there will never be any
         way to make the object usable. Just throw the object away and
-        create another object by calling Harvester.create_image_acquire method.
-
-        :return: None
+        create another object by calling
+        :meth:`Harvester.create_image_acquire` method.
         """
         global _logger
 
-        id_ = None
         if self.device:
             self.stop()
             self._release_data_streams()
-            id_ = self._device.id_
 
             if self.remote_device.node_map:
                 self.remote_device.node_map.disconnect()
@@ -1620,12 +1594,8 @@ class ImageAcquirer:
     @property
     def num_buffers(self) -> int:
         """
-        The number of buffers that is prepared for the image acquisition
+        int: The number of buffers that is prepared for the image acquisition
         process. The buffers will be announced to the target GenTL Producer.
-
-        :getter: Returns itself.
-        :setter: Overwrites itself with the given value.
-        :type: int
         """
         return self._num_buffers
 
@@ -1641,38 +1611,28 @@ class ImageAcquirer:
     @property
     def sleep_duration(self) -> float:
         """
-        The duration that lets the image acquisition thread sleeps at
+        float: The duration that lets the image acquisition thread sleeps at
         every execution. The unit is [ms].
-
-        :getter: Returns itself.
-        :type: float
         """
         return self._sleep_duration
 
     @property
     def min_num_buffers(self) -> int:
         """
-        The minimum number of the buffers for image acquisition. You have to
-        set a value to :meth:`num_buffers` so that is greater than or equal
-        to this.
-
-        :getter: Returns itself.
-        :type: int
+        int: The minimum number of the buffers for image acquisition. You
+        have to set a value to :meth:`num_buffers` so that is greater than or
+        equal to this.
         """
         return self._min_num_buffers
 
     @property
     def num_filled_buffers_to_hold(self) -> int:
         """
-        The number of buffers that is used for a case where the image
+        int: The number of buffers that is used for a case where the image
         acquisition process runs in the background. You will fetch buffers
         from the buffers when you call the :meth:`fetch` method in a
         case you started the image acquisition passing :const:`True` to
         :data:`run_in_background` of the :meth:`start` method.
-
-        :getter: Returns itself.
-        :setter: Overwrites itself with the given value.
-        :type: int
         """
         return self._num_buffers_to_hold
 
@@ -1704,66 +1664,48 @@ class ImageAcquirer:
     @property
     def num_holding_filled_buffers(self) -> int:
         """
-        The number of available buffers, i.e., the buffers that contain
+        int: The number of available buffers, i.e., the buffers that contain
         images.
-
-        :getter: Returns itself.
-        :type: int
         """
         return self._queue.qsize()
 
     @property
     def data_streams(self) -> List[DataStream]:
         """
-        A list of GenTL :class:`DataStream` objects that the
+        List[DataStream]: A list of GenTL :class:`DataStream` objects that the
         :class:`ImageAcquire` object is working with.
-
-        :getter: Returns itself.
-        :type: The associative :class:`DataStream` object.
         """
         return self._data_streams
 
     @property
     def remote_device(self) -> RemoteDevice:
         """
-        The remote GenTL :class:`Device` object, typically a camera, that the
-        :class:`ImageAcquire` object is working with.
-
-        :getter: Returns itself.
-        :type: RemoteDevice
+        RemoteDevice: The remote GenTL :class:`Device` object, typically a
+        camera, that the :class:`ImageAcquire` object is working with.
         """
         return self._remote_device
 
     @property
     def device(self) -> Device:
         """
-        The local GenTL :class:`Device` proxy object that the
+        Device: The local GenTL :class:`Device` proxy object that the
         :class:`ImageAcquire` object is working with.
-
-        :getter: Returns itself.
-        :type: Device
         """
         return self._device
 
     @property
     def interface(self) -> Interface:
         """
-        The GenTL :class:`Interface` object that the
+        Interface: The GenTL :class:`Interface` object that the
         :class:`ImageAcquire` object is working with.
-
-        :getter: Returns itself.
-        :type: Interface
         """
         return self._interface
 
     @property
     def system(self) -> System:
         """
-        The GenTL :class:`System` object that the
+        System: The GenTL :class:`System` object that the
         :class:`ImageAcquire` object is working with.
-
-        :getter: Returns itself.
-        :type: System
         """
         return self._system
 
@@ -1771,12 +1713,22 @@ class ImageAcquirer:
         """
         Returns the truth value of a proposition: It's acquiring images.
 
-        :return: :const:`True` if it's acquiring images. Otherwise :const:`False`.
-        :rtype: bool
+        Returns
+        -------
+        bool
+            :const:`True` if it's acquiring images. Otherwise :const:`False`.
         """
         return self._is_acquiring
 
     def is_armed(self) -> bool:
+        """
+        Returns the arm status on image acquisition.
+
+        Returns
+        -------
+            :const:`True` if it's been armed for image acquisition; otherwise,
+            :const:`False`.
+        """
         if not self.is_acquiring() or \
                 self.is_acquiring() and self._num_images_to_acquire == 0:
             return False
@@ -1786,12 +1738,8 @@ class ImageAcquirer:
     @property
     def timeout_on_client_fetch_call(self) -> float:
         """
-        It is used to define the timeout duration on a single fetch
+        float: It is used to define the timeout duration on a single fetch
         method calL. The unit is [s].
-
-        :getter:
-        :setter:
-        :type: float
         """
         return self._timeout_on_client_fetch_call
 
@@ -1810,12 +1758,8 @@ class ImageAcquirer:
     @property
     def timeout_on_internal_fetch_call(self) -> int:
         """
-        It is used to define the timeout duration on an internal single GenTL
-        fetch calL. The unit is [ms].
-
-        :getter:
-        :setter:
-        :type: int
+        int: It is used to define the timeout duration on an internal single
+        GenTL fetch calL. The unit is [ms].
         """
         return self._timeout_on_internal_fetch_call
 
@@ -1846,10 +1790,6 @@ class ImageAcquirer:
     def thread_image_acquisition(self) -> ThreadBase:
         """
         The thread object that runs image acquisition.
-
-        :getter: Returns itself.
-        :setter: Overwrites itself with the given value.
-        :type: :class:`ThreadBase`
         """
         return self._thread_image_acquisition
 
@@ -1861,10 +1801,7 @@ class ImageAcquirer:
     @property
     def statistics(self) -> Statistics:
         """
-        The statistics about image acquisition.
-
-        :getter: Returns itself.
-        :type: :class:`Statistics`
+        Statistics: The statistics about image acquisition.
         """
         return self._statistics
 
@@ -1879,7 +1816,8 @@ class ImageAcquirer:
             except GenTL_GenericException as e:
                 _logger.error(e, exc_info=True)
             else:
-                _logger.debug('opened: {0}'.format(_family_tree(_data_stream)))
+                _logger.debug(
+                    'opened: {0}'.format(_family_tree(_data_stream)))
 
             self._data_streams.append(DataStream(module=_data_stream))
 
@@ -1891,15 +1829,20 @@ class ImageAcquirer:
 
     def start_acquisition(self, run_in_background: bool = False) -> None:
         _deprecated(self.start_acquisition, self.start)
-        self.start(run_in_background=run_in_background)
+        self.start(run_as_thread=run_in_background)
 
-    def start(self, *, run_in_background: bool = False) -> None:
+    def start(self, *, run_as_thread: bool = False) -> None:
         """
-        Starts image acquisition.
+        Starts image acquisition process.
 
-        :param run_in_background: Set `True` if you want to let the ImageAcquire keep acquiring images in the background and the images you get calling `fetch` will be from the ImageAcquirer. Otherwise, the images will directly come from the target GenTL Producer.
-
-        :return: None.
+        Parameters
+        ----------
+        run_as_thread : bool
+            Set :const:`True` if you want to let the ImageAcquire object keep
+            acquiring images in the background and the images you get calling
+            :meth:`fetch` method will be from the :class:`ImageAcquirer`.
+            Otherwise, the images will directly come from the target GenTL
+            Producer.
         """
         global _logger
 
@@ -1972,7 +1915,7 @@ class ImageAcquirer:
             self._has_attached_chunk = False
             self._is_acquiring = True
 
-            if run_in_background:
+            if run_as_thread:
                 if self.thread_image_acquisition:
                     self.thread_image_acquisition.start()
 
@@ -2008,7 +1951,7 @@ class ImageAcquirer:
                     queue.put(buffer)
                 self._emit_callbacks(self.Events.NEW_BUFFER_AVAILABLE)
 
-    def _update_chunk_data(self, buffer: Buffer_):
+    def _update_chunk_data(self, buffer: _Buffer):
         global _logger
 
         try:
@@ -2058,34 +2001,41 @@ class ImageAcquirer:
                     action, _family_tree(buffer)))
 
     def try_fetch(self, *, timeout: float = 0,
-                  is_raw: bool = False) -> Optional[Buffer]:
+                  is_raw: bool = False) -> Union[Buffer, _Buffer, None]:
         """
         Unlike the fetch method, the try_fetch method gives up and
         returns None if no complete buffer was acquired during the defined
         period.
 
-        :param timeout: Set the period that defines the expiration for an
-        available buffer delivery; if no buffer is fetched within the period
-        then None will be returned. The unit is [s].
+        Parameters
+        ----------
+        timeout : float
+            Set the period that defines the expiration for an available
+            buffer delivery; if no buffer is fetched within the period
+            then None will be returned. The unit is [s].
 
-        :param is_raw: Set :const:`True` if you need a raw GenTL Buffer
-        module; note that you'll have to manipulate the object by yourself.
+        is_raw : bool
+            Set :const:`True` if you need a raw GenTL Buffer module; note
+            that you'll have to manipulate the object by yourself.
 
-        :return: A :class:`Buffer` object if it is complete; otherwise None.
-        :rtype: Optional[Buffer]
+        Returns
+        -------
+        Union[Buffer, Buffer_, None]
+            A buffer if it is complete; otherwise None.
         """
         buffer = self._fetch(manager=self._event_new_buffer_managers[0],
                              timeout_on_client_fetch_call=timeout,
                              throw_except=False)
 
+        buffer = self._finalize_fetching_process(buffer, is_raw)
         if buffer:
-            buffer = self._finalize_fetching_process(buffer, is_raw)
             self._emit_callbacks(self.Events.NEW_BUFFER_AVAILABLE)
+
         return buffer
 
     def _fetch(self, *, manager: EventManagerNewBuffer,
                timeout_on_client_fetch_call: float = 0,
-               throw_except: bool = False) -> Optional[Buffer_]:
+               throw_except: bool = False) -> Union[Buffer, _Buffer, None]:
         global _logger
 
         assert manager
@@ -2112,21 +2062,28 @@ class ImageAcquirer:
             except TimeoutException:
                 continue
             else:
-                if manager.buffer.is_complete():
+                context = None
+                frame_id = None
+                try:
+                    is_complete = manager.buffer.is_complete()
+                    if _is_logging_buffer:
+                        context = manager.buffer.context
+                        frame_id = manager.buffer.frame_id
+                except GenTL_GenericException:
+                    is_complete = False
+
+                if is_complete:
                     self._update_num_images_to_acquire()
                     self._update_statistics(manager.buffer)
                     buffer = manager.buffer
                     if _is_logging_buffer:
                         _logger.debug(
                             'fetched: {0} (#{1}); {2}'.format(
-                                manager.buffer.context,
-                                manager.buffer.frame_id,
+                                context, frame_id,
                                 _family_tree(manager.buffer)))
                 else:
                     _logger.warning(
-                        'incomplete: {0} (#{1}); {2}'.format(
-                            manager.buffer.context,
-                            manager.buffer.frame_id,
+                        'incomplete or not available; discarded: {}'.format(
                             _family_tree(manager.buffer)))
 
                     ds = manager.buffer.parent
@@ -2136,27 +2093,39 @@ class ImageAcquirer:
 
         return buffer
 
-    def _try_fetch_from_queue(self, *, is_raw: bool = False) -> Optional[Buffer]:
+    def _try_fetch_from_queue(
+            self, *, is_raw: bool = False) -> Union[Buffer, _Buffer, None]:
         with MutexLocker(self.thread_image_acquisition):
             try:
-                buffer = self._queue.get(block=False)
-                return self._finalize_fetching_process(buffer, is_raw)
+                raw_buffer = self._queue.get(block=False)
+                return self._finalize_fetching_process(raw_buffer, is_raw)
             except Empty:
                 return None
 
-    def _finalize_fetching_process(self, buffer: Buffer_, is_raw: bool):
-        if not buffer:
+    def _finalize_fetching_process(
+            self, raw_buffer: _Buffer, is_raw: bool) -> Union[Buffer, _Buffer, None]:
+        if not raw_buffer:
             return None
 
         if self._update_chunk_automatically:
-            self._update_chunk_data(buffer=buffer)
+            self._update_chunk_data(buffer=raw_buffer)
 
-        if not is_raw:
-            buffer = Buffer(module=buffer,
+        if is_raw:
+            return raw_buffer
+
+        try:
+            buffer = Buffer(module=raw_buffer,
                             node_map=self.remote_device.node_map,
                             acquire=self)
-
-        return buffer
+        except GenTL_GenericException:
+            family_tree = _family_tree(raw_buffer)
+            _logger.warning(
+                'information not available; discarded: {}'.format(
+                    family_tree))
+            raw_buffer.parent.queue_buffer(raw_buffer)
+            return None
+        else:
+            return buffer
 
     def fetch_buffer(self, *, timeout: float = 0, is_raw: bool = False,
                      cycle_s: float = None) -> Buffer:
@@ -2165,23 +2134,30 @@ class ImageAcquirer:
         return self.fetch(timeout=timeout, is_raw=is_raw, cycle_s=cycle_s)
 
     def fetch(self, *, timeout: float = 0, is_raw: bool = False,
-                     cycle_s: float = None) -> Buffer:
+                     cycle_s: float = None) -> Union[Buffer, _Buffer, None]:
         """
         Fetches an available :class:`Buffer` object that has been filled up
         with a single image and returns it.
 
-        :param timeout: Set the period that defines the expiration for an
-        available buffer delivery; if no buffer is fetched within the period
-        then TimeoutException will be raised. The unit is [s].
+        Parameters
+        ----------
+        timeout : float
+            Set the period that defines the expiration for an available
+            buffer delivery; if no buffer is fetched within the period
+            then TimeoutException will be raised. The unit is [s].
 
-        :param is_raw: Set :const:`True` if you need a raw GenTL Buffer
-        module; note that you'll have to manipulate the object by yourself.
+        is_raw : bool
+            Set :const:`True` if you need a raw GenTL Buffer module; note
+            that you'll have to manipulate the object by yourself.
 
-        :param cycle_s: Set the cycle that defines how frequently check if a
-        buffer is available. The unit is [s].
+        cycle_s : float
+            Set the cycle that defines how frequently check if a buffer is
+            available. The unit is [s].
 
-        :return: A :class:`Buffer` object.
-        :rtype: Buffer
+        Returns
+        -------
+        Union[Buffer, Buffer_, None]
+            A buffer object if the resource is complete; otherwise None.
         """
 
         buffer = None
@@ -2192,11 +2168,11 @@ class ImageAcquirer:
                 if not buffer:
                     time.sleep(cycle_s if cycle_s else 0.0001)
             else:
-                buffer = self._fetch(
+                raw_buffer = self._fetch(
                     manager=self._event_new_buffer_managers[0],
                     timeout_on_client_fetch_call=timeout, throw_except=True)
+                buffer = self._finalize_fetching_process(raw_buffer, is_raw)
                 if buffer:
-                    buffer = self._finalize_fetching_process(buffer, is_raw)
                     self._emit_callbacks(self.Events.NEW_BUFFER_AVAILABLE)
 
         return buffer
@@ -2270,9 +2246,7 @@ class ImageAcquirer:
 
     def stop(self) -> None:
         """
-        Stops image acquisition.
-
-        :return: None.
+        Stops image acquisition process.
         """
         global _logger
 
@@ -2490,12 +2464,10 @@ class Harvester:
         _logger.info('created: {0}'.format(self))
 
     @property
-    def image_acquirers(self):
+    def image_acquirers(self) -> List[ImageAcquirer]:
         """
-        The ImageAcquire objects.
-
-        :getter: Returns its value.
-        :type: ImageAcquire
+        List[ImageAcquirer]: The image acquirer objects that belong to the
+        harvester object.
         """
         return self._ias
 
@@ -2522,32 +2494,22 @@ class Harvester:
     @property
     def files(self) -> List[str]:
         """
-        A list of associative CTI files.
-
-        :getter: Returns itself.
-        :type: list[str]
+        List[str]: A list of associative CTI files.
         """
         return self._cti_files
 
     @property
     def device_info_list(self) -> List[DeviceInfo]:
         """
-        A list of available device information.
-
-        :getter: Returns itself.
-        :type: list[DeviceInfo]
+        List[DeviceInfo]: A list of available device information.
         """
         return self._device_info_list
 
     @property
     def timeout_for_update(self) -> int:
         """
-        The duration that is used as the time limit for the device
+        int: The duration that is used as the time limit for the device
         enumeration process. The unit is [ms].
-
-        :getter: Returns itself.
-        :setter: Overwrites itself with the given value.
-        :type: int
         """
         return self._timeout_for_update
 
@@ -2692,9 +2654,25 @@ class Harvester:
         """
         Adds a CTI file as one of GenTL Producers to work with.
 
-        :param file_path: Set a file path to the target CTI file.
+        Parameters
+        ----------
+        file_path : str
+            Set a file path to the target CTI file.
 
-        :return: None.
+        check_existence : bool
+            Set True if you want to make sure the specified file exists.
+
+        check_validity : bool
+            Set True if you want to make sure the specified file is valid.
+
+        Raises
+        ------
+        FileNotFoundError
+            If the specified file does not exist and check_existence is
+            True.
+
+        OSError
+            If the specified file is not valid and check_validity is True.
         """
         global _logger
 
@@ -2719,11 +2697,12 @@ class Harvester:
 
     def remove_file(self, file_path: str) -> None:
         """
-        Removes the specified CTI file from the list.
+        Removes the specified CTI file on the list.
 
-        :param file_path: Set a file path to the target CTI file.
-
-        :return: None.
+        Parameters
+        ----------
+        file_path : str
+            Set a file path to the target CTI file.
         """
         global _logger
 
@@ -2733,9 +2712,7 @@ class Harvester:
 
     def remove_files(self) -> None:
         """
-        Removes all CTI files in the list.
-
-        :return: None.
+        Removes all CTI files on the list.
         """
         global _logger
 
@@ -2778,8 +2755,6 @@ class Harvester:
         Initializes the :class:`Harvester` object. Once you reset the
         :class:`Harvester` object, all allocated resources, including buffers
         and remote device, will be released.
-
-        :return: None.
         """
         global _logger
         self._release_acquires()
@@ -2854,8 +2829,6 @@ class Harvester:
         is still owned by someone. The owner should drop those obsolete
         objects and create another ImageAcquisition object by calling
         the Harvester.create_image_acquire method.
-
-        :return: None.
         """
         global _logger
 

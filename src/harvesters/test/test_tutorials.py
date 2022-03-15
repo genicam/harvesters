@@ -178,6 +178,9 @@ class TestTutorials2(unittest.TestCase):
 
             num_images_to_acquire += 1
 
+        # It's done; stop the image acquisition:
+        ia.stop()
+
         # We don't need the ImageAcquirer object. Destroy it:
         ia.destroy()
 

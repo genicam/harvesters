@@ -129,13 +129,15 @@ class _Delegate:
 
     def __getattr__(self, attribute):
         if attribute in self._attributes:
-            if isinstance(getattr(type(self._source_object), attribute, None),
-                          property):
-                return getattr(self._module, attribute)
+            if isinstance(
+                getattr(type(self._source_object), attribute, None),
+                    property):
+                return getattr(self._source_object, attribute)
             else:
-                def method(*args):
+                def m(*args):
                     return getattr(self._source_object, attribute)(*args)
-                return method
+                setattr(self, attribute, m)
+                return m
         else:
             raise AttributeError
 

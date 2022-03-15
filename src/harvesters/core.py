@@ -61,7 +61,7 @@ from genicam.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
     PAYLOADTYPE_INFO_IDS
 from genicam.gentl import EventToken, Port, PIXELFORMAT_NAMESPACE_IDS
-from genicam.gentl import Buffer as Buffer_
+from genicam.gentl import Buffer as _Buffer
 
 # Local application/library specific imports
 from harvesters._private.core.port import ConcretePort
@@ -267,8 +267,7 @@ class Module(_Delegate):
     def module(self) -> Union[System, Interface, Device, RemoteDevice,
                               DataStream, Buffer]:
         """
-        Union[System, Interface, Device, RemoveDevice, DataStream,
-        Buffer]: The corresponding GenTL module.
+        Union[System, Interface, Device, RemoveDevice, DataStream, Buffer]: The corresponding GenTL module.
         """
         return self._module
 
@@ -281,7 +280,7 @@ class Module(_Delegate):
         return self._node_map
 
     @property
-    def parent(self) -> Union[None, System, Interface, Device, RemoveDevice, DataStream]:
+    def parent(self) -> Union[None, System, Interface, Device, RemoteDevice, DataStream]:
         """
         Union[None, System, Interface, Device, RemoveDevice, DataStream]:
         The parent raw GenTL module.
@@ -954,10 +953,8 @@ class Buffer(Module):
 
     Note that it will never be necessary to create this object by yourself
     in general.
-
-    Raises:
     """
-    def __init__(self, *, module: Buffer_, node_map: Optional[NodeMap], acquire: Optional[ImageAcquirer]):
+    def __init__(self, *, module: _Buffer, node_map: Optional[NodeMap], acquire: Optional[ImageAcquirer]):
         """
         Parameters
         ----------
@@ -1933,7 +1930,7 @@ class ImageAcquirer:
                     queue.put(buffer)
                 self._emit_callbacks(self.Events.NEW_BUFFER_AVAILABLE)
 
-    def _update_chunk_data(self, buffer: Buffer_):
+    def _update_chunk_data(self, buffer: _Buffer):
         global _logger
 
         try:
@@ -1983,7 +1980,7 @@ class ImageAcquirer:
                     action, _family_tree(buffer)))
 
     def try_fetch(self, *, timeout: float = 0,
-                  is_raw: bool = False) -> Union[Buffer, Buffer_, None]:
+                  is_raw: bool = False) -> Union[Buffer, _Buffer, None]:
         """
         Unlike the fetch method, the try_fetch method gives up and
         returns None if no complete buffer was acquired during the defined
@@ -2017,7 +2014,7 @@ class ImageAcquirer:
 
     def _fetch(self, *, manager: EventManagerNewBuffer,
                timeout_on_client_fetch_call: float = 0,
-               throw_except: bool = False) -> Union[Buffer, Buffer_, None]:
+               throw_except: bool = False) -> Union[Buffer, _Buffer, None]:
         global _logger
 
         assert manager
@@ -2076,7 +2073,7 @@ class ImageAcquirer:
         return buffer
 
     def _try_fetch_from_queue(
-            self, *, is_raw: bool = False) -> Union[Buffer, Buffer_, None]:
+            self, *, is_raw: bool = False) -> Union[Buffer, _Buffer, None]:
         with MutexLocker(self.thread_image_acquisition):
             try:
                 raw_buffer = self._queue.get(block=False)
@@ -2085,7 +2082,7 @@ class ImageAcquirer:
                 return None
 
     def _finalize_fetching_process(
-            self, raw_buffer: Buffer_, is_raw: bool) -> Union[Buffer, Buffer_, None]:
+            self, raw_buffer: _Buffer, is_raw: bool) -> Union[Buffer, _Buffer, None]:
         if not raw_buffer:
             return None
 
@@ -2116,7 +2113,7 @@ class ImageAcquirer:
         return self.fetch(timeout=timeout, is_raw=is_raw, cycle_s=cycle_s)
 
     def fetch(self, *, timeout: float = 0, is_raw: bool = False,
-                     cycle_s: float = None) -> Union[Buffer, Buffer_, None]:
+                     cycle_s: float = None) -> Union[Buffer, _Buffer, None]:
         """
         Fetches an available :class:`Buffer` object that has been filled up
         with a single image and returns it.

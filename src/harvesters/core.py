@@ -958,7 +958,7 @@ class Buffer(Module):
         """
         Parameters
         ----------
-        module : Buffer_
+        module : _Buffer
             Set a GenTL Buffer object to be wrapped.
         node_map: NodeMap
             Set a node map which blongs to the owner remote device.
@@ -1058,7 +1058,7 @@ class Buffer(Module):
         self.module.parent.queue_buffer(self.module)
 
     @staticmethod
-    def _build_payload(*, buffer=None, node_map: Optional[NodeMap] = None,):
+    def _build_payload(*, buffer: _Buffer, node_map: Optional[NodeMap] = None,):
         """
         Rises:
             genicam.gentl.GenericException
@@ -1068,7 +1068,7 @@ class Buffer(Module):
 
         p_type = buffer.payload_type
         if p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_UNKNOWN:
-            payload = PayloadUnknown(buffer=buffer, node_map=node_map)
+            payload = PayloadUnknown(buffer=buffer)
 
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE or \
                 buffer.payload_type == \
@@ -1076,22 +1076,22 @@ class Buffer(Module):
             payload = PayloadImage(buffer=buffer, node_map=node_map)
 
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_RAW_DATA:
-            payload = PayloadRawData(buffer=buffer, node_map=node_map)
+            payload = PayloadRawData(buffer=buffer)
 
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_FILE:
-            payload = PayloadFile(buffer=buffer, node_map=node_map)
+            payload = PayloadFile(buffer=buffer)
 
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG:
-            payload = PayloadJPEG(buffer=buffer, node_map=node_map)
+            payload = PayloadJPEG(buffer=buffer)
 
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG2000:
-            payload = PayloadJPEG2000(buffer=buffer, node_map=node_map)
+            payload = PayloadJPEG2000(buffer=buffer)
 
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_H264:
-            payload = PayloadH264(buffer=buffer, node_map=node_map)
+            payload = PayloadH264(buffer=buffer)
 
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_ONLY:
-            payload = PayloadChunkOnly(buffer=buffer, node_map=node_map)
+            payload = PayloadChunkOnly(buffer=buffer)
 
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART:
             payload = PayloadMultiPart(buffer=buffer, node_map=node_map)
@@ -1136,7 +1136,7 @@ class PayloadBase:
         return self._buffer.payload_type
 
     @staticmethod
-    def _build_component(buffer=None, part=None,
+    def _build_component(buffer: _Buffer, part=None,
                          node_map: Optional[NodeMap] = None):
         global _logger
 
@@ -1185,7 +1185,7 @@ class PayloadUnknown(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_UNKNOWN`
     by the GenTL Standard.
     """
-    def __init__(self, *, buffer: Buffer):
+    def __init__(self, *, buffer: _Buffer):
         """
 
         :param buffer:
@@ -1201,7 +1201,7 @@ class PayloadImage(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE` by
     the GenTL Standard.
     """
-    def __init__(self, *, buffer: Buffer,
+    def __init__(self, *, buffer: _Buffer,
                  node_map: Optional[NodeMap] = None):
         """
 
@@ -1224,7 +1224,7 @@ class PayloadRawData(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_RAW_DATA`
     by the GenTL Standard.
     """
-    def __init__(self, *, buffer: Buffer):
+    def __init__(self, *, buffer: _Buffer):
         """
         :param buffer:
         """
@@ -1237,7 +1237,7 @@ class PayloadFile(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_FILE` by
     the GenTL Standard.
     """
-    def __init__(self, *, buffer: Buffer):
+    def __init__(self, *, buffer: _Buffer):
         super().__init__(buffer=buffer)
 
 
@@ -1247,7 +1247,7 @@ class PayloadJPEG(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG` by
     the GenTL Standard.
     """
-    def __init__(self, *, buffer: Buffer):
+    def __init__(self, *, buffer: _Buffer):
         """
         :param buffer:
         """
@@ -1260,7 +1260,7 @@ class PayloadJPEG2000(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG2000`
     by the GenTL Standard.
     """
-    def __init__(self, *, buffer: Buffer):
+    def __init__(self, *, buffer: _Buffer):
         """
         :param buffer:
         """
@@ -1273,7 +1273,7 @@ class PayloadH264(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_H264` by
     the GenTL Standard.
     """
-    def __init__(self, *, buffer: Buffer):
+    def __init__(self, *, buffer: _Buffer):
         """
         :param buffer:
         """
@@ -1286,7 +1286,7 @@ class PayloadChunkOnly(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_ONLY`
     by the GenTL Standard.
     """
-    def __init__(self, *, buffer: Buffer):
+    def __init__(self, *, buffer: _Buffer):
         super().__init__(buffer=buffer)
 
 
@@ -1296,7 +1296,7 @@ class PayloadMultiPart(PayloadBase):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART`
     by the GenTL Standard.
     """
-    def __init__(self, *, buffer: Buffer, node_map: NodeMap):
+    def __init__(self, *, buffer: _Buffer, node_map: NodeMap):
         """
         :param buffer:
         :param node_map:

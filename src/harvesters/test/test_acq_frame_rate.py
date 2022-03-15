@@ -75,7 +75,7 @@ class TestTutorials(TestHarvester):
         )
 
         # Then start image acquisition.
-        self.ia.start(run_in_background=True)
+        self.ia.start(run_as_thread=True)
 
         # Run the image acquisition thread:
         thread = ThreadWithTimeLimit(
@@ -133,7 +133,7 @@ class TestTutorials(TestHarvester):
         self.ia = self.harvester.create_image_acquirer(0)
 
         #
-        self.ia.start(run_in_background=True)
+        self.ia.start(run_as_thread=True)
 
         #
         nr = 3

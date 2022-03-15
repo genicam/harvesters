@@ -1808,15 +1808,15 @@ class ImageAcquirer:
 
     def start_acquisition(self, run_in_background: bool = False) -> None:
         _deprecated(self.start_acquisition, self.start)
-        self.start(run_in_background=run_in_background)
+        self.start(run_as_thread=run_in_background)
 
-    def start(self, *, run_in_background: bool = False) -> None:
+    def start(self, *, run_as_thread: bool = False) -> None:
         """
         Starts image acquisition process.
 
         Parameters
         ----------
-        run_in_background : bool
+        run_as_thread : bool
             Set :const:`True` if you want to let the ImageAcquire object keep
             acquiring images in the background and the images you get calling
             :meth:`fetch` method will be from the :class:`ImageAcquirer`.
@@ -1894,7 +1894,7 @@ class ImageAcquirer:
             self._has_attached_chunk = False
             self._is_acquiring = True
 
-            if run_in_background:
+            if run_as_thread:
                 if self.thread_image_acquisition:
                     self.thread_image_acquisition.start()
 

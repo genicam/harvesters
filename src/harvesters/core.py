@@ -267,7 +267,7 @@ class Module(_Delegate):
     def module(self) -> Union[System, Interface, Device, RemoteDevice,
                               DataStream, Buffer]:
         """
-        Union[System, Interface, Device, RemoveDevice, DataStream, Buffer]: The corresponding GenTL module.
+        Union[System, Interface, Device, RemoteDevice, DataStream, Buffer]: The corresponding GenTL module.
         """
         return self._module
 
@@ -282,7 +282,7 @@ class Module(_Delegate):
     @property
     def parent(self) -> Union[None, System, Interface, Device, RemoteDevice, DataStream]:
         """
-        Union[None, System, Interface, Device, RemoveDevice, DataStream]:
+        Union[None, System, Interface, Device, RemoteDevice, DataStream]:
         The parent raw GenTL module.
         """
         return self._parent

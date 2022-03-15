@@ -39,7 +39,7 @@ import sys
 from threading import Lock, Thread, Event
 from threading import current_thread, main_thread
 import time
-from typing import Union, List, Optional, Dict
+from typing import Union, List, Optional, Dict, TypeVar
 from urllib.parse import urlparse
 from warnings import warn
 import weakref
@@ -694,6 +694,9 @@ class ComponentBase:
         return self._data
 
 
+Component = TypeVar('Component', bound=ComponentBase)
+
+
 class ComponentUnknown(ComponentBase):
     """
     Represents a data component that is classified as
@@ -1027,14 +1030,16 @@ class Buffer(Module):
     @property
     def payload_type(self):
         """
-        The payload type that the :class:`Buffer` object contains.
+        PAYLOADTYPE_INFO_IDS: The payload type that the :class:`Buffer`
+        object contains.
         """
         return self.module.payload_type
 
     @property
     def payload(self):
         """
-        A containing object which derives from :class:`PayloadBase` class.
+        Payload: A containing object which derives from :class:`PayloadBase`
+        class.
         """
         return self._payload
 
@@ -1060,8 +1065,11 @@ class Buffer(Module):
     @staticmethod
     def _build_payload(*, buffer: _Buffer, node_map: Optional[NodeMap] = None,):
         """
-        Rises:
-            genicam.gentl.GenericException
+        Raises
+        ------
+        genicam.gentl.GenericException
+            If the buffer does not provide sufficient information that is
+            required to compose a logical payload object.
         """
         assert buffer
         assert node_map
@@ -1173,10 +1181,13 @@ class PayloadBase:
     @property
     def components(self):
         """
-        A :class:`list` containing objects that derive from
+        List[Component]: A :class:`list` containing objects that derive from
         :const:`ComponentBase` class.
         """
         return self._components
+
+
+Payload = TypeVar('Payload', bound=PayloadBase)
 
 
 class PayloadUnknown(PayloadBase):

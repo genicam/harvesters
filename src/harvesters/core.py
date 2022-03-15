@@ -294,18 +294,18 @@ class Module(_Delegate):
 
 
 class DataStream(Module):
+    """Represents a GenTL Data Stream module."""
     def __init__(self, *, module: _DataStream, parent=None):
-        """Represents a GenTL Data Stream module."""
         super().__init__(module=module, port=module.port, parent=parent)
 
 
 class RemoteDevice(Module):
+    """Represents a GenTL Remote Device module."""
     def __init__(self, *, module: _Device, parent=None,
                  file_path: Optional[str] = None,
                  file_dict: Optional[Dict[str, bytes]] = None,
                  do_clean_up: bool = True,
                  xml_dir_to_store: Optional[str] = None):
-        """Represents a GenTL Remote Device module."""
         super().__init__(
             module=module, port=module.remote_port, parent=parent,
             file_path=file_path,

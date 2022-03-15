@@ -60,8 +60,10 @@ from genicam.gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
 from genicam.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
     PAYLOADTYPE_INFO_IDS
-from genicam.gentl import EventToken, Port, PIXELFORMAT_NAMESPACE_IDS
-from genicam.gentl import Buffer as _Buffer
+from genicam.gentl import Port, PIXELFORMAT_NAMESPACE_IDS
+from genicam.gentl import Buffer as _Buffer, Device as _Device, \
+    DataStream as _DataStream, Interface as _Interface, System as _System, \
+    GenTLProducer as _GenTLProducer
 
 # Local application/library specific imports
 from harvesters._private.core.port import ConcretePort
@@ -122,7 +124,8 @@ class _Delegate:
     def __init__(self, source):
         self._source_object = source
         self._attributes = [
-            f for f in dir(type(self._source_object)) if not f.startswith('_')]
+            f for f in dir(
+                type(self._source_object)) if not f.startswith('_')]
 
     def __getattr__(self, attribute):
         if attribute in self._attributes:
@@ -267,7 +270,8 @@ class Module(_Delegate):
     def module(self) -> Union[System, Interface, Device, RemoteDevice,
                               DataStream, Buffer]:
         """
-        Union[System, Interface, Device, RemoteDevice, DataStream, Buffer]: The corresponding GenTL module.
+        Union[System, Interface, Device, RemoteDevice, DataStream, Buffer]:
+        The corresponding GenTL module.
         """
         return self._module
 
@@ -280,7 +284,8 @@ class Module(_Delegate):
         return self._node_map
 
     @property
-    def parent(self) -> Union[None, System, Interface, Device, RemoteDevice, DataStream]:
+    def parent(self) -> Union[None, System, Interface, Device,
+                              RemoteDevice, DataStream]:
         """
         Union[None, System, Interface, Device, RemoteDevice, DataStream]:
         The parent raw GenTL module.
@@ -289,16 +294,18 @@ class Module(_Delegate):
 
 
 class DataStream(Module):
-    def __init__(self, *, module, parent=None):
+    def __init__(self, *, module: _DataStream, parent=None):
+        """Represents a GenTL Data Stream module."""
         super().__init__(module=module, port=module.port, parent=parent)
 
 
 class RemoteDevice(Module):
-    def __init__(self, *, module, parent=None,
+    def __init__(self, *, module: _Device, parent=None,
                  file_path: Optional[str] = None,
                  file_dict: Optional[Dict[str, bytes]] = None,
                  do_clean_up: bool = True,
                  xml_dir_to_store: Optional[str] = None):
+        """Represents a GenTL Remote Device module."""
         super().__init__(
             module=module, port=module.remote_port, parent=parent,
             file_path=file_path,
@@ -311,8 +318,8 @@ class RemoteDevice(Module):
 
 
 class Device(Module):
-    """Represents a GenTL Device module."""
-    def __init__(self, *, module, parent=None):
+    """Represents a GenTL Device module that is a proxy of a remote device."""
+    def __init__(self, *, module: _Device, parent=None):
         super().__init__(module=module, port=module.local_port, parent=parent)
 
     @property
@@ -322,19 +329,19 @@ class Device(Module):
 
 class Interface(Module):
     """Represents a GenTL Interface module."""
-    def __init__(self, *, module, parent=None):
+    def __init__(self, *, module: _Interface, parent=None):
         super().__init__(module=module, port=module.port, parent=parent)
 
 
 class System(Module):
     """Represents a GenTL System module."""
-    def __init__(self, *, module, parent):
+    def __init__(self, *, module: _System, parent):
         super().__init__(module=module, parent=parent, port=module.port)
 
 
 class Producer(Module):
     """Represents a GenTL Producer."""
-    def __init__(self, *, module):
+    def __init__(self, *, module: _GenTLProducer):
         super().__init__(module=module, parent=None)
 
 
@@ -344,8 +351,8 @@ class DeviceInfo(Module):
         super().__init__(module=module, parent=parent)
 
     def __repr__(self):
-        properties = ['id_', 'vendor', 'model', 'tl_type', 'user_defined_name',
-            'serial_number', 'version',]
+        properties = ['id_', 'vendor', 'model', 'tl_type',
+                      'user_defined_name', 'serial_number', 'version',]
         results = []
         for _property in properties:
             assert _property != ''
@@ -758,7 +765,8 @@ class Component2DImage(ComponentBase):
             except GenTL_GenericException:
                 h = self._node_map.Height.value
 
-            nr_bytes = self._get_nr_bytes(pf_proxy=pf_proxy, width=w, height=h)
+            nr_bytes = self._get_nr_bytes(
+                pf_proxy=pf_proxy, width=w, height=h)
 
             try:
                 padding_y = self._buffer.padding_y
@@ -957,7 +965,8 @@ class Buffer(Module):
     Note that it will never be necessary to create this object by yourself
     in general.
     """
-    def __init__(self, *, module: _Buffer, node_map: Optional[NodeMap], acquire: Optional[ImageAcquirer]):
+    def __init__(self, *, module: _Buffer, node_map: Optional[NodeMap] = None,
+                 acquire: Optional[ImageAcquirer] = None):
         """
         Parameters
         ----------
@@ -1063,7 +1072,8 @@ class Buffer(Module):
         self.module.parent.queue_buffer(self.module)
 
     @staticmethod
-    def _build_payload(*, buffer: _Buffer, node_map: Optional[NodeMap] = None,):
+    def _build_payload(*, buffer: _Buffer,
+                       node_map: Optional[NodeMap] = None):
         """
         Raises
         ------
@@ -1179,7 +1189,7 @@ class PayloadBase:
         return None
 
     @property
-    def components(self):
+    def components(self) -> List[Component]:
         """
         List[Component]: A :class:`list` containing objects that derive from
         :const:`ComponentBase` class.
@@ -1200,7 +1210,6 @@ class PayloadUnknown(PayloadBase):
         """
 
         :param buffer:
-        :param node_map:
         """
         assert buffer
         super().__init__(buffer=buffer)
@@ -1454,7 +1463,8 @@ class ImageAcquirer:
             self._min_num_buffers = num_buffers_default
             self._num_buffers = num_buffers_default
         else:
-            self._num_buffers = max(num_buffers_default, self._min_num_buffers)
+            self._num_buffers = max(
+                num_buffers_default, self._min_num_buffers)
 
         self._chunk_adapter = self._get_chunk_adapter(
             device=self.device, node_map=self.remote_device.node_map)
@@ -1496,7 +1506,8 @@ class ImageAcquirer:
             self._emit_callback(callback)
 
     def _emit_callback(
-            self, callback: Optional[Union[Callback, List[Callback]]]) -> None:
+            self,
+            callback: Optional[Union[Callback, List[Callback]]]) -> None:
         if callback:
             if isinstance(callback, Callback):
                 _logger.debug("going to emit: {0}".format(callback))
@@ -1554,11 +1565,9 @@ class ImageAcquirer:
         """
         global _logger
 
-        id_ = None
         if self.device:
             self.stop()
             self._release_data_streams()
-            id_ = self._device.id_
 
             if self.remote_device.node_map:
                 self.remote_device.node_map.disconnect()
@@ -1807,7 +1816,8 @@ class ImageAcquirer:
             except GenTL_GenericException as e:
                 _logger.error(e, exc_info=True)
             else:
-                _logger.debug('opened: {0}'.format(_family_tree(_data_stream)))
+                _logger.debug(
+                    'opened: {0}'.format(_family_tree(_data_stream)))
 
             self._data_streams.append(DataStream(module=_data_stream))
 

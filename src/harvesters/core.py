@@ -2064,6 +2064,7 @@ class ImageAcquirer:
                     continue
                 else:
                     _logger.warning(e, exc_info=True)
+                    raise
             else:
                 context = None
                 frame_id = None

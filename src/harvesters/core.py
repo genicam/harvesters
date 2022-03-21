@@ -2030,8 +2030,6 @@ class ImageAcquirer:
                              throw_except=False)
 
         buffer = self._finalize_fetching_process(buffer, is_raw)
-        if buffer:
-            self._emit_callbacks(self.Events.NEW_BUFFER_AVAILABLE)
 
         return buffer
 
@@ -2177,8 +2175,6 @@ class ImageAcquirer:
                     manager=self._event_new_buffer_managers[0],
                     timeout_on_client_fetch_call=timeout, throw_except=True)
                 buffer = self._finalize_fetching_process(raw_buffer, is_raw)
-                if buffer:
-                    self._emit_callbacks(self.Events.NEW_BUFFER_AVAILABLE)
 
         return buffer
 

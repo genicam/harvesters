@@ -2061,8 +2061,11 @@ class ImageAcquirer:
 
             try:
                 manager.update_event_data(self.timeout_on_internal_fetch_call)
-            except TimeoutException:
-                continue
+            except GenTL_GenericException as e:
+                if type(e) is TimeoutException:
+                    continue
+                else:
+                    _logger.warning(e, exc_info=True)
             else:
                 context = None
                 frame_id = None

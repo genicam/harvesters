@@ -1554,6 +1554,16 @@ class ImageAcquirer:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._finalizer()
 
+    def _release_remote_device(self):
+        if self.remote_device.node_map:
+            self.remote_device.node_map.disconnect()
+
+        if self._chunk_adapter:
+            self._chunk_adapter = None
+
+        if self._device.is_open():
+            self._device.close()
+
     def destroy(self) -> None:
         """
         Destroys itself; releases all preserved external resources such as
@@ -1567,30 +1577,24 @@ class ImageAcquirer:
         """
         global _logger
 
-        if self.device:
-            self.stop()
-            self._release_data_streams()
+        if not self._is_valid:
+            return
 
-            if self.remote_device.node_map:
-                self.remote_device.node_map.disconnect()
-
-            if self._chunk_adapter:
-                self._chunk_adapter = None
-
-            if self._device.is_open():
-                self._device.close()
-
-            _logger.info('released resources: {}'.format(self))
+        self.stop()
+        self._release_data_streams()
+        self._release_remote_device()
 
         self._remote_device = None
         self._device = None
         self._interface = None
         self._system = None
+
         self._is_valid = False
 
         if self._profiler:
             self._profiler.print_diff()
 
+        _logger.info('released resources: {}'.format(self))
         self._emit_callbacks(self.Events.TURNED_OBSOLETE)
 
     @property

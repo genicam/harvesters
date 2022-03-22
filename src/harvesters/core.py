@@ -214,7 +214,7 @@ class Module(_Delegate):
                 raise LogicalErrorException(
                     '{} does not exist.'.format(file_path_to_load))
         else:
-            if url is None:
+            if not url:
                 if len(port.url_info_list) > 0:
                     url = port.url_info_list[0].url
                 else:
@@ -380,30 +380,25 @@ class DeviceInfo(Module):
 
 class _SignalHandler:
     _event = None
-    _threads = None
+    _subject = None
 
-    def __init__(self, *, event=None, threads=None):
+    def __init__(self, *, event, subject: ImageAcquirer):
         super().__init__()
 
         assert event
-        assert threads
+        assert subject
 
         self._event = event
-        self._threads = threads
+        self._subject = subject
 
     def __call__(self, signum, frame):
         """
         A registered Python signal modules will call this method.
         """
         global _logger
-
+        _logger.debug('caught signal: {}'.format(self._event))
         self._event.set()
-
-        for thread in self._threads:
-            _logger.debug('being terminated: {}'.format(thread))
-            thread.stop()
-            thread.join()
-            _logger.debug('terminated: {}'.format(thread))
+        self._subject.destroy()
 
 
 class ThreadBase:
@@ -423,7 +418,7 @@ class ThreadBase:
         global _logger
 
         self._internal_start()
-        _logger.debug('launched: 0x{:0X}'.format(self.id_))
+        _logger.debug('launched thread: {}'.format(self))
 
     def _internal_start(self) -> None:
         """
@@ -435,9 +430,8 @@ class ThreadBase:
 
     def stop(self) -> None:
         global _logger
-
         self._internal_stop()
-        _logger.debug('terminated: 0x{:0X}'.format(self.id_))
+        _logger.debug('terminated thread: {}'.format(self))
 
     def join(self):
         """
@@ -506,14 +500,14 @@ class MutexLocker:
         self._locked_mutex = None
 
     def __enter__(self):
-        if self._thread is None:
+        if not self._thread:
             return None
 
         self._locked_mutex = self._thread.acquire()
         return self._locked_mutex
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self._thread is None:
+        if not self._thread:
             return
 
         self._thread.release()
@@ -544,10 +538,13 @@ class _ImageAcquisitionThread(ThreadBase):
         self._thread.start()
 
     def join(self):
+        global _logger
+        _logger.debug('going to join thread: {}'.format(self))
         self._thread.join()
+        _logger.debug('joined thread: {}'.format(self))
 
     def _internal_stop(self):
-        if self._thread is None:
+        if not self._thread:
             return
 
         self._thread.stop()
@@ -794,7 +791,7 @@ class Component2DImage(ComponentBase):
         Union[numpy.ndarray, None]
             A NumPy array that represents the 2D pixel location.
         """
-        if self.data is None:
+        if not self.data:
             return None
 
         return self._data.reshape(
@@ -1439,7 +1436,7 @@ class ImageAcquirer:
         self._sigint_handler = None
         if current_thread() is main_thread():
             self._sigint_handler = _SignalHandler(
-                event=self._event, threads=self._threads)
+                event=self._event, subject=self)
             signal.signal(signal.SIGINT, self._sigint_handler)
             _logger.debug('created: {0}'.format(self._sigint_handler))
 
@@ -2565,7 +2562,7 @@ class Harvester:
         """
         global _logger
 
-        if self.device_info_list is None:
+        if not self.device_info_list:
             return None
 
         dev_info = None

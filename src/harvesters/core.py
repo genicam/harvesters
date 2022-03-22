@@ -1578,6 +1578,10 @@ class ImageAcquirer:
             return
 
         self.stop()
+
+        if self._chunk_adapter:
+            self._chunk_adapter = None
+
         self._release_data_streams()
         self._release_remote_device()
 

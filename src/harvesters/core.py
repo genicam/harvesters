@@ -39,7 +39,7 @@ import sys
 from threading import Lock, Thread, Event
 from threading import current_thread, main_thread
 import time
-from typing import Union, List, Optional, Dict, TypeVar
+from typing import Union, List, Optional, Dict, TypeVar, Callable, Any
 from urllib.parse import urlparse
 from warnings import warn
 import weakref
@@ -48,15 +48,20 @@ import tempfile
 # Related third party imports
 import numpy
 
-from genicam.genapi import NodeMap
+from genicam.genapi import NodeMap, INode as Node_
+from genicam.genapi import register, deregister, ECallbackType
 from genicam.genapi import GenericException as GenApi_GenericException
 from genicam.genapi import LogicalErrorException
 from genicam.genapi import ChunkAdapterGeneric, ChunkAdapterU3V, \
     ChunkAdapterGEV
+from genicam.genapi import EventAdapterGEV, EventAdapterU3V, \
+    EventAdapterGeneric
 
 from genicam.gentl import TimeoutException
-from genicam.gentl import GenericException as GenTL_GenericException
-from genicam.gentl import GenTLProducer, BufferToken, EventManagerNewBuffer
+from genicam.gentl import GenericException as GenTL_GenericException, \
+    NotImplementedException
+from genicam.gentl import GenTLProducer, BufferToken
+from genicam.gentl import EventManagerNewBuffer, EventManagerRemoteDevice
 from genicam.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
     PAYLOADTYPE_INFO_IDS
@@ -76,7 +81,7 @@ from harvesters.util.pfnc import component_2d_formats
 
 
 _is_logging_buffer = True if 'HARVESTERS_LOG_BUFFER' in os.environ else False
-_sleep_duration_default = 0.000001  # s
+_sleep_default = 0.0001  # s
 
 
 _logger = get_logger(name=__name__)
@@ -142,12 +147,49 @@ class _Delegate:
             raise AttributeError
 
 
+Node = TypeVar('Node', bound=Node_)
+
+
+class _NodeCallbackProxy:
+    def __init__(self, *, node, callback: Optional[Callable[[Node, Any], None]],
+                 context: Optional[Any] = None,
+                 callback_type: Optional[ECallbackType] = ECallbackType.cbPostInsideLock):
+        global _logger
+        assert node
+        assert callback
+        self._node = node
+        self._token = register(node.node, self._callback, callback_type)
+        _logger.debug("registered callback: {}".format(self._token))
+        self._client_callback = callback
+        self._context = context
+
+    def destroy(self):
+        global _logger
+        if self._token:
+            deregister(self._token)
+            _logger.debug("deregistered callback: {}".format(self._token))
+
+    def _callback(self, node):
+        self._client_callback(node, self._context)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.destroy()
+
+    @property
+    def token(self) -> int:
+        return self._token
+
+
 class Module(_Delegate):
     def __init__(self, *, module, parent, port: Port = None,
                  file_path: Optional[str] = None,
                  file_dict: Optional[Dict[str, bytes]] = None,
                  do_clean_up: bool = True,
                  xml_dir_to_store: Optional[str] = None):
+        global _logger
         super().__init__(module)
         self._module = module
         self._parent = parent
@@ -155,6 +197,31 @@ class Module(_Delegate):
             port=port, file_path=file_path, file_dict=file_dict,
             do_clean_up=do_clean_up, xml_dir_to_store=xml_dir_to_store) if \
             port else None
+        self._node_callback_proxy_dict = dict()
+
+    def deregister_node_callbacks(self):
+        for proxy in self._node_callback_proxy_dict.values():
+            proxy.destroy()
+
+    def register_node_callback(self, *, node_name: str,
+                               callback: Optional[Callable[[Node, Any], None]],
+                               context: Optional[Any] = None,
+                               callback_type: Optional[ECallbackType] = ECallbackType.cbPostInsideLock) -> Union[None, int]:
+        node = getattr(self._node_map, node_name, None)
+        if not node:
+            return None
+
+        proxy = _NodeCallbackProxy(node=node, callback=callback,
+                                   context=context,
+                                   callback_type=callback_type)
+        self._node_callback_proxy_dict[proxy.token] = proxy
+        return proxy.token
+
+    def deregister_node_callback(self, token: int):
+        proxy = self._node_callback_proxy_dict[token]
+        if proxy:
+            proxy.destroy()
+            del self._node_callback_proxy_dict[token]
 
     def _create_node_map(
             self, *, port: Optional[Port] = None,
@@ -513,26 +580,16 @@ class MutexLocker:
         self._thread.release()
 
 
-class _ImageAcquisitionThread(ThreadBase):
-    def __init__(
-            self, *,
-            image_acquire=None):
-        """
-
-        :param image_acquire:
-        """
-        assert image_acquire
-
+class _EventMonitor(ThreadBase):
+    def __init__(self, *, sleep: float, worker: Optional[Callable[[], None]] = None):
         super().__init__(mutex=Lock())
-
-        self._ia = image_acquire
-        self._worker = self._ia.worker_image_acquisition
-        self._sleep_duration = self._ia.sleep_duration
+        self._worker = worker
+        self._sleep = sleep
         self._thread = None
 
     def _internal_start(self):
-        self._thread = _NativeThread(thread_owner=self, worker=self._worker,
-                                     sleep_duration=self._sleep_duration)
+        self._thread = _NativeThread(parent=self, worker=self._worker,
+                                     sleep=self._sleep)
         self._id = self._thread.id_
         self._is_running = True
         self._thread.start()
@@ -551,30 +608,21 @@ class _ImageAcquisitionThread(ThreadBase):
         self._is_running = False
 
     def acquire(self):
-        if self._thread:
-            return self._thread.acquire()
-        else:
-            return None
+        return self._thread.acquire() if self._thread else None
 
     def release(self):
         if self._thread:
             self._thread.release()
-        else:
-            return
 
     @property
     def worker(self):
-        if self._thread:
-            return self._thread.worker
-        else:
-            return None
+        return self._thread.worker if self._thread else None
 
     @worker.setter
     def worker(self, obj):
+        self._worker = obj
         if self._thread:
             self._thread.worker = obj
-        else:
-            return
 
     @property
     def mutex(self):
@@ -589,21 +637,15 @@ class _ImageAcquisitionThread(ThreadBase):
 
 
 class _NativeThread(Thread):
-    def __init__(self, thread_owner=None, worker=None,
-                 sleep_duration=_sleep_duration_default):
-        """
-
-        :param thread_owner:
-        :param worker:
-        :param sleep_duration:
-        """
-        assert thread_owner
+    def __init__(self, parent, worker=None,
+                 sleep=_sleep_default):
+        assert parent
 
         super().__init__(daemon=self._is_interactive())
 
         self._worker = worker
-        self._thread_owner = thread_owner
-        self._sleep_duration = sleep_duration
+        self._parent = parent
+        self._sleep = sleep
 
     @staticmethod
     def _is_interactive():
@@ -617,8 +659,8 @@ class _NativeThread(Thread):
             return False
 
     def stop(self):
-        with self._thread_owner.mutex:
-            self._thread_owner._is_running = False
+        with self._parent.mutex:
+            self._parent._is_running = False
 
     def run(self):
         """
@@ -627,16 +669,16 @@ class _NativeThread(Thread):
         This method will be terminated once its parent's is_running
         property turns False.
         """
-        while self._thread_owner.is_running():
+        while self._parent.is_running():
             if self._worker:
                 self._worker()
-                time.sleep(self._sleep_duration)
+            time.sleep(self._sleep)
 
     def acquire(self):
-        return self._thread_owner.mutex.acquire()
+        return self._parent.mutex.acquire()
 
     def release(self):
-        self._thread_owner.mutex.release()
+        self._parent.mutex.release()
 
     @property
     def id_(self):
@@ -652,7 +694,7 @@ class _NativeThread(Thread):
 
     @property
     def mutex(self):
-        return self._thread_owner.mutex
+        return self._parent.mutex
 
 
 class ComponentBase:
@@ -1127,7 +1169,7 @@ class Buffer(Module):
         return payload
 
     def update_chunk_data(self):
-        self._acquire._update_chunk_data(self.module)
+        self._acquire._update_chunk_data(buffer=self.module, is_manual=True)
 
 
 class PayloadBase:
@@ -1361,16 +1403,16 @@ class ImageAcquirer:
         RETURN_ALL_BORROWED_BUFFERS = 2,
         READY_TO_STOP_ACQUISITION = 3,
         INCOMPLETE_BUFFER = 4,
-
-    def _create_acquisition_thread(self) -> _ImageAcquisitionThread:
-        return _ImageAcquisitionThread(image_acquire=self)
+        ON_CHUNK_DATA_UPDATED = 5,
+        ON_EVENT_DATA_UPDATED = 6,
 
     def __init__(
             self, *, device=None,
-            sleep_duration: float = _sleep_duration_default,
+            sleep_duration: float = _sleep_default,
             file_path: Optional[str] = None,
             file_dict: Dict[str, bytes] = None,
             update_chunk_automatically=True,
+            create_thread: Optional[Callable[[], Any]],
             _clean_up: bool = True,
             _profiler=None):
         """
@@ -1416,7 +1458,31 @@ class ImageAcquirer:
             assert self._remote_device.node_map
 
         self._data_streams = []
-        self._event_new_buffer_managers = []
+
+        self._new_buffer_event_monitor_dict = dict()
+
+        self._module_event_monitor_dict = dict()
+        self._module_event_monitor_thread_dict = dict()
+
+        modules = [self._system, self._interface, self._device,
+                   self._remote_device]
+        event_types = [EVENT_TYPE_LIST.EVENT_MODULE,
+                       EVENT_TYPE_LIST.EVENT_MODULE,
+                       EVENT_TYPE_LIST.EVENT_MODULE,
+                       EVENT_TYPE_LIST.EVENT_REMOTE_DEVICE]
+
+        for module, event_type in zip(modules, event_types):
+            try:
+                self._module_event_monitor_dict[module] = \
+                    EventManagerRemoteDevice(
+                        self._device.register_event(event_type))
+            except NotImplementedException:
+                _logger.info("no module event: {}".format(module))
+            else:
+                self._module_event_monitor_thread_dict[module] = \
+                    create_thread()
+                self._module_event_monitor_thread_dict[module].worker = \
+                    self._worker_module_event
 
         self._create_ds_at_connection = True
         if self._create_ds_at_connection:
@@ -1427,11 +1493,8 @@ class ImageAcquirer:
         self._num_buffers_to_hold = 1
         self._queue = Queue(maxsize=self._num_buffers_to_hold)
 
-        self._sleep_duration = sleep_duration
-        self._thread_image_acquisition = self._create_acquisition_thread()
-
-        self._threads = []
-        self._threads.append(self._thread_image_acquisition)
+        self._event_new_buffer_thread = create_thread()
+        self._event_new_buffer_thread.worker = self._worker_event_new_buffer
 
         self._sigint_handler = None
         if current_thread() is main_thread():
@@ -1465,8 +1528,11 @@ class ImageAcquirer:
             self._num_buffers = max(
                 num_buffers_default, self._min_num_buffers)
 
+        tl_type = self.device.tl_type
         self._chunk_adapter = self._get_chunk_adapter(
-            device=self.device, node_map=self.remote_device.node_map)
+            tl_type=tl_type, node_map=self.remote_device.node_map)
+        self._event_adapter = self._get_event_adapter(
+            tl_type=tl_type, node_map=self.remote_device.node_map)
 
         self._finalizer = weakref.finalize(self, self.destroy)
 
@@ -1475,10 +1541,16 @@ class ImageAcquirer:
             self.Events.RETURN_ALL_BORROWED_BUFFERS,
             self.Events.READY_TO_STOP_ACQUISITION,
             self.Events.NEW_BUFFER_AVAILABLE,
-            self.Events.INCOMPLETE_BUFFER]
+            self.Events.INCOMPLETE_BUFFER,
+            self.Events.ON_CHUNK_DATA_UPDATED,
+            self.Events.ON_EVENT_DATA_UPDATED,
+        ]
         self._callback_dict = dict()
         for event in self._supported_events:
             self._callback_dict[event] = None
+
+        for thread in self._module_event_monitor_thread_dict.values():
+            thread.start()
 
     def is_valid(self) -> bool:
         """
@@ -1536,14 +1608,22 @@ class ImageAcquirer:
         return self._supported_events
 
     @staticmethod
-    def _get_chunk_adapter(
-            *, device=None, node_map: Optional[NodeMap] = None):
-        if device.tl_type == 'U3V':
+    def _get_chunk_adapter(*, tl_type: str, node_map: NodeMap):
+        if tl_type == 'U3V':
             return ChunkAdapterU3V(node_map)
-        elif device.tl_type == 'GEV':
+        elif tl_type == 'GEV':
             return ChunkAdapterGEV(node_map)
         else:
             return ChunkAdapterGeneric(node_map)
+
+    @staticmethod
+    def _get_event_adapter(*, tl_type: str, node_map: NodeMap):
+        if tl_type == 'U3V':
+            return EventAdapterU3V(node_map.pointer)
+        elif tl_type == 'GEV':
+            return EventAdapterGEV(node_map.pointer)
+        else:
+            return EventAdapterGeneric(node_map.pointer)
 
     def __enter__(self):
         return self
@@ -1552,6 +1632,8 @@ class ImageAcquirer:
         self._finalizer()
 
     def _release_remote_device(self):
+        self._remote_device.deregister_node_callbacks()
+
         if self.remote_device.node_map:
             self.remote_device.node_map.disconnect()
 
@@ -1573,17 +1655,30 @@ class ImageAcquirer:
         :meth:`Harvester.create_image_acquire` method.
         """
         global _logger
+        _logger.info('going to release resources: {}'.format(self))
 
         if not self._is_valid:
             return
 
+        for thread in self._module_event_monitor_thread_dict.values():
+            if thread.is_running():
+                thread.stop()
+                thread.join()
+
         self.stop()
+
+        if self._event_adapter:
+            self._event_adapter = None
 
         if self._chunk_adapter:
             self._chunk_adapter = None
 
         self._release_data_streams()
         self._release_remote_device()
+
+        self._new_buffer_event_monitor_dict.clear()
+        self._module_event_monitor_dict.clear()
+        self._module_event_monitor_thread_dict.clear()
 
         self._remote_device = None
         self._device = None
@@ -1614,14 +1709,6 @@ class ImageAcquirer:
             raise ValueError(
                 'The number of buffers must be '
                 'greater than or equal to {}'.format(self._min_num_buffers))
-
-    @property
-    def sleep_duration(self) -> float:
-        """
-        float: The duration that lets the image acquisition thread sleeps at
-        every execution. The unit is [ms].
-        """
-        return self._sleep_duration
 
     @property
     def min_num_buffers(self) -> int:
@@ -1794,18 +1881,6 @@ class ImageAcquirer:
         self._timeout_on_internal_fetch_call = ms
 
     @property
-    def thread_image_acquisition(self) -> ThreadBase:
-        """
-        The thread object that runs image acquisition.
-        """
-        return self._thread_image_acquisition
-
-    @thread_image_acquisition.setter
-    def thread_image_acquisition(self, obj):
-        self._thread_image_acquisition = obj
-        self._thread_image_acquisition.worker = self.worker_image_acquisition
-
-    @property
     def statistics(self) -> Statistics:
         """
         Statistics: The statistics about image acquisition.
@@ -1828,11 +1903,10 @@ class ImageAcquirer:
 
             self._data_streams.append(DataStream(module=_data_stream))
 
-            event_token = self._data_streams[i].register_event(
-                EVENT_TYPE_LIST.EVENT_NEW_BUFFER)
-
-            self._event_new_buffer_managers.append(
-                EventManagerNewBuffer(event_token))
+            self._new_buffer_event_monitor_dict[self._data_streams[i]] = \
+                EventManagerNewBuffer(
+                    self._data_streams[i].register_event(
+                        EVENT_TYPE_LIST.EVENT_NEW_BUFFER))
 
     def start_acquisition(self, run_in_background: bool = False) -> None:
         _deprecated(self.start_acquisition, self.start)
@@ -1923,8 +1997,8 @@ class ImageAcquirer:
             self._is_acquiring = True
 
             if run_as_thread:
-                if self.thread_image_acquisition:
-                    self.thread_image_acquisition.start()
+                if self._event_new_buffer_thread:
+                    self._event_new_buffer_thread.start()
 
         _logger.info('started acquisition: {0}'.format(self))
 
@@ -1935,7 +2009,34 @@ class ImageAcquirer:
         if self._profiler:
             self._profiler.print_diff()
 
-    def worker_image_acquisition(self) -> None:
+    def _worker_module_event(self) -> None:
+        """
+        The worker method of the image acquisition task.
+
+        :return: None
+        """
+        global _logger
+        for monitor in self._module_event_monitor_dict.values():
+            if not self._is_valid or not self._event_adapter:
+                return
+
+            try:
+                monitor.update_event_data(self.timeout_on_internal_fetch_call)
+            except TimeoutException:
+                continue
+            except GenTL_GenericException as e:
+                _logger.debug(e, exc_info=True)
+            else:
+                _logger.debug("going to deliver an event: {}".format(monitor))
+                if self._device.tl_type in self._specialized_tl_type:
+                    self._event_adapter.deliver_message(monitor.optional_data)
+                else:
+                    self._event_adapter.deliver_message(monitor.optional_data,
+                                                        monitor.event_id)
+                self._emit_callbacks(self.Events.ON_EVENT_DATA_UPDATED)
+                _logger.debug("just delivered an event: {}".format(monitor))
+
+    def _worker_event_new_buffer(self) -> None:
         """
         The worker method of the image acquisition task.
 
@@ -1945,11 +2046,11 @@ class ImageAcquirer:
 
         queue = self._queue
 
-        for manager in self._event_new_buffer_managers:
-            buffer = self._fetch(manager=manager,
+        for monitor in self._new_buffer_event_monitor_dict.values():
+            buffer = self._fetch(monitor=monitor,
                                  timeout_on_client_fetch_call=self.timeout_on_client_fetch_call)
             if buffer:
-                with MutexLocker(self.thread_image_acquisition):
+                with MutexLocker(self._event_new_buffer_thread):
                     if not self._is_acquiring:
                         return
                     if queue.full():
@@ -1958,7 +2059,7 @@ class ImageAcquirer:
                     queue.put(buffer)
                 self._emit_callbacks(self.Events.NEW_BUFFER_AVAILABLE)
 
-    def _update_chunk_data(self, buffer: _Buffer):
+    def _update_chunk_data(self, *, buffer: _Buffer, is_manual: bool):
         global _logger
 
         try:
@@ -2007,6 +2108,9 @@ class ImageAcquirer:
                 _logger.debug('chunk data: {}, {}'.format(
                     action, _family_tree(buffer)))
 
+            if not is_manual:
+                self._emit_callbacks(self.Events.ON_CHUNK_DATA_UPDATED)
+
     def try_fetch(self, *, timeout: float = 0,
                   is_raw: bool = False) -> Union[Buffer, _Buffer, None]:
         """
@@ -2030,20 +2134,22 @@ class ImageAcquirer:
         Union[Buffer, Buffer_, None]
             A buffer if it is complete; otherwise None.
         """
-        buffer = self._fetch(manager=self._event_new_buffer_managers[0],
-                             timeout_on_client_fetch_call=timeout,
-                             throw_except=False)
+        buffers = []
+        for monitor in self._new_buffer_event_monitor_dict.values():
+            buffer = self._fetch(monitor=monitor,
+                                 timeout_on_client_fetch_call=timeout,
+                                 throw_except=False)
 
-        buffer = self._finalize_fetching_process(buffer, is_raw)
+            buffers.append(self._finalize_fetching_process(buffer, is_raw))
 
-        return buffer
+        return buffers if len(self._new_buffer_event_monitor_dict.values()) > 1 else buffers[0]
 
-    def _fetch(self, *, manager: EventManagerNewBuffer,
+    def _fetch(self, *, monitor: EventManagerNewBuffer,
                timeout_on_client_fetch_call: float = 0,
                throw_except: bool = False) -> Union[Buffer, _Buffer, None]:
         global _logger
 
-        assert manager
+        assert monitor
 
         buffer = None
         watch_timeout = True if timeout_on_client_fetch_call > 0 else False
@@ -2063,7 +2169,7 @@ class ImageAcquirer:
                         return None
 
             try:
-                manager.update_event_data(self.timeout_on_internal_fetch_call)
+                monitor.update_event_data(self.timeout_on_internal_fetch_call)
             except TimeoutException:
                 continue
             except GenTL_GenericException as e:
@@ -2073,29 +2179,29 @@ class ImageAcquirer:
                 context = None
                 frame_id = None
                 try:
-                    is_complete = manager.buffer.is_complete()
+                    is_complete = monitor.buffer.is_complete()
                     if _is_logging_buffer:
-                        context = manager.buffer.context
-                        frame_id = manager.buffer.frame_id
+                        context = monitor.buffer.context
+                        frame_id = monitor.buffer.frame_id
                 except GenTL_GenericException:
                     is_complete = False
 
                 if is_complete:
                     self._update_num_images_to_acquire()
-                    self._update_statistics(manager.buffer)
-                    buffer = manager.buffer
+                    self._update_statistics(monitor.buffer)
+                    buffer = monitor.buffer
                     if _is_logging_buffer:
                         _logger.debug(
                             'fetched: {0} (#{1}); {2}'.format(
                                 context, frame_id,
-                                _family_tree(manager.buffer)))
+                                _family_tree(monitor.buffer)))
                 else:
                     _logger.warning(
                         'incomplete or not available; discarded: {}'.format(
-                            _family_tree(manager.buffer)))
+                            _family_tree(monitor.buffer)))
 
-                    ds = manager.buffer.parent
-                    ds.queue_buffer(manager.buffer)
+                    ds = monitor.buffer.parent
+                    ds.queue_buffer(monitor.buffer)
                     self._emit_callbacks(self.Events.INCOMPLETE_BUFFER)
                     return None
 
@@ -2103,7 +2209,7 @@ class ImageAcquirer:
 
     def _try_fetch_from_queue(
             self, *, is_raw: bool = False) -> Union[Buffer, _Buffer, None]:
-        with MutexLocker(self.thread_image_acquisition):
+        with MutexLocker(self._event_new_buffer_thread):
             try:
                 raw_buffer = self._queue.get(block=False)
                 return self._finalize_fetching_process(raw_buffer, is_raw)
@@ -2116,7 +2222,7 @@ class ImageAcquirer:
             return None
 
         if self._update_chunk_automatically:
-            self._update_chunk_data(buffer=raw_buffer)
+            self._update_chunk_data(buffer=raw_buffer, is_manual=False)
 
         if is_raw:
             return raw_buffer
@@ -2168,20 +2274,28 @@ class ImageAcquirer:
             A buffer object if the resource is complete; otherwise None.
         """
 
-        buffer = None
-        while not buffer:
-            if self.thread_image_acquisition and \
-                    self.thread_image_acquisition.is_running():
+        if self._event_new_buffer_thread and \
+                self._event_new_buffer_thread.is_running():
+            buffer = None
+            while not buffer:
                 buffer = self._try_fetch_from_queue(is_raw=is_raw)
                 if not buffer:
                     time.sleep(cycle_s if cycle_s else 0.0001)
-            else:
-                raw_buffer = self._fetch(
-                    manager=self._event_new_buffer_managers[0],
-                    timeout_on_client_fetch_call=timeout, throw_except=True)
-                buffer = self._finalize_fetching_process(raw_buffer, is_raw)
-
-        return buffer
+                else:
+                    return buffer
+        else:
+            buffers = []
+            for monitor in self._new_buffer_event_monitor_dict.values():
+                buffer = None
+                while not buffer:
+                    try:
+                        buffer = self._fetch(monitor=monitor,
+                                             timeout_on_client_fetch_call=timeout,
+                                             throw_except=True)
+                    except GenTL_GenericException:
+                        raise
+                buffers.append(self._finalize_fetching_process(buffer, is_raw))
+            return buffers if len(self._new_buffer_event_monitor_dict.values()) > 1 else buffers[0]
 
     def _update_num_images_to_acquire(self) -> None:
         if self._num_images_to_acquire >= 1:
@@ -2259,11 +2373,11 @@ class ImageAcquirer:
         if self.is_acquiring():
             self._is_acquiring = False
 
-            if self.thread_image_acquisition.is_running():
-                self.thread_image_acquisition.stop()
-                self.thread_image_acquisition.join()
+            if self._event_new_buffer_thread.is_running():
+                self._event_new_buffer_thread.stop()
+                self._event_new_buffer_thread.join()
 
-            with MutexLocker(self.thread_image_acquisition):
+            with MutexLocker(self._event_new_buffer_thread):
                 try:
                     self.remote_device.node_map.AcquisitionStop.execute()
                 except GenApi_GenericException as e:
@@ -2287,8 +2401,8 @@ class ImageAcquirer:
 
                     self._flush_buffers(data_stream)
 
-                for event_manager in self._event_new_buffer_managers:
-                    event_manager.flush_event_queue()
+                for monitor in self._new_buffer_event_monitor_dict.values():
+                    monitor.flush_event_queue()
 
                 if self._create_ds_at_connection:
                     self._release_buffers()
@@ -2319,7 +2433,7 @@ class ImageAcquirer:
                 _logger.debug('closed: {}'.format(name))
 
         self._data_streams.clear()
-        self._event_new_buffer_managers.clear()
+        self._new_buffer_event_monitor_dict.clear()
 
     def _release_buffers(self) -> None:
         global _logger
@@ -2537,10 +2651,11 @@ class Harvester:
             model: Optional[str] = None, tl_type: Optional[str] = None,
             user_defined_name: Optional[str] = None,
             serial_number: Optional[str] = None, version: Optional[str] = None,
-            sleep_duration: Optional[float] = _sleep_duration_default,
+            sleep_duration: Optional[float] = _sleep_default,
             file_path: Optional[str] = None, privilege: str = 'exclusive',
             file_dict: Dict[str, bytes] = None,
-            auto_chunk_data_update=True):
+            auto_chunk_data_update=True,
+            create_thread: Optional[Callable[[], Any]] = None):
         """
         Creates an image acquirer for the specified remote device and return
         the created :class:`ImageAcquirer` object.
@@ -2630,11 +2745,15 @@ class Harvester:
             _logger.debug(
                 'opened: {}'.format(_family_tree(device)))
 
+            _create_thread = create_thread if create_thread else \
+                lambda: _EventMonitor(sleep=_sleep_default)
             ia = ImageAcquirer(
                 device=device, _profiler=self._profiler,
                 sleep_duration=sleep_duration, file_path=file_path,
                 file_dict=file_dict, _clean_up=self._clean_up,
-                update_chunk_automatically=auto_chunk_data_update)
+                update_chunk_automatically=auto_chunk_data_update,
+                create_thread=_create_thread)
+
             self._ias.append(ia)
 
             if self._profiler:

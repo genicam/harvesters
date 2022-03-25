@@ -19,6 +19,7 @@
 
 
 # Standard library imports
+from __future__ import annotations
 import os
 from queue import Queue, Empty
 from shutil import rmtree
@@ -33,6 +34,7 @@ from urllib.parse import quote
 # Related third party imports
 from genicam.genapi import GenericException as GenApi_GenericException
 from genicam.genapi import NodeMap
+from genicam.genapi import register, deregister
 from genicam.gentl import TimeoutException
 import numpy as np
 
@@ -46,7 +48,7 @@ from harvesters.core import Harvester, Interface
 from harvesters.core import ImageAcquirer
 from harvesters.core import _drop_padding_data
 from harvesters.core import Module
-from harvesters.test.helper import get_package_dir
+from harvesters.core import _NodeCallbackProxy
 from harvesters.util.pfnc import Dictionary
 from harvesters.core import Component2DImage
 from harvesters.util.pfnc import Mono8, Mono10, Mono12, Mono14, Mono16
@@ -58,7 +60,7 @@ from harvesters.util.pfnc import RGB12p, BGR12p
 
 class TestHarvesterCoreNoCleanUp(TestHarvesterNoCleanUp):
     def test_issue_66(self):
-        if not self.is_running_with_default_target():
+        if not self.is_running_with():
             return
 
         file_names = ['altered_plain.xml', 'altered_zip.zip']
@@ -90,7 +92,7 @@ class TestHarvesterCore(TestHarvester):
     sleep_duration = .5  # Time to keep sleeping [s]
 
     def test_ticket_300(self):
-        if not self.is_running_with_default_target():
+        if not self.is_running_with():
             return
 
         info_list = self.harvester.device_info_list
@@ -120,8 +122,16 @@ class TestHarvesterCore(TestHarvester):
         # Prepare an image acquirer for device #0.
         ia = self.harvester.create_image_acquirer(0)
 
-        # Acquire images.
-        self._basic_usage(ia)
+        # Start image acquisition.
+        ia.start()
+
+        # Fetch a buffer that is filled with image data.
+        with ia.fetch() as buffer:
+            # Reshape it.
+            self._logger.info('{0}'.format(buffer))
+
+        # Stop image acquisition.
+        ia.stop()
 
         # Discard the image acquirer.
         ia.destroy()
@@ -136,24 +146,19 @@ class TestHarvesterCore(TestHarvester):
 
         # Prepare an image acquirer for device #0.
         with self.harvester.create_image_acquirer(0) as ia:
+            # Start image acquisition.
+            ia.start()
 
-            # Acquire images.
-            self._basic_usage(ia)
+            # Fetch a buffer that is filled with image data.
+            with ia.fetch() as buffer:
+                # Reshape it.
+                self._logger.info('{0}'.format(buffer))
 
-    def _basic_usage(self, ia: ImageAcquirer):
-        # Start image acquisition.
-        ia.start()
-
-        # Fetch a buffer that is filled with image data.
-        with ia.fetch() as buffer:
-            # Reshape it.
-            self._logger.info('{0}'.format(buffer))
-
-        # Stop image acquisition.
-        ia.stop()
+            # Stop image acquisition.
+            ia.stop()
 
     def test_multiple_image_acquirers(self):
-        if not self.is_running_with_default_target():
+        if not self.is_running_with():
             return
 
         num_devices = len(self.harvester.device_info_list)
@@ -230,7 +235,7 @@ class TestHarvesterCore(TestHarvester):
             ia.destroy()
 
     def test_controlling_a_specific_camera(self):
-        if not self.is_running_with_default_target():
+        if not self.is_running_with():
             return
 
         # The basic usage.
@@ -257,7 +262,7 @@ class TestHarvesterCore(TestHarvester):
         ia.destroy()
 
     def test_timeout_on_fetching_buffer(self):
-        if not self.is_running_with_default_target():
+        if not self.is_running_with():
             return
 
         # Create an image acquirer:
@@ -339,7 +344,7 @@ class TestHarvesterCore(TestHarvester):
         self._logger.info("did you see deprecation announcement?")
 
     def test_try_fetch_with_timeout(self):
-        if not self.is_running_with_default_target():
+        if not self.is_running_with():
             return
 
         # Create an image acquirer:
@@ -395,7 +400,7 @@ class TestHarvesterCore(TestHarvester):
         ia.destroy()
 
     def test_num_holding_filled_buffers(self):
-        if not self.is_running_with_default_target():
+        if not self.is_running_with():
             return
 
         # Connect to the first camera in the list:
@@ -483,7 +488,7 @@ class TestHarvesterCore(TestHarvester):
             time.sleep(sleep_s)
 
     def test_issue_59(self):
-        if not self.is_running_with_default_target():
+        if not self.is_running_with():
             return
 
         # Connect to the first camera in the list.
@@ -502,7 +507,7 @@ class TestHarvesterCore(TestHarvester):
         self.ia.num_filled_buffers_to_hold = min
 
     def test_issue_60(self):
-        if not self.is_running_with_default_target():
+        if not self.is_running_with():
             return
 
         # Connect to the first camera in the list.
@@ -516,7 +521,7 @@ class TestHarvesterCore(TestHarvester):
         self._buffers.append(self.ia.fetch())
 
     def test_issue_67(self):
-        if not self.is_running_with_default_target():
+        if not self.is_running_with():
             return
 
         file_names = ['altered_plain.xml', 'altered_zip.zip']
@@ -572,7 +577,7 @@ class TestHarvesterCore(TestHarvester):
         )
 
     def test_issue_70(self):
-        if not self.is_running_with_default_target():
+        if not self.is_running_with():
             return
 
         # Connect to the first camera in the list:
@@ -583,7 +588,7 @@ class TestHarvesterCore(TestHarvester):
         self.assertEqual(5, self.ia.min_num_buffers)
 
     def test_issue_78(self):
-        if not self.is_running_with_default_target():
+        if not self.is_running_with():
             return
 
         # The device_info_list must not turn empty even if a given key
@@ -611,7 +616,7 @@ class TestHarvesterCore(TestHarvester):
         self.ia.stop()
 
     def test_issue_141(self):
-        if not self.is_running_with_default_target():
+        if not self.is_running_with():
             return
 
         # Connect to the first camera in the list.
@@ -691,7 +696,7 @@ class TestHarvesterCore(TestHarvester):
             self._logger.info("triggered.")
 
     def test_issue_150(self):
-        if not self.is_running_with_default_target():
+        if not self.is_running_with():
             return
 
         # Create an image acquirer:
@@ -830,7 +835,7 @@ class TestHarvesterCore(TestHarvester):
                             self.assertEqual((i << 8) + j, unpacked[k])
 
     def test_issue_215(self):
-        if not self.is_running_with_default_target():
+        if not self.is_running_with():
             return
 
         ia = self.harvester.create_image_acquirer(0)
@@ -852,7 +857,7 @@ class TestHarvesterCore(TestHarvester):
             self.assertEqual(port.url_info_list[0].file_name, file_name)
 
     def test_port_access(self):
-        if not self.is_running_with_default_target():
+        if not self.is_running_with():
             return
 
         # instantiate an acquirer:
@@ -879,7 +884,7 @@ class TestHarvesterCore(TestHarvester):
         self.assertEqual(data_returned, data_to_write)
 
     def test_issue_207_that_does_not_match(self):
-        if not self.is_running_with_default_target():
+        if not self.is_running_with():
             return
 
         ia = self.harvester.create_image_acquirer(
@@ -888,7 +893,7 @@ class TestHarvesterCore(TestHarvester):
         self.assertIsNotNone(ia)
 
     def test_issue_207_that_does_match(self):
-        if not self.is_running_with_default_target():
+        if not self.is_running_with():
             return
 
         with self.assertRaises(GenApi_GenericException):

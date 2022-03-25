@@ -22,6 +22,7 @@
 from logging import INFO
 import os
 import sys
+from typing import Optional
 import unittest
 
 # Related third party imports
@@ -108,8 +109,10 @@ class TestHarvesterBase(unittest.TestCase):
     def general_purpose_thread(self, value):
         self._thread = value
 
-    def is_running_with_default_target(self):
-        return True if 'TLSimu.cti' in self._cti_file_path else False
+    def is_running_with(self, name: Optional[str] = None):
+        target = name if name else 'TLSimu.cti'
+        return True if target.lower() in \
+                       self._cti_file_path.lower() else False
 
     @staticmethod
     def _get_xml_dir():

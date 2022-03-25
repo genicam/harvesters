@@ -94,28 +94,44 @@ Our friendly GenTL Producer, so called TLSimu, gives you the following informati
 
 .. code-block:: python
 
-    [(unique_id='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceA_0', version='1.2.3'),
-     (unique_id='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceA_1', version='1.2.3'),
-     (unique_id='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_0', version='1.2.3'),
-     (unique_id='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_1', version='1.2.3')]
+    [{'display_name': 'TLSimuMono (SN_InterfaceA_0)', 'id_': 'TLSimuMono',
+    'model': 'TLSimuMono', 'serial_number': 'SN_InterfaceA_0', 'tl_type':
+    'Custom', 'user_defined_name': 'Center', 'vendor': 'EMVA_D', 'version':
+    '1.2.3'}, {'display_name': 'TLSimuColor (SN_InterfaceA_1)', 'id_':
+    'TLSimuColor', 'model': 'TLSimuColor', 'serial_number': 'SN_InterfaceA_1',
+    'tl_type': 'Custom', 'user_defined_name': 'Center', 'vendor': 'EMVA_D',
+    'version': '1.2.3'}, {'display_name': 'TLSimuMono (SN_InterfaceB_0)',
+    'id_': 'TLSimuMono', 'model': 'TLSimuMono', 'serial_number':
+    'SN_InterfaceB_0', 'tl_type': 'Custom', 'user_defined_name': 'Center',
+    'vendor': 'EMVA_D', 'version': '1.2.3'}, {'display_name': 'TLSimuColor
+    (SN_InterfaceB_1)', 'id_': 'TLSimuColor', 'model': 'TLSimuColor',
+    'serial_number': 'SN_InterfaceB_1', 'tl_type': 'Custom',
+    'user_defined_name': 'Center', 'vendor': 'EMVA_D', 'version': '1.2.3'}]
 
 And you create an image acquirer object specifying a target remote device. The image acquirer does the image acquisition task for you. In the following example it's trying to create an acquirer object of the first candidate remote device in the device information list:
 
 .. code-block:: python
 
-    ia = h.create_image_acquirer(0)
+    ia = h.create(0)
 
 Or equivalently:
 
 .. code-block:: python
 
-    ia = h.create_image_acquirer(list_index=0)
+    ia = h.create(list_index=0)
 
 You can connect the same remote device passing more unique information to the method. In the following case, we specify a serial number of the target remote device:
 
 .. code-block:: python
 
-    ia = h.create_image_acquirer(serial_number='SN_InterfaceA_0')
+    ia = h.create(property_dict={'serial_number': 'SN_InterfaceA_0'})
+
+You can specify multiple properties if the combination can find a unique
+device on the list:
+
+.. code-block:: python
+
+    ia = h.create(property_dict={'vendor': 'UTM', 'model': 'Linear Algebra'})
 
 You can specify a target remote device using properties that are provided through the ``device_info_list`` property of the ``Harvester`` class object. Note that it is invalid if the specifiers gives you two ore more remote devices. Please specify sufficient information so that the combination gives you a unique target remote device.
 
@@ -170,7 +186,7 @@ Now you can quit the program! Please not that ``Harvester`` and ``ImageAcquirer`
 .. code-block:: python
 
     with Harvester() as h:
-        with h.create_image_acquirer(0) as ia:
+        with h.create(0) as ia:
             # Work, work, and work with the ia object.
             # The ia object will automatically call the destroy method
             # once it goes out of the block.

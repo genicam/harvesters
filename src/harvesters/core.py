@@ -63,7 +63,7 @@ from genicam.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
 from genicam.gentl import Port, PIXELFORMAT_NAMESPACE_IDS
 from genicam.gentl import Buffer as _Buffer, Device as _Device, \
     DataStream as _DataStream, Interface as _Interface, System as _System, \
-    GenTLProducer as _GenTLProducer
+    GenTLProducer as _GenTLProducer, DeviceInfo as _DeviceInfo
 
 # Local application/library specific imports
 from harvesters._private.core.port import ConcretePort
@@ -348,34 +348,37 @@ class Producer(Module):
 
 
 class DeviceInfo(Module):
+    _properties = [
+        f for f in dir(_DeviceInfo) if
+        not f.startswith('_') and
+        isinstance(getattr(_DeviceInfo, f, None), property)]
+
     """Represents a GenTL Device Information module."""
     def __init__(self, *, module, parent=None):
+        global _logger
         super().__init__(module=module, parent=parent)
+        self._property_dict = dict()
+        self._build_dict()
+
+    def _build_dict(self):
+        for p in self._properties:
+            value = None
+            try:
+                _value = getattr(self._module, p, None)
+                if type(_value) is not str:
+                    continue
+                else:
+                    value = _value
+            except GenTL_GenericException as e:
+                _logger.debug(e, exc_info=True)
+            self._property_dict[p] = value
+
+    @property
+    def property_dict(self):
+        return self._property_dict
 
     def __repr__(self):
-        properties = ['id_', 'vendor', 'model', 'tl_type',
-                      'user_defined_name', 'serial_number', 'version',]
-        results = []
-        for _property in properties:
-            assert _property != ''
-            try:
-                result = eval('self._module.' + _property)
-            except:
-                result = None
-            results.append(result)
-
-        info = '('
-        delimiter = ', '
-        for i, r in enumerate(results):
-            if r:
-                r = '\'{}\''.format(r)
-            else:
-                r = 'None'
-            info += '{}={}'.format(properties[i], r)
-            info += delimiter
-        info = info[:-len(delimiter)]
-        info += ')'
-        return info
+        return str(self._property_dict)
 
 
 class _SignalHandler:
@@ -2531,6 +2534,101 @@ class Harvester:
     def has_revised_device_info_list(self, value):
         self._has_revised_device_list = value
 
+    def create(
+            self, list_index: Optional[int] = None, *,
+            property_dict: Optional[Dict[str, str]] = None,
+            device_info: Optional[DeviceInfo] = None,
+            privilege: Optional[str] = 'exclusive',
+            auto_chunk_data_update: Optional[bool] = True,
+            file_path: Optional[str] = None,
+            file_dict: Optional[Dict[str, bytes]] = None) -> ImageAcquirer:
+        global _logger
+        assert not all([list_index, property_dict, device_info])
+        assert not all([property_dict, device_info])
+        assert not all([list_index, property_dict])
+        assert not all([list_index, device_info])
+
+        message_no_candidates = "You have no candidates. "\
+            "You have to pass one or more keys so that "\
+            "a single candidate is specified."
+        message_multiple_candidates = "You have two or more candidates. "\
+            "You have to pass one or more keys so that "\
+            "a single candidate is specified."
+
+        if list_index is not None:
+            raw_device = self.device_info_list[list_index].create_device()
+        elif device_info is not None:
+            if device_info in self.device_info_list:
+                raw_device = device_info.create_device()
+            else:
+                raise ValueError(message_no_candidates)
+        else:
+            candidate_devices = self.device_info_list.copy()
+            for property_name in property_dict.keys():
+                property_value = property_dict[property_name]
+                if property_value:
+                    to_be_dropped = []
+                    for candidate in candidate_devices:
+                        try:
+                            if property_value != getattr(candidate, property_name, None):
+                                to_be_dropped.append(candidate)
+                        except GenTL_GenericException as e:
+                            _logger.debug(e, exc_info=True)
+
+                    for candidate in to_be_dropped:
+                        candidate_devices.remove(candidate)
+
+            num_candidates = len(candidate_devices)
+            if num_candidates > 1:
+                raise ValueError(message_multiple_candidates)
+            elif num_candidates == 0:
+                raise ValueError(message_no_candidates)
+            else:
+                raw_device = candidate_devices[0].create_device()
+
+        assert raw_device
+        return self._create(raw_device=raw_device, privilege=privilege,
+                            sleep_duration=_sleep_duration_default,
+                            file_path=file_path, file_dict=file_dict,
+                            auto_chunk_data_update=auto_chunk_data_update)
+
+    def _create(self, *, raw_device, privilege, sleep_duration, file_path, file_dict, auto_chunk_data_update):
+        try:
+            if privilege == 'exclusive':
+                _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
+            elif privilege == 'control':
+                _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_CONTROL
+            elif privilege == 'read_only':
+                _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_READONLY
+            else:
+                raise NotImplementedError(
+                    'not supported: {}'.format(privilege))
+
+            raw_device.open(_privilege)
+            device = Device(module=raw_device, parent=raw_device.parent)
+
+        except GenTL_GenericException as e:
+            _logger.warning(e, exc_info=True)
+            raise
+        else:
+            _logger.debug(
+                'opened: {}'.format(_family_tree(device)))
+
+            ia = ImageAcquirer(
+                device=device, _profiler=self._profiler,
+                sleep_duration=sleep_duration, file_path=file_path,
+                file_dict=file_dict, _clean_up=self._clean_up,
+                update_chunk_automatically=auto_chunk_data_update)
+            self._ias.append(ia)
+
+            if self._profiler:
+                self._profiler.print_diff()
+
+        _logger.info('created: {0} for {1} by {2}'.format(
+            ia, device.id_, self))
+
+        return ia
+
     def create_image_acquirer(
             self, list_index: Optional[int] = None, *,
             id_: Optional[str] = None, vendor: Optional[str] = None,
@@ -2609,41 +2707,10 @@ class Harvester:
                 dev_info = candidates[0]
                 raw_device = dev_info.create_device()
 
-        try:
-            if privilege == 'exclusive':
-                _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
-            elif privilege == 'control':
-                _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_CONTROL
-            elif privilege == 'read_only':
-                _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_READONLY
-            else:
-                raise NotImplementedError(
-                    'not supported: {}'.format(privilege))
-
-            raw_device.open(_privilege)
-            device = Device(module=raw_device, parent=dev_info.parent)
-
-        except GenTL_GenericException as e:
-            _logger.warning(e, exc_info=True)
-            raise
-        else:
-            _logger.debug(
-                'opened: {}'.format(_family_tree(device)))
-
-            ia = ImageAcquirer(
-                device=device, _profiler=self._profiler,
-                sleep_duration=sleep_duration, file_path=file_path,
-                file_dict=file_dict, _clean_up=self._clean_up,
-                update_chunk_automatically=auto_chunk_data_update)
-            self._ias.append(ia)
-
-            if self._profiler:
-                self._profiler.print_diff()
-
-        _logger.info('created: {0} for {1} by {2}'.format(
-            ia, device.id_, self))
-
-        return ia
+        return self._create(raw_device=raw_device, privilege=privilege,
+                            sleep_duration=sleep_duration,
+                            file_path=file_path, file_dict=file_dict,
+                            auto_chunk_data_update=auto_chunk_data_update)
 
     def add_cti_file(
             self, file_path: str, check_existence: bool = False,

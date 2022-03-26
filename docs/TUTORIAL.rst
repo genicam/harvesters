@@ -47,7 +47,7 @@ Harvester as its identifier.
 
     h = Harvester()
 
-And load a CTI file on the :class:`~harvesters.core.Harvester` objecjt; loading a CTI file, you can communicate with the GenTL Producer:
+And load a CTI file on the ``Harvester`` objecjt; loading a CTI file, you can communicate with the GenTL Producer:
 
 .. code-block:: python
 
@@ -59,7 +59,7 @@ And load a CTI file on the :class:`~harvesters.core.Harvester` objecjt; loading 
 
     h.add_file('path/to/foo.cti')
 
-Note that you can add **one or more CTI files** on a single Harvester object. To add another CTI file, just repeat calling :meth:`~harvesters.core.Harvester.add_file`` method passing another target CTI file:
+Note that you can add **one or more CTI files** on a single Harvester object. To add another CTI file, just repeat calling ``add_file`` method passing another target CTI file:
 
 .. code-block:: python
 
@@ -117,7 +117,7 @@ Our friendly GenTL Producer, so called TLSimu, gives you the following informati
 Getting Ownership of a Target Device
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-An :class:`~harvesters.core.ImageAcquirer` object can be created by being specifying a target device to be mapped. The :class:`~harvesters.core.ImageAcquirer` class objects work on the image acquisition task for you. In the following example it will be trying to create an :class:`~harvesters.core.ImageAcquirer` object of the first candidate device on the device information list:
+An ``ImageAcquirer`` object can be created by being specifying a target device to be mapped. The ``ImageAcquirer`` class objects work on the image acquisition task for you. In the following example it will be trying to create an ``ImageAcquirer`` object of the first candidate device on the device information list:
 
 .. code-block:: python
 
@@ -135,7 +135,7 @@ You can connect the same device passing more unique information to the method. I
 
     ia = h.create({'serial_number': 'SN_InterfaceA_0'})
 
-As we have just demonstrated, you can specify a target device by specifying properties that are defined by the :class: class; the :meth:`~harvesters.core.Harvester.device_info_list` is a list containing :class:`~harvesters.core.DeviceInfo` class objects and each of them is mapped to a unique device..
+As we have just demonstrated, you can specify a target device by specifying properties that are defined by the ``DeviceInfo`` class; the ``device_info_list`` is a list containing ``DeviceInfo`` class objects and each of them is mapped to a unique device..
 
 You can browse the available property names, i.e, the keys of the dictionary by executing the following code:
 
@@ -159,7 +159,7 @@ device on the list:
 
     ia = h.create({'vendor': 'Itchy & Scratchy Inc.', 'tl_type': 'GEV'})
 
-We named the image acquirer object ``ia`` in the above example but in a practical occasion, you may give it a purpose oriented name like ``face_detection``. Note that a camera itself does NOT acquirer/receive images but it just transmits them. In a machine vision application, there should be two roles at least: One transmits images and the other acquires them. The :class:`~harvesters.core.ImageAcquirer` class objects play the latter role and it holds a camera as the :meth:`~harvesters.core.ImageAcquirer.remote_device` property, the source of images.
+We named the image acquirer object ``ia`` in the above example but in a practical occasion, you may give it a purpose oriented name like ``face_detection``. Note that a camera itself does NOT acquirer/receive images but it just transmits them. In a machine vision application, there should be two roles at least: One transmits images and the other acquires them. The ``ImageAcquirer`` class objects play the latter role and it holds a camera as the ``remote_device`` object, the source of images.
 
 
 Acquiring images
@@ -201,19 +201,19 @@ Okay, then you would stop image acquisition with the following code:
 Closing application
 ^^^^^^^^^^^^^^^^^^^
 
-The following code disconnects the connecting device from the :class:`~harvesters.core.ImageAcquirer` object; the :meth:`~harvesters.core.ImageAcquirer.destroy` method will immediately turn the object obsolete and the object cannot be reused. You will need to create an image acquirer object from scratch when you work with a device again:
+The following code disconnects the connecting device from the image acquirer; you'll have to create an image acquirer object again when you have to work with a device:
 
 .. code-block:: python
 
     ia.destroy()
 
-If you finished working with the :class:`~harvesters.core.Harvester` object, then release the acquired resources calling the :meth:`~harvesters.core.Harvester.reset` method:
+If you finished working with the ``Harvester`` object, then release the acquired resources calling the ``reset`` method:
 
 .. code-block:: python
 
     h.reset()
 
-Now you can quit the program! Please not that :class:`~harvesters.core.Harvester` and :class:`~harvesters.core.ImageAcquirer` also support the ``with`` statement. So you may write program as follows:
+Now you can quit the program! Please not that ``Harvester`` and ``ImageAcquirer`` also support the ``with`` statement. So you may write program as follows:
 
 .. code-block:: python
 
@@ -235,7 +235,7 @@ Miscellaneous
 Reshaping a NumPy Array as an Image
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-We have learned how to acquire images from a target device through an :class:`~harvesters.core.ImageAcquirer` class object. In this section, we will learn how to reshape the acquired image into another that can be used by your application.
+We have learned how to acquire images from a target device through an ``ImageAcquirer`` class object. In this section, we will learn how to reshape the acquired image into another that can be used by your application.
 
 First, you should know that Harvester returns you an image as a 1D NumPy array.
 
@@ -282,9 +282,9 @@ The following code is an except from Harvester GUI that reshapes the source 1D a
         else:
             return
 
-Note that ``component.num_components_per_pixel`` returns a :class:`float` so please don't forget to cast it when you pass it to the :meth:`~numpy.reshape` method of NumPy array. If you try to set a :class:`float` then the method will refuse it.
+Note that ``component.num_components_per_pixel`` returns a ``float`` so please don't forget to cast it when you pass it to the ``reshape`` method of NumPy array. If you try to set a ``float`` then the method will refuse it.
 
-It's not always but sometimes you may have to handle image formats that require you to newly create another image calculating each pixel component value referring to the pixel location. To help such calculation, :class:`~harvesters.core.Component2DImage` class provides the :meth:`~harvesters.core.Component2DImage.represent_pixel_location` method to tell you the 2D pixel location that corresponds to the pixel format. The pixel location is defined by Pixel Format Naming Convention, PFNC in short. The array that is returned by the method is a 2D NumPy array and it corresponds to the model that is defined by PFNC.
+It's not always but sometimes you may have to handle image formats that require you to newly create another image calculating each pixel component value referring to the pixel location. To help such calculation, ``Component2DImage`` class provides the ``represent_pixel_location`` method to tell you the 2D pixel location that corresponds to the pixel format. The pixel location is defined by Pixel Format Naming Convention, PFNC in short. The array that is returned by the method is a 2D NumPy array and it corresponds to the model that is defined by PFNC.
 
 .. code-block:: python
 

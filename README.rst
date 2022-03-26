@@ -202,8 +202,8 @@ Getting Started with Harvester
 Are you ready to start working with Harvester? You can learn some more topics
 on these pages:
 
-* `INSTALL.rst <INSTALL.rst>`_: Learn how to install Harvester and its prerequisites.
-* `TUTORIAL.rst <TUTORIAL.rst>`_: Learn how Harvester can be used on  a typical image acquisition workflow.
+* `INSTALL.rst <docs/INSTALL.rst>`_: Learn how to install Harvester and its prerequisites.
+* `TUTORIAL.rst <docs/TUTORIAL.rst>`_: Learn how Harvester can be used on  a typical image acquisition workflow.
 
 
 Open Source Resources

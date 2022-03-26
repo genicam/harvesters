@@ -17,9 +17,8 @@ Click the following link to learn about Harvester API:
 .. toctree::
     :maxdepth: 2
 
-    ../README
-    ../INSTALL
-    ../TUTORIAL
+    INSTALL
+    TUTORIAL
     reference/harvester_core
 
 ###################

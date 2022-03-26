@@ -7,30 +7,32 @@
 ----
 
 .. contents:: Table of Contents
-    :depth: 1
+    :depth: 2
 
 ----
 
 Tutorial
 ========
 
-In this section, we will learn how to instruct procedures to get Harvester working.
+In this section, we will learn how to code to acquire images by using Harvester.
+
+Harvester works as a minimalistic front-end for image acquisition. Just importing it from your Python script, you will be able to prepare the required images for your application without any hustle at the speed which the GenTL Producer offers.
 
 
 Workflow
 ========
 
-Harvester is an image acquisition engine. No GUI. You can use it as an image acquisition library which acquires images from GenTL Producers through the GenTL-Python Binding and controls the target remote device (it's typically a camera) through the GenApi-Python Binding.
+A typical workflow consists of the following steps in that order:
 
-Harvester works as a minimalistic front-end for image acquisition. Just importing it from your Python script, you should immediately be able to set images on your table.
+1. Loading GenTL Producers
+2. Enumerating devices
+3. Getting ownership of a target device
+4. Acquiring images
+5. Closing application
 
-You'll be able to download the these language binding runtime libraries from the `EMVA website <https://www.emva.org/standards-technology/genicam/genicam-downloads/>`_, however, it's not available as of May 2018, because they have not officially released yet. Fortunately they are in the final reviewing process so hopefully they'll be released by the end of 2018.
 
-If you don't have to care about the display rate for visualizing acquired images, the combination of Harvester and `Matplotlib <https://matplotlib.org>`_ might be a realistic option for that purpose.
-
-
-Acquiring Images
-================
+Loading GenTL Producers
+-----------------------
 
 First, let's import Harvester:
 
@@ -45,8 +47,7 @@ Harvester as its identifier.
 
     h = Harvester()
 
-And load a CTI file; loading a CTI file, you can communicate with the GenTL
-Producer:
+And load a CTI file on the ``Harvester`` objecjt; loading a CTI file, you can communicate with the GenTL Producer:
 
 .. code-block:: python
 
@@ -56,13 +57,13 @@ Producer:
     # read "I pointed out a CTI file but Harvester says the image doesn't
     # exist (Part 2)."
 
-    h.add_file('path/to/gentl_producer.cti')
+    h.add_file('path/to/foo.cti')
 
 Note that you can add **one or more CTI files** on a single Harvester object. To add another CTI file, just repeat calling ``add_file`` method passing another target CTI file:
 
 .. code-block:: python
 
-    h.add_file('path/to/another_gentl_producer.cti')
+    h.add_file('path/to/bar.cti')
 
 And the following code will let you know the CTI files that have been loaded
 on the Harvester object:
@@ -75,53 +76,96 @@ In a contrary sense, you can remove a specific CTI file that you have added with
 
 .. code-block:: python
 
-    h.remove_file('path/to/gentl_producer.cti')
+    h.remove_file('path/to/foo.cti')
 
-And now you have to update the list of remote devices; it fills up your device
-information list and you'll select a remote device to control from the list:
+
+Enumerating Devices
+-------------------
+
+Now you need to update the list of devices; the operation will fill up your device
+information list and you'll select a device which you wish to control:
 
 .. code-block:: python
 
     h.update()
 
-The following code will let you know the remote devices that you can control:
+The following code will let you know the devices that you can control:
 
 .. code-block:: python
 
     h.device_info_list
 
-Our friendly GenTL Producer, so called TLSimu, gives you the following information:
+Our friendly GenTL Producer, so called TLSimu, gives you the following information; in this example, the list consists of four devices and each entry is represented as a dictionary. Each dictionary key can be used as a search key when you specify a target device which you wish to get the ownership:
 
 .. code-block:: python
 
-    [(unique_id='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceA_0', version='1.2.3'),
-     (unique_id='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceA_1', version='1.2.3'),
-     (unique_id='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_0', version='1.2.3'),
-     (unique_id='TLSimuColor', vendor='EMVA_D', model='TLSimuColor', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceB_1', version='1.2.3')]
+    [{'display_name': 'TLSimuMono (SN_InterfaceA_0)', 'id_': 'TLSimuMono',
+    'model': 'TLSimuMono', 'serial_number': 'SN_InterfaceA_0', 'tl_type':
+    'Custom', 'user_defined_name': 'Center', 'vendor': 'EMVA_D', 'version':
+    '1.2.3'}, {'display_name': 'TLSimuColor (SN_InterfaceA_1)', 'id_':
+    'TLSimuColor', 'model': 'TLSimuColor', 'serial_number': 'SN_InterfaceA_1',
+    'tl_type': 'Custom', 'user_defined_name': 'Center', 'vendor': 'EMVA_D',
+    'version': '1.2.3'}, {'display_name': 'TLSimuMono (SN_InterfaceB_0)',
+    'id_': 'TLSimuMono', 'model': 'TLSimuMono', 'serial_number':
+    'SN_InterfaceB_0', 'tl_type': 'Custom', 'user_defined_name': 'Center',
+    'vendor': 'EMVA_D', 'version': '1.2.3'}, {'display_name': 'TLSimuColor
+    (SN_InterfaceB_1)', 'id_': 'TLSimuColor', 'model': 'TLSimuColor',
+    'serial_number': 'SN_InterfaceB_1', 'tl_type': 'Custom',
+    'user_defined_name': 'Center', 'vendor': 'EMVA_D', 'version': '1.2.3'}]
 
-And you create an image acquirer object specifying a target remote device. The image acquirer does the image acquisition task for you. In the following example it's trying to create an acquirer object of the first candidate remote device in the device information list:
+
+Getting Ownership of a Target Device
+------------------------------------
+
+An ``ImageAcquirer`` object can be created by being specifying a target device to be mapped. The ``ImageAcquirer`` class objects work on the image acquisition task for you. In the following example it will be trying to create an ``ImageAcquirer`` object of the first candidate device on the device information list:
 
 .. code-block:: python
 
-    ia = h.create_image_acquirer(0)
+    ia = h.create()
 
 Or equivalently:
 
 .. code-block:: python
 
-    ia = h.create_image_acquirer(list_index=0)
+    ia = h.create(0)
 
-You can connect the same remote device passing more unique information to the method. In the following case, we specify a serial number of the target remote device:
+You can connect the same device passing more unique information to the method. In the following case, we specify a serial number of the target device; as long as you rely on this approach it is not necessary to know which index is mapped to the device:
 
 .. code-block:: python
 
-    ia = h.create_image_acquirer(serial_number='SN_InterfaceA_0')
+    ia = h.create({'serial_number': 'SN_InterfaceA_0'})
 
-You can specify a target remote device using properties that are provided through the ``device_info_list`` property of the ``Harvester`` class object. Note that it is invalid if the specifiers gives you two ore more remote devices. Please specify sufficient information so that the combination gives you a unique target remote device.
+As we have just demonstrated, you can specify a target device by specifying properties that are defined by the ``DeviceInfo`` class; the ``device_info_list`` is a list containing ``DeviceInfo`` class objects and each of them is mapped to a unique device..
 
-We named the image acquirer object ``ia`` in the above example but in a practical occasion, you may give it a purpose oriented name like ``ia_face_detection``. Note that a camera itself does NOT acquirer/receive images but it just transmits them. In a machine vision application, there should be two roles at least: One transmits images and the other acquires them. The ``ImageAcquirer`` class objects play the latter role and it holds a camera as the ``remote_device`` object, the source of images.
+You can browse the available property names, i.e, the keys of the dictionary by executing the following code:
 
-Anyway, then now we start image acquisition:
+.. code-block:: python
+
+    print(DeviceInfo.search_keys)
+
+Then you would get the following output:
+
+.. code-block:: python
+
+    ['access_status', 'display_name', 'id_', 'model', 'parent',
+    'serial_number', 'tl_type', 'user_defined_name', 'vendor', 'version']
+
+Note that it is invalid if the specifiers gives you two ore more devices. Please specify sufficient information so that the combination gives you a unique target.
+
+For example, You can specify multiple properties if the combination can find a unique
+device on the list:
+
+.. code-block:: python
+
+    ia = h.create({'vendor': 'Itchy & Scratchy Inc.', 'tl_type': 'GEV'})
+
+We named the image acquirer object ``ia`` in the above example but in a practical occasion, you may give it a purpose oriented name like ``face_detection``. Note that a camera itself does NOT acquirer/receive images but it just transmits them. In a machine vision application, there should be two roles at least: One transmits images and the other acquires them. The ``ImageAcquirer`` class objects play the latter role and it holds a camera as the ``remote_device`` object, the source of images.
+
+
+Acquiring images
+----------------
+
+Then now we start image acquisition:
 
 .. code-block:: python
 
@@ -153,7 +197,11 @@ Okay, then you would stop image acquisition with the following code:
 
     ia.stop()
 
-And the following code disconnects the connecting remote device from the image acquirer; you'll have to create an image acquirer object again when you have to work with a remote device:
+
+Closing application
+-------------------
+
+The following code disconnects the connecting device from the image acquirer; you'll have to create an image acquirer object again when you have to work with a device:
 
 .. code-block:: python
 
@@ -170,7 +218,7 @@ Now you can quit the program! Please not that ``Harvester`` and ``ImageAcquirer`
 .. code-block:: python
 
     with Harvester() as h:
-        with h.create_image_acquirer(0) as ia:
+        with h.create(0) as ia:
             # Work, work, and work with the ia object.
             # The ia object will automatically call the destroy method
             # once it goes out of the block.
@@ -184,7 +232,7 @@ This way prevents you forget to release the acquired external resources. If this
 Reshaping a NumPy Array as an Image
 ===================================
 
-We have learned how to acquire images from a target remote device through an ``ImageAcquirer`` class object. In this section, we will learn how to reshape the acquired image into another that can be used by your application.
+We have learned how to acquire images from a target device through an ``ImageAcquirer`` class object. In this section, we will learn how to reshape the acquired image into another that can be used by your application.
 
 First, you should know that Harvester returns you an image as a 1D NumPy array.
 

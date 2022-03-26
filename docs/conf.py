@@ -36,7 +36,8 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.napoleon',
-    'sphinx.ext.todo'
+    'sphinx.ext.todo',
+    'sphinx_rtd_theme',
 ]
 
 # TO-DO
@@ -72,8 +73,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'Harvester'
-copyright = '2018 EMVA'
-author = 'EMVA'
+copyright = 'EMVA - European Machine Vision Association'
+author = 'EMVA - European Machine Vision Association'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -362,8 +363,8 @@ texinfo_documents = [
 #
 # texinfo_no_detailmenu = False
 
-epub_author = 'EMVA'
-epub_publisher = 'EMVA'
+epub_author = 'EMVA - European Machine Vision Association'
+epub_publisher = 'EMVA - European Machine Vision Association'
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {

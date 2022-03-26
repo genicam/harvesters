@@ -1411,7 +1411,7 @@ class ImageAcquirer:
             file_path: Optional[str] = None,
             file_dict: Dict[str, bytes] = None,
             update_chunk_automatically=True,
-            thread_factory: Optional[Callable[[], Any]],
+            thread_factory_method: Optional[Callable[[], Any]],
             _clean_up: bool = True,
             _profiler=None):
         """
@@ -1479,7 +1479,7 @@ class ImageAcquirer:
                 _logger.info("no module event: {}".format(module))
             else:
                 self._module_event_monitor_thread_dict[module] = \
-                    thread_factory()
+                    thread_factory_method()
                 self._module_event_monitor_thread_dict[module].worker = \
                     self._worker_module_event
 
@@ -1492,7 +1492,7 @@ class ImageAcquirer:
         self._num_buffers_to_hold = 1
         self._queue = Queue(maxsize=self._num_buffers_to_hold)
 
-        self._event_new_buffer_thread = thread_factory()
+        self._event_new_buffer_thread = thread_factory_method()
         self._event_new_buffer_thread.worker = self._worker_event_new_buffer
 
         self._sigint_handler = None
@@ -2650,11 +2650,11 @@ class Harvester:
             *,
             privilege: Optional[str] = 'exclusive',
             auto_chunk_data_update: Optional[bool] = True,
-            thread_factory: Optional[Callable[[], Any]] = None,
+            thread_factory_method: Optional[Callable[[], Any]] = None,
             file_path: Optional[str] = None) -> ImageAcquirer:
         return self._create(search_key=search_key, privilege=privilege,
                             auto_chunk_data_update=auto_chunk_data_update,
-                            thread_factory=thread_factory,
+                            thread_factory_method=thread_factory_method,
                             file_path=file_path)
 
     def _create(
@@ -2662,7 +2662,7 @@ class Harvester:
             search_key: Optional[Union[int, Dict[str, str], DeviceInfo]] = None,
             privilege: Optional[str] = 'exclusive',
             auto_chunk_data_update: Optional[bool] = True,
-            thread_factory: Optional[Callable[[], Any]] = None,
+            thread_factory_method: Optional[Callable[[], Any]] = None,
             file_path: Optional[str] = None,
             file_dict: Optional[Dict[str, bytes]] = None) -> ImageAcquirer:
         global _logger
@@ -2726,11 +2726,11 @@ class Harvester:
             sleep_duration=_sleep_default,
             file_path=file_path, file_dict=file_dict,
             auto_chunk_data_update=auto_chunk_data_update,
-            thread_factory=thread_factory)
+            thread_factory_method=thread_factory_method)
 
     def _create_acquirer(self, *,
                          raw_device, privilege, sleep_duration, file_path,
-                         file_dict, auto_chunk_data_update, thread_factory):
+                         file_dict, auto_chunk_data_update, thread_factory_method):
         try:
             if privilege == 'exclusive':
                 _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
@@ -2752,7 +2752,7 @@ class Harvester:
             _logger.debug(
                 'opened: {}'.format(_family_tree(device)))
 
-            _thread_factory = thread_factory if thread_factory else \
+            _thread_factory_method = thread_factory_method if thread_factory_method else \
                 lambda: _EventMonitor(sleep=_sleep_default)
 
             ia = ImageAcquirer(
@@ -2760,7 +2760,7 @@ class Harvester:
                 sleep_duration=sleep_duration, file_path=file_path,
                 file_dict=file_dict, _clean_up=self._clean_up,
                 update_chunk_automatically=auto_chunk_data_update,
-                thread_factory=_thread_factory)
+                thread_factory_method=_thread_factory_method)
 
             self._ias.append(ia)
 
@@ -2782,7 +2782,7 @@ class Harvester:
             file_path: Optional[str] = None, privilege: str = 'exclusive',
             file_dict: Dict[str, bytes] = None,
             auto_chunk_data_update=True,
-            thread_factory: Optional[Callable[[], Any]] = None):
+            thread_factory_method: Optional[Callable[[], Any]] = None):
         """
         Creates an image acquirer for the specified remote device and return
         the created :class:`ImageAcquirer` object.
@@ -2856,7 +2856,7 @@ class Harvester:
             sleep_duration=sleep_duration,
             file_path=file_path, file_dict=file_dict,
             auto_chunk_data_update=auto_chunk_data_update,
-            thread_factory=thread_factory)
+            thread_factory_method=thread_factory_method)
 
     def add_cti_file(
             self, file_path: str, check_existence: bool = False,

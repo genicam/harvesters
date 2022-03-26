@@ -2558,7 +2558,7 @@ class Harvester:
         device.
 
         Parameters
-        ==========
+        ----------
         search_key: Optional[Union[int, Dict[str, str], DeviceInfo]] = None
             Set either an list index (int), a dictionary that specifies
             device information properties (Dict[str, str]), or a
@@ -2579,13 +2579,13 @@ class Harvester:
             device has a valid XML file.
 
         Returns
-        =======
+        -------
         ImageAcquirer
             An ImageAcquire object that is mapped to the specified remote
             device.
 
         Attention
-        =========
+        ---------
         Note that you need to explicitly destroy the object to ensure that
         the mapped device ownership is released.
 

@@ -2652,6 +2652,41 @@ class Harvester:
             auto_chunk_data_update: Optional[bool] = True,
             thread_factory_method: Optional[Callable[[], Any]] = None,
             file_path: Optional[str] = None) -> ImageAcquirer:
+        """
+        Creates an image acquirer that is mapped to the specired remote
+        device.
+
+        Parameters
+        ==========
+        search_key: Optional[Union[int, Dict[str, str], DeviceInfo]] = None
+            Set either an list index (int), a dictionary that specifies
+            device information properties (Dict[str, str]), or a
+            device information object (DeviceInfo) to specify a target
+            device to be mapped to the ImageAcquirer object to be created.
+
+        privilege: Optional[str] = 'exclusive'
+            Set a device ownership privilege to be applied.
+
+        auto_chunk_data_update: Optional[bool] = True
+            Set True if you want the ImageAcquire object to automatically
+            update the chunk data. Set False if you want to manually
+            call the update method call by yourself.
+
+        file_path: Optional[str] = None
+            Set a path to a GenICam device description XML file if needed.
+            In most cases, everything should be fine as long as the mapped
+            device has a valid XML file.
+
+        Returns
+        =======
+        ImageAcquirer
+            An ImageAcquire object that is mapped to the specified remote
+            device.
+
+        Note that you need to explicitly destroy the object to ensure
+        that the mapped device ownership is released.
+
+        """
         return self._create(search_key=search_key, privilege=privilege,
                             auto_chunk_data_update=auto_chunk_data_update,
                             thread_factory_method=thread_factory_method,

@@ -1190,7 +1190,7 @@ class PayloadBase:
     def components(self) -> List[Component]:
         """
         List[Component]: A :class:`list` containing objects that derive from
-        :const:`ComponentBase` class.
+        :class:`ComponentBase` class.
         """
         return self._components
 
@@ -1638,7 +1638,7 @@ class ImageAcquirer:
         acquisition process runs in the background. You will fetch buffers
         from the buffers when you call the :meth:`fetch` method in a
         case you started the image acquisition passing :const:`True` to
-        :data:`run_in_background` of the :meth:`start` method.
+        :data:`run_as_thread` of the :meth:`start` method.
         """
         return self._num_buffers_to_hold
 
@@ -1836,8 +1836,8 @@ class ImageAcquirer:
     def start_acquisition(self, run_in_background: bool = False) -> None:
         """
         .. deprecated:: 1.3
-            `start_acquisition` will be removed in 1.4.0, it is replaced
-            by `start`.
+            :meth:`start_acquisition` will be removed in 1.4.0, it is replaced
+            by :meth:`start`.
         """
         _deprecated(self.start_acquisition, self.start)
         self.start(run_as_thread=run_in_background)
@@ -2143,8 +2143,8 @@ class ImageAcquirer:
                      cycle_s: float = None) -> Buffer:
         """
         .. deprecated:: 1.3
-            `fetch_buffer` will be removed in 1.4.0, it is replaced
-            by `fetch`.
+            :meth:`fetch_buffer` will be removed in 1.4.0, it is replaced
+            by :meth:`fetch`.
         """
         _deprecated(self.fetch_buffer, self.fetch)
         return self.fetch(timeout=timeout, is_raw=is_raw, cycle_s=cycle_s)
@@ -2257,8 +2257,8 @@ class ImageAcquirer:
     def stop_acquisition(self) -> None:
         """
         .. deprecated:: 1.3
-            `stop_acquisition` will be removed in 1.4.0, it is replaced
-            by `stop`.
+            :meth:`stop_acquisition` will be removed in 1.4.0, it is replaced
+            by :meth:`stop`.
         """
         _deprecated(self.stop_acquisition, self.stop)
         self.stop()
@@ -2506,8 +2506,8 @@ class Harvester:
     def cti_files(self):
         """
         .. deprecated:: 1.3
-            `cti_files` will be removed in 1.4.0, it is replaced
-            by `files`.
+            :meth:`cti_files` will be removed in 1.4.0, it is replaced
+            by :meth:`files`.
         """
         _deprecated('cti_files', 'files')
         return self.files
@@ -2554,7 +2554,7 @@ class Harvester:
             auto_chunk_data_update: Optional[bool] = True,
             file_path: Optional[str] = None) -> ImageAcquirer:
         """
-        Creates an image acquirer that is mapped to the specired remote
+        Creates an image acquirer that is mapped to the specified remote
         device.
 
         Parameters
@@ -2584,7 +2584,10 @@ class Harvester:
             An ImageAcquire object that is mapped to the specified remote
             device.
 
-        Note that you need to explicitly destroy the object to ensure that the mapped device ownership is released.
+        Attention
+        =========
+        Note that you need to explicitly destroy the object to ensure that
+        the mapped device ownership is released.
 
         """
         return self._create(search_key=search_key, privilege=privilege,
@@ -2711,8 +2714,8 @@ class Harvester:
             auto_chunk_data_update=True):
         """
         .. deprecated:: 1.3
-            `create_image_acquirer` will be removed in 1.4.0, it is replaced
-            by `create`.
+            :meth:`create_image_acquirer` will be removed in 1.4.0, it is
+            replaced by :meth:`create`.
 
         Creates an image acquirer for the specified remote device and return
         the created :class:`ImageAcquirer` object.
@@ -2727,13 +2730,9 @@ class Harvester:
         :param version: Set a version number string of the target device.
         :param sleep_duration: Set a sleep duration in second that is inserted after the image acquisition worker is executed.
         :param file_path: Set a path to camera description file which you want to load on the target node map instead of the one which the device declares.
-        :param privilege: Set an access privilege. `exclusive`, `control`, and `read_only` are supported. The default is `exclusive`.
+        :param privilege: Set an access privilege. :const:`exclusive`, :const:`control`, and :const:`read_only` are supported. The default is :const:`exclusive`.
 
         :return: An :class:`ImageAcquirer` object that associates with the specified device.
-
-        Note that you have to close it when you are ready to release the
-        device that you have been controlled. As long as you hold it, the
-        controlled device will be not available from other clients.
 
         """
         global _logger
@@ -2792,8 +2791,8 @@ class Harvester:
             check_validity: bool = False):
         """
         .. deprecated:: 1.3
-            `add_cti_file` will be removed in 1.4.0, it is replaced
-            by `add_file`.
+            :meth:`add_cti_file` will be removed in 1.4.0, it is replaced
+            by :meth:`add_file`.
         """
         _deprecated(self.add_cti_file, self.add_file)
         self.add_file(file_path)

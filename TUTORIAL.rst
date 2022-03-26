@@ -16,17 +16,7 @@ Tutorial
 
 In this section, we will learn how to code to acquire images by using Harvester.
 
-
-Harvester as an Image Acquisition Front-end
-===========================================
-
-Harvester is an image acquisition engine. No GUI. You can use it as an image acquisition library which acquires images from GenTL Producers through the GenTL-Python Binding and controls the target device (it's typically a camera) through the GenApi-Python Binding.
-
-Harvester works as a minimalistic front-end for image acquisition. Just importing it from your Python script, you should immediately be able to set images on your table.
-
-You'll be able to download the these language binding runtime libraries from the `EMVA website <https://www.emva.org/standards-technology/genicam/genicam-downloads/>`_, however, it's not available as of May 2018, because they have not officially released yet. Fortunately they are in the final reviewing process so hopefully they'll be released by the end of 2018.
-
-If you don't have to care about the display rate for visualizing acquired images, the combination of Harvester and `Matplotlib <https://matplotlib.org>`_ might be a realistic option for that purpose.
+Harvester works as a minimalistic front-end for image acquisition. Just importing it from your Python script, you will be able to prepare the required images for your application without any hustle at the speed which the GenTL Producer offers.
 
 
 Workflow

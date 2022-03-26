@@ -2713,7 +2713,7 @@ class Harvester:
                 raise ValueError(compose_message(1, 1))
             else:
                 raw_device = candidate_devices[0].create_device()
-        elif search_key is not None:
+        elif search_key is None:
             if len(self.device_info_list) > 0:
                 raw_device = self.device_info_list[0].create_device()
             else:

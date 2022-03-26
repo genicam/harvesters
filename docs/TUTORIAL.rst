@@ -7,7 +7,7 @@
 ----
 
 .. contents:: Table of Contents
-    :depth: 2
+    :depth: 3
 
 ----
 
@@ -19,8 +19,8 @@ In this section, we will learn how to code to acquire images by using Harvester.
 Harvester works as a minimalistic front-end for image acquisition. Just importing it from your Python script, you will be able to prepare the required images for your application without any hustle at the speed which the GenTL Producer offers.
 
 
-Workflow
-========
+Workflow Overview
+-----------------
 
 A typical workflow consists of the following steps in that order:
 
@@ -32,7 +32,7 @@ A typical workflow consists of the following steps in that order:
 
 
 Loading GenTL Producers
------------------------
+^^^^^^^^^^^^^^^^^^^^^^^
 
 First, let's import Harvester:
 
@@ -80,7 +80,7 @@ In a contrary sense, you can remove a specific CTI file that you have added with
 
 
 Enumerating Devices
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 Now you need to update the list of devices; the operation will fill up your device
 information list and you'll select a device which you wish to control:
@@ -115,7 +115,7 @@ Our friendly GenTL Producer, so called TLSimu, gives you the following informati
 
 
 Getting Ownership of a Target Device
-------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 An ``ImageAcquirer`` object can be created by being specifying a target device to be mapped. The ``ImageAcquirer`` class objects work on the image acquisition task for you. In the following example it will be trying to create an ``ImageAcquirer`` object of the first candidate device on the device information list:
 
@@ -163,7 +163,7 @@ We named the image acquirer object ``ia`` in the above example but in a practica
 
 
 Acquiring images
-----------------
+^^^^^^^^^^^^^^^^
 
 Then now we start image acquisition:
 
@@ -199,7 +199,7 @@ Okay, then you would stop image acquisition with the following code:
 
 
 Closing application
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 The following code disconnects the connecting device from the image acquirer; you'll have to create an image acquirer object again when you have to work with a device:
 
@@ -229,8 +229,11 @@ Now you can quit the program! Please not that ``Harvester`` and ``ImageAcquirer`
 This way prevents you forget to release the acquired external resources. If this notation doesn't block your use case then you should rely on the ``with`` statement.
 
 
+Miscellaneous
+-------------
+
 Reshaping a NumPy Array as an Image
-===================================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 We have learned how to acquire images from a target device through an ``ImageAcquirer`` class object. In this section, we will learn how to reshape the acquired image into another that can be used by your application.
 
@@ -329,7 +332,7 @@ You can download the standard document of PFNC at the `EMVA website <https://www
 
 
 Manipulating GenICam Feature Nodes
-==================================
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Probably almost of the Harvester users would be interested in manipulating GenIcam feature nodes through Harvester. Let's assume that we are going to control a GenICam feature node called ``Foo``.
 

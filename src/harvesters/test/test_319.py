@@ -121,6 +121,18 @@ class TestDeviceInfo(unittest.TestCase):
             {'model': 'TLSimuMono', 'serial_number': 'SN_InterfaceA_0'})
         self.assertIsNotNone(self.ia)
 
+    def test_listing_up_device_info_list_7(self):
+        for i in range(len(self.harvester.device_info_list)):
+            ia = self.harvester.create(search_key=None)
+            self.assertIsNotNone(ia)
+            ia.destroy()
+
+    def test_listing_up_device_info_list_7_no_keyword(self):
+        for i in range(len(self.harvester.device_info_list)):
+            ia = self.harvester.create()
+            self.assertIsNotNone(ia)
+            ia.destroy()
+
 
 if __name__ == '__main__':
     unittest.main()

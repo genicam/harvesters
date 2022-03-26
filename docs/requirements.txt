@@ -1,2 +1,3 @@
 genicam<=1.3
 numpy
+sphinx_rtd_theme

@@ -109,9 +109,9 @@ The following code block shows Harvester is running on IPython. An acquired imag
     Out[6]: 4
 
     In [7]: h.device_info_list[0]
-    Out[7]: (id_='TLSimuMono', vendor='EMVA_D', model='TLSimuMono', tl_type='Custom', user_defined_name='Center', serial_number='SN_InterfaceA_0', version='1.2.3')
+    Out[7]: {'display_name': 'TLSimuMono (SN_InterfaceA_0)', 'id_': 'TLSimuMono', 'model': 'TLSimuMono', 'serial_number': 'SN_InterfaceA_0', 'tl_type': 'Custom', 'user_defined_name': 'Center', 'vendor': 'EMVA_D', 'version': '1.2.3'}
 
-    In [8]: ia = h.create_image_acquirer(0)
+    In [8]: ia = h.create(0)
 
     In [9]: ia.remote_device.node_map.Width.value = 8
 
@@ -202,8 +202,8 @@ Getting Started with Harvester
 Are you ready to start working with Harvester? You can learn some more topics
 on these pages:
 
-* `INSTALL.rst <INSTALL.rst>`_: Learn how to install Harvester and its prerequisites.
-* `TUTORIAL.rst <TUTORIAL.rst>`_: Learn how Harvester can be used on  a typical image acquisition workflow.
+* `INSTALL.rst <docs/INSTALL.rst>`_: Learn how to install Harvester and its prerequisites.
+* `TUTORIAL.rst <docs/TUTORIAL.rst>`_: Learn how Harvester can be used on  a typical image acquisition workflow.
 
 
 Open Source Resources

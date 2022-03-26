@@ -63,7 +63,7 @@ from genicam.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
 from genicam.gentl import Port, PIXELFORMAT_NAMESPACE_IDS
 from genicam.gentl import Buffer as _Buffer, Device as _Device, \
     DataStream as _DataStream, Interface as _Interface, System as _System, \
-    GenTLProducer as _GenTLProducer
+    GenTLProducer as _GenTLProducer, DeviceInfo as _DeviceInfo
 
 # Local application/library specific imports
 from harvesters._private.core.port import ConcretePort
@@ -129,13 +129,15 @@ class _Delegate:
 
     def __getattr__(self, attribute):
         if attribute in self._attributes:
-            if isinstance(getattr(type(self._source_object), attribute, None),
-                          property):
-                return getattr(self._module, attribute)
+            if isinstance(
+                getattr(type(self._source_object), attribute, None),
+                    property):
+                return getattr(self._source_object, attribute)
             else:
-                def method(*args):
+                def m(*args):
                     return getattr(self._source_object, attribute)(*args)
-                return method
+                setattr(self, attribute, m)
+                return m
         else:
             raise AttributeError
 
@@ -212,7 +214,7 @@ class Module(_Delegate):
                 raise LogicalErrorException(
                     '{} does not exist.'.format(file_path_to_load))
         else:
-            if url is None:
+            if not url:
                 if len(port.url_info_list) > 0:
                     url = port.url_info_list[0].url
                 else:
@@ -294,18 +296,18 @@ class Module(_Delegate):
 
 
 class DataStream(Module):
+    """Represents a GenTL Data Stream module."""
     def __init__(self, *, module: _DataStream, parent=None):
-        """Represents a GenTL Data Stream module."""
         super().__init__(module=module, port=module.port, parent=parent)
 
 
 class RemoteDevice(Module):
+    """Represents a GenTL Remote Device module."""
     def __init__(self, *, module: _Device, parent=None,
                  file_path: Optional[str] = None,
                  file_dict: Optional[Dict[str, bytes]] = None,
                  do_clean_up: bool = True,
                  xml_dir_to_store: Optional[str] = None):
-        """Represents a GenTL Remote Device module."""
         super().__init__(
             module=module, port=module.remote_port, parent=parent,
             file_path=file_path,
@@ -346,62 +348,56 @@ class Producer(Module):
 
 
 class DeviceInfo(Module):
+    search_keys = [
+        f for f in dir(_DeviceInfo) if
+        not f.startswith('_') and
+        isinstance(getattr(_DeviceInfo, f, None), property)]
+
     """Represents a GenTL Device Information module."""
     def __init__(self, *, module, parent=None):
+        global _logger
         super().__init__(module=module, parent=parent)
+        self._property_dict = dict()
+        self._build_dict()
+
+    def _build_dict(self):
+        for p in self.search_keys:
+            value = None
+            try:
+                value = getattr(self._module, p, None)
+            except GenTL_GenericException as e:
+                _logger.debug(e, exc_info=True)
+            self._property_dict[p] = value
+
+    @property
+    def property_dict(self):
+        return self._property_dict
 
     def __repr__(self):
-        properties = ['id_', 'vendor', 'model', 'tl_type',
-                      'user_defined_name', 'serial_number', 'version',]
-        results = []
-        for _property in properties:
-            assert _property != ''
-            try:
-                result = eval('self._module.' + _property)
-            except:
-                result = None
-            results.append(result)
-
-        info = '('
-        delimiter = ', '
-        for i, r in enumerate(results):
-            if r:
-                r = '\'{}\''.format(r)
-            else:
-                r = 'None'
-            info += '{}={}'.format(properties[i], r)
-            info += delimiter
-        info = info[:-len(delimiter)]
-        info += ')'
-        return info
+        return str(self._property_dict)
 
 
 class _SignalHandler:
     _event = None
-    _threads = None
+    _subject = None
 
-    def __init__(self, *, event=None, threads=None):
+    def __init__(self, *, event, subject: ImageAcquirer):
         super().__init__()
 
         assert event
-        assert threads
+        assert subject
 
         self._event = event
-        self._threads = threads
+        self._subject = subject
 
     def __call__(self, signum, frame):
         """
         A registered Python signal modules will call this method.
         """
         global _logger
-
+        _logger.debug('caught signal: {}'.format(self._event))
         self._event.set()
-
-        for thread in self._threads:
-            _logger.debug('being terminated: {}'.format(thread))
-            thread.stop()
-            thread.join()
-            _logger.debug('terminated: {}'.format(thread))
+        self._subject.destroy()
 
 
 class ThreadBase:
@@ -421,7 +417,7 @@ class ThreadBase:
         global _logger
 
         self._internal_start()
-        _logger.debug('launched: 0x{:0X}'.format(self.id_))
+        _logger.debug('launched thread: {}'.format(self))
 
     def _internal_start(self) -> None:
         """
@@ -433,9 +429,8 @@ class ThreadBase:
 
     def stop(self) -> None:
         global _logger
-
         self._internal_stop()
-        _logger.debug('terminated: 0x{:0X}'.format(self.id_))
+        _logger.debug('terminated thread: {}'.format(self))
 
     def join(self):
         """
@@ -504,14 +499,14 @@ class MutexLocker:
         self._locked_mutex = None
 
     def __enter__(self):
-        if self._thread is None:
+        if not self._thread:
             return None
 
         self._locked_mutex = self._thread.acquire()
         return self._locked_mutex
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self._thread is None:
+        if not self._thread:
             return
 
         self._thread.release()
@@ -542,10 +537,13 @@ class _ImageAcquisitionThread(ThreadBase):
         self._thread.start()
 
     def join(self):
+        global _logger
+        _logger.debug('going to join thread: {}'.format(self))
         self._thread.join()
+        _logger.debug('joined thread: {}'.format(self))
 
     def _internal_stop(self):
-        if self._thread is None:
+        if not self._thread:
             return
 
         self._thread.stop()
@@ -792,7 +790,7 @@ class Component2DImage(ComponentBase):
         Union[numpy.ndarray, None]
             A NumPy array that represents the 2D pixel location.
         """
-        if self.data is None:
+        if not self.data:
             return None
 
         return self._data.reshape(
@@ -1192,7 +1190,7 @@ class PayloadBase:
     def components(self) -> List[Component]:
         """
         List[Component]: A :class:`list` containing objects that derive from
-        :const:`ComponentBase` class.
+        :class:`ComponentBase` class.
         """
         return self._components
 
@@ -1437,7 +1435,7 @@ class ImageAcquirer:
         self._sigint_handler = None
         if current_thread() is main_thread():
             self._sigint_handler = _SignalHandler(
-                event=self._event, threads=self._threads)
+                event=self._event, subject=self)
             signal.signal(signal.SIGINT, self._sigint_handler)
             _logger.debug('created: {0}'.format(self._sigint_handler))
 
@@ -1552,6 +1550,16 @@ class ImageAcquirer:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._finalizer()
 
+    def _release_remote_device(self):
+        if self.remote_device.node_map:
+            self.remote_device.node_map.disconnect()
+
+        if self._chunk_adapter:
+            self._chunk_adapter = None
+
+        if self._device.is_open():
+            self._device.close()
+
     def destroy(self) -> None:
         """
         Destroys itself; releases all preserved external resources such as
@@ -1565,30 +1573,28 @@ class ImageAcquirer:
         """
         global _logger
 
-        if self.device:
-            self.stop()
-            self._release_data_streams()
+        if not self._is_valid:
+            return
 
-            if self.remote_device.node_map:
-                self.remote_device.node_map.disconnect()
+        self.stop()
 
-            if self._chunk_adapter:
-                self._chunk_adapter = None
+        if self._chunk_adapter:
+            self._chunk_adapter = None
 
-            if self._device.is_open():
-                self._device.close()
-
-            _logger.info('released resources: {}'.format(self))
+        self._release_data_streams()
+        self._release_remote_device()
 
         self._remote_device = None
         self._device = None
         self._interface = None
         self._system = None
+
         self._is_valid = False
 
         if self._profiler:
             self._profiler.print_diff()
 
+        _logger.info('released resources: {}'.format(self))
         self._emit_callbacks(self.Events.TURNED_OBSOLETE)
 
     @property
@@ -1632,7 +1638,7 @@ class ImageAcquirer:
         acquisition process runs in the background. You will fetch buffers
         from the buffers when you call the :meth:`fetch` method in a
         case you started the image acquisition passing :const:`True` to
-        :data:`run_in_background` of the :meth:`start` method.
+        :data:`run_as_thread` of the :meth:`start` method.
         """
         return self._num_buffers_to_hold
 
@@ -1828,6 +1834,11 @@ class ImageAcquirer:
                 EventManagerNewBuffer(event_token))
 
     def start_acquisition(self, run_in_background: bool = False) -> None:
+        """
+        .. deprecated:: 1.3
+            :meth:`start_acquisition` will be removed in 1.4.0, it is replaced
+            by :meth:`start`.
+        """
         _deprecated(self.start_acquisition, self.start)
         self.start(run_as_thread=run_in_background)
 
@@ -2028,8 +2039,6 @@ class ImageAcquirer:
                              throw_except=False)
 
         buffer = self._finalize_fetching_process(buffer, is_raw)
-        if buffer:
-            self._emit_callbacks(self.Events.NEW_BUFFER_AVAILABLE)
 
         return buffer
 
@@ -2061,6 +2070,9 @@ class ImageAcquirer:
                 manager.update_event_data(self.timeout_on_internal_fetch_call)
             except TimeoutException:
                 continue
+            except GenTL_GenericException as e:
+                _logger.error(e, exc_info=True)
+                raise
             else:
                 context = None
                 frame_id = None
@@ -2129,7 +2141,11 @@ class ImageAcquirer:
 
     def fetch_buffer(self, *, timeout: float = 0, is_raw: bool = False,
                      cycle_s: float = None) -> Buffer:
-
+        """
+        .. deprecated:: 1.3
+            :meth:`fetch_buffer` will be removed in 1.4.0, it is replaced
+            by :meth:`fetch`.
+        """
         _deprecated(self.fetch_buffer, self.fetch)
         return self.fetch(timeout=timeout, is_raw=is_raw, cycle_s=cycle_s)
 
@@ -2172,8 +2188,6 @@ class ImageAcquirer:
                     manager=self._event_new_buffer_managers[0],
                     timeout_on_client_fetch_call=timeout, throw_except=True)
                 buffer = self._finalize_fetching_process(raw_buffer, is_raw)
-                if buffer:
-                    self._emit_callbacks(self.Events.NEW_BUFFER_AVAILABLE)
 
         return buffer
 
@@ -2241,6 +2255,11 @@ class ImageAcquirer:
             _logger.debug('queued: {0}'.format(_family_tree(buffer)))
 
     def stop_acquisition(self) -> None:
+        """
+        .. deprecated:: 1.3
+            :meth:`stop_acquisition` will be removed in 1.4.0, it is replaced
+            by :meth:`stop`.
+        """
         _deprecated(self.stop_acquisition, self.stop)
         self.stop()
 
@@ -2486,7 +2505,9 @@ class Harvester:
     @property
     def cti_files(self):
         """
-        Will be deprecated shortly.
+        .. deprecated:: 1.3
+            :meth:`cti_files` will be removed in 1.4.0, it is replaced
+            by :meth:`files`.
         """
         _deprecated('cti_files', 'files')
         return self.files
@@ -2525,6 +2546,162 @@ class Harvester:
     def has_revised_device_info_list(self, value):
         self._has_revised_device_list = value
 
+    def create(
+            self,
+            search_key: Optional[Union[int, Dict[str, str], DeviceInfo]] = None,
+            *,
+            privilege: Optional[str] = 'exclusive',
+            auto_chunk_data_update: Optional[bool] = True,
+            file_path: Optional[str] = None) -> ImageAcquirer:
+        """
+        Creates an image acquirer that is mapped to the specified remote
+        device.
+
+        Parameters
+        ----------
+        search_key: Optional[Union[int, Dict[str, str], DeviceInfo]] = None
+            Set either an list index (int), a dictionary that specifies
+            device information properties (Dict[str, str]), or a
+            device information object (DeviceInfo) to specify a target
+            device to be mapped to the ImageAcquirer object to be created.
+
+        privilege: Optional[str] = 'exclusive'
+            Set a device ownership privilege to be applied.
+
+        auto_chunk_data_update: Optional[bool] = True
+            Set True if you want the ImageAcquire object to automatically
+            update the chunk data. Set False if you want to manually
+            call the update method call by yourself.
+
+        file_path: Optional[str] = None
+            Set a path to a GenICam device description XML file if needed.
+            In most cases, everything should be fine as long as the mapped
+            device has a valid XML file.
+
+        Returns
+        -------
+        ImageAcquirer
+            An ImageAcquire object that is mapped to the specified remote
+            device.
+
+        Attention
+        ---------
+        Note that you need to explicitly destroy the object to ensure that
+        the mapped device ownership is released.
+
+        """
+        return self._create(search_key=search_key, privilege=privilege,
+                            auto_chunk_data_update=auto_chunk_data_update,
+                            file_path=file_path)
+
+    def _create(
+            self, *,
+            search_key: Optional[Union[int, Dict[str, str], DeviceInfo]] = None,
+            privilege: Optional[str] = 'exclusive',
+            auto_chunk_data_update: Optional[bool] = True,
+            file_path: Optional[str] = None,
+            file_dict: Optional[Dict[str, bytes]] = None) -> ImageAcquirer:
+        global _logger
+
+        def compose_message(status: int, solution: int) -> str:
+            status_dict = {
+                0: "no device available",
+                1: "no device found",
+                2: "multiple devices found",
+                3: "undefined search key given"
+            }
+            solution_dict = {
+                0: "check the system setup",
+                1: "provide sufficient search key",
+                2: "provide valid device information",
+                3: "provide valid search key",
+            }
+            return ": ".join([status_dict.get(status),
+                              solution_dict.get(solution)])
+
+        if type(search_key) is int:
+            raw_device = self.device_info_list[search_key].create_device()
+        elif type(search_key) is DeviceInfo:
+            if search_key in self.device_info_list:
+                raw_device = search_key.create_device()
+            else:
+                raise ValueError(1, 2)
+        elif type(search_key) is dict:
+            candidate_devices = self.device_info_list.copy()
+            for key in search_key.keys():
+                value = search_key.get(key)
+                if value:
+                    to_be_dropped = []
+                    for candidate in candidate_devices:
+                        try:
+                            if value != getattr(candidate, key, None):
+                                to_be_dropped.append(candidate)
+                        except GenTL_GenericException as e:
+                            _logger.debug(e, exc_info=True)
+                            continue
+                    for candidate in to_be_dropped:
+                        candidate_devices.remove(candidate)
+
+            num_candidates = len(candidate_devices)
+            if num_candidates > 1:
+                raise ValueError(compose_message(2, 1))
+            elif num_candidates == 0:
+                raise ValueError(compose_message(1, 1))
+            else:
+                raw_device = candidate_devices[0].create_device()
+        elif search_key is None:
+            if len(self.device_info_list) > 0:
+                raw_device = self.device_info_list[0].create_device()
+            else:
+                raise ValueError(compose_message(0, 0))
+        else:
+            raise ValueError(compose_message(3, 3))
+
+        return self._create_acquirer(
+            raw_device=raw_device, privilege=privilege,
+            sleep_duration=_sleep_duration_default,
+            file_path=file_path, file_dict=file_dict,
+            auto_chunk_data_update=auto_chunk_data_update)
+
+    def _create_acquirer(self, *,
+                         raw_device, privilege, sleep_duration, file_path,
+                         file_dict, auto_chunk_data_update):
+        try:
+            if privilege == 'exclusive':
+                _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
+            elif privilege == 'control':
+                _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_CONTROL
+            elif privilege == 'read_only':
+                _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_READONLY
+            else:
+                raise NotImplementedError(
+                    'not supported: {}'.format(privilege))
+
+            raw_device.open(_privilege)
+            device = Device(module=raw_device, parent=raw_device.parent)
+
+        except GenTL_GenericException as e:
+            _logger.warning(e, exc_info=True)
+            raise
+        else:
+            _logger.debug(
+                'opened: {}'.format(_family_tree(device)))
+
+            ia = ImageAcquirer(
+                device=device, _profiler=self._profiler,
+                sleep_duration=sleep_duration, file_path=file_path,
+                file_dict=file_dict, _clean_up=self._clean_up,
+                update_chunk_automatically=auto_chunk_data_update)
+            self._ias.append(ia)
+
+            if self._profiler:
+                self._profiler.print_diff()
+
+        _logger.info('created: {0} for {1} by {2}'.format(
+            ia, device.id_, self))
+
+        return ia
+
     def create_image_acquirer(
             self, list_index: Optional[int] = None, *,
             id_: Optional[str] = None, vendor: Optional[str] = None,
@@ -2536,6 +2713,10 @@ class Harvester:
             file_dict: Dict[str, bytes] = None,
             auto_chunk_data_update=True):
         """
+        .. deprecated:: 1.3
+            :meth:`create_image_acquirer` will be removed in 1.4.0, it is
+            replaced by :meth:`create`.
+
         Creates an image acquirer for the specified remote device and return
         the created :class:`ImageAcquirer` object.
 
@@ -2549,18 +2730,14 @@ class Harvester:
         :param version: Set a version number string of the target device.
         :param sleep_duration: Set a sleep duration in second that is inserted after the image acquisition worker is executed.
         :param file_path: Set a path to camera description file which you want to load on the target node map instead of the one which the device declares.
-        :param privilege: Set an access privilege. `exclusive`, `control`, and `read_only` are supported. The default is `exclusive`.
+        :param privilege: Set an access privilege. :const:`exclusive`, :const:`control`, and :const:`read_only` are supported. The default is :const:`exclusive`.
 
         :return: An :class:`ImageAcquirer` object that associates with the specified device.
 
-        Note that you have to close it when you are ready to release the
-        device that you have been controlled. As long as you hold it, the
-        controlled device will be not available from other clients.
-
         """
         global _logger
-
-        if self.device_info_list is None:
+        _deprecated(self.create_image_acquirer, self.create)
+        if not self.device_info_list:
             return None
 
         dev_info = None
@@ -2603,47 +2780,19 @@ class Harvester:
                 dev_info = candidates[0]
                 raw_device = dev_info.create_device()
 
-        try:
-            if privilege == 'exclusive':
-                _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
-            elif privilege == 'control':
-                _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_CONTROL
-            elif privilege == 'read_only':
-                _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_READONLY
-            else:
-                raise NotImplementedError(
-                    'not supported: {}'.format(privilege))
-
-            raw_device.open(_privilege)
-            device = Device(module=raw_device, parent=dev_info.parent)
-
-        except GenTL_GenericException as e:
-            _logger.warning(e, exc_info=True)
-            raise
-        else:
-            _logger.debug(
-                'opened: {}'.format(_family_tree(device)))
-
-            ia = ImageAcquirer(
-                device=device, _profiler=self._profiler,
-                sleep_duration=sleep_duration, file_path=file_path,
-                file_dict=file_dict, _clean_up=self._clean_up,
-                update_chunk_automatically=auto_chunk_data_update)
-            self._ias.append(ia)
-
-            if self._profiler:
-                self._profiler.print_diff()
-
-        _logger.info('created: {0} for {1} by {2}'.format(
-            ia, device.id_, self))
-
-        return ia
+        return self._create_acquirer(
+            raw_device=raw_device, privilege=privilege,
+            sleep_duration=sleep_duration,
+            file_path=file_path, file_dict=file_dict,
+            auto_chunk_data_update=auto_chunk_data_update)
 
     def add_cti_file(
             self, file_path: str, check_existence: bool = False,
             check_validity: bool = False):
         """
-        Will be deprecated shortly.
+        .. deprecated:: 1.3
+            :meth:`add_cti_file` will be removed in 1.4.0, it is replaced
+            by :meth:`add_file`.
         """
         _deprecated(self.add_cti_file, self.add_file)
         self.add_file(file_path)

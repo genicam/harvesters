@@ -348,7 +348,7 @@ class Producer(Module):
 
 
 class DeviceInfo(Module):
-    _properties = [
+    search_keys = [
         f for f in dir(_DeviceInfo) if
         not f.startswith('_') and
         isinstance(getattr(_DeviceInfo, f, None), property)]
@@ -361,14 +361,10 @@ class DeviceInfo(Module):
         self._build_dict()
 
     def _build_dict(self):
-        for p in self._properties:
+        for p in self.search_keys:
             value = None
             try:
-                _value = getattr(self._module, p, None)
-                if type(_value) is not str:
-                    continue
-                else:
-                    value = _value
+                value = getattr(self._module, p, None)
             except GenTL_GenericException as e:
                 _logger.debug(e, exc_info=True)
             self._property_dict[p] = value
@@ -2535,64 +2531,88 @@ class Harvester:
         self._has_revised_device_list = value
 
     def create(
-            self, list_index: Optional[int] = None, *,
-            property_dict: Optional[Dict[str, str]] = None,
-            device_info: Optional[DeviceInfo] = None,
+            self,
+            search_key: Optional[Union[int, Dict[str, str], DeviceInfo]] = None,
+            *,
+            privilege: Optional[str] = 'exclusive',
+            auto_chunk_data_update: Optional[bool] = True,
+            file_path: Optional[str] = None) -> ImageAcquirer:
+        return self._create(search_key=search_key, privilege=privilege,
+                            auto_chunk_data_update=auto_chunk_data_update,
+                            file_path=file_path)
+
+    def _create(
+            self, *,
+            search_key: Optional[Union[int, Dict[str, str], DeviceInfo]] = None,
             privilege: Optional[str] = 'exclusive',
             auto_chunk_data_update: Optional[bool] = True,
             file_path: Optional[str] = None,
             file_dict: Optional[Dict[str, bytes]] = None) -> ImageAcquirer:
         global _logger
-        assert not all([list_index, property_dict, device_info])
-        assert not all([property_dict, device_info])
-        assert not all([list_index, property_dict])
-        assert not all([list_index, device_info])
 
-        message_no_candidates = "You have no candidates. "\
-            "You have to pass one or more keys so that "\
-            "a single candidate is specified."
-        message_multiple_candidates = "You have two or more candidates. "\
-            "You have to pass one or more keys so that "\
-            "a single candidate is specified."
+        def compose_message(status: int, solution: int) -> str:
+            status_dict = {
+                0: "no device available",
+                1: "no device found",
+                2: "multiple devices found",
+                3: "undefined search key given"
+            }
+            solution_dict = {
+                0: "check the system setup",
+                1: "provide sufficient search key",
+                2: "provide valid device information",
+                3: "provide valid search key",
+            }
+            return ": ".join([status_dict.get(status),
+                              solution_dict.get(solution)])
 
-        if list_index is not None:
-            raw_device = self.device_info_list[list_index].create_device()
-        elif device_info is not None:
-            if device_info in self.device_info_list:
-                raw_device = device_info.create_device()
+        if type(search_key) is int:
+            raw_device = self.device_info_list[search_key].create_device()
+        elif type(search_key) is DeviceInfo:
+            if search_key in self.device_info_list:
+                raw_device = search_key.create_device()
             else:
-                raise ValueError(message_no_candidates)
-        else:
+                raise ValueError(1, 2)
+        elif type(search_key) is dict:
             candidate_devices = self.device_info_list.copy()
-            for property_name in property_dict.keys():
-                property_value = property_dict[property_name]
-                if property_value:
+            for key in search_key.keys():
+                value = search_key.get(key)
+                if value:
                     to_be_dropped = []
                     for candidate in candidate_devices:
                         try:
-                            if property_value != getattr(candidate, property_name, None):
+                            if value != getattr(candidate, key, None):
                                 to_be_dropped.append(candidate)
                         except GenTL_GenericException as e:
                             _logger.debug(e, exc_info=True)
-
+                            continue
                     for candidate in to_be_dropped:
                         candidate_devices.remove(candidate)
 
             num_candidates = len(candidate_devices)
             if num_candidates > 1:
-                raise ValueError(message_multiple_candidates)
+                raise ValueError(compose_message(2, 1))
             elif num_candidates == 0:
-                raise ValueError(message_no_candidates)
+                raise ValueError(compose_message(1, 1))
             else:
                 raw_device = candidate_devices[0].create_device()
+        elif search_key is not None:
+            if len(self.device_info_list) > 0:
+                raw_device = self.device_info_list[0].create_device()
+            else:
+                raise ValueError(compose_message(0, 0))
+        else:
+            raise ValueError(compose_message(3, 3))
 
-        assert raw_device
-        return self._create(raw_device=raw_device, privilege=privilege,
-                            sleep_duration=_sleep_duration_default,
-                            file_path=file_path, file_dict=file_dict,
-                            auto_chunk_data_update=auto_chunk_data_update)
+        return self._create_acquirer(
+            raw_device=raw_device, privilege=privilege,
+            sleep_duration=_sleep_duration_default,
+            file_path=file_path, file_dict=file_dict,
+            auto_chunk_data_update=auto_chunk_data_update)
 
-    def _create(self, *, raw_device, privilege, sleep_duration, file_path, file_dict, auto_chunk_data_update):
+    def _create_acquirer(self, *,
+                         raw_device, privilege, sleep_duration, file_path,
+                         file_dict, auto_chunk_data_update):
         try:
             if privilege == 'exclusive':
                 _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
@@ -2663,7 +2683,7 @@ class Harvester:
 
         """
         global _logger
-
+        _deprecated(self.create_image_acquirer, self.create)
         if not self.device_info_list:
             return None
 
@@ -2707,10 +2727,11 @@ class Harvester:
                 dev_info = candidates[0]
                 raw_device = dev_info.create_device()
 
-        return self._create(raw_device=raw_device, privilege=privilege,
-                            sleep_duration=sleep_duration,
-                            file_path=file_path, file_dict=file_dict,
-                            auto_chunk_data_update=auto_chunk_data_update)
+        return self._create_acquirer(
+            raw_device=raw_device, privilege=privilege,
+            sleep_duration=sleep_duration,
+            file_path=file_path, file_dict=file_dict,
+            auto_chunk_data_update=auto_chunk_data_update)
 
     def add_cti_file(
             self, file_path: str, check_existence: bool = False,

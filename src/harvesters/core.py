@@ -1834,6 +1834,11 @@ class ImageAcquirer:
                 EventManagerNewBuffer(event_token))
 
     def start_acquisition(self, run_in_background: bool = False) -> None:
+        """
+        .. deprecated:: 1.3
+            `start_acquisition` will be removed in 1.4.0, it is replaced
+            by `start`.
+        """
         _deprecated(self.start_acquisition, self.start)
         self.start(run_as_thread=run_in_background)
 
@@ -2136,7 +2141,11 @@ class ImageAcquirer:
 
     def fetch_buffer(self, *, timeout: float = 0, is_raw: bool = False,
                      cycle_s: float = None) -> Buffer:
-
+        """
+        .. deprecated:: 1.3
+            `fetch_buffer` will be removed in 1.4.0, it is replaced
+            by `fetch`.
+        """
         _deprecated(self.fetch_buffer, self.fetch)
         return self.fetch(timeout=timeout, is_raw=is_raw, cycle_s=cycle_s)
 
@@ -2246,6 +2255,11 @@ class ImageAcquirer:
             _logger.debug('queued: {0}'.format(_family_tree(buffer)))
 
     def stop_acquisition(self) -> None:
+        """
+        .. deprecated:: 1.3
+            `stop_acquisition` will be removed in 1.4.0, it is replaced
+            by `stop`.
+        """
         _deprecated(self.stop_acquisition, self.stop)
         self.stop()
 
@@ -2491,7 +2505,9 @@ class Harvester:
     @property
     def cti_files(self):
         """
-        Will be deprecated shortly.
+        .. deprecated:: 1.3
+            `cti_files` will be removed in 1.4.0, it is replaced
+            by `files`.
         """
         _deprecated('cti_files', 'files')
         return self.files
@@ -2568,8 +2584,7 @@ class Harvester:
             An ImageAcquire object that is mapped to the specified remote
             device.
 
-        Note that you need to explicitly destroy the object to ensure
-        that the mapped device ownership is released.
+        Note that you need to explicitly destroy the object to ensure that the mapped device ownership is released.
 
         """
         return self._create(search_key=search_key, privilege=privilege,
@@ -2695,6 +2710,10 @@ class Harvester:
             file_dict: Dict[str, bytes] = None,
             auto_chunk_data_update=True):
         """
+        .. deprecated:: 1.3
+            `create_image_acquirer` will be removed in 1.4.0, it is replaced
+            by `create`.
+
         Creates an image acquirer for the specified remote device and return
         the created :class:`ImageAcquirer` object.
 
@@ -2772,7 +2791,9 @@ class Harvester:
             self, file_path: str, check_existence: bool = False,
             check_validity: bool = False):
         """
-        Will be deprecated shortly.
+        .. deprecated:: 1.3
+            `add_cti_file` will be removed in 1.4.0, it is replaced
+            by `add_file`.
         """
         _deprecated(self.add_cti_file, self.add_file)
         self.add_file(file_path)

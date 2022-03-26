@@ -125,7 +125,7 @@ class TestTutorials(TestHarvester):
         for i in range(nr_devices):
             threads.append(
                 NodeCallbackDemoThread(
-                    self.harvester.create_image_acquirer(i), i, self._logger))
+                    self.harvester.create(i), i, self._logger))
 
         for t in threads:
             t.start()
@@ -142,7 +142,7 @@ class TestTutorials(TestHarvester):
         self._logger.info("SCENARIO: enabling/disabling node callback")
 
         self._logger.info("GIVEN: an image acquirer")
-        ia = self.harvester.create_image_acquirer(0)  # type: ImageAcquirer
+        ia = self.harvester.create()  # type: ImageAcquirer
 
         self._logger.info("AND GIVEN: an equipped node map")
         ia.remote_device.node_map.Width.value = 100

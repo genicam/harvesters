@@ -68,7 +68,7 @@ from genicam.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
 from genicam.gentl import Port, PIXELFORMAT_NAMESPACE_IDS
 from genicam.gentl import Buffer as _Buffer, Device as _Device, \
     DataStream as _DataStream, Interface as _Interface, System as _System, \
-    GenTLProducer as _GenTLProducer
+    GenTLProducer as _GenTLProducer, DeviceInfo as _DeviceInfo
 
 # Local application/library specific imports
 from harvesters._private.core.port import ConcretePort
@@ -415,34 +415,33 @@ class Producer(Module):
 
 
 class DeviceInfo(Module):
+    search_keys = [
+        f for f in dir(_DeviceInfo) if
+        not f.startswith('_') and
+        isinstance(getattr(_DeviceInfo, f, None), property)]
+
     """Represents a GenTL Device Information module."""
     def __init__(self, *, module, parent=None):
+        global _logger
         super().__init__(module=module, parent=parent)
+        self._property_dict = dict()
+        self._build_dict()
+
+    def _build_dict(self):
+        for p in self.search_keys:
+            value = None
+            try:
+                value = getattr(self._module, p, None)
+            except GenTL_GenericException as e:
+                _logger.debug(e, exc_info=True)
+            self._property_dict[p] = value
+
+    @property
+    def property_dict(self):
+        return self._property_dict
 
     def __repr__(self):
-        properties = ['id_', 'vendor', 'model', 'tl_type',
-                      'user_defined_name', 'serial_number', 'version',]
-        results = []
-        for _property in properties:
-            assert _property != ''
-            try:
-                result = eval('self._module.' + _property)
-            except:
-                result = None
-            results.append(result)
-
-        info = '('
-        delimiter = ', '
-        for i, r in enumerate(results):
-            if r:
-                r = '\'{}\''.format(r)
-            else:
-                r = 'None'
-            info += '{}={}'.format(properties[i], r)
-            info += delimiter
-        info = info[:-len(delimiter)]
-        info += ')'
-        return info
+        return str(self._property_dict)
 
 
 class _SignalHandler:
@@ -1412,7 +1411,7 @@ class ImageAcquirer:
             file_path: Optional[str] = None,
             file_dict: Dict[str, bytes] = None,
             update_chunk_automatically=True,
-            create_thread: Optional[Callable[[], Any]],
+            thread_factory: Optional[Callable[[], Any]],
             _clean_up: bool = True,
             _profiler=None):
         """
@@ -1480,7 +1479,7 @@ class ImageAcquirer:
                 _logger.info("no module event: {}".format(module))
             else:
                 self._module_event_monitor_thread_dict[module] = \
-                    create_thread()
+                    thread_factory()
                 self._module_event_monitor_thread_dict[module].worker = \
                     self._worker_module_event
 
@@ -1493,7 +1492,7 @@ class ImageAcquirer:
         self._num_buffers_to_hold = 1
         self._queue = Queue(maxsize=self._num_buffers_to_hold)
 
-        self._event_new_buffer_thread = create_thread()
+        self._event_new_buffer_thread = thread_factory()
         self._event_new_buffer_thread.worker = self._worker_event_new_buffer
 
         self._sigint_handler = None
@@ -2645,6 +2644,134 @@ class Harvester:
     def has_revised_device_info_list(self, value):
         self._has_revised_device_list = value
 
+    def create(
+            self,
+            search_key: Optional[Union[int, Dict[str, str], DeviceInfo]] = None,
+            *,
+            privilege: Optional[str] = 'exclusive',
+            auto_chunk_data_update: Optional[bool] = True,
+            thread_factory: Optional[Callable[[], Any]] = None,
+            file_path: Optional[str] = None) -> ImageAcquirer:
+        return self._create(search_key=search_key, privilege=privilege,
+                            auto_chunk_data_update=auto_chunk_data_update,
+                            thread_factory=thread_factory,
+                            file_path=file_path)
+
+    def _create(
+            self, *,
+            search_key: Optional[Union[int, Dict[str, str], DeviceInfo]] = None,
+            privilege: Optional[str] = 'exclusive',
+            auto_chunk_data_update: Optional[bool] = True,
+            thread_factory: Optional[Callable[[], Any]] = None,
+            file_path: Optional[str] = None,
+            file_dict: Optional[Dict[str, bytes]] = None) -> ImageAcquirer:
+        global _logger
+
+        def compose_message(status: int, solution: int) -> str:
+            status_dict = {
+                0: "no device available",
+                1: "no device found",
+                2: "multiple devices found",
+                3: "undefined search key given"
+            }
+            solution_dict = {
+                0: "check the system setup",
+                1: "provide sufficient search key",
+                2: "provide valid device information",
+                3: "provide valid search key",
+            }
+            return ": ".join([status_dict.get(status),
+                              solution_dict.get(solution)])
+
+        if type(search_key) is int:
+            raw_device = self.device_info_list[search_key].create_device()
+        elif type(search_key) is DeviceInfo:
+            if search_key in self.device_info_list:
+                raw_device = search_key.create_device()
+            else:
+                raise ValueError(1, 2)
+        elif type(search_key) is dict:
+            candidate_devices = self.device_info_list.copy()
+            for key in search_key.keys():
+                value = search_key.get(key)
+                if value:
+                    to_be_dropped = []
+                    for candidate in candidate_devices:
+                        try:
+                            if value != getattr(candidate, key, None):
+                                to_be_dropped.append(candidate)
+                        except GenTL_GenericException as e:
+                            _logger.debug(e, exc_info=True)
+                            continue
+                    for candidate in to_be_dropped:
+                        candidate_devices.remove(candidate)
+
+            num_candidates = len(candidate_devices)
+            if num_candidates > 1:
+                raise ValueError(compose_message(2, 1))
+            elif num_candidates == 0:
+                raise ValueError(compose_message(1, 1))
+            else:
+                raw_device = candidate_devices[0].create_device()
+        elif search_key is not None:
+            if len(self.device_info_list) > 0:
+                raw_device = self.device_info_list[0].create_device()
+            else:
+                raise ValueError(compose_message(0, 0))
+        else:
+            raise ValueError(compose_message(3, 3))
+
+        return self._create_acquirer(
+            raw_device=raw_device, privilege=privilege,
+            sleep_duration=_sleep_default,
+            file_path=file_path, file_dict=file_dict,
+            auto_chunk_data_update=auto_chunk_data_update,
+            thread_factory=thread_factory)
+
+    def _create_acquirer(self, *,
+                         raw_device, privilege, sleep_duration, file_path,
+                         file_dict, auto_chunk_data_update, thread_factory):
+        try:
+            if privilege == 'exclusive':
+                _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
+            elif privilege == 'control':
+                _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_CONTROL
+            elif privilege == 'read_only':
+                _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_READONLY
+            else:
+                raise NotImplementedError(
+                    'not supported: {}'.format(privilege))
+
+            raw_device.open(_privilege)
+            device = Device(module=raw_device, parent=raw_device.parent)
+
+        except GenTL_GenericException as e:
+            _logger.warning(e, exc_info=True)
+            raise
+        else:
+            _logger.debug(
+                'opened: {}'.format(_family_tree(device)))
+
+            _thread_factory = thread_factory if thread_factory else \
+                lambda: _EventMonitor(sleep=_sleep_default)
+
+            ia = ImageAcquirer(
+                device=device, _profiler=self._profiler,
+                sleep_duration=sleep_duration, file_path=file_path,
+                file_dict=file_dict, _clean_up=self._clean_up,
+                update_chunk_automatically=auto_chunk_data_update,
+                thread_factory=_thread_factory)
+
+            self._ias.append(ia)
+
+            if self._profiler:
+                self._profiler.print_diff()
+
+        _logger.info('created: {0} for {1} by {2}'.format(
+            ia, device.id_, self))
+
+        return ia
+
     def create_image_acquirer(
             self, list_index: Optional[int] = None, *,
             id_: Optional[str] = None, vendor: Optional[str] = None,
@@ -2655,7 +2782,7 @@ class Harvester:
             file_path: Optional[str] = None, privilege: str = 'exclusive',
             file_dict: Dict[str, bytes] = None,
             auto_chunk_data_update=True,
-            create_thread: Optional[Callable[[], Any]] = None):
+            thread_factory: Optional[Callable[[], Any]] = None):
         """
         Creates an image acquirer for the specified remote device and return
         the created :class:`ImageAcquirer` object.
@@ -2680,7 +2807,7 @@ class Harvester:
 
         """
         global _logger
-
+        _deprecated(self.create_image_acquirer, self.create)
         if not self.device_info_list:
             return None
 
@@ -2724,45 +2851,12 @@ class Harvester:
                 dev_info = candidates[0]
                 raw_device = dev_info.create_device()
 
-        try:
-            if privilege == 'exclusive':
-                _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
-            elif privilege == 'control':
-                _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_CONTROL
-            elif privilege == 'read_only':
-                _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_READONLY
-            else:
-                raise NotImplementedError(
-                    'not supported: {}'.format(privilege))
-
-            raw_device.open(_privilege)
-            device = Device(module=raw_device, parent=dev_info.parent)
-
-        except GenTL_GenericException as e:
-            _logger.warning(e, exc_info=True)
-            raise
-        else:
-            _logger.debug(
-                'opened: {}'.format(_family_tree(device)))
-
-            _create_thread = create_thread if create_thread else \
-                lambda: _EventMonitor(sleep=_sleep_default)
-            ia = ImageAcquirer(
-                device=device, _profiler=self._profiler,
-                sleep_duration=sleep_duration, file_path=file_path,
-                file_dict=file_dict, _clean_up=self._clean_up,
-                update_chunk_automatically=auto_chunk_data_update,
-                create_thread=_create_thread)
-
-            self._ias.append(ia)
-
-            if self._profiler:
-                self._profiler.print_diff()
-
-        _logger.info('created: {0} for {1} by {2}'.format(
-            ia, device.id_, self))
-
-        return ia
+        return self._create_acquirer(
+            raw_device=raw_device, privilege=privilege,
+            sleep_duration=sleep_duration,
+            file_path=file_path, file_dict=file_dict,
+            auto_chunk_data_update=auto_chunk_data_update,
+            thread_factory=thread_factory)
 
     def add_cti_file(
             self, file_path: str, check_existence: bool = False,

@@ -2534,9 +2534,9 @@ class Harvester:
         config: Optional[ParameterSet] = None
             Set a parameter set. Possible parameters are:
 
-                - ParameterKey.Logger,
-                - ParameterKey.EnableCleaningUpIntermediateFiles, and
-                - ParameterKey.TimeOutPeriodOnModuleEnumeration.
+                - :const:`~harvesters.core.ParameterKey.Logger`,
+                - :const:`~harvesters.core.ParameterKey.EnableCleaningUpIntermediateFiles`, and
+                - :const:`~harvesters.core.ParameterKey.TimeOutPeriodOnModuleEnumeration`.
         """
         global _logger
 
@@ -2594,8 +2594,8 @@ class Harvester:
     def cti_files(self):
         """
         .. deprecated:: 1.3
-            :meth:`cti_files` will be removed in 1.4.0, it is replaced
-            by :meth:`files`.
+            :attr:`cti_files` will be removed in 1.4.0, it is replaced
+            by :attr:`files`.
         """
         _deprecated('cti_files', 'files')
         return self.files
@@ -2653,13 +2653,13 @@ class Harvester:
         config: Optional[ParameterSet] = None
             Set a parameter set. Possible parameters are:
 
-                - ParameterKey.EnableCleaningUpIntermediateFiles,
-                - ParameterKey.EnableAutoChunkDataUpdate,
-                - ParameterKey.RemoveDeviceSourceXmlPath,
-                - ParameterKey.ThreadSleepPeriod,
-                - ParameterKey.TimeOutPeriodOnUpdateEventDataCall,
-                - ParameterKey.TimeOutPeriodOnFetchCall, and
-                - ParameterKey.NumBuffersOnGenTLProducer.
+                - :const:`~harvesters.core.ParameterKey.EnableCleaningUpIntermediateFiles`,
+                - :const:`~harvesters.core.ParameterKey.EnableAutoChunkDataUpdate`,
+                - :const:`~harvesters.core.ParameterKey.RemoveDeviceSourceXmlPath`,
+                - :const:`~harvesters.core.ParameterKey.ThreadSleepPeriod`,
+                - :const:`~harvesters.core.ParameterKey.TimeOutPeriodOnUpdateEventDataCall`,
+                - :const:`~harvesters.core.ParameterKey.TimeOutPeriodOnFetchCall`, and
+                - :const:`~harvesters.core.ParameterKey.NumBuffersOnGenTLProducer`.
 
         Returns
         -------

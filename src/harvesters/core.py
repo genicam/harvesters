@@ -83,9 +83,7 @@ _logger = get_logger(name=__name__)
 
 
 class ParameterKey(IntEnum):
-    """
-    A list of configuration parameters.
-    """
+    __doc__ = "A list of variable/defined parameters."
     Logger = 0,  # Determines the logger to be used; the value type must be :class:`Logger`.
     _EnableProfile = 1,
     TimeOutPeriodOnModuleEnumeration = 2,  # Determines the time-out period that is applied on the GenTL module enumeration; the value type must be :class:`int`.
@@ -102,8 +100,19 @@ class ParameterKey(IntEnum):
 
 
 class ParameterSet:
+    """
+    A set of parameters. A typical use case is to use the parameter set to
+    configure a subject.
+    """
     def __init__(self,
                  parameter_dict: Optional[Dict[ParameterKey, Any]] = None):
+        """
+        Parameters
+        ----------
+        parameter_dict: Optional[Dict[ParameterKey, Any]] = None):
+            A parameter dictionary. You can add or remove an arbitrary
+            key after the instantiation.
+        """
         super().__init__()
         self._dict = parameter_dict if parameter_dict else dict()
 

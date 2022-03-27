@@ -27,7 +27,7 @@ import unittest
 # Related third party imports
 
 # Local application/library specific imports
-from harvesters.core import Harvester
+from harvesters.core import Harvester, ParameterSet, ParameterKey
 from harvesters.util.logging import get_logger
 from harvesters.test.helper import get_package_dir
 
@@ -126,7 +126,11 @@ class TestHarvester(TestHarvesterBase):
         super().setUp()
 
         #
-        self._harvester = Harvester(logger=self._logger, _clean_up=True)
+        config = ParameterSet({
+            ParameterKey.Logger: self._logger,
+            ParameterKey.EnableCleaningUpIntermediateFiles: True,
+        })
+        self._harvester = Harvester(config=config)
         self._harvester.add_file(self._cti_file_path)
         self._harvester.update()
 
@@ -141,7 +145,11 @@ class TestHarvesterNoCleanUp(TestHarvesterBase):
         super().setUp()
 
         #
-        self._harvester = Harvester(logger=self._logger, _clean_up=False)
+        config = ParameterSet({
+            ParameterKey.Logger: self._logger,
+            ParameterKey.EnableCleaningUpIntermediateFiles: False,
+        })
+        self._harvester = Harvester(config=config)
         self._harvester.add_file(self._cti_file_path)
         self._harvester.update()
 

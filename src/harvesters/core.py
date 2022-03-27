@@ -39,7 +39,7 @@ import sys
 from threading import Lock, Thread, Event
 from threading import current_thread, main_thread
 import time
-from typing import Union, List, Optional, Dict, TypeVar
+from typing import Union, List, Optional, Dict, TypeVar, Any
 from urllib.parse import urlparse
 from warnings import warn
 import weakref
@@ -80,6 +80,73 @@ _sleep_duration_default = 0.000001  # s
 
 
 _logger = get_logger(name=__name__)
+
+
+class ParameterKey(IntEnum):
+    """
+    A list of configuration parameters.
+    """
+    Logger = 0,  # Determines the logger to be used; the value type must be :class:`Logger`.
+    _EnableProfile = 1,
+    TimeOutPeriodOnModuleEnumeration = 2,  # Determines the time-out period that is applied on the GenTL module enumeration; the value type must be :class:`int`.
+    EnableCleaningUpIntermediateFiles = 3,  # Determines if you want to delete all of the intermediate files; set :const:`True` if you want to delete, otherwise set :const:`False`.
+
+    ThreadSleepPeriod = 100,  # Determines the sleep period that is applied on every single worker execution; the value type is :class:`int`.
+    TimeOutPeriodOnUpdateEventDataCall = 101,  # Determines the time-out period that is applied on a single GenTL EventGetData call; the value type must be :class:`int`; the unit is [ms].
+    TimeOutPeriodOnFetchCall = 102,  # Determines the time-out period that is applied on a single fetch method call; the value type must be :class:`int`; the unit is [s].
+    NumBuffersOnGenTLProducer = 103,  # Determines the number of buffers to be allocated on the GenTL Producer-side; the value type must be :class:`int`.
+    RemoveDeviceSourceXmlPath = 104,  # Determines the file path where the source GenICam device description file is located; the value type must be :class:`str`.
+    EnableAutoChunkDataUpdate = 105,  # Determines if you let the :class:`ImageAcquirer` object to automatically update the chunk data when the owner image data is fetched; the value type must be :class:`bool`.
+    DeviceOwnershipPrivilege = 106,
+    ThreadFactoryMethod = 107,  # Determines the thread factory method where the corersponding thread worker is bound; the value type must be callable.
+
+
+class ParameterSet:
+    def __init__(self,
+                 parameter_dict: Optional[Dict[ParameterKey, Any]] = None):
+        super().__init__()
+        self._dict = parameter_dict if parameter_dict else dict()
+
+    @property
+    def parameters(self) -> Dict[ParameterKey, Any]:
+        return self._dict
+
+    @staticmethod
+    def check(declared: ParameterSet, supported_keys: List[ParameterKey]):
+        if declared:
+            global _logger
+            for k in declared.parameters.keys():
+                if k not in supported_keys:
+                    _logger.warning("not supported; key: {}".format(k))
+
+    @staticmethod
+    def get(config: ParameterSet, key: ParameterKey, default: Any):
+        if config is None:
+            return default
+        else:
+            value = config._dict.get(key)
+            if type(value) is str:
+                return value
+            else:
+                if value is None:
+                    return default
+                else:
+                    return value
+
+    def add(self, key: ParameterKey, value: Any):
+        global _logger
+        if key in self._dict.keys():
+            _logger.debug("overwritten; key: {}, value: {}".format(
+                key.name, self._dict[key]))
+
+        self._dict[key] = value
+        _logger.debug("added parameter; key: {}, value: {}".format(
+            key.name, value))
+
+    def remove(self, key: ParameterKey):
+        if key in self._dict.keys():
+            del self._dict[key]
+            _logger.debug("removed parameter; key: {}".format(key.name))
 
 
 def _family_tree(node, tree=""):
@@ -1354,6 +1421,16 @@ class ImageAcquirer:
     _event = Event()
     _specialized_tl_type = ['U3V', 'GEV']
 
+    _supported_parameters = [
+        ParameterKey.EnableCleaningUpIntermediateFiles,
+        ParameterKey.EnableAutoChunkDataUpdate,
+        ParameterKey.RemoveDeviceSourceXmlPath,
+        ParameterKey.ThreadSleepPeriod,
+        ParameterKey.TimeOutPeriodOnUpdateEventDataCall,
+        ParameterKey.TimeOutPeriodOnFetchCall,
+        ParameterKey.NumBuffersOnGenTLProducer,
+    ]
+
     class Events(IntEnum):
         TURNED_OBSOLETE = 0,
         NEW_BUFFER_AVAILABLE = 1,
@@ -1364,14 +1441,7 @@ class ImageAcquirer:
     def _create_acquisition_thread(self) -> _ImageAcquisitionThread:
         return _ImageAcquisitionThread(image_acquire=self)
 
-    def __init__(
-            self, *, device=None,
-            sleep_duration: float = _sleep_duration_default,
-            file_path: Optional[str] = None,
-            file_dict: Dict[str, bytes] = None,
-            update_chunk_automatically=True,
-            _clean_up: bool = True,
-            _profiler=None):
+    def __init__(self, *, device=None, config: Optional[ParameterSet] = None, profiler=None, file_dict=None):
         """
 
         Parameters
@@ -1388,13 +1458,13 @@ class ImageAcquirer:
         file_dict : Dict[str, bytes]
         """
         global _logger
-        _logger.debug('instantiated: {}'.format(self))
+        ParameterSet.check(config, self._supported_parameters)
         super().__init__()
 
         self._is_valid = True
         self._file_dict = file_dict
-        self._clean_up = _clean_up
-        self._update_chunk_automatically = update_chunk_automatically
+        self._clean_up = ParameterSet.get(config, ParameterKey.EnableCleaningUpIntermediateFiles, True)
+        self._enable_auto_chunk_data_update = ParameterSet.get(config, ParameterKey.EnableAutoChunkDataUpdate, True)
         self._has_attached_chunk = False
 
         env_var = 'HARVESTERS_XML_FILE_DIR'
@@ -1404,9 +1474,12 @@ class ImageAcquirer:
             self._xml_dir = None
 
         self._device = device
+
+        file_path = ParameterSet.get(config, ParameterKey.RemoveDeviceSourceXmlPath, None)
+
         self._remote_device = RemoteDevice(
             module=device.module, parent=device, file_path=file_path,
-            file_dict=file_dict, do_clean_up=_clean_up,
+            file_dict=file_dict, do_clean_up=self._clean_up,
             xml_dir_to_store=self._xml_dir)
         self._interface = device.parent
         self._system = self._interface.parent
@@ -1421,12 +1494,12 @@ class ImageAcquirer:
         if self._create_ds_at_connection:
             self._setup_data_streams()
 
-        self._profiler = _profiler
+        self._profiler = profiler
 
         self._num_buffers_to_hold = 1
         self._queue = Queue(maxsize=self._num_buffers_to_hold)
 
-        self._sleep_duration = sleep_duration
+        self._sleep_duration = ParameterSet.get(config, ParameterKey.ThreadSleepPeriod, _sleep_duration_default)
         self._thread_image_acquisition = self._create_acquisition_thread()
 
         self._threads = []
@@ -1440,15 +1513,17 @@ class ImageAcquirer:
             _logger.debug('created: {0}'.format(self._sigint_handler))
 
         self._num_images_to_acquire = 0
-        self._timeout_on_internal_fetch_call = 1  # ms
-        self._timeout_on_client_fetch_call = 0.01  # s
+
+        self._timeout_on_internal_fetch_call = ParameterSet.get(config, ParameterKey.TimeOutPeriodOnUpdateEventDataCall, 1)  # ms
+        self._timeout_on_client_fetch_call = ParameterSet.get(config, ParameterKey.TimeOutPeriodOnFetchCall, 0.01)  # s
+
         self._statistics = Statistics()
         self._announced_buffers = []
 
         self._has_acquired_1st_image = False
         self._is_acquiring = False
 
-        num_buffers_default = 3
+        num_buffers_default = ParameterSet.get(config, ParameterKey.NumBuffersOnGenTLProducer, 3)
         try:
             self._min_num_buffers = self._data_streams[0].buffer_announce_min
         except GenTL_GenericException as e:
@@ -2119,7 +2194,7 @@ class ImageAcquirer:
         if not raw_buffer:
             return None
 
-        if self._update_chunk_automatically:
+        if self._enable_auto_chunk_data_update:
             self._update_chunk_data(buffer=raw_buffer)
 
         if is_raw:
@@ -2445,17 +2520,29 @@ class Harvester:
     this class.
     """
     #
-    def __init__(
-            self, *,
-            profile=False, logger: Optional[Logger] = None,
-            _clean_up: bool = True):
-        """
+    _supported_parameters = [
+        ParameterKey.Logger,
+        ParameterKey.EnableCleaningUpIntermediateFiles,
+        ParameterKey.TimeOutPeriodOnModuleEnumeration,
+        ParameterKey._EnableProfile,
+    ]
 
-        :param profile:
-        :param logger:
+    def __init__(self, *, config: Optional[ParameterSet] = None):
+        """
+        Parameters
+        ----------
+        config: Optional[ParameterSet] = None
+            Set a parameter set. Possible parameters are:
+
+                - ParameterKey.Logger,
+                - ParameterKey.EnableCleaningUpIntermediateFiles, and
+                - ParameterKey.TimeOutPeriodOnModuleEnumeration.
         """
         global _logger
 
+        ParameterSet.check(config, self._supported_parameters)
+
+        logger = ParameterSet.get(config, ParameterKey.Logger, None)
         _logger = logger or _logger
 
         super().__init__()
@@ -2466,18 +2553,19 @@ class Harvester:
         self._ifaces = []
         self._device_info_list = []
         self._ias = []
-        self._clean_up = _clean_up
         self._has_revised_device_list = False
-        self._timeout_for_update = 1000  # ms
+        self._clean_up = \
+            ParameterSet.get(config, ParameterKey.EnableCleaningUpIntermediateFiles, True)
 
-        if profile:
+        self._timeout_period_on_module_enumeration = \
+            ParameterSet.get(config, ParameterKey.TimeOutPeriodOnModuleEnumeration, 1000)  # ms
+
+        if ParameterSet.get(config, ParameterKey._EnableProfile, False):
             from harvesters._private.core.helper.profiler import Profiler
             self._profiler = Profiler()
+            self._profiler.print_diff()
         else:
             self._profiler = None
-
-        if self._profiler:
-            self._profiler.print_diff()
 
         self._finalizer = weakref.finalize(self, self._reset)
         _logger.info('created: {0}'.format(self))
@@ -2532,11 +2620,11 @@ class Harvester:
         int: The duration that is used as the time limit for the device
         enumeration process. The unit is [ms].
         """
-        return self._timeout_for_update
+        return self._timeout_period_on_module_enumeration
 
     @timeout_for_update.setter
     def timeout_for_update(self, ms: Optional[int] = 0) -> None:
-        self._timeout_for_update = ms
+        self._timeout_period_on_module_enumeration = ms
 
     @property
     def has_revised_device_info_list(self) -> bool:
@@ -2549,10 +2637,7 @@ class Harvester:
     def create(
             self,
             search_key: Optional[Union[int, Dict[str, str], DeviceInfo]] = None,
-            *,
-            privilege: Optional[str] = 'exclusive',
-            auto_chunk_data_update: Optional[bool] = True,
-            file_path: Optional[str] = None) -> ImageAcquirer:
+            *, config: Optional[ParameterSet] = None) -> ImageAcquirer:
         """
         Creates an image acquirer that is mapped to the specified remote
         device.
@@ -2565,18 +2650,16 @@ class Harvester:
             device information object (DeviceInfo) to specify a target
             device to be mapped to the ImageAcquirer object to be created.
 
-        privilege: Optional[str] = 'exclusive'
-            Set a device ownership privilege to be applied.
+        config: Optional[ParameterSet] = None
+            Set a parameter set. Possible parameters are:
 
-        auto_chunk_data_update: Optional[bool] = True
-            Set True if you want the ImageAcquire object to automatically
-            update the chunk data. Set False if you want to manually
-            call the update method call by yourself.
-
-        file_path: Optional[str] = None
-            Set a path to a GenICam device description XML file if needed.
-            In most cases, everything should be fine as long as the mapped
-            device has a valid XML file.
+                - ParameterKey.EnableCleaningUpIntermediateFiles,
+                - ParameterKey.EnableAutoChunkDataUpdate,
+                - ParameterKey.RemoveDeviceSourceXmlPath,
+                - ParameterKey.ThreadSleepPeriod,
+                - ParameterKey.TimeOutPeriodOnUpdateEventDataCall,
+                - ParameterKey.TimeOutPeriodOnFetchCall, and
+                - ParameterKey.NumBuffersOnGenTLProducer.
 
         Returns
         -------
@@ -2590,18 +2673,6 @@ class Harvester:
         the mapped device ownership is released.
 
         """
-        return self._create(search_key=search_key, privilege=privilege,
-                            auto_chunk_data_update=auto_chunk_data_update,
-                            file_path=file_path)
-
-    def _create(
-            self, *,
-            search_key: Optional[Union[int, Dict[str, str], DeviceInfo]] = None,
-            privilege: Optional[str] = 'exclusive',
-            auto_chunk_data_update: Optional[bool] = True,
-            file_path: Optional[str] = None,
-            file_dict: Optional[Dict[str, bytes]] = None) -> ImageAcquirer:
-        global _logger
 
         def compose_message(status: int, solution: int) -> str:
             status_dict = {
@@ -2657,15 +2728,12 @@ class Harvester:
         else:
             raise ValueError(compose_message(3, 3))
 
-        return self._create_acquirer(
-            raw_device=raw_device, privilege=privilege,
-            sleep_duration=_sleep_duration_default,
-            file_path=file_path, file_dict=file_dict,
-            auto_chunk_data_update=auto_chunk_data_update)
+        return self._create_acquirer(raw_device=raw_device, config=config)
 
-    def _create_acquirer(self, *,
-                         raw_device, privilege, sleep_duration, file_path,
-                         file_dict, auto_chunk_data_update):
+    def _create_acquirer(self, *, raw_device: Device,
+                         config: Optional[ParameterSet] = None,
+                         file_dict=None):
+        privilege = ParameterSet.get(config, ParameterKey.DeviceOwnershipPrivilege, 'exclusive')
         try:
             if privilege == 'exclusive':
                 _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
@@ -2687,11 +2755,11 @@ class Harvester:
             _logger.debug(
                 'opened: {}'.format(_family_tree(device)))
 
-            ia = ImageAcquirer(
-                device=device, _profiler=self._profiler,
-                sleep_duration=sleep_duration, file_path=file_path,
-                file_dict=file_dict, _clean_up=self._clean_up,
-                update_chunk_automatically=auto_chunk_data_update)
+            if config:
+                config.remove(ParameterKey.DeviceOwnershipPrivilege)
+
+            ia = ImageAcquirer(device=device, config=config,
+                               file_dict=file_dict)
             self._ias.append(ia)
 
             if self._profiler:
@@ -2780,11 +2848,16 @@ class Harvester:
                 dev_info = candidates[0]
                 raw_device = dev_info.create_device()
 
-        return self._create_acquirer(
-            raw_device=raw_device, privilege=privilege,
-            sleep_duration=sleep_duration,
-            file_path=file_path, file_dict=file_dict,
-            auto_chunk_data_update=auto_chunk_data_update)
+        config = ParameterSet({
+            ParameterKey.DeviceOwnershipPrivilege: privilege,
+            ParameterKey.ThreadSleepPeriod: sleep_duration,
+            ParameterKey.RemoveDeviceSourceXmlPath: file_path,
+            ParameterKey.EnableAutoChunkDataUpdate: auto_chunk_data_update,
+            ParameterKey.EnableCleaningUpIntermediateFiles: self._clean_up
+        })
+
+        return self._create_acquirer(raw_device=raw_device, config=config,
+                                     file_dict=file_dict)
 
     def add_cti_file(
             self, file_path: str, check_existence: bool = False,

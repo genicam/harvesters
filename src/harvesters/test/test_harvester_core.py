@@ -43,6 +43,7 @@ from harvesters.test.base_harvester import TestHarvester, \
 from harvesters.test.base_harvester import get_cti_file_path
 from harvesters.core import Callback
 from harvesters.core import Harvester, Interface
+from harvesters.core import ParameterSet, ParameterKey
 from harvesters.core import ImageAcquirer
 from harvesters.core import _drop_padding_data
 from harvesters.core import Module
@@ -1026,8 +1027,11 @@ class TestIssue85(unittest.TestCase):
         #
         self.assertFalse(os.listdir(temp_dir))
 
+        config = ParameterSet({
+            ParameterKey.EnableCleaningUpIntermediateFiles: False,
+        })
         #
-        with Harvester(_clean_up=False) as h:
+        with Harvester(config=config) as h:
             h.add_file(self._cti_file_path)
             h.update()
             with h.create_image_acquirer(0):

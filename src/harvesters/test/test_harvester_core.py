@@ -1033,7 +1033,7 @@ class TestIssue85(unittest.TestCase):
         self.assertFalse(os.listdir(temp_dir))
 
         config = ParameterSet({
-            ParameterKey.EnableCleaningUpIntermediateFiles: False,
+            ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES: False,
         })
         #
         with Harvester(config=config) as h:

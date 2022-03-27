@@ -130,8 +130,8 @@ class TestHarvester(TestHarvesterBase):
 
         #
         config = ParameterSet({
-            ParameterKey.Logger: self._logger,
-            ParameterKey.EnableCleaningUpIntermediateFiles: True,
+            ParameterKey.LOGGER: self._logger,
+            ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES: True,
         })
         self._harvester = Harvester(config=config)
         self._harvester.add_file(self._cti_file_path)
@@ -149,8 +149,8 @@ class TestHarvesterNoCleanUp(TestHarvesterBase):
 
         #
         config = ParameterSet({
-            ParameterKey.Logger: self._logger,
-            ParameterKey.EnableCleaningUpIntermediateFiles: False,
+            ParameterKey.LOGGER: self._logger,
+            ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES: False,
         })
         self._harvester = Harvester(config=config)
         self._harvester.add_file(self._cti_file_path)

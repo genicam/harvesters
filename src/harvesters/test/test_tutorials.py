@@ -29,6 +29,7 @@ from harvesters.core import Harvester
 # Local application/library specific imports
 from harvesters.test.base_harvester import TestHarvester
 from harvesters.test.base_harvester import get_cti_file_path
+from harvesters.test.base_harvester import BaseVersion
 
 
 class AcquisitionThread(Thread):
@@ -183,6 +184,10 @@ class TestTutorials2(unittest.TestCase):
 
         # We don't need the ImageAcquirer object. Destroy it:
         ia.destroy()
+
+
+class TestTutorialsVersion1(TestTutorials):
+    base_version = BaseVersion.VERSION_1
 
 
 if __name__ == '__main__':

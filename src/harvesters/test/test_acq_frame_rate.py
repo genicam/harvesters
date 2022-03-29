@@ -28,6 +28,7 @@ import unittest
 
 # Local application/library specific imports
 from harvesters.test.base_harvester import TestHarvester
+from harvesters.test.base_harvester import BaseVersion
 
 
 class ThreadWithTimeLimit(Thread):
@@ -159,6 +160,14 @@ class TestTutorials(TestHarvester):
 
         # Destroy the image acquirer:
         self.ia.destroy()
+
+
+class ThreadWithTimeLimitVersion1(ThreadWithTimeLimit):
+    base_version = BaseVersion.VERSION_1
+
+
+class TestTutorialsVersion1(TestTutorials):
+    base_version = BaseVersion.VERSION_1
 
 
 if __name__ == '__main__':

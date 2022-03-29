@@ -21,7 +21,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../src'))
 
-import versioneer as versioneer
+from harvesters import __version__ as harvester_version
 
 # -- General configuration ------------------------------------------------
 
@@ -83,7 +83,7 @@ author = 'EMVA - European Machine Vision Association'
 # built documents.
 #
 # The short X.Y version.
-version = versioneer.get_version()
+version = harvester_version
 # The full version, including alpha/beta/rc tags.
 #release = '0'
 

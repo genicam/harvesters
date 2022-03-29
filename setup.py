@@ -38,7 +38,7 @@ log.info('$PATH=%s' % os.environ['PATH'])
 with open('README.rst', 'r',encoding='utf-8_sig') as fh:
     __doc__ = fh.read()
 
-description = 'Friendly Image Acquisition Library for Computer Vision People'
+description = 'Image Acquisition Library for GenICam-based Machine Vision System'
 
 # Determine the base directory:
 base_dir = os.path.dirname(__file__)

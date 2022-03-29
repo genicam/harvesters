@@ -182,7 +182,7 @@ def _family_tree(node, tree=""):
     return tree
 
 
-def _pending_deprecation_warning(deprecated: object, alternative: object) -> None:
+def _indicate_deprecation(deprecated: object, alternative: object) -> None:
     #
     items = []
     for obj in (deprecated, alternative):
@@ -192,7 +192,7 @@ def _pending_deprecation_warning(deprecated: object, alternative: object) -> Non
         'please consider to use {} instead of {}.'.format(
             items[1], items[0]
         ),
-        PendingDeprecationWarning, stacklevel=3
+        DeprecationWarning, stacklevel=3
     )
 
 
@@ -1805,7 +1805,7 @@ class ImageAcquirer:
             :meth:`is_acquiring_images` will be removed in 2.0.0, it will
             be replaced by :meth:`is_acquiring`.
         """
-        _pending_deprecation_warning(self.is_acquiring_images, self.is_acquiring)
+        _indicate_deprecation(self.is_acquiring_images, self.is_acquiring)
         return self.is_acquiring()
 
     def is_acquiring(self) -> bool:
@@ -1841,12 +1841,12 @@ class ImageAcquirer:
             :attr:`timeout_on_client_fetch_call` will be removed in 2.0.0,
             it will be replaced by :attr:`timeout_period_on_client_fetch_call`.
         """
-        _pending_deprecation_warning('timeout_on_client_fetch_call', 'timeout_period_on_client_fetch_call')
+        _indicate_deprecation('timeout_on_client_fetch_call', 'timeout_period_on_client_fetch_call')
         return self.timeout_period_on_client_fetch_call
 
     @timeout_on_client_fetch_call.setter
     def timeout_on_client_fetch_call(self, value: float):
-        _pending_deprecation_warning('timeout_on_client_fetch_call', 'timeout_period_on_client_fetch_call')
+        _indicate_deprecation('timeout_on_client_fetch_call', 'timeout_period_on_client_fetch_call')
         self.timeout_period_on_client_fetch_call = value
 
     @property
@@ -1896,12 +1896,12 @@ class ImageAcquirer:
             :attr:`timeout_for_image_acquisition` will be removed in 2.0.0,
             it will be replaced by :attr:`timeout_period_on_update_event_data_call`.
         """
-        _pending_deprecation_warning('timeout_for_image_acquisition', 'timeout_period_on_update_event_data_call')
+        _indicate_deprecation('timeout_for_image_acquisition', 'timeout_period_on_update_event_data_call')
         return self._timeout_on_internal_fetch_call
 
     @timeout_for_image_acquisition.setter
     def timeout_for_image_acquisition(self, ms):
-        _pending_deprecation_warning('timeout_for_image_acquisition', 'timeout_period_on_update_event_data_call')
+        _indicate_deprecation('timeout_for_image_acquisition', 'timeout_period_on_update_event_data_call')
         self._timeout_on_internal_fetch_call = ms
 
     @property
@@ -1952,7 +1952,7 @@ class ImageAcquirer:
             :meth:`start_image_acquisition` will be removed in 2.0.0, it is
             replaced by :meth:`start`.
         """
-        _pending_deprecation_warning(self.start_image_acquisition, self.start_acquisition)
+        _indicate_deprecation(self.start_image_acquisition, self.start_acquisition)
         self.start_acquisition(run_in_background=run_in_background)
 
     def start_acquisition(self, run_in_background: bool = False) -> None:
@@ -1961,7 +1961,7 @@ class ImageAcquirer:
             :meth:`start_acquisition` will be removed in 2.0.0, it will be replaced
             by :meth:`start`.
         """
-        _pending_deprecation_warning(self.start_acquisition, self.start)
+        _indicate_deprecation(self.start_acquisition, self.start)
         self.start(run_as_thread=run_in_background)
 
     def start(self, *, run_as_thread: bool = False) -> None:
@@ -2268,7 +2268,7 @@ class ImageAcquirer:
             :meth:`fetch_buffer` will be removed in 2.0.0, it will be replaced
             by :meth:`fetch`.
         """
-        _pending_deprecation_warning(self.fetch_buffer, self.fetch)
+        _indicate_deprecation(self.fetch_buffer, self.fetch)
         return self.fetch(timeout=timeout, is_raw=is_raw, cycle_s=cycle_s)
 
     def fetch(self, *, timeout: float = 0, is_raw: bool = False,
@@ -2382,7 +2382,7 @@ class ImageAcquirer:
             :meth:`stop_image_acquisition` will be removed in 2.0.0, it is
             replaced by :meth:`stop`.
         """
-        _pending_deprecation_warning(self.stop_image_acquisition, self.stop)
+        _indicate_deprecation(self.stop_image_acquisition, self.stop)
         self.stop_acquisition()
 
     def stop_acquisition(self) -> None:
@@ -2391,7 +2391,7 @@ class ImageAcquirer:
             :meth:`stop_acquisition` will be removed in 2.0.0, it will be replaced
             by :meth:`stop`.
         """
-        _pending_deprecation_warning(self.stop_acquisition, self.stop)
+        _indicate_deprecation(self.stop_acquisition, self.stop)
         self.stop()
 
     def stop(self) -> None:
@@ -2677,7 +2677,7 @@ class Harvester:
             :attr:`cti_files` will be removed in 2.0.0, it will be replaced
             by :attr:`files`.
         """
-        _pending_deprecation_warning('cti_files', 'files')
+        _indicate_deprecation('cti_files', 'files')
         return self.files
 
     @property
@@ -2884,7 +2884,7 @@ class Harvester:
 
         """
         global _logger
-        _pending_deprecation_warning(self.create_image_acquirer, self.create)
+        _indicate_deprecation(self.create_image_acquirer, self.create)
         if not self.device_info_list:
             return None
 
@@ -2947,7 +2947,7 @@ class Harvester:
             :meth:`add_cti_file` will be removed in 2.0.0, it will be replaced
             by :meth:`add_file`.
         """
-        _pending_deprecation_warning(self.add_cti_file, self.add_file)
+        _indicate_deprecation(self.add_cti_file, self.add_file)
         self.add_file(file_path)
 
     def add_file(
@@ -3003,7 +3003,7 @@ class Harvester:
             :meth:`remove_cti_file` will be removed in 2.0.0, it will be replaced
             by :meth:`remove_file`.
         """
-        _pending_deprecation_warning(self.remove_cti_file, self.remove_file)
+        _indicate_deprecation(self.remove_cti_file, self.remove_file)
         self.remove_file(file_path)
 
     def remove_file(self, file_path: str) -> None:
@@ -3027,7 +3027,7 @@ class Harvester:
             :meth:`remove_cti_files` will be removed in 2.0.0, it will be replaced
             by :meth:`remove_files`.
         """
-        _pending_deprecation_warning(self.remove_cti_files, self.remove_files)
+        _indicate_deprecation(self.remove_cti_files, self.remove_files)
         self.remove_files()
 
     def remove_files(self) -> None:
@@ -3144,7 +3144,7 @@ class Harvester:
             :meth:`update_device_info_list` will be removed in 2.0.0, it will
             be replaced by :meth:`update`.
         """
-        _pending_deprecation_warning(self.update_device_info_list, self.update)
+        _indicate_deprecation(self.update_device_info_list, self.update)
         self.update()
 
     def update(self) -> None:

@@ -2171,7 +2171,7 @@ class ImageAcquirer:
 
         Returns
         -------
-        Union[Buffer, Buffer_, None]
+        Union[Buffer, _Buffer, None]
             A buffer if it is complete; otherwise None.
         """
         buffer = self._fetch(manager=self._event_new_buffer_managers[0],
@@ -2313,7 +2313,7 @@ class ImageAcquirer:
 
         Returns
         -------
-        Union[Buffer, Buffer_, None]
+        Union[Buffer, _Buffer, None]
             A buffer object if the resource is complete; otherwise None.
         """
 

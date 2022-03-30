@@ -43,6 +43,7 @@ from harvesters.test.base_harvester import TestHarvester, \
 from harvesters.test.base_harvester import get_cti_file_path
 from harvesters.core import Callback
 from harvesters.core import Harvester, Interface
+from harvesters.core import ParameterSet, ParameterKey
 from harvesters.core import ImageAcquirer
 from harvesters.core import _drop_padding_data
 from harvesters.core import Module
@@ -54,6 +55,7 @@ from harvesters.util.pfnc import Mono10Packed, Mono12Packed
 from harvesters.util.pfnc import Mono10p, Mono12p, Mono14p
 from harvesters.util.pfnc import RGB10p, BGR10p
 from harvesters.util.pfnc import RGB12p, BGR12p
+from harvesters.test.base_harvester import BaseVersion
 
 
 class TestHarvesterCoreNoCleanUp(TestHarvesterNoCleanUp):
@@ -999,6 +1001,7 @@ class TestIssue81(unittest.TestCase):
 class TestIssue85(unittest.TestCase):
     _cti_file_path = get_cti_file_path()
     sys.path.append(_cti_file_path)
+    base_version = BaseVersion.VERSION_LATEST
 
     def setUp(self) -> None:
         #
@@ -1026,14 +1029,21 @@ class TestIssue85(unittest.TestCase):
         #
         self.assertFalse(os.listdir(temp_dir))
 
-        #
-        with Harvester(_clean_up=False) as h:
-            h.add_file(self._cti_file_path)
-            h.update()
-            with h.create_image_acquirer(0):
-                # Check if XML files have been stored in the expected
-                # directory:
-                self.assertTrue(os.listdir(temp_dir))
+        if self.base_version == BaseVersion.VERSION_LATEST:
+            config = ParameterSet({
+                ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES: False,
+            })
+            h = Harvester(config=config)
+        else:
+            h = Harvester(do_clean_up=False)
+
+        h.add_file(self._cti_file_path)
+        h.update()
+        with h.create_image_acquirer(0):
+            # Check if XML files have been stored in the expected
+            # directory:
+            self.assertTrue(os.listdir(temp_dir))
+        h.reset()
 
 
 class _OnNewBufferAvailable(Callback):
@@ -1183,8 +1193,24 @@ class TestUtility(unittest.TestCase):
         prefix = 'file:///'
         path = 'C:/ProgramData/GenICam/xml/cache/Optronis_Cyclone_V1_7_8.xml'
         url = prefix + path
-        result = ImageAcquirer._retrieve_file_path(url=url)
+        result = Module._retrieve_file_path(url=url)
         self.assertEqual(path, result)
+
+
+class TestHarvesterCoreNoCleanUpVersion1(TestHarvesterCoreNoCleanUp):
+    base_version = BaseVersion.VERSION_1
+
+
+class TestHarvesterCoreVersion1(TestHarvesterCore):
+    base_version = BaseVersion.VERSION_1
+
+
+class TestIssue85Version1(TestIssue85):
+    base_version = BaseVersion.VERSION_1
+
+
+class TestIssue181Version1(TestIssue181):
+    base_version = BaseVersion.VERSION_1
 
 
 if __name__ == '__main__':

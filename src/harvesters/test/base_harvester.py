@@ -19,6 +19,7 @@
 
 
 # Standard library imports
+from enum import IntEnum
 from logging import INFO
 import os
 import sys
@@ -27,9 +28,14 @@ import unittest
 # Related third party imports
 
 # Local application/library specific imports
-from harvesters.core import Harvester
+from harvesters.core import Harvester, ParameterSet, ParameterKey
 from harvesters.util.logging import get_logger
 from harvesters.test.helper import get_package_dir
+
+
+class BaseVersion:
+    VERSION_LATEST = -1,
+    VERSION_1 = 1,
 
 
 def get_cti_file_path():
@@ -54,16 +60,15 @@ def get_cti_file_path():
     
     return cti_file_path
     
-    
+
 class TestHarvesterBase(unittest.TestCase):
     _cti_file_path = get_cti_file_path()
     sys.path.append(_cti_file_path)
+    base_version = BaseVersion.VERSION_LATEST
 
     def __init__(self, *args, **kwargs):
         #
         super().__init__(*args, **kwargs)
-
-        #
         self._harvester = None
         self._ia = None
         self._thread = None
@@ -118,30 +123,43 @@ class TestHarvesterBase(unittest.TestCase):
 
 class TestHarvester(TestHarvesterBase):
     def __init__(self, *args, **kwargs):
-        #
         super().__init__(*args, **kwargs)
 
     def setUp(self):
-        #
         super().setUp()
+        if self.base_version == BaseVersion.VERSION_LATEST:
+            config = ParameterSet({
+                ParameterKey.LOGGER: self._logger,
+                ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES: True,
+            })
+            self._harvester = Harvester(config=config)
+        elif self.base_version == BaseVersion.VERSION_1:
+            self._harvester = Harvester(logger=self._logger, do_clean_up=True)
+        else:
+            raise ValueError("invalid base version")
 
-        #
-        self._harvester = Harvester(logger=self._logger, _clean_up=True)
         self._harvester.add_file(self._cti_file_path)
         self._harvester.update()
 
 
 class TestHarvesterNoCleanUp(TestHarvesterBase):
     def __init__(self, *args, **kwargs):
-        #
         super().__init__(*args, **kwargs)
 
     def setUp(self):
-        #
         super().setUp()
+        if self.base_version == BaseVersion.VERSION_LATEST:
+            config = ParameterSet({
+                ParameterKey.LOGGER: self._logger,
+                ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES: False,
+            })
+            self._harvester = Harvester(config=config)
+        elif self.base_version == BaseVersion.VERSION_1:
+            self._harvester = Harvester(logger=self._logger,
+                                        do_clean_up=False)
+        else:
+            raise ValueError("invalid base version")
 
-        #
-        self._harvester = Harvester(logger=self._logger, _clean_up=False)
         self._harvester.add_file(self._cti_file_path)
         self._harvester.update()
 

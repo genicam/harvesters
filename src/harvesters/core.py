@@ -39,9 +39,9 @@ import sys
 from threading import Lock, Thread, Event
 from threading import current_thread, main_thread
 import time
-from typing import Union, List, Optional, Dict, TypeVar
+from typing import Union, List, Optional, Dict, TypeVar, Any
 from urllib.parse import urlparse
-from warnings import warn
+from warnings import warn, simplefilter
 import weakref
 import tempfile
 
@@ -75,11 +75,88 @@ from harvesters.util.pfnc import Dictionary, _PixelFormat
 from harvesters.util.pfnc import component_2d_formats
 
 
+simplefilter(action="once")
+
+
 _is_logging_buffer = True if 'HARVESTERS_LOG_BUFFER' in os.environ else False
 _sleep_duration_default = 0.000001  # s
 
 
 _logger = get_logger(name=__name__)
+
+
+class ParameterKey(IntEnum):
+    __doc__ = "A list of variable/defined parameters."
+    _ENABLE_PROFILE = -1,
+    LOGGER = 0,  # Determines the logger to be used; the value type must be :class:`Logger`.
+    TIMEOUT_PERIOD_ON_MODULE_ENUMERATION = 2,  # Determines the time-out period that is applied on the GenTL module enumeration; the value type must be :class:`int`.
+    ENABLE_CLEANING_UP_INTERMEDIATE_FILES = 3,  # Determines if you want to delete all of the intermediate files; set :const:`True` if you want to delete, otherwise set :const:`False`.
+
+    THREAD_SLEEP_PERIOD = 100,  # Determines the sleep period that is applied on every single worker execution; the value type is :class:`int`.
+    TIMEOUT_PERIOD_ON_UPDATE_EVENT_DATA_CALL = 101,  # Determines the time-out period that is applied on a single GenTL EventGetData call; the value type must be :class:`int`; the unit is [ms].
+    TIMEOUT_PERIOD_ON_CLIENT_FETCH_CALL = 102,  # Determines the time-out period that is applied on a single fetch method call; the value type must be :class:`int`; the unit is [s].
+    NUM_BUFFERS_FOR_FETCH_CALL = 103,  # Determines the number of buffers to be allocated on the GenTL Producer-side; the value type must be :class:`int`.
+    REMOTE_DEVICE_SOURCE_XML_FILE_PATH = 104,  # Determines the file path where the source GenICam device description file is located; the value type must be :class:`str`.
+    ENABLE_AUTO_CHUNK_DATA_UPDATE = 105,  # Determines if you let the :class:`ImageAcquirer` object to automatically update the chunk data when the owner image data is fetched; the value type must be :class:`bool`.
+    DEVICE_OWNERSHIP_PRIVILEGE = 106,
+    THREAD_FACTORY_METHOD = 107,  # Determines the thread factory method where the corersponding thread worker is bound; the value type must be callable.
+
+
+class ParameterSet:
+    """
+    A set of parameters. A typical use case is to use the parameter set to
+    configure a subject.
+    """
+    def __init__(self,
+                 parameter_dict: Optional[Dict[ParameterKey, Any]] = None):
+        """
+        Parameters
+        ----------
+        parameter_dict: Optional[Dict[ParameterKey, Any]] = None):
+            A parameter dictionary. You can add or remove an arbitrary
+            key after the instantiation.
+        """
+        super().__init__()
+        self._dict = parameter_dict if parameter_dict else dict()
+
+    @property
+    def parameters(self) -> Dict[ParameterKey, Any]:
+        return self._dict
+
+    @staticmethod
+    def check(declared: ParameterSet, supported_keys: List[ParameterKey]):
+        if declared:
+            global _logger
+            for k in declared.parameters.keys():
+                if k not in supported_keys:
+                    _logger.warning("not supported; key: {}".format(k))
+
+    @staticmethod
+    def get(key: ParameterKey, default: Optional[Any], config: Optional[ParameterSet] = None):
+        if config is None:
+            return default
+        else:
+            try:
+                value = config._dict[key]
+            except KeyError:
+                return default
+            else:
+                return value
+
+    def add(self, key: ParameterKey, value: Any):
+        global _logger
+        if key in self._dict.keys():
+            _logger.debug("overwritten; key: {}, value: {}".format(
+                key.name, self._dict[key]))
+
+        self._dict[key] = value
+        _logger.debug("added parameter; key: {}, value: {}".format(
+            key.name, value))
+
+    def remove(self, key: ParameterKey):
+        if key in self._dict.keys():
+            del self._dict[key]
+            _logger.debug("removed parameter; key: {}".format(key.name))
 
 
 def _family_tree(node, tree=""):
@@ -105,16 +182,15 @@ def _family_tree(node, tree=""):
     return tree
 
 
-def _deprecated(deprecated: object, alternative: object) -> None:
+def _indicate_deprecation(deprecated: object, alternative: object) -> None:
     #
     items = []
     for obj in (deprecated, alternative):
         items.append(obj.__name__ + '()' if callable(obj) else obj)
 
-    keys = {'deprecated': 0, 'alternative': 1}
     warn(
-        '{} will be deprecated shortly. Use {} instead.'.format(
-            items[keys['deprecated']], items[keys['alternative']]
+        'please consider to use {} instead of {}.'.format(
+            items[1], items[0]
         ),
         DeprecationWarning, stacklevel=3
     )
@@ -751,6 +827,9 @@ class Component2DImage(ComponentBase):
         return int(nr_bytes)
 
     def _to_np_array(self, pf_proxy):
+        padding_x = 0
+        h = 0
+        nr_bytes_per_line = 0
         if self.has_part():
             nr_bytes = self._part.data_size
         else:
@@ -763,17 +842,24 @@ class Component2DImage(ComponentBase):
             except GenTL_GenericException:
                 h = self._node_map.Height.value
 
-            nr_bytes = self._get_nr_bytes(
-                pf_proxy=pf_proxy, width=w, height=h)
+            nr_bytes_per_line = self._get_nr_bytes(
+                pf_proxy=pf_proxy, width=w, height=1)
 
             try:
-                padding_y = self._buffer.padding_y
+                padding_x = self._buffer.padding_x
             except GenTL_GenericException:
-                padding_y = 0
-            nr_bytes += padding_y
+                padding_x = 0
+
+            nr_bytes = nr_bytes_per_line + padding_x
+            nr_bytes *= h
 
         array = numpy.frombuffer(self._buffer.raw_buffer, count=int(nr_bytes),
                                  dtype='uint8', offset=self.data_offset)
+
+        if not self.has_part() and padding_x > 0:
+            array = numpy.reshape(array, (h, nr_bytes_per_line + padding_x))
+            numpy.delete(array, numpy.s_[-1*padding_x:], axis=1)
+            array = numpy.ravel(array)
 
         return pf_proxy.expand(array)
 
@@ -1354,6 +1440,16 @@ class ImageAcquirer:
     _event = Event()
     _specialized_tl_type = ['U3V', 'GEV']
 
+    _supported_parameters = [
+        ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES,
+        ParameterKey.ENABLE_AUTO_CHUNK_DATA_UPDATE,
+        ParameterKey.REMOTE_DEVICE_SOURCE_XML_FILE_PATH,
+        ParameterKey.THREAD_SLEEP_PERIOD,
+        ParameterKey.TIMEOUT_PERIOD_ON_UPDATE_EVENT_DATA_CALL,
+        ParameterKey.TIMEOUT_PERIOD_ON_CLIENT_FETCH_CALL,
+        ParameterKey.NUM_BUFFERS_FOR_FETCH_CALL,
+    ]
+
     class Events(IntEnum):
         TURNED_OBSOLETE = 0,
         NEW_BUFFER_AVAILABLE = 1,
@@ -1364,14 +1460,7 @@ class ImageAcquirer:
     def _create_acquisition_thread(self) -> _ImageAcquisitionThread:
         return _ImageAcquisitionThread(image_acquire=self)
 
-    def __init__(
-            self, *, device=None,
-            sleep_duration: float = _sleep_duration_default,
-            file_path: Optional[str] = None,
-            file_dict: Dict[str, bytes] = None,
-            update_chunk_automatically=True,
-            _clean_up: bool = True,
-            _profiler=None):
+    def __init__(self, *, device=None, config: Optional[ParameterSet] = None, profiler=None, file_dict=None):
         """
 
         Parameters
@@ -1388,13 +1477,13 @@ class ImageAcquirer:
         file_dict : Dict[str, bytes]
         """
         global _logger
-        _logger.debug('instantiated: {}'.format(self))
+        ParameterSet.check(config, self._supported_parameters)
         super().__init__()
 
         self._is_valid = True
         self._file_dict = file_dict
-        self._clean_up = _clean_up
-        self._update_chunk_automatically = update_chunk_automatically
+        self._clean_up = ParameterSet.get(ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES, True, config)
+        self._enable_auto_chunk_data_update = ParameterSet.get(ParameterKey.ENABLE_AUTO_CHUNK_DATA_UPDATE, True, config)
         self._has_attached_chunk = False
 
         env_var = 'HARVESTERS_XML_FILE_DIR'
@@ -1404,9 +1493,12 @@ class ImageAcquirer:
             self._xml_dir = None
 
         self._device = device
+
+        file_path = ParameterSet.get(ParameterKey.REMOTE_DEVICE_SOURCE_XML_FILE_PATH, None, config)
+
         self._remote_device = RemoteDevice(
             module=device.module, parent=device, file_path=file_path,
-            file_dict=file_dict, do_clean_up=_clean_up,
+            file_dict=file_dict, do_clean_up=self._clean_up,
             xml_dir_to_store=self._xml_dir)
         self._interface = device.parent
         self._system = self._interface.parent
@@ -1421,12 +1513,12 @@ class ImageAcquirer:
         if self._create_ds_at_connection:
             self._setup_data_streams()
 
-        self._profiler = _profiler
+        self._profiler = profiler
 
         self._num_buffers_to_hold = 1
         self._queue = Queue(maxsize=self._num_buffers_to_hold)
 
-        self._sleep_duration = sleep_duration
+        self._sleep_duration = ParameterSet.get(ParameterKey.THREAD_SLEEP_PERIOD, _sleep_duration_default, config)
         self._thread_image_acquisition = self._create_acquisition_thread()
 
         self._threads = []
@@ -1440,15 +1532,17 @@ class ImageAcquirer:
             _logger.debug('created: {0}'.format(self._sigint_handler))
 
         self._num_images_to_acquire = 0
-        self._timeout_on_internal_fetch_call = 1  # ms
-        self._timeout_on_client_fetch_call = 0.01  # s
+
+        self._timeout_on_internal_fetch_call = ParameterSet.get(ParameterKey.TIMEOUT_PERIOD_ON_UPDATE_EVENT_DATA_CALL, 1, config)  # ms
+        self._timeout_on_client_fetch_call = ParameterSet.get(ParameterKey.TIMEOUT_PERIOD_ON_CLIENT_FETCH_CALL, 0.01, config)  # s
+
         self._statistics = Statistics()
         self._announced_buffers = []
 
         self._has_acquired_1st_image = False
         self._is_acquiring = False
 
-        num_buffers_default = 3
+        num_buffers_default = ParameterSet.get(ParameterKey.NUM_BUFFERS_FOR_FETCH_CALL, 3, config)
         try:
             self._min_num_buffers = self._data_streams[0].buffer_announce_min
         except GenTL_GenericException as e:
@@ -1715,6 +1809,15 @@ class ImageAcquirer:
         """
         return self._system
 
+    def is_acquiring_images(self):
+        """
+        .. deprecated:: 1.3
+            :meth:`is_acquiring_images` will be removed in 2.0.0, it will
+            be replaced by :meth:`is_acquiring`.
+        """
+        _indicate_deprecation(self.is_acquiring_images, self.is_acquiring)
+        return self.is_acquiring()
+
     def is_acquiring(self) -> bool:
         """
         Returns the truth value of a proposition: It's acquiring images.
@@ -1744,15 +1847,30 @@ class ImageAcquirer:
     @property
     def timeout_on_client_fetch_call(self) -> float:
         """
+        .. deprecated:: 1.3
+            :attr:`timeout_on_client_fetch_call` will be removed in 2.0.0,
+            it will be replaced by :attr:`timeout_period_on_client_fetch_call`.
+        """
+        _indicate_deprecation('timeout_on_client_fetch_call', 'timeout_period_on_client_fetch_call')
+        return self.timeout_period_on_client_fetch_call
+
+    @timeout_on_client_fetch_call.setter
+    def timeout_on_client_fetch_call(self, value: float):
+        _indicate_deprecation('timeout_on_client_fetch_call', 'timeout_period_on_client_fetch_call')
+        self.timeout_period_on_client_fetch_call = value
+
+    @property
+    def timeout_period_on_client_fetch_call(self) -> float:
+        """
         float: It is used to define the timeout duration on a single fetch
         method calL. The unit is [s].
         """
         return self._timeout_on_client_fetch_call
 
-    @timeout_on_client_fetch_call.setter
-    def timeout_on_client_fetch_call(self, value: float):
+    @timeout_period_on_client_fetch_call.setter
+    def timeout_period_on_client_fetch_call(self, value: float):
         client = value
-        internal = float(self.timeout_on_internal_fetch_call / 1000)
+        internal = float(self.timeout_period_on_update_event_data_call / 1000)
         info = json.dumps({"internal": internal, "client": client})
         if isclose(client, internal):
             _logger.warning("may cause timeout: {}".format(info))
@@ -1762,17 +1880,17 @@ class ImageAcquirer:
         self._timeout_on_client_fetch_call = value
 
     @property
-    def timeout_on_internal_fetch_call(self) -> int:
+    def timeout_period_on_update_event_data_call(self) -> int:
         """
         int: It is used to define the timeout duration on an internal single
         GenTL fetch calL. The unit is [ms].
         """
         return self._timeout_on_internal_fetch_call
 
-    @timeout_on_internal_fetch_call.setter
-    def timeout_on_internal_fetch_call(self, value):
+    @timeout_period_on_update_event_data_call.setter
+    def timeout_period_on_update_event_data_call(self, value):
         internal = float(value)
-        client = self.timeout_on_client_fetch_call * 1000.
+        client = self.timeout_period_on_client_fetch_call * 1000.
         info = json.dumps({"internal": internal, "client": client})
         if isclose(internal, client):
             _logger.warning("may cause timeout: {}".format(info))
@@ -1784,18 +1902,23 @@ class ImageAcquirer:
     @property
     def timeout_for_image_acquisition(self) -> int:
         """
-        Deprecated: Use timeout_on_internal_fetch_call instead.
+        .. deprecated:: 1.3
+            :attr:`timeout_for_image_acquisition` will be removed in 2.0.0,
+            it will be replaced by :attr:`timeout_period_on_update_event_data_call`.
         """
+        _indicate_deprecation('timeout_for_image_acquisition', 'timeout_period_on_update_event_data_call')
         return self._timeout_on_internal_fetch_call
 
     @timeout_for_image_acquisition.setter
     def timeout_for_image_acquisition(self, ms):
+        _indicate_deprecation('timeout_for_image_acquisition', 'timeout_period_on_update_event_data_call')
         self._timeout_on_internal_fetch_call = ms
 
     @property
     def thread_image_acquisition(self) -> ThreadBase:
         """
-        The thread object that runs image acquisition.
+        .. deprecated:: 1.3
+            :attr:`thread_image_acquisition` will be removed in 2.0.0.
         """
         return self._thread_image_acquisition
 
@@ -1833,13 +1956,22 @@ class ImageAcquirer:
             self._event_new_buffer_managers.append(
                 EventManagerNewBuffer(event_token))
 
+    def start_image_acquisition(self, run_in_background=False):
+        """
+        .. deprecated:: 1.3
+            :meth:`start_image_acquisition` will be removed in 2.0.0, it is
+            replaced by :meth:`start`.
+        """
+        _indicate_deprecation(self.start_image_acquisition, self.start_acquisition)
+        self.start_acquisition(run_in_background=run_in_background)
+
     def start_acquisition(self, run_in_background: bool = False) -> None:
         """
         .. deprecated:: 1.3
-            :meth:`start_acquisition` will be removed in 1.4.0, it is replaced
+            :meth:`start_acquisition` will be removed in 2.0.0, it will be replaced
             by :meth:`start`.
         """
-        _deprecated(self.start_acquisition, self.start)
+        _indicate_deprecation(self.start_acquisition, self.start)
         self.start(run_as_thread=run_in_background)
 
     def start(self, *, run_as_thread: bool = False) -> None:
@@ -1951,7 +2083,7 @@ class ImageAcquirer:
 
         for manager in self._event_new_buffer_managers:
             buffer = self._fetch(manager=manager,
-                                 timeout_on_client_fetch_call=self.timeout_on_client_fetch_call)
+                                 timeout_on_client_fetch_call=self.timeout_period_on_client_fetch_call)
             if buffer:
                 with MutexLocker(self.thread_image_acquisition):
                     if not self._is_acquiring:
@@ -2067,7 +2199,7 @@ class ImageAcquirer:
                         return None
 
             try:
-                manager.update_event_data(self.timeout_on_internal_fetch_call)
+                manager.update_event_data(self.timeout_period_on_update_event_data_call)
             except TimeoutException:
                 continue
             except GenTL_GenericException as e:
@@ -2119,7 +2251,7 @@ class ImageAcquirer:
         if not raw_buffer:
             return None
 
-        if self._update_chunk_automatically:
+        if self._enable_auto_chunk_data_update:
             self._update_chunk_data(buffer=raw_buffer)
 
         if is_raw:
@@ -2143,10 +2275,10 @@ class ImageAcquirer:
                      cycle_s: float = None) -> Buffer:
         """
         .. deprecated:: 1.3
-            :meth:`fetch_buffer` will be removed in 1.4.0, it is replaced
+            :meth:`fetch_buffer` will be removed in 2.0.0, it will be replaced
             by :meth:`fetch`.
         """
-        _deprecated(self.fetch_buffer, self.fetch)
+        _indicate_deprecation(self.fetch_buffer, self.fetch)
         return self.fetch(timeout=timeout, is_raw=is_raw, cycle_s=cycle_s)
 
     def fetch(self, *, timeout: float = 0, is_raw: bool = False,
@@ -2254,13 +2386,22 @@ class ImageAcquirer:
             data_stream.queue_buffer(buffer)
             _logger.debug('queued: {0}'.format(_family_tree(buffer)))
 
+    def stop_image_acquisition(self):
+        """
+        .. deprecated:: 1.3
+            :meth:`stop_image_acquisition` will be removed in 2.0.0, it is
+            replaced by :meth:`stop`.
+        """
+        _indicate_deprecation(self.stop_image_acquisition, self.stop)
+        self.stop_acquisition()
+
     def stop_acquisition(self) -> None:
         """
         .. deprecated:: 1.3
-            :meth:`stop_acquisition` will be removed in 1.4.0, it is replaced
+            :meth:`stop_acquisition` will be removed in 2.0.0, it will be replaced
             by :meth:`stop`.
         """
-        _deprecated(self.stop_acquisition, self.stop)
+        _indicate_deprecation(self.stop_acquisition, self.stop)
         self.stop()
 
     def stop(self) -> None:
@@ -2445,17 +2586,48 @@ class Harvester:
     this class.
     """
     #
-    def __init__(
-            self, *,
-            profile=False, logger: Optional[Logger] = None,
-            _clean_up: bool = True):
-        """
+    _supported_parameters = [
+        ParameterKey.LOGGER,
+        ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES,
+        ParameterKey.TIMEOUT_PERIOD_ON_MODULE_ENUMERATION,
+        ParameterKey._ENABLE_PROFILE,
+    ]
 
-        :param profile:
-        :param logger:
+    def __init__(self, *, profile=False, logger: Optional[Logger] = None,
+                 do_clean_up: bool = True,
+                 config: Optional[ParameterSet] = None):
+        """
+        Parameters
+        ----------
+        profile: bool=False
+            Deprecated: Will be removed in 2.0.0. Use :data:`config` instead.
+            This feature is for development purpose. Please do not set
+            :const:`True` if you are not a Harvester developer.
+
+        logger: Optional[Logger] = None
+            Deprecated: Will be removed in 2.0.0. Use :data:`config` instead.
+            Set a logger object that you want to bind with the Harevester and
+            its accompanying obects. If :data:`config` is set then this
+            parameter will be ignored.
+
+        do_clean_up: bool=True
+            Deprecated: Will be removed in 2.0.0. Use :data:`config` instead.
+            This feature is for development purpose. Please do not set
+            :const:`False` if you are not a Harvester developer.
+
+        config: Optional[ParameterSet] = None
+            Set a parameter set. Possible parameters are:
+
+                - :const:`~harvesters.core.ParameterKey.Logger`,
+                - :const:`~harvesters.core.ParameterKey.EnableCleaningUpIntermediateFiles`, and
+                - :const:`~harvesters.core.ParameterKey.TimeOutPeriodOnModuleEnumeration`.
         """
         global _logger
 
+        if config:
+            ParameterSet.check(config, self._supported_parameters)
+
+        logger = ParameterSet.get(ParameterKey.LOGGER, None, config) if config else logger
         _logger = logger or _logger
 
         super().__init__()
@@ -2466,18 +2638,24 @@ class Harvester:
         self._ifaces = []
         self._device_info_list = []
         self._ias = []
-        self._clean_up = _clean_up
         self._has_revised_device_list = False
-        self._timeout_for_update = 1000  # ms
+        self._clean_up = \
+            ParameterSet.get(ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES, True, config) if config else do_clean_up
 
-        if profile:
+        self._timeout_period_on_module_enumeration = \
+            ParameterSet.get(ParameterKey.TIMEOUT_PERIOD_ON_MODULE_ENUMERATION, 1000, config)  # ms
+
+        if config:
+            _profile = ParameterSet.get(ParameterKey._ENABLE_PROFILE, False, config)
+        else:
+            _profile = profile
+
+        if _profile:
             from harvesters._private.core.helper.profiler import Profiler
             self._profiler = Profiler()
+            self._profiler.print_diff()
         else:
             self._profiler = None
-
-        if self._profiler:
-            self._profiler.print_diff()
 
         self._finalizer = weakref.finalize(self, self._reset)
         _logger.info('created: {0}'.format(self))
@@ -2506,10 +2684,10 @@ class Harvester:
     def cti_files(self):
         """
         .. deprecated:: 1.3
-            :meth:`cti_files` will be removed in 1.4.0, it is replaced
-            by :meth:`files`.
+            :attr:`cti_files` will be removed in 2.0.0, it will be replaced
+            by :attr:`files`.
         """
-        _deprecated('cti_files', 'files')
+        _indicate_deprecation('cti_files', 'files')
         return self.files
 
     @property
@@ -2532,11 +2710,11 @@ class Harvester:
         int: The duration that is used as the time limit for the device
         enumeration process. The unit is [ms].
         """
-        return self._timeout_for_update
+        return self._timeout_period_on_module_enumeration
 
     @timeout_for_update.setter
     def timeout_for_update(self, ms: Optional[int] = 0) -> None:
-        self._timeout_for_update = ms
+        self._timeout_period_on_module_enumeration = ms
 
     @property
     def has_revised_device_info_list(self) -> bool:
@@ -2549,10 +2727,7 @@ class Harvester:
     def create(
             self,
             search_key: Optional[Union[int, Dict[str, str], DeviceInfo]] = None,
-            *,
-            privilege: Optional[str] = 'exclusive',
-            auto_chunk_data_update: Optional[bool] = True,
-            file_path: Optional[str] = None) -> ImageAcquirer:
+            *, config: Optional[ParameterSet] = None) -> ImageAcquirer:
         """
         Creates an image acquirer that is mapped to the specified remote
         device.
@@ -2565,18 +2740,16 @@ class Harvester:
             device information object (DeviceInfo) to specify a target
             device to be mapped to the ImageAcquirer object to be created.
 
-        privilege: Optional[str] = 'exclusive'
-            Set a device ownership privilege to be applied.
+        config: Optional[ParameterSet] = None
+            Set a parameter set. Possible parameters are:
 
-        auto_chunk_data_update: Optional[bool] = True
-            Set True if you want the ImageAcquire object to automatically
-            update the chunk data. Set False if you want to manually
-            call the update method call by yourself.
-
-        file_path: Optional[str] = None
-            Set a path to a GenICam device description XML file if needed.
-            In most cases, everything should be fine as long as the mapped
-            device has a valid XML file.
+                - :const:`~harvesters.core.ParameterKey.EnableCleaningUpIntermediateFiles`,
+                - :const:`~harvesters.core.ParameterKey.EnableAutoChunkDataUpdate`,
+                - :const:`~harvesters.core.ParameterKey.RemoveDeviceSourceXmlPath`,
+                - :const:`~harvesters.core.ParameterKey.ThreadSleepPeriod`,
+                - :const:`~harvesters.core.ParameterKey.TimeOutPeriodOnUpdateEventDataCall`,
+                - :const:`~harvesters.core.ParameterKey.TimeOutPeriodOnFetchCall`, and
+                - :const:`~harvesters.core.ParameterKey.NumBuffersOnGenTLProducer`.
 
         Returns
         -------
@@ -2590,18 +2763,6 @@ class Harvester:
         the mapped device ownership is released.
 
         """
-        return self._create(search_key=search_key, privilege=privilege,
-                            auto_chunk_data_update=auto_chunk_data_update,
-                            file_path=file_path)
-
-    def _create(
-            self, *,
-            search_key: Optional[Union[int, Dict[str, str], DeviceInfo]] = None,
-            privilege: Optional[str] = 'exclusive',
-            auto_chunk_data_update: Optional[bool] = True,
-            file_path: Optional[str] = None,
-            file_dict: Optional[Dict[str, bytes]] = None) -> ImageAcquirer:
-        global _logger
 
         def compose_message(status: int, solution: int) -> str:
             status_dict = {
@@ -2657,15 +2818,12 @@ class Harvester:
         else:
             raise ValueError(compose_message(3, 3))
 
-        return self._create_acquirer(
-            raw_device=raw_device, privilege=privilege,
-            sleep_duration=_sleep_duration_default,
-            file_path=file_path, file_dict=file_dict,
-            auto_chunk_data_update=auto_chunk_data_update)
+        return self._create_acquirer(raw_device=raw_device, config=config)
 
-    def _create_acquirer(self, *,
-                         raw_device, privilege, sleep_duration, file_path,
-                         file_dict, auto_chunk_data_update):
+    def _create_acquirer(self, *, raw_device: Device,
+                         config: Optional[ParameterSet] = None,
+                         file_dict=None):
+        privilege = ParameterSet.get(ParameterKey.DEVICE_OWNERSHIP_PRIVILEGE, 'exclusive', config)
         try:
             if privilege == 'exclusive':
                 _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
@@ -2687,11 +2845,11 @@ class Harvester:
             _logger.debug(
                 'opened: {}'.format(_family_tree(device)))
 
-            ia = ImageAcquirer(
-                device=device, _profiler=self._profiler,
-                sleep_duration=sleep_duration, file_path=file_path,
-                file_dict=file_dict, _clean_up=self._clean_up,
-                update_chunk_automatically=auto_chunk_data_update)
+            if config:
+                config.remove(ParameterKey.DEVICE_OWNERSHIP_PRIVILEGE)
+
+            ia = ImageAcquirer(device=device, config=config,
+                               file_dict=file_dict)
             self._ias.append(ia)
 
             if self._profiler:
@@ -2714,7 +2872,7 @@ class Harvester:
             auto_chunk_data_update=True):
         """
         .. deprecated:: 1.3
-            :meth:`create_image_acquirer` will be removed in 1.4.0, it is
+            :meth:`create_image_acquirer` will be removed in 2.0.0, it is
             replaced by :meth:`create`.
 
         Creates an image acquirer for the specified remote device and return
@@ -2736,7 +2894,7 @@ class Harvester:
 
         """
         global _logger
-        _deprecated(self.create_image_acquirer, self.create)
+        _indicate_deprecation(self.create_image_acquirer, self.create)
         if not self.device_info_list:
             return None
 
@@ -2780,21 +2938,26 @@ class Harvester:
                 dev_info = candidates[0]
                 raw_device = dev_info.create_device()
 
-        return self._create_acquirer(
-            raw_device=raw_device, privilege=privilege,
-            sleep_duration=sleep_duration,
-            file_path=file_path, file_dict=file_dict,
-            auto_chunk_data_update=auto_chunk_data_update)
+        config = ParameterSet({
+            ParameterKey.DEVICE_OWNERSHIP_PRIVILEGE: privilege,
+            ParameterKey.THREAD_SLEEP_PERIOD: sleep_duration,
+            ParameterKey.REMOTE_DEVICE_SOURCE_XML_FILE_PATH: file_path,
+            ParameterKey.ENABLE_AUTO_CHUNK_DATA_UPDATE: auto_chunk_data_update,
+            ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES: self._clean_up
+        })
+
+        return self._create_acquirer(raw_device=raw_device, config=config,
+                                     file_dict=file_dict)
 
     def add_cti_file(
             self, file_path: str, check_existence: bool = False,
             check_validity: bool = False):
         """
         .. deprecated:: 1.3
-            :meth:`add_cti_file` will be removed in 1.4.0, it is replaced
+            :meth:`add_cti_file` will be removed in 2.0.0, it will be replaced
             by :meth:`add_file`.
         """
-        _deprecated(self.add_cti_file, self.add_file)
+        _indicate_deprecation(self.add_cti_file, self.add_file)
         self.add_file(file_path)
 
     def add_file(
@@ -2844,6 +3007,15 @@ class Harvester:
             self._cti_files.append(file_path)
             _logger.info('added: {0} to {1}'.format(file_path, self))
 
+    def remove_cti_file(self, file_path: str):
+        """
+        .. deprecated:: 1.3
+            :meth:`remove_cti_file` will be removed in 2.0.0, it will be replaced
+            by :meth:`remove_file`.
+        """
+        _indicate_deprecation(self.remove_cti_file, self.remove_file)
+        self.remove_file(file_path)
+
     def remove_file(self, file_path: str) -> None:
         """
         Removes the specified CTI file on the list.
@@ -2858,6 +3030,15 @@ class Harvester:
         if file_path in self._cti_files:
             self._cti_files.remove(file_path)
             _logger.info('removed: {0} from {1}'.format(file_path, self))
+
+    def remove_cti_files(self) -> None:
+        """
+        .. deprecated:: 1.3
+            :meth:`remove_cti_files` will be removed in 2.0.0, it will be replaced
+            by :meth:`remove_files`.
+        """
+        _indicate_deprecation(self.remove_cti_files, self.remove_files)
+        self.remove_files()
 
     def remove_files(self) -> None:
         """
@@ -2966,6 +3147,15 @@ class Harvester:
 
         _logger.debug(
             'discarded device information: {}'.format(self))
+
+    def update_device_info_list(self):
+        """
+        .. deprecated:: 1.3
+            :meth:`update_device_info_list` will be removed in 2.0.0, it will
+            be replaced by :meth:`update`.
+        """
+        _indicate_deprecation(self.update_device_info_list, self.update)
+        self.update()
 
     def update(self) -> None:
         """

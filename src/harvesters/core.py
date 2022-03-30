@@ -1241,6 +1241,7 @@ class PayloadBase:
     def _build_component(buffer: _Buffer, part=None,
                          node_map: Optional[NodeMap] = None):
         global _logger
+        message = "unsupported format: \'{}\'"
 
         try:
             if part:
@@ -1248,7 +1249,7 @@ class PayloadBase:
             else:
                 data_format = buffer.pixel_format
         except GenTL_GenericException:
-            # As a workaround, we are going to retrive a data format
+            # As a workaround, we are going to retrieve a data format
             # value from the remote device node map; note that there
             # could be a case where the value is not synchronized with
             # the delivered buffer; in addition, note that it:
@@ -1257,8 +1258,10 @@ class PayloadBase:
                 if name in dict_by_names:
                     data_format = dict_by_names[name]
                 else:
-                    raise
+                    _logger.warning(message.format(name))
+                    return None
             else:
+                _logger.warning("information unavailable")
                 raise
 
         symbolic = dict_by_ints[data_format]
@@ -1266,11 +1269,9 @@ class PayloadBase:
             return Component2DImage(
                 buffer=buffer, part=part, node_map=node_map
             )
-
-        _logger.warning(
-            "unsupported format: \'{}\'".format(symbolic))
-
-        return None
+        else:
+            _logger.warning(message.format(symbolic))
+            return None
 
     @property
     def components(self) -> List[Component]:

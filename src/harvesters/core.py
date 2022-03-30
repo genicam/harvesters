@@ -827,6 +827,9 @@ class Component2DImage(ComponentBase):
         return int(nr_bytes)
 
     def _to_np_array(self, pf_proxy):
+        padding_x = 0
+        h = 0
+        nr_bytes_per_line = 0
         if self.has_part():
             nr_bytes = self._part.data_size
         else:
@@ -839,17 +842,24 @@ class Component2DImage(ComponentBase):
             except GenTL_GenericException:
                 h = self._node_map.Height.value
 
-            nr_bytes = self._get_nr_bytes(
-                pf_proxy=pf_proxy, width=w, height=h)
+            nr_bytes_per_line = self._get_nr_bytes(
+                pf_proxy=pf_proxy, width=w, height=1)
 
             try:
-                padding_y = self._buffer.padding_y
+                padding_x = self._buffer.padding_x
             except GenTL_GenericException:
-                padding_y = 0
-            nr_bytes += padding_y
+                padding_x = 0
+
+            nr_bytes = nr_bytes_per_line + padding_x
+            nr_bytes *= h
 
         array = numpy.frombuffer(self._buffer.raw_buffer, count=int(nr_bytes),
                                  dtype='uint8', offset=self.data_offset)
+
+        if not self.has_part() and padding_x > 0:
+            array = numpy.reshape(array, (h, nr_bytes_per_line + padding_x))
+            numpy.delete(array, numpy.s_[-1*padding_x:], axis=1)
+            array = numpy.ravel(array)
 
         return pf_proxy.expand(array)
 

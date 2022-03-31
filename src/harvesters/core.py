@@ -476,12 +476,25 @@ class _SignalHandler:
         self._subject.destroy()
 
 
-class Thread_:
+class ThreadAdapter:
     """
-    Is a base class that is used to implement a thread that users want to
-    use. For example, in general, PyQt application should implement a
-    thread using :class:`QThread` instead of Python's built-in
-    :class:`Thread` class.
+    Is a base class that is used to implement threading functionalities
+    by a client so that Harvester can achieve the required tasks
+    through the interface that the :class:`ThreadAdapter` offers.
+
+    For example, if an application is a PyQt application then it should be
+    necessary to execute threading functionalities by using :class:`QThread`
+    instead of Python's built-in :class:`Thread` class. In such a case, the
+    client needs to implement a class that is derived from the
+    :class:`ThreadAdapter` class and map the defined method to
+    :class:`QThread` accordingly.
+
+    Remarks
+    -------
+        If your application does not require any special threading
+        implementation, you do not need to do anything with this class.
+        Harvester uses the Python's built-in :class:`~threading.Thread`
+        class by default.
     """
     def __init__(self, *, mutex=None):
         super().__init__()
@@ -563,7 +576,7 @@ class Thread_:
         return self._id
 
 
-class ThreadBase(Thread_):
+class ThreadBase(ThreadAdapter):
     """
     Attention
     ---------
@@ -576,7 +589,7 @@ class ThreadBase(Thread_):
 
 
 class MutexLocker:
-    def __init__(self, thread: Thread_=None):
+    def __init__(self, thread: ThreadAdapter=None):
         """
         :param thread:
         """
@@ -601,7 +614,7 @@ class MutexLocker:
         self._thread.release()
 
 
-class _ImageAcquisitionThread(Thread_):
+class _ImageAcquisitionThread(ThreadAdapter):
     def __init__(
             self, *,
             image_acquire=None):
@@ -1954,7 +1967,7 @@ class ImageAcquirer:
         self._timeout_on_internal_fetch_call = ms
 
     @property
-    def thread_image_acquisition(self) -> Thread_:
+    def thread_image_acquisition(self) -> ThreadAdapter:
         """
         Attention
         ---------

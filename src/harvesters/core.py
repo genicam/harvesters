@@ -476,11 +476,12 @@ class _SignalHandler:
         self._subject.destroy()
 
 
-class ThreadBase:
+class Thread_:
     """
     Is a base class that is used to implement a thread that users want to
     use. For example, in general, PyQt application should implement a
-    thread using QThread instead of Python's built-in Thread class.
+    thread using :class:`QThread` instead of Python's built-in
+    :class:`Thread` class.
     """
     def __init__(self, *, mutex=None):
         super().__init__()
@@ -562,8 +563,20 @@ class ThreadBase:
         return self._id
 
 
+class ThreadBase(Thread_):
+    """
+    Attention
+    ---------
+        It has been deprecated at 1.3.7 and will be removed in 2.0.0.
+        It will be replaced by :class:`Thread_`.
+    """
+
+    def __init__(self, *, mutex=None):
+        super().__init__(mutex=mutex)
+
+
 class MutexLocker:
-    def __init__(self, thread: ThreadBase=None):
+    def __init__(self, thread: Thread_=None):
         """
         :param thread:
         """
@@ -588,7 +601,7 @@ class MutexLocker:
         self._thread.release()
 
 
-class _ImageAcquisitionThread(ThreadBase):
+class _ImageAcquisitionThread(Thread_):
     def __init__(
             self, *,
             image_acquire=None):
@@ -730,7 +743,7 @@ class _NativeThread(Thread):
         return self._thread_owner.mutex
 
 
-class ComponentBase:
+class Component:
     """
     Is a base class of various data component types.
     """
@@ -775,10 +788,21 @@ class ComponentBase:
         return self._data
 
 
-Component = TypeVar('Component', bound=ComponentBase)
+Component_ = TypeVar('Component_', bound=Component)
 
 
-class ComponentUnknown(ComponentBase):
+class ComponentBase(Component):
+    """
+    Attention
+    ---------
+        It has been deprecated at 1.3.7 and will be removed in 2.0.0.
+        It will be replaced by :class:`Component`.
+    """
+    def __init__(self, *, buffer=None):
+        super().__init__(buffer=buffer)
+
+
+class ComponentUnknown(Component):
     """
     Represents a data component that is classified as
     :const:`PART_DATATYPE_UNKNOWN` by the GenTL Standard.
@@ -788,7 +812,7 @@ class ComponentUnknown(ComponentBase):
         super().__init__()
 
 
-class Component2DImage(ComponentBase):
+class Component2DImage(Component):
     """
     Represents a data component that is classified as
     :const:`PART_DATATYPE_2D_IMAGE` by the GenTL Standard.
@@ -1131,7 +1155,7 @@ class Buffer(Module):
     @property
     def payload(self):
         """
-        Payload: A containing object which derives from :class:`PayloadBase`
+        Payload: A containing object which derives from :class:`Payload`
         class.
         """
         return self._payload
@@ -1215,7 +1239,7 @@ class Buffer(Module):
         self._acquire._update_chunk_data(self.module)
 
 
-class PayloadBase:
+class Payload:
     """
     Is a base class of various payload types. The types are defined by the
     GenTL Standard. In general, you should not have to design a class that
@@ -1277,15 +1301,26 @@ class PayloadBase:
     def components(self) -> List[Component]:
         """
         List[Component]: A :class:`list` containing objects that derive from
-        :class:`ComponentBase` class.
+        :class:`Component` class.
         """
         return self._components
 
 
-Payload = TypeVar('Payload', bound=PayloadBase)
+class PayloadBase(Payload):
+    """
+    Attention
+    ---------
+        It has been deprecated at 1.3.7 and will be removed in 2.0.0.
+        It will be replaced by :class:`Payload`.
+    """
+    def __init__(self, *, buffer: Buffer):
+        super().__init__(buffer=buffer)
 
 
-class PayloadUnknown(PayloadBase):
+Payload_ = TypeVar('Payload_', bound=Payload)
+
+
+class PayloadUnknown(Payload):
     """
     Represents a payload that is classified as
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_UNKNOWN`
@@ -1300,7 +1335,7 @@ class PayloadUnknown(PayloadBase):
         super().__init__(buffer=buffer)
 
 
-class PayloadImage(PayloadBase):
+class PayloadImage(Payload):
     """
     Represents a payload that is classified as
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE` by
@@ -1323,7 +1358,7 @@ class PayloadImage(PayloadBase):
         return '{}'.format(self.components[0].__repr__())
 
 
-class PayloadRawData(PayloadBase):
+class PayloadRawData(Payload):
     """
     Represents a payload that is classified as
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_RAW_DATA`
@@ -1336,7 +1371,7 @@ class PayloadRawData(PayloadBase):
         super().__init__(buffer=buffer)
 
 
-class PayloadFile(PayloadBase):
+class PayloadFile(Payload):
     """
     Represents a payload that is classified as
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_FILE` by
@@ -1346,7 +1381,7 @@ class PayloadFile(PayloadBase):
         super().__init__(buffer=buffer)
 
 
-class PayloadJPEG(PayloadBase):
+class PayloadJPEG(Payload):
     """
     Represents a payload that is classified as
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG` by
@@ -1359,7 +1394,7 @@ class PayloadJPEG(PayloadBase):
         super().__init__(buffer=buffer)
 
 
-class PayloadJPEG2000(PayloadBase):
+class PayloadJPEG2000(Payload):
     """
     Represents a payload that is classified as
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG2000`
@@ -1372,7 +1407,7 @@ class PayloadJPEG2000(PayloadBase):
         super().__init__(buffer=buffer)
 
 
-class PayloadH264(PayloadBase):
+class PayloadH264(Payload):
     """
     Represents a payload that is classified as
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_H264` by
@@ -1385,7 +1420,7 @@ class PayloadH264(PayloadBase):
         super().__init__(buffer=buffer)
 
 
-class PayloadChunkOnly(PayloadBase):
+class PayloadChunkOnly(Payload):
     """
     Represents a payload that is classified as
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_ONLY`
@@ -1395,7 +1430,7 @@ class PayloadChunkOnly(PayloadBase):
         super().__init__(buffer=buffer)
 
 
-class PayloadMultiPart(PayloadBase):
+class PayloadMultiPart(Payload):
     """
     Represents a payload that is classified as
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART`
@@ -1814,8 +1849,8 @@ class ImageAcquirer:
         """
         Attention
         ---------
-            :meth:`is_acquiring_images` will be removed in 2.0.0, it will
-            be replaced by :meth:`is_acquiring`.
+            It has been deprecated at 1.3.7 and will be removed in 2.0.0.
+            It will be replaced by :meth:`is_acquiring`.
         """
         _indicate_deprecation(self.is_acquiring_images, self.is_acquiring)
         return self.is_acquiring()
@@ -1851,8 +1886,8 @@ class ImageAcquirer:
         """
         Attention
         ---------
-            :attr:`timeout_on_client_fetch_call` will be removed in 2.0.0,
-            it will be replaced by :attr:`timeout_period_on_client_fetch_call`.
+            It has been deprecated at 1.3.6 and will be removed in 2.0.0.
+            It will be replaced by :attr:`timeout_period_on_client_fetch_call`.
         """
         _indicate_deprecation('timeout_on_client_fetch_call', 'timeout_period_on_client_fetch_call')
         return self.timeout_period_on_client_fetch_call
@@ -1907,9 +1942,8 @@ class ImageAcquirer:
         """
         Attention
         ---------
-            :attr:`timeout_for_image_acquisition` will be removed in 2.0.0,
-            it will be replaced by
-            :attr:`timeout_period_on_update_event_data_call`.
+            It has been deprecated at 1.3.6 and will be removed in 2.0.0.
+            It will be replaced by :attr:`timeout_period_on_update_event_data_call`.
         """
         _indicate_deprecation('timeout_for_image_acquisition', 'timeout_period_on_update_event_data_call')
         return self._timeout_on_internal_fetch_call
@@ -1920,11 +1954,11 @@ class ImageAcquirer:
         self._timeout_on_internal_fetch_call = ms
 
     @property
-    def thread_image_acquisition(self) -> ThreadBase:
+    def thread_image_acquisition(self) -> Thread_:
         """
         Attention
         ---------
-            :attr:`thread_image_acquisition` will be removed in 2.0.0.
+            It has been deprecated at 1.3.6 and will be removed in 2.0.0.
         """
         return self._thread_image_acquisition
 
@@ -1966,8 +2000,8 @@ class ImageAcquirer:
         """
         Attention
         ---------
-            :meth:`start_image_acquisition` will be removed in 2.0.0, it is
-            replaced by :meth:`start`.
+            It has been deprecated at 1.3.6 and will be removed at 2.0.0.
+            It will be replaced by :meth:`start`.
         """
         _indicate_deprecation(self.start_image_acquisition, self.start_acquisition)
         self.start_acquisition(run_in_background=run_in_background)
@@ -1976,8 +2010,8 @@ class ImageAcquirer:
         """
         Attention
         ---------
-            :meth:`start_acquisition` will be removed in 2.0.0, it will be
-            replaced by :meth:`start`.
+            It has been deprecated at 1.3.7 and will be removed at 2.0.0.
+            It will be replaced by :meth:`start`.
         """
         _indicate_deprecation(self.start_acquisition, self.start)
         self.start(run_as_thread=run_in_background)
@@ -2284,8 +2318,8 @@ class ImageAcquirer:
         """
         Attention
         ---------
-            :meth:`fetch_buffer` will be removed in 2.0.0, it will be replaced
-            by :meth:`fetch`.
+            It has been deprecated at 1.3.6 and will be removed at 2.0.0.
+            It will be replaced by :meth:`fetch`.
         """
         _indicate_deprecation(self.fetch_buffer, self.fetch)
         return self.fetch(timeout=timeout, is_raw=is_raw, cycle_s=cycle_s)
@@ -2399,8 +2433,8 @@ class ImageAcquirer:
         """
         Attention
         ---------
-            :meth:`stop_image_acquisition` will be removed in 2.0.0, it is
-            replaced by :meth:`stop`.
+            It has been deprecated at 1.3.7 and will be removed at 2.0.0.
+            It will be replaced by :meth:`stop`.
         """
         _indicate_deprecation(self.stop_image_acquisition, self.stop)
         self.stop_acquisition()
@@ -2409,8 +2443,8 @@ class ImageAcquirer:
         """
         Attention
         ---------
-            :meth:`stop_acquisition` will be removed in 2.0.0, it will be replaced
-            by :meth:`stop`.
+            It has been deprecated at 1.3.7 and will be removed at 2.0.0.
+            It will be replaced by :meth:`stop`.
         """
         _indicate_deprecation(self.stop_acquisition, self.stop)
         self.stop()
@@ -2611,18 +2645,18 @@ class Harvester:
         Parameters
         ----------
         profile: bool=False
-            Deprecated: Will be removed in 2.0.0. Use :data:`config` instead.
+            Deprecated: will be removed at 2.0.0. Use :data:`config` instead.
             This feature is for development purpose. Please do not set
             :const:`True` if you are not a Harvester developer.
 
         logger: Optional[Logger] = None
-            Deprecated: Will be removed in 2.0.0. Use :data:`config` instead.
+            Deprecated: will be removed at 2.0.0. Use :data:`config` instead.
             Set a logger object that you want to bind with the Harevester and
             its accompanying obects. If :data:`config` is set then this
             parameter will be ignored.
 
         do_clean_up: bool=True
-            Deprecated: Will be removed in 2.0.0. Use :data:`config` instead.
+            Deprecated: will be removed at 2.0.0. Use :data:`config` instead.
             This feature is for development purpose. Please do not set
             :const:`False` if you are not a Harvester developer.
 
@@ -2696,8 +2730,8 @@ class Harvester:
         """
         Attention
         ---------
-            :attr:`cti_files` will be removed in 2.0.0, it will be replaced
-            by :attr:`files`.
+            It has been deprecated at 1.3.7 and will be removed at 2.0.0.
+            It will be replaced by :attr:`files`.
         """
         _indicate_deprecation('cti_files', 'files')
         return self.files
@@ -2885,8 +2919,8 @@ class Harvester:
         """
         Attention
         ---------
-            :meth:`create_image_acquirer` will be removed in 2.0.0, it is
-            replaced by :meth:`create`.
+            It has been deprecated at 1.3.7 and will be removed at 2.0.0.
+            It will be replaced by :meth:`create`.
 
         Creates an image acquirer for the specified remote device and return
         the created :class:`ImageAcquirer` object.
@@ -2968,8 +3002,8 @@ class Harvester:
         """
         Attention
         ---------
-            :meth:`add_cti_file` will be removed in 2.0.0, it will be replaced
-            by :meth:`add_file`.
+            It has been deprecated at 1.3.7 and will be removed at 2.0.0.
+            It will be replaced by :meth:`add_file`.
         """
         _indicate_deprecation(self.add_cti_file, self.add_file)
         self.add_file(file_path)
@@ -3025,8 +3059,8 @@ class Harvester:
         """
         Attention
         ---------
-            :meth:`remove_cti_file` will be removed in 2.0.0, it will be
-            replaced by :meth:`remove_file`.
+            It has been deprecated at 1.3.7 and will be removed at 2.0.0.
+            It will be replaced by :meth:`remove_file`.
         """
         _indicate_deprecation(self.remove_cti_file, self.remove_file)
         self.remove_file(file_path)
@@ -3050,8 +3084,8 @@ class Harvester:
         """
         Attention
         ---------
-            :meth:`remove_cti_files` will be removed in 2.0.0, it will be
-            replaced by :meth:`remove_files`.
+            It has been deprecated at 1.3.7 and will be removed at 2.0.0.
+            It will be replaced by :meth:`remove_files`.
         """
         _indicate_deprecation(self.remove_cti_files, self.remove_files)
         self.remove_files()
@@ -3168,8 +3202,8 @@ class Harvester:
         """
         Attention
         ---------
-            :meth:`update_device_info_list` will be removed in 2.0.0, it will
-            be replaced by :meth:`update`.
+            It has been deprecated at 1.3.7 and will be removed at 2.0.0.
+            It will be replaced by :meth:`update`.
         """
         _indicate_deprecation(self.update_device_info_list, self.update)
         self.update()

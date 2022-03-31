@@ -486,7 +486,7 @@ class ThreadAdapter:
     necessary to execute threading functionalities by using :class:`QThread`
     instead of Python's built-in :class:`Thread` class. In such a case, the
     client needs to implement a class that is derived from the
-    :class:`ThreadAdapter` class and map the defined method to
+    :class:`ThreadAdapter` class and map the defined methods to
     :class:`QThread` accordingly.
 
     Remarks

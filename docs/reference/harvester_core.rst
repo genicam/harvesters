@@ -6,9 +6,3 @@ Harvester API Reference
   :members:
   :show-inheritance:
   :inherited-members:
-
-.. autoenum:: harvesters.core.ParameterKey
-    :members:
-
-.. autoenum:: harvesters.core.ImageAcquirer.Events
-    :members:

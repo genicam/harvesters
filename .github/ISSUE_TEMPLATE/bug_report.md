@@ -18,12 +18,17 @@ Steps to reproduce the behavior:
 4. See error
 
 **Sample Code**
-If possible, please provide a sample code that can illustrate the issue.
+ I can show a piece of code that demonstrates the reported phenomenon:
+
+- [ ] Yes
+- [X] No
+
+If yes, please provide a sample code:
 ```
 h = Harvester()
 h.say_hello()
 ```
-If applicable, please paste the output (tracebakc, etc) here:
+If applicable, please paste the actual output (its whole tracebakc, etc) here:
 ```
 >>> h.say_hello()
 Traceback (most recent call last):

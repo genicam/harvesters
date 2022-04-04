@@ -21,7 +21,8 @@ Steps to reproduce the behavior:
  I can show a piece of code that demonstrates the reported phenomenon:
 
 - [ ] Yes
-- [X] No
+- [ ] No
+- [X] (Please select either yes or no.)
 
 If yes, please provide a sample code:
 ```
@@ -56,8 +57,11 @@ If applicable, add screenshots to help explain your problem; Note that it is not
 
 This phenomenon can be stably reproduced:
 
-- [X] Yes
-- [ ] No [Your observation].
+- [ ] Yes
+- [ ] No.
+- [X] (Please select either yes or no.)
+
+If applicable, please provide your observation about the reproducibility.
 
 **Actions You Have Taken**
 

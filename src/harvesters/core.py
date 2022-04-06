@@ -59,9 +59,10 @@ from genicam.genapi import EventAdapterGEV, EventAdapterU3V, \
 
 from genicam.gentl import TimeoutException
 from genicam.gentl import GenericException as GenTL_GenericException, \
-    NotImplementedException
+    NotImplementedException, ResourceInUseException
 from genicam.gentl import GenTLProducer, BufferToken
-from genicam.gentl import EventManagerNewBuffer, EventManagerRemoteDevice
+from genicam.gentl import EventManagerNewBuffer, EventManagerRemoteDevice, \
+    EventManagerModule
 from genicam.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
     PAYLOADTYPE_INFO_IDS
@@ -1552,14 +1553,20 @@ class ImageAcquirer:
                        EVENT_TYPE_LIST.EVENT_MODULE,
                        EVENT_TYPE_LIST.EVENT_MODULE,
                        EVENT_TYPE_LIST.EVENT_REMOTE_DEVICE]
+        event_managers = [EventManagerModule,
+                          EventManagerModule,
+                          EventManagerModule,
+                          EventManagerRemoteDevice]
 
-        for module, event_type in zip(modules, event_types):
+        for module, event_type, manager in \
+                zip(modules, event_types, event_managers):
             try:
                 self._module_event_monitor_dict[module] = \
-                    EventManagerRemoteDevice(
-                        self._device.register_event(event_type))
+                    manager(module.register_event(event_type))
             except NotImplementedException:
-                _logger.info("no module event: {}".format(module))
+                _logger.debug("no module event: {}".format(module))
+            except ResourceInUseException:
+                _logger.debug("resource in use: {}".format(module))
             else:
                 self._module_event_monitor_thread_dict[module] = \
                     self._thread_factory_method()

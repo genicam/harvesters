@@ -2109,6 +2109,8 @@ class ImageAcquirer:
                 except GenTL_GenericException:
                     # SFNC < 2.0
                     pass
+                except AttributeError:
+                    _logger.debug("TLParamsLocked not exist.")
 
                 ds.start_acquisition(
                     ACQ_START_FLAGS_LIST.ACQ_START_FLAGS_DEFAULT, -1)
@@ -2491,6 +2493,8 @@ class ImageAcquirer:
                     self.remote_device.node_map.TLParamsLocked.value = 0
                 except GenApi_GenericException:
                     pass
+                except AttributeError:
+                    _logger.debug("TLParamsLocked not exist.")
 
                 for data_stream in self._data_streams:
                     try:

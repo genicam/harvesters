@@ -85,7 +85,7 @@ simplefilter(action="once")
 
 
 _is_logging_buffer = True if 'HARVESTERS_LOG_BUFFER' in os.environ else False
-_sleep_default = 0.0001  # s
+_sleep_default = 0.01  # s
 
 
 _logger = get_logger(name=__name__)
@@ -93,19 +93,22 @@ _logger = get_logger(name=__name__)
 
 class ParameterKey(IntEnum):
     __doc__ = "A list of variable/defined parameters."
-    _ENABLE_PROFILE = -1,
+    _ENABLE_PROFILE = -1
     LOGGER = 0,  # doc: Determines the logger to be used; the value type must be :class:`Logger`.
-    TIMEOUT_PERIOD_ON_MODULE_ENUMERATION = 2,  # doc: Determines the time-out period that is applied on the GenTL module enumeration; the value type must be :class:`int`.
-    ENABLE_CLEANING_UP_INTERMEDIATE_FILES = 3,  # doc: Determines if you want to delete all of the intermediate files; set :const:`True` if you want to delete, otherwise set :const:`False`.
+    TIMEOUT_PERIOD_ON_MODULE_ENUMERATION = 2  # doc: Determines the time-out period that is applied on the GenTL module enumeration; the value type must be :class:`int`.
+    ENABLE_CLEANING_UP_INTERMEDIATE_FILES = 3  # doc: Determines if you want to delete all of the intermediate files; set :const:`True` if you want to delete, otherwise set :const:`False`.
 
-    THREAD_SLEEP_PERIOD = 100,  # doc: Determines the sleep period that is applied on every single worker execution; the value type is :class:`int`.
-    TIMEOUT_PERIOD_ON_UPDATE_EVENT_DATA_CALL = 101,  # doc: Determines the time-out period that is applied on a single GenTL EventGetData call; the value type must be :class:`int`; the unit is [ms].
-    TIMEOUT_PERIOD_ON_CLIENT_FETCH_CALL = 102,  # doc: Determines the time-out period that is applied on a single fetch method call; the value type must be :class:`int`; the unit is [s].
-    NUM_BUFFERS_FOR_FETCH_CALL = 103,  # doc: Determines the number of buffers to be allocated on the GenTL Producer-side; the value type must be :class:`int`.
-    REMOTE_DEVICE_SOURCE_XML_FILE_PATH = 104,  # doc: Determines the file path where the source GenICam device description file is located; the value type must be :class:`str`.
-    ENABLE_AUTO_CHUNK_DATA_UPDATE = 105,  # doc: Determines if you let the :class:`ImageAcquirer` object to automatically update the chunk data when the owner image data is fetched; the value type must be :class:`bool`.
-    DEVICE_OWNERSHIP_PRIVILEGE = 106,  # doc: Determines the ownership privilege to be applied when the :class:`~harvestesrs.core.ImageAcquirer` object opens a target remote device.
-    THREAD_FACTORY_METHOD = 107,  # doc: Determines the thread factory method where the corersponding thread worker is bound; the value type must be callable.
+    THREAD_SLEEP_PERIOD = 100  # doc: Determines the sleep period that is applied on every single worker execution; the value type is :class:`int`.
+    TIMEOUT_PERIOD_ON_UPDATE_EVENT_DATA_CALL = 101  # doc: Determines the time-out period that is applied on a single GenTL EventGetData call; the value type must be :class:`int`; the unit is [ms].
+    TIMEOUT_PERIOD_ON_CLIENT_FETCH_CALL = 102  # doc: Determines the time-out period that is applied on a single fetch method call; the value type must be :class:`int`; the unit is [s].
+    NUM_BUFFERS_FOR_FETCH_CALL = 103  # doc: Determines the number of buffers to be allocated on the GenTL Producer-side; the value type must be :class:`int`.
+    REMOTE_DEVICE_SOURCE_XML_FILE_PATH = 104  # doc: Determines the file path where the source GenICam device description file is located; the value type must be :class:`str`.
+    ENABLE_AUTO_CHUNK_DATA_UPDATE = 105  # doc: Determines if you let the :class:`ImageAcquirer` object to automatically update the chunk data when the owner image data is fetched; the value type must be :class:`bool`.
+    DEVICE_OWNERSHIP_PRIVILEGE = 106  # doc: Determines the ownership privilege to be applied when the :class:`~harvestesrs.core.ImageAcquirer` object opens a target remote device.
+    THREAD_FACTORY_METHOD = 107  # doc: Determines the thread factory method where the corersponding thread worker is bound; the value type must be callable.
+
+    THREAD_SLEEP_PERIOD_FOR_EVENT_MODULE = 200
+    THREAD_FACTORY_METHOD_FOR_EVENT_MODULE = 201
 
 
 class ParameterSet:
@@ -1547,6 +1550,7 @@ class ImageAcquirer:
         ParameterKey.TIMEOUT_PERIOD_ON_UPDATE_EVENT_DATA_CALL,
         ParameterKey.TIMEOUT_PERIOD_ON_CLIENT_FETCH_CALL,
         ParameterKey.NUM_BUFFERS_FOR_FETCH_CALL,
+        ParameterKey.THREAD_SLEEP_PERIOD_FOR_EVENT_MODULE,
     ]
 
     class Events(IntEnum):
@@ -1598,7 +1602,9 @@ class ImageAcquirer:
 
         self._device = device
 
-        self._thread_factory_method = ParameterSet.get(ParameterKey.THREAD_FACTORY_METHOD, lambda: _EventMonitor(sleep=_sleep_default), config)
+        self._sleep_on_event_module = ParameterSet.get(ParameterKey.THREAD_SLEEP_PERIOD_FOR_EVENT_MODULE,
+                                                       0.01, config)
+        self._thread_factory_method_for_event_module = ParameterSet.get(ParameterKey.THREAD_FACTORY_METHOD, lambda: _EventMonitor(sleep=self._sleep_on_event_module), config)
         file_path = ParameterSet.get(ParameterKey.REMOTE_DEVICE_SOURCE_XML_FILE_PATH, None, config)
 
         self._remote_device = RemoteDevice(
@@ -1618,7 +1624,9 @@ class ImageAcquirer:
         self._module_event_monitor_dict = dict()
         self._module_event_monitor_thread_dict = dict()
 
-        modules = [self._system, self._interface, self._device,
+        modules = [self._system,
+                   self._interface,
+                   self._device,
                    self._remote_device]
         event_types = [EVENT_TYPE_LIST.EVENT_MODULE,
                        EVENT_TYPE_LIST.EVENT_MODULE,
@@ -1640,7 +1648,7 @@ class ImageAcquirer:
                 _logger.debug("resource in use: {}".format(module))
             else:
                 self._module_event_monitor_thread_dict[module] = \
-                    self._thread_factory_method()
+                    self._thread_factory_method_for_event_module()
                 self._module_event_monitor_thread_dict[module].worker = \
                     self._worker_module_event
 
@@ -1653,9 +1661,16 @@ class ImageAcquirer:
         self._num_buffers_to_hold = 1
         self._queue = Queue(maxsize=self._num_buffers_to_hold)
 
-        self._event_new_buffer_thread = self._thread_factory_method()
+        self._sleep_on_event_new_buffer = ParameterSet.get(
+            ParameterKey.THREAD_SLEEP_PERIOD, .000001, config)
+        self._thread_factory_method_for_event_new_buffer = ParameterSet.get(
+            ParameterKey.THREAD_FACTORY_METHOD,
+            lambda: _EventMonitor(sleep=self._sleep_on_event_new_buffer),
+            config)
+
+        self._event_new_buffer_thread = \
+            self._thread_factory_method_for_event_new_buffer()
         self._event_new_buffer_thread.worker = self._worker_event_new_buffer
-        self._sleep_duration = ParameterSet.get(ParameterKey.THREAD_SLEEP_PERIOD, _sleep_default, config)
 
         if current_thread() is main_thread():
             self._sigint_handler = _SignalHandler(

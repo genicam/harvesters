@@ -2110,7 +2110,8 @@ class ImageAcquirer:
                     # SFNC < 2.0
                     pass
                 except AttributeError:
-                    _logger.debug("TLParamsLocked not exist.")
+                    _logger.debug("no TLParamsLocked: {}".format(
+                        _family_tree(self._device.module)))
 
                 ds.start_acquisition(
                     ACQ_START_FLAGS_LIST.ACQ_START_FLAGS_DEFAULT, -1)
@@ -2494,7 +2495,8 @@ class ImageAcquirer:
                 except GenApi_GenericException:
                     pass
                 except AttributeError:
-                    _logger.debug("TLParamsLocked not exist.")
+                    _logger.debug("no TLParamsLocked: {}".format(
+                        _family_tree(self._device.module)))
 
                 for data_stream in self._data_streams:
                     try:

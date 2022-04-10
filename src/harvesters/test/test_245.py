@@ -22,6 +22,7 @@
 from logging import Logger
 from threading import Thread
 import time
+import unittest
 
 # Related third party imports
 from harvesters.core import ImageAcquirer
@@ -47,7 +48,8 @@ class LoggerIndexPair:
 class CallbackWorker:
     @staticmethod
     def callback(node, context: LoggerIndexPair):
-        print("source: {}; event: {}".format(context.index, node.value))
+        context.logger.info(
+            "source: {}; event: {}".format(context.index, node.value))
 
 
 class NodeCallbackDemoThread(Thread):
@@ -58,7 +60,6 @@ class NodeCallbackDemoThread(Thread):
         self._index = index
 
     def run(self):
-        self._logger.info("{}; GIVEN: an image acquirer".format(self._index))
         self._logger.info("{}; AND GIVEN: an equipped node map".format(self._index))
         self._acquire.remote_device.node_map.Width.value = 100 * (self._index + 1)
         self._acquire.remote_device.node_map.Height.value = 100 * (self._index + 1)
@@ -73,7 +74,7 @@ class NodeCallbackDemoThread(Thread):
 
         self._logger.info("{}; THEN: game progress appear".format(self._index))
         self._acquire.start()
-        time.sleep(3)
+        time.sleep(5)
         self._acquire.stop()
 
         self._logger.info("{}; AND WHEN: disabling a node callback".format(self._index))
@@ -91,7 +92,7 @@ class NodeCallbackDemoThread(Thread):
 
 class TestTutorials(TestHarvester):
 
-    def test_module_events_on_multiple_devices(self):
+    def test_module_events_on_multi_threaded_application(self):
         if not self.is_running_with('viky'):
             self.skipTest("the given target is not appropriate")
 
@@ -110,7 +111,7 @@ class TestTutorials(TestHarvester):
 
         self._logger.info("completed")
 
-    def test_module_events(self):
+    def test_module_events_on_single_threaded_application(self):
         if not self.is_running_with('viky'):
             self.skipTest("the given target is not appropriate")
 
@@ -132,7 +133,7 @@ class TestTutorials(TestHarvester):
 
         self._logger.info("THEN: game progress appear")
         ia.start()
-        time.sleep(3)
+        time.sleep(5)
 
         self._logger.info("AND WHEN: disabling a node callback")
         ia.remote_device.deregister_node_callback(token)
@@ -141,5 +142,10 @@ class TestTutorials(TestHarvester):
         time.sleep(3)
         ia.stop()
 
+        self._logger.info("AND WHEN: destroying the acquirer")
         ia.destroy()
+        self._logger.info("THEN: destroyed")
 
+
+if __name__ == '__main__':
+    unittest.main()

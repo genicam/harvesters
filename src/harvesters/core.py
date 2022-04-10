@@ -85,7 +85,7 @@ simplefilter(action="once")
 
 
 _is_logging_buffer = True if 'HARVESTERS_LOG_BUFFER' in os.environ else False
-_sleep_default = 0.01  # s
+_sleep_default = 0.000001  # s
 
 
 _logger = get_logger(name=__name__)
@@ -236,7 +236,7 @@ Node = TypeVar('Node', bound=Node_)
 class _NodeCallbackProxy:
     def __init__(self, *, node, callback: Optional[Callable[[Node, Any], None]],
                  context: Optional[Any] = None,
-                 callback_type: Optional[ECallbackType] = ECallbackType.cbPostInsideLock):
+                 callback_type: Optional[ECallbackType] = ECallbackType.cbPostOutsideLock):
         global _logger
         assert node
         assert callback
@@ -289,7 +289,7 @@ class Module(_Delegate):
     def register_node_callback(self, *, node_name: str,
                                callback: Optional[Callable[[Node, Any], None]],
                                context: Optional[Any] = None,
-                               callback_type: Optional[ECallbackType] = ECallbackType.cbPostInsideLock) -> Union[None, int]:
+                               callback_type: Optional[ECallbackType] = ECallbackType.cbPostOutsideLock) -> Union[None, int]:
         node = getattr(self._node_map, node_name, None)
         if not node:
             return None
@@ -1603,7 +1603,7 @@ class ImageAcquirer:
         self._device = device
 
         self._sleep_on_event_module = ParameterSet.get(ParameterKey.THREAD_SLEEP_PERIOD_FOR_EVENT_MODULE,
-                                                       0.01, config)
+                                                       0.001, config)
         self._thread_factory_method_for_event_module = ParameterSet.get(ParameterKey.THREAD_FACTORY_METHOD, lambda: _EventMonitor(sleep=self._sleep_on_event_module), config)
         file_path = ParameterSet.get(ParameterKey.REMOTE_DEVICE_SOURCE_XML_FILE_PATH, None, config)
 
@@ -1662,7 +1662,7 @@ class ImageAcquirer:
         self._queue = Queue(maxsize=self._num_buffers_to_hold)
 
         self._sleep_on_event_new_buffer = ParameterSet.get(
-            ParameterKey.THREAD_SLEEP_PERIOD, .000001, config)
+            ParameterKey.THREAD_SLEEP_PERIOD, _sleep_default, config)
         self._thread_factory_method_for_event_new_buffer = ParameterSet.get(
             ParameterKey.THREAD_FACTORY_METHOD,
             lambda: _EventMonitor(sleep=self._sleep_on_event_new_buffer),

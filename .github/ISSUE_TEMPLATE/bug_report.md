@@ -29,7 +29,7 @@ If yes, please provide a sample code:
 h = Harvester()
 h.say_hello()
 ```
-If applicable, please paste the actual output (its whole tracebakc, etc) here:
+If applicable, please paste the actual output (its whole traceback, etc) here:
 ```
 >>> h.say_hello()
 Traceback (most recent call last):

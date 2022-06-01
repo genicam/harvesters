@@ -191,7 +191,28 @@ Having that code, the fetched buffer is automatically queued once the code step 
 
 In this option, again, please do not forget that you have to queue the buffer by yourself. If you forget queueing it, then you'll lose a buffer that could be used for image acquisition. Everything is up to your design, so please choose an appropriate way for you. In addition, once you queued the buffer, the Buffer object will be obsolete. There's nothing to do with it.
 
-Okay, then you would stop image acquisition with the following code:
+Note that the `fetch` method waits forever until an image containing buffer is delivered to the GenTL Producer. In the real world where we live, however, it may be too much to guarantee every single image delivery succeeds. If you do not want to keep hanging it forever then you should pass some amount to the `timeout` parameter of the method; the unit is second:
+
+.. code-block:: python
+
+    from genicam.gentl import TimeoutException
+
+    try:
+        buffer = ia.fetch(timeout=3)
+    except TimeoutException as e:
+        # oops, it's timed out but it may be reasonable
+        # depending on the context.
+
+If no buffer is delivered within 3 seconds then the method will raise the `genicam.gentl.TimeoutException` exception. On the other hand, you may want to have the `None` object instead of excepting an exception. For such a case, let's call the `try_fetch` method with some amount of period for the timeout:
+.. code-block:: python
+
+    buffer = ia.try_fetch(timeout=3)
+    if buffer:
+        # the buffer is ready and you can start working on it.
+
+If no buffer is delivered within 3 seconds, then the method will return the `None` object.
+
+Okay, everything has been done. Now you may want to stop image acquisition by calling the `stop` method as follows:
 
 .. code-block:: python
 

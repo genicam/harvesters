@@ -2207,7 +2207,7 @@ class ImageAcquirer:
                 _logger.debug('chunk data: {}, {}'.format(
                     action, _family_tree(buffer)))
 
-    def try_fetch(self, *, timeout: float = 0,
+    def try_fetch(self, *, timeout: float,
                   is_raw: bool = False) -> Union[Buffer, _Buffer, None]:
         """
         Unlike the fetch method, the try_fetch method gives up and

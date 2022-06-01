@@ -204,6 +204,7 @@ Note that the `fetch` method waits forever until an image containing buffer is d
         # depending on the context.
 
 If no buffer is delivered within 3 seconds then the method will raise the `genicam.gentl.TimeoutException` exception. On the other hand, you may want to have the `None` object instead of excepting an exception. For such a case, let's call the `try_fetch` method with some amount of period for the timeout:
+
 .. code-block:: python
 
     buffer = ia.try_fetch(timeout=3)

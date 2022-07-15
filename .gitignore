@@ -7,3 +7,4 @@ dist/
 harvesters.egg-info/
 
 *.pyc
+*.log

@@ -2199,7 +2199,7 @@ class ImageAcquirer:
                 self._chunk_adapter.update_buffer(buffer.raw_buffer)
                 action = 'updated'
             else:
-                self._chunk_adapter.attach_buffer(buffer.raw_buffer[:size])
+                self._chunk_adapter.attach_buffer(buffer.raw_buffer, size)
                 self._has_attached_chunk = True
                 action = 'attached'
 

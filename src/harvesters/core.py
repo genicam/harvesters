@@ -2173,7 +2173,7 @@ class ImageAcquirer:
                     _logger.warning(
                         'no way to check chunk availability: {0}'.format(
                             _family_tree(buffer)))
-                    return
+                return
             else:
                 if _is_logging_buffer:
                     _logger.debug('contains chunk data: {0}'.format(

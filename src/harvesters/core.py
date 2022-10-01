@@ -365,11 +365,14 @@ class Module(_Delegate):
                     '{} does not exist.'.format(file_path_to_load))
         else:
             if not url:
-                if len(port.url_info_list) > 0:
-                    url = port.url_info_list[0].url
-                else:
-                    raise LogicalErrorException(
-                        'The target port does not hold any URL.')
+                try:
+                    if len(port.url_info_list) > 0:
+                        url = port.url_info_list[0].url
+                    else:
+                        raise LogicalErrorException(
+                            'The target port does not hold any URL.')
+                except GenTL_GenericException:
+                    return None
 
             _logger.debug('fetched url: {}'.format(url))
 
@@ -1568,12 +1571,12 @@ class ImageAcquirer:
     def _create_acquisition_thread(self) -> _ImageAcquisitionThread:
         return _ImageAcquisitionThread(image_acquire=self)
 
-    def __init__(self, *, device=None, config: Optional[ParameterSet] = None, profiler=None, file_dict=None):
+    def __init__(self, *, device_proxy=None, config: Optional[ParameterSet] = None, profiler=None, file_dict=None):
         """
 
         Parameters
         ----------
-        device : Device_
+        device_proxy : Device_
         sleep_duration : float
         file_path : str
             Set a path to camera description file which you want to load on
@@ -1600,7 +1603,7 @@ class ImageAcquirer:
         else:
             self._xml_dir = None
 
-        self._device = device
+        self._device_proxy = device_proxy
 
         self._sleep_on_event_module = ParameterSet.get(ParameterKey.THREAD_SLEEP_PERIOD_FOR_EVENT_MODULE,
                                                        0.001, config)
@@ -1608,11 +1611,11 @@ class ImageAcquirer:
         file_path = ParameterSet.get(ParameterKey.REMOTE_DEVICE_SOURCE_XML_FILE_PATH, None, config)
 
         self._remote_device = RemoteDevice(
-            module=device.module, parent=device, file_path=file_path,
+            module=device_proxy.module, parent=device_proxy, file_path=file_path,
             file_dict=file_dict, do_clean_up=self._clean_up,
             xml_dir_to_store=self._xml_dir)
-        self._interface = device.parent
-        self._system = self._interface.parent
+        self._interface_proxy = device_proxy.parent
+        self._system_proxy = self._interface_proxy.parent
 
         if self._remote_device:
             assert self._remote_device.node_map
@@ -1624,9 +1627,9 @@ class ImageAcquirer:
         self._module_event_monitor_dict = dict()
         self._module_event_monitor_thread_dict = dict()
 
-        modules = [self._system,
-                   self._interface,
-                   self._device,
+        modules = [self._system_proxy,
+                   self._interface_proxy,
+                   self._device_proxy,
                    self._remote_device]
         event_types = [EVENT_TYPE_LIST.EVENT_MODULE,
                        EVENT_TYPE_LIST.EVENT_MODULE,
@@ -1817,8 +1820,8 @@ class ImageAcquirer:
         if self._chunk_adapter:
             self._chunk_adapter = None
 
-        if self._device.is_open():
-            self._device.close()
+        if self._device_proxy.is_open():
+            self._device_proxy.close()
 
     def destroy(self) -> None:
         """
@@ -1858,9 +1861,9 @@ class ImageAcquirer:
         self._module_event_monitor_thread_dict.clear()
 
         self._remote_device = None
-        self._device = None
-        self._interface = None
-        self._system = None
+        self._device_proxy = None
+        self._interface_proxy = None
+        self._system_proxy = None
 
         self._is_valid = False
 
@@ -1962,7 +1965,7 @@ class ImageAcquirer:
         Device: The local GenTL :class:`Device` proxy object that the
         :class:`ImageAcquire` object is working with.
         """
-        return self._device
+        return self._device_proxy
 
     @property
     def interface(self) -> Interface:
@@ -1970,7 +1973,7 @@ class ImageAcquirer:
         Interface: The GenTL :class:`Interface` object that the
         :class:`ImageAcquire` object is working with.
         """
-        return self._interface
+        return self._interface_proxy
 
     @property
     def system(self) -> System:
@@ -1978,7 +1981,7 @@ class ImageAcquirer:
         System: The GenTL :class:`System` object that the
         :class:`ImageAcquire` object is working with.
         """
-        return self._system
+        return self._system_proxy
 
     def is_acquiring_images(self):
         """
@@ -2112,8 +2115,8 @@ class ImageAcquirer:
     def _setup_data_streams(self, file_dict: Dict[str, bytes] = None):
         global _logger
 
-        for i, stream_id in enumerate(self._device.data_stream_ids):
-            _data_stream = self._device.create_data_stream()
+        for i, stream_id in enumerate(self._device_proxy.data_stream_ids):
+            _data_stream = self._device_proxy.create_data_stream()
 
             try:
                 _data_stream.open(stream_id)
@@ -2229,7 +2232,7 @@ class ImageAcquirer:
                     pass
                 except AttributeError:
                     _logger.debug("no TLParamsLocked: {}".format(
-                        _family_tree(self._device.module)))
+                        _family_tree(self._device_proxy.module)))
 
                 ds.start_acquisition(
                     ACQ_START_FLAGS_LIST.ACQ_START_FLAGS_DEFAULT, -1)
@@ -2245,7 +2248,7 @@ class ImageAcquirer:
 
         self.remote_device.node_map.AcquisitionStart.execute()
         _logger.debug('started streaming: {0}'.format(
-                _family_tree(self._device.module)))
+                _family_tree(self._device_proxy.module)))
 
         if self._profiler:
             self._profiler.print_diff()
@@ -2315,7 +2318,7 @@ class ImageAcquirer:
                     _logger.warning(
                         'no way to check chunk availability: {0}'.format(
                             _family_tree(buffer)))
-                    return
+                return
             else:
                 if _is_logging_buffer:
                     _logger.debug('contains chunk data: {0}'.format(
@@ -2341,7 +2344,7 @@ class ImageAcquirer:
                 self._chunk_adapter.update_buffer(buffer.raw_buffer)
                 action = 'updated'
             else:
-                self._chunk_adapter.attach_buffer(buffer.raw_buffer[:size])
+                self._chunk_adapter.attach_buffer(buffer.raw_buffer, size)
                 self._has_attached_chunk = True
                 action = 'attached'
 
@@ -2352,7 +2355,7 @@ class ImageAcquirer:
             if not is_manual:
                 self._emit_callbacks(self.Events.ON_CHUNK_DATA_UPDATED)
 
-    def try_fetch(self, *, timeout: float = 0,
+    def try_fetch(self, *, timeout: float,
                   is_raw: bool = False) -> Union[Buffer, _Buffer, None]:
         """
         Unlike the fetch method, the try_fetch method gives up and
@@ -2646,7 +2649,7 @@ class ImageAcquirer:
                     _logger.warning(e, exc_info=True)
                 else:
                     _logger.debug('stopped streaming: {}'.format(
-                        _family_tree(self._device.module)))
+                        _family_tree(self._device_proxy.module)))
 
                 try:
                     self.remote_device.node_map.TLParamsLocked.value = 0
@@ -2654,7 +2657,7 @@ class ImageAcquirer:
                     pass
                 except AttributeError:
                     _logger.debug("no TLParamsLocked: {}".format(
-                        _family_tree(self._device.module)))
+                        _family_tree(self._device_proxy.module)))
 
                 for data_stream in self._data_streams:
                     try:
@@ -3006,11 +3009,14 @@ class Harvester:
             return ": ".join([status_dict.get(status),
                               solution_dict.get(solution)])
 
+        parent = None
         if type(search_key) is int:
             raw_device = self.device_info_list[search_key].create_device()
+            parent = self.device_info_list[search_key].parent
         elif type(search_key) is DeviceInfo:
             if search_key in self.device_info_list:
                 raw_device = search_key.create_device()
+                parent = search_key.parent
             else:
                 raise ValueError(1, 2)
         elif type(search_key) is dict:
@@ -3036,17 +3042,21 @@ class Harvester:
                 raise ValueError(compose_message(1, 1))
             else:
                 raw_device = candidate_devices[0].create_device()
+                parent = candidate_devices[0].parent
         elif search_key is None:
             if len(self.device_info_list) > 0:
                 raw_device = self.device_info_list[0].create_device()
+                parent = self.device_info_list[0].parent
             else:
                 raise ValueError(compose_message(0, 0))
         else:
             raise ValueError(compose_message(3, 3))
 
-        return self._create_acquirer(raw_device=raw_device, config=config)
+        assert parent
+        device_proxy = Device(module=raw_device, parent=parent)
+        return self._create_acquirer(device_proxy=device_proxy, config=config)
 
-    def _create_acquirer(self, *, raw_device: Device,
+    def _create_acquirer(self, *, device_proxy: Device,
                          config: Optional[ParameterSet] = None,
                          file_dict=None):
         privilege = ParameterSet.get(ParameterKey.DEVICE_OWNERSHIP_PRIVILEGE, 'exclusive', config)
@@ -3061,20 +3071,20 @@ class Harvester:
                 raise NotImplementedError(
                     'not supported: {}'.format(privilege))
 
-            raw_device.open(_privilege)
-            device = Device(module=raw_device, parent=raw_device.parent)
+            device_proxy.open(_privilege)
+            device_proxy_ = Device(module=device_proxy.module, parent=device_proxy.parent)
 
         except GenTL_GenericException as e:
             _logger.warning(e, exc_info=True)
             raise
         else:
             _logger.debug(
-                'opened: {}'.format(_family_tree(device)))
+                'opened: {}'.format(_family_tree(device_proxy_)))
 
             if config:
                 config.remove(ParameterKey.DEVICE_OWNERSHIP_PRIVILEGE)
 
-            ia = ImageAcquirer(device=device, config=config,
+            ia = ImageAcquirer(device_proxy=device_proxy_, config=config,
                                file_dict=file_dict)
             self._ias.append(ia)
 
@@ -3082,7 +3092,7 @@ class Harvester:
                 self._profiler.print_diff()
 
         _logger.info('created: {0} for {1} by {2}'.format(
-            ia, device.id_, self))
+            ia, device_proxy_.id_, self))
 
         return ia
 
@@ -3129,7 +3139,6 @@ class Harvester:
 
         if list_index is not None:
             dev_info = self.device_info_list[list_index]
-            raw_device = dev_info.create_device()
         else:
             keys = ['id_', 'vendor', 'model', 'tl_type', 'user_defined_name',
                     'serial_number', 'version']
@@ -3163,7 +3172,6 @@ class Harvester:
                     'a single candidate is specified.')
             else:
                 dev_info = candidates[0]
-                raw_device = dev_info.create_device()
 
         config = ParameterSet({
             ParameterKey.DEVICE_OWNERSHIP_PRIVILEGE: privilege,
@@ -3173,7 +3181,11 @@ class Harvester:
             ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES: self._clean_up,
         })
 
-        return self._create_acquirer(raw_device=raw_device, config=config,
+        assert dev_info
+        raw_device = dev_info.create_device()
+        parent = dev_info.parent
+        device_proxy = Device(module=raw_device, parent=parent)
+        return self._create_acquirer(device_proxy=device_proxy, config=config,
                                      file_dict=file_dict)
 
     def add_cti_file(
@@ -3408,10 +3420,10 @@ class Harvester:
         try:
             self._open_gentl_producers()
             self._open_systems()
-            for raw_system in self._systems:
-                raw_system.update_interface_info_list(self.timeout_for_update)
+            for system_proxy in self._systems:
+                system_proxy.update_interface_info_list(self.timeout_for_update)
 
-                for i_info in raw_system.interface_info_list:
+                for i_info in system_proxy.interface_info_list:
                     raw_iface = i_info.create_interface()
                     try:
                         raw_iface.open()
@@ -3420,7 +3432,7 @@ class Harvester:
                     else:
                         _logger.debug('opened: {0}'.format(_family_tree(raw_iface)))
 
-                        iface_ = Interface(module=raw_iface, parent=raw_system)
+                        iface_ = Interface(module=raw_iface, parent=system_proxy)
                         self._ifaces.append(iface_)
 
                         raw_iface.update_device_info_list(self.timeout_for_update)

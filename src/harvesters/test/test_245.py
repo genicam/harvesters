@@ -96,8 +96,11 @@ class TestTutorials(TestHarvester):
         if not self.is_running_with('viky'):
             self.skipTest("the given target is not appropriate")
 
+        self._logger.info("GIVEN: one or more devices")
         threads = []
         nr_devices = len(self.harvester.device_info_list)
+
+        self._logger.info("WHEN: letting events happen")
         for i in range(nr_devices):
             threads.append(
                 NodeCallbackDemoThread(
@@ -105,6 +108,8 @@ class TestTutorials(TestHarvester):
 
         for t in threads:
             t.start()
+
+        self._logger.info("THEN: events are observed on the console")
 
         for t in threads:
             t.join()

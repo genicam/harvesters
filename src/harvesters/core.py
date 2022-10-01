@@ -107,7 +107,6 @@ class ParameterKey(IntEnum):
     DEVICE_OWNERSHIP_PRIVILEGE = 106  # doc: Determines the ownership privilege to be applied when the :class:`~harvestesrs.core.ImageAcquirer` object opens a target remote device.
     THREAD_FACTORY_METHOD = 107  # doc: Determines the thread factory method where the corersponding thread worker is bound; the value type must be callable.
 
-    THREAD_SLEEP_PERIOD_FOR_EVENT_MODULE = 200
     THREAD_FACTORY_METHOD_FOR_EVENT_MODULE = 201
 
 
@@ -692,19 +691,17 @@ class MutexLocker:
 
 
 class _EventMonitor(ThreadBase):
-    def __init__(self, *, sleep: float, worker: Optional[Callable[[], None]] = None):
+    def __init__(self, *, worker: Optional[Callable[[], None]] = None):
         """
 
         :param image_acquire:
         """
         super().__init__(mutex=Lock())
         self._worker = worker
-        self._sleep = sleep
         self._thread = None
 
     def _internal_start(self):
-        self._thread = _NativeThread(parent=self, worker=self._worker,
-                                     sleep=self._sleep)
+        self._thread = _NativeThread(parent=self, worker=self._worker)
         self._id = self._thread.id_
         self._is_running = True
         self._thread.start()
@@ -752,8 +749,7 @@ class _EventMonitor(ThreadBase):
 
 
 class _NativeThread(Thread):
-    def __init__(self, parent, worker=None,
-                 sleep=_sleep_default):
+    def __init__(self, parent, worker=None, sleep=0):
         assert parent
 
         super().__init__(daemon=self._is_interactive())
@@ -1553,7 +1549,6 @@ class ImageAcquirer:
         ParameterKey.TIMEOUT_PERIOD_ON_UPDATE_EVENT_DATA_CALL,
         ParameterKey.TIMEOUT_PERIOD_ON_CLIENT_FETCH_CALL,
         ParameterKey.NUM_BUFFERS_FOR_FETCH_CALL,
-        ParameterKey.THREAD_SLEEP_PERIOD_FOR_EVENT_MODULE,
     ]
 
     class Events(IntEnum):
@@ -1605,9 +1600,7 @@ class ImageAcquirer:
 
         self._device_proxy = device_proxy
 
-        self._sleep_on_event_module = ParameterSet.get(ParameterKey.THREAD_SLEEP_PERIOD_FOR_EVENT_MODULE,
-                                                       0.001, config)
-        self._thread_factory_method_for_event_module = ParameterSet.get(ParameterKey.THREAD_FACTORY_METHOD, lambda: _EventMonitor(sleep=self._sleep_on_event_module), config)
+        self._thread_factory_method_for_event_module = ParameterSet.get(ParameterKey.THREAD_FACTORY_METHOD, lambda: _EventMonitor(), config)
         file_path = ParameterSet.get(ParameterKey.REMOTE_DEVICE_SOURCE_XML_FILE_PATH, None, config)
 
         self._remote_device = RemoteDevice(
@@ -1664,12 +1657,9 @@ class ImageAcquirer:
         self._num_buffers_to_hold = 1
         self._queue = Queue(maxsize=self._num_buffers_to_hold)
 
-        self._sleep_on_event_new_buffer = ParameterSet.get(
-            ParameterKey.THREAD_SLEEP_PERIOD, _sleep_default, config)
         self._thread_factory_method_for_event_new_buffer = ParameterSet.get(
             ParameterKey.THREAD_FACTORY_METHOD,
-            lambda: _EventMonitor(sleep=self._sleep_on_event_new_buffer),
-            config)
+            lambda: _EventMonitor(), config)
 
         self._event_new_buffer_thread = \
             self._thread_factory_method_for_event_new_buffer()
@@ -2529,7 +2519,7 @@ class ImageAcquirer:
             while not buffer:
                 buffer = self._try_fetch_from_queue(is_raw=is_raw)
                 if not buffer:
-                    time.sleep(cycle_s if cycle_s else 0.0001)
+                    time.sleep(0)
                 else:
                     return buffer
         else:
@@ -3175,7 +3165,6 @@ class Harvester:
 
         config = ParameterSet({
             ParameterKey.DEVICE_OWNERSHIP_PRIVILEGE: privilege,
-            ParameterKey.THREAD_SLEEP_PERIOD: sleep_duration,
             ParameterKey.REMOTE_DEVICE_SOURCE_XML_FILE_PATH: file_path,
             ParameterKey.ENABLE_AUTO_CHUNK_DATA_UPDATE: auto_chunk_data_update,
             ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES: self._clean_up,

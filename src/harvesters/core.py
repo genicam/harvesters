@@ -2272,7 +2272,7 @@ class ImageAcquirer:
                 _logger.debug(e, exc_info=True)
             else:
                 _logger.debug("going to deliver an event: {}".format(monitor))
-                if self._device.tl_type in self._specialized_tl_type:
+                if self._device_proxy.tl_type in self._specialized_tl_type:
                     self._event_adapter.deliver_message(monitor.optional_data)
                 else:
                     self._event_adapter.deliver_message(monitor.optional_data,

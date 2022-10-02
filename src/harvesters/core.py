@@ -107,7 +107,9 @@ class ParameterKey(IntEnum):
     DEVICE_OWNERSHIP_PRIVILEGE = 106  # doc: Determines the ownership privilege to be applied when the :class:`~harvestesrs.core.ImageAcquirer` object opens a target remote device.
     THREAD_FACTORY_METHOD = 107  # doc: Determines the thread factory method where the corersponding thread worker is bound; the value type must be callable.
 
-    THREAD_FACTORY_METHOD_FOR_EVENT_MODULE = 201
+    THREAD_FACTORY_METHOD_FOR_EVENT_MODULE = 200
+
+    TIMER = 300  # doc: Specifies the timer module to be used. For example, you need to set QTimer when you work on a PyQt application.
 
 
 class ParameterSet:
@@ -691,7 +693,7 @@ class MutexLocker:
 
 
 class _EventMonitor(ThreadBase):
-    def __init__(self, *, worker: Optional[Callable[[], None]] = None):
+    def __init__(self, *, worker: Optional[Callable[[], None]] = None, timer: Timer):
         """
 
         :param image_acquire:
@@ -699,9 +701,10 @@ class _EventMonitor(ThreadBase):
         super().__init__(mutex=Lock())
         self._worker = worker
         self._thread = None
+        self._timer = timer
 
     def _internal_start(self):
-        self._thread = _NativeThread(parent=self, worker=self._worker)
+        self._thread = _NativeThread(parent=self, worker=self._worker, timer=self._timer)
         self._id = self._thread.id_
         self._is_running = True
         self._thread.start()
@@ -748,14 +751,33 @@ class _EventMonitor(ThreadBase):
         return self._is_running
 
 
+
+
+class Timer:
+    def __init__(self):
+        super().__init__()
+
+    def sleep(self, value: Any):
+        raise NotImplementedError
+
+
+class _Timer(Timer):
+    def __init__(self):
+        super().__init__()
+
+    def sleep(self, value: Any):
+        time.sleep(value)
+
+
 class _NativeThread(Thread):
-    def __init__(self, parent, worker=None, sleep=0):
+    def __init__(self, parent, worker=None, sleep=0, timer: object = time):
         assert parent
 
         super().__init__(daemon=self._is_interactive())
 
         self._worker = worker
         self._parent = parent
+        self._timer = timer
         self._sleep = sleep
 
     @staticmethod
@@ -783,7 +805,7 @@ class _NativeThread(Thread):
         while self._parent.is_running():
             if self._worker:
                 self._worker()
-            time.sleep(self._sleep)
+            self._timer.sleep(self._sleep)
 
     def acquire(self):
         return self._parent.mutex.acquire()
@@ -1566,7 +1588,7 @@ class ImageAcquirer:
     def _create_acquisition_thread(self) -> _ImageAcquisitionThread:
         return _ImageAcquisitionThread(image_acquire=self)
 
-    def __init__(self, *, device_proxy=None, config: Optional[ParameterSet] = None, profiler=None, file_dict=None):
+    def __init__(self, *, parent: Harvester, device_proxy=None, config: Optional[ParameterSet] = None, profiler=None, file_dict=None):
         """
 
         Parameters
@@ -1586,6 +1608,7 @@ class ImageAcquirer:
         ParameterSet.check(config, self._supported_parameters)
         super().__init__()
 
+        self._parent = parent
         self._is_valid = True
         self._file_dict = file_dict
         self._clean_up = ParameterSet.get(ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES, True, config)
@@ -1600,7 +1623,7 @@ class ImageAcquirer:
 
         self._device_proxy = device_proxy
 
-        self._thread_factory_method_for_event_module = ParameterSet.get(ParameterKey.THREAD_FACTORY_METHOD, lambda: _EventMonitor(), config)
+        self._thread_factory_method_for_event_module = ParameterSet.get(ParameterKey.THREAD_FACTORY_METHOD, lambda: _EventMonitor(timer=self._parent.timer), config)
         file_path = ParameterSet.get(ParameterKey.REMOTE_DEVICE_SOURCE_XML_FILE_PATH, None, config)
 
         self._remote_device = RemoteDevice(
@@ -1659,7 +1682,7 @@ class ImageAcquirer:
 
         self._thread_factory_method_for_event_new_buffer = ParameterSet.get(
             ParameterKey.THREAD_FACTORY_METHOD,
-            lambda: _EventMonitor(), config)
+            lambda: _EventMonitor(timer=self._parent.timer), config)
 
         self._event_new_buffer_thread = \
             self._thread_factory_method_for_event_new_buffer()
@@ -2519,7 +2542,7 @@ class ImageAcquirer:
             while not buffer:
                 buffer = self._try_fetch_from_queue(is_raw=is_raw)
                 if not buffer:
-                    time.sleep(0)
+                    self._parent.timer.sleep(0)
                 else:
                     return buffer
         else:
@@ -2809,6 +2832,7 @@ class Harvester:
         ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES,
         ParameterKey.TIMEOUT_PERIOD_ON_MODULE_ENUMERATION,
         ParameterKey._ENABLE_PROFILE,
+        ParameterKey.TIMER,
     ]
 
     def __init__(self, *, profile=False, logger: Optional[Logger] = None,
@@ -2863,6 +2887,9 @@ class Harvester:
         self._timeout_period_on_module_enumeration = \
             ParameterSet.get(ParameterKey.TIMEOUT_PERIOD_ON_MODULE_ENUMERATION, 1000, config)  # ms
 
+        self._timer = \
+            ParameterSet.get(ParameterKey.TIMER, Timer(), config)
+
         if config:
             _profile = ParameterSet.get(ParameterKey._ENABLE_PROFILE, False, config)
         else:
@@ -2891,6 +2918,10 @@ class Harvester:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._finalizer()
+
+    @property
+    def timer(self):
+        return self._timer
 
     def reset(self) -> None:
         """
@@ -3075,7 +3106,7 @@ class Harvester:
                 config.remove(ParameterKey.DEVICE_OWNERSHIP_PRIVILEGE)
 
             ia = ImageAcquirer(device_proxy=device_proxy_, config=config,
-                               file_dict=file_dict)
+                               file_dict=file_dict, parent=self)
             self._ias.append(ia)
 
             if self._profiler:

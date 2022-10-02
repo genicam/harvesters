@@ -751,8 +751,6 @@ class _EventMonitor(ThreadBase):
         return self._is_running
 
 
-
-
 class Timer:
     def __init__(self):
         super().__init__()
@@ -2888,7 +2886,7 @@ class Harvester:
             ParameterSet.get(ParameterKey.TIMEOUT_PERIOD_ON_MODULE_ENUMERATION, 1000, config)  # ms
 
         self._timer = \
-            ParameterSet.get(ParameterKey.TIMER, Timer(), config)
+            ParameterSet.get(ParameterKey.TIMER, _Timer(), config)
 
         if config:
             _profile = ParameterSet.get(ParameterKey._ENABLE_PROFILE, False, config)

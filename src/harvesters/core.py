@@ -87,19 +87,19 @@ _logger = get_logger(name=__name__)
 
 class ParameterKey(IntEnum):
     __doc__ = "A list of variable/defined parameters."
-    _ENABLE_PROFILE = -1,
-    LOGGER = 0,  # doc: Determines the logger to be used; the value type must be :class:`Logger`.
-    TIMEOUT_PERIOD_ON_MODULE_ENUMERATION = 2,  # doc: Determines the time-out period that is applied on the GenTL module enumeration; the value type must be :class:`int`.
-    ENABLE_CLEANING_UP_INTERMEDIATE_FILES = 3,  # doc: Determines if you want to delete all of the intermediate files; set :const:`True` if you want to delete, otherwise set :const:`False`.
+    _ENABLE_PROFILE = -1
+    LOGGER = 0  # doc: Determines the logger to be used; the value type must be :class:`Logger`.
+    TIMEOUT_PERIOD_ON_MODULE_ENUMERATION = 2  # doc: Determines the time-out period that is applied on the GenTL module enumeration; the value type must be :class:`int`.
+    ENABLE_CLEANING_UP_INTERMEDIATE_FILES = 3  # doc: Determines if you want to delete all of the intermediate files; set :const:`True` if you want to delete, otherwise set :const:`False`.
 
-    THREAD_SLEEP_PERIOD = 100,  # doc: Determines the sleep period that is applied on every single worker execution; the value type is :class:`int`.
-    TIMEOUT_PERIOD_ON_UPDATE_EVENT_DATA_CALL = 101,  # doc: Determines the time-out period that is applied on a single GenTL EventGetData call; the value type must be :class:`int`; the unit is [ms].
-    TIMEOUT_PERIOD_ON_CLIENT_FETCH_CALL = 102,  # doc: Determines the time-out period that is applied on a single fetch method call; the value type must be :class:`int`; the unit is [s].
-    NUM_BUFFERS_FOR_FETCH_CALL = 103,  # doc: Determines the number of buffers to be allocated on the GenTL Producer-side; the value type must be :class:`int`.
-    REMOTE_DEVICE_SOURCE_XML_FILE_PATH = 104,  # doc: Determines the file path where the source GenICam device description file is located; the value type must be :class:`str`.
-    ENABLE_AUTO_CHUNK_DATA_UPDATE = 105,  # doc: Determines if you let the :class:`ImageAcquirer` object to automatically update the chunk data when the owner image data is fetched; the value type must be :class:`bool`.
-    DEVICE_OWNERSHIP_PRIVILEGE = 106,  # doc: Determines the ownership privilege to be applied when the :class:`~harvestesrs.core.ImageAcquirer` object opens a target remote device.
-    THREAD_FACTORY_METHOD = 107,  # doc: Determines the thread factory method where the corersponding thread worker is bound; the value type must be callable.
+    THREAD_SLEEP_PERIOD = 100  # doc: Determines the sleep period that is applied on every single worker execution; the value type is :class:`int`.
+    TIMEOUT_PERIOD_ON_UPDATE_EVENT_DATA_CALL = 101  # doc: Determines the time-out period that is applied on a single GenTL EventGetData call; the value type must be :class:`int`; the unit is [ms].
+    TIMEOUT_PERIOD_ON_CLIENT_FETCH_CALL = 102  # doc: Determines the time-out period that is applied on a single fetch method call; the value type must be :class:`int`; the unit is [s].
+    NUM_BUFFERS_FOR_FETCH_CALL = 103  # doc: Determines the number of buffers to be allocated on the GenTL Producer-side; the value type must be :class:`int`.
+    REMOTE_DEVICE_SOURCE_XML_FILE_PATH = 104  # doc: Determines the file path where the source GenICam device description file is located; the value type must be :class:`str`.
+    ENABLE_AUTO_CHUNK_DATA_UPDATE = 105  # doc: Determines if you let the :class:`ImageAcquirer` object to automatically update the chunk data when the owner image data is fetched; the value type must be :class:`bool`.
+    DEVICE_OWNERSHIP_PRIVILEGE = 106  # doc: Determines the ownership privilege to be applied when the :class:`~harvestesrs.core.ImageAcquirer` object opens a target remote device.
+    THREAD_FACTORY_METHOD = 107  # doc: Determines the thread factory method where the corersponding thread worker is bound; the value type must be callable.
 
 
 class ParameterSet:
@@ -1506,11 +1506,11 @@ class ImageAcquirer:
         __doc__ = "Possible events that the " \
                   ":class:`~harvesters.core.ImageAcquirer` class " \
                   "can notify to the client."
-        TURNED_OBSOLETE = 0,  # doc: The :class:`~ImageAcquirer` obejct has turned obsolete."
-        NEW_BUFFER_AVAILABLE = 1,  # doc: A buffer has turned available to be fetched.
-        RETURN_ALL_BORROWED_BUFFERS = 2,  # doc: Notifies that the fetched buffers must be queued.
-        READY_TO_STOP_ACQUISITION = 3,  # doc: Notifies the ongoing image acquisition process can be stopped.
-        INCOMPLETE_BUFFER = 4,  # doc: Notifies a buffer has been fetched but it was incomplete and unusable.
+        TURNED_OBSOLETE = 0  # doc: The :class:`~ImageAcquirer` obejct has turned obsolete."
+        NEW_BUFFER_AVAILABLE = 1  # doc: A buffer has turned available to be fetched.
+        RETURN_ALL_BORROWED_BUFFERS = 2  # doc: Notifies that the fetched buffers must be queued.
+        READY_TO_STOP_ACQUISITION = 3  # doc: Notifies the ongoing image acquisition process can be stopped.
+        INCOMPLETE_BUFFER = 4  # doc: Notifies a buffer has been fetched but it was incomplete and unusable.
 
     def _create_acquisition_thread(self) -> _ImageAcquisitionThread:
         return _ImageAcquisitionThread(image_acquire=self)

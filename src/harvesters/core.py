@@ -1629,7 +1629,7 @@ class ImageAcquirer:
 
         self._device_proxy = device_proxy
 
-        self._thread_factory_method_for_event_module = ParameterSet.get(ParameterKey.THREAD_FACTORY_METHOD, lambda: _EventMonitor(timer=self._parent.timer), config)
+        self._thread_factory_method_for_event_module = ParameterSet.get(ParameterKey.THREAD_FACTORY_METHOD_FOR_EVENT_MODULE, lambda: _EventMonitor(timer=self._parent.timer), config)
         file_path = ParameterSet.get(ParameterKey.REMOTE_DEVICE_SOURCE_XML_FILE_PATH, None, config)
 
         self._remote_device = RemoteDevice(

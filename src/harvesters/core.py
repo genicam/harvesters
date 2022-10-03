@@ -39,7 +39,7 @@ import sys
 from threading import Lock, Thread, Event
 from threading import current_thread, main_thread
 import time
-from typing import Union, List, Optional, Dict, TypeVar, Callable, Any
+from typing import Union, List, Optional, Dict, TypeVar, Callable, Any, Type
 from urllib.parse import urlparse
 from warnings import warn, simplefilter
 import weakref
@@ -693,7 +693,7 @@ class MutexLocker:
 
 
 class _EventMonitor(ThreadBase):
-    def __init__(self, *, worker: Optional[Callable[[], None]] = None, timer: Timer):
+    def __init__(self, *, worker: Optional[Callable[[], None]] = None, timer: Type[Timer]):
         """
 
         :param image_acquire:
@@ -755,6 +755,10 @@ class Timer:
     def __init__(self):
         super().__init__()
 
+    @staticmethod
+    def create():
+        raise NotImplementedError
+
     def sleep(self, value: Any):
         raise NotImplementedError
 
@@ -763,19 +767,23 @@ class _Timer(Timer):
     def __init__(self):
         super().__init__()
 
+    @staticmethod
+    def create():
+        return _Timer()
+
     def sleep(self, value: Any):
-        time.sleep(value)
+        time.sleep(sys.float_info.min)
 
 
 class _NativeThread(Thread):
-    def __init__(self, parent, worker=None, sleep=0, timer: object = time):
+    def __init__(self, parent, worker=None, sleep=0, timer: Type[Timer] = Timer):
         assert parent
 
         super().__init__(daemon=self._is_interactive())
 
         self._worker = worker
         self._parent = parent
-        self._timer = timer
+        self._timer = timer.create()
         self._sleep = sleep
 
     @staticmethod

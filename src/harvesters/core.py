@@ -57,7 +57,7 @@ from genicam.genapi import ChunkAdapterGeneric, ChunkAdapterU3V, \
 from genicam.genapi import EventAdapterGEV, EventAdapterU3V, \
     EventAdapterGeneric
 
-from genicam.gentl import TimeoutException
+from genicam.gentl import TimeoutException, NotAvailableException
 from genicam.gentl import GenericException as GenTL_GenericException, \
     NotImplementedException, ResourceInUseException
 from genicam.gentl import GenTLProducer, BufferToken
@@ -519,7 +519,7 @@ class DeviceInfo(Module):
             value = None
             try:
                 value = getattr(self._module, p, None)
-            except GenTL_GenericException as e:
+            except (GenTL_GenericException, NotAvailableException) as e:
                 _logger.debug(e, exc_info=True)
             self._property_dict[p] = value
 

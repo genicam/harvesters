@@ -39,7 +39,7 @@ import sys
 from threading import Lock, Thread, Event
 from threading import current_thread, main_thread
 import time
-from typing import Union, List, Optional, Dict, TypeVar, Callable, Any, Type
+from typing import Union, List, Optional, Dict, TypeVar, Callable, Any
 from urllib.parse import urlparse
 from warnings import warn, simplefilter
 import weakref
@@ -693,7 +693,7 @@ class MutexLocker:
 
 
 class _EventMonitor(ThreadBase):
-    def __init__(self, *, worker: Optional[Callable[[], None]] = None, timer: Type[Timer]):
+    def __init__(self, *, worker: Optional[Callable[[], None]] = None):
         """
 
         :param image_acquire:
@@ -701,10 +701,9 @@ class _EventMonitor(ThreadBase):
         super().__init__(mutex=Lock())
         self._worker = worker
         self._thread = None
-        self._timer = timer
 
     def _internal_start(self):
-        self._thread = _NativeThread(parent=self, worker=self._worker, timer=self._timer)
+        self._thread = _NativeThread(parent=self, worker=self._worker)
         self._id = self._thread.id_
         self._is_running = True
         self._thread.start()
@@ -751,39 +750,14 @@ class _EventMonitor(ThreadBase):
         return self._is_running
 
 
-class Timer:
-    def __init__(self):
-        super().__init__()
-
-    @staticmethod
-    def create():
-        raise NotImplementedError
-
-    def sleep(self, value: Any):
-        raise NotImplementedError
-
-
-class _Timer(Timer):
-    def __init__(self):
-        super().__init__()
-
-    @staticmethod
-    def create():
-        return _Timer()
-
-    def sleep(self, value: Any):
-        time.sleep(sys.float_info.min)
-
-
 class _NativeThread(Thread):
-    def __init__(self, parent, worker=None, sleep=0, timer: Type[Timer] = Timer):
+    def __init__(self, parent, worker=None, sleep=0):
         assert parent
 
         super().__init__(daemon=self._is_interactive())
 
         self._worker = worker
         self._parent = parent
-        self._timer = timer.create()
         self._sleep = sleep
 
     @staticmethod
@@ -811,7 +785,7 @@ class _NativeThread(Thread):
         while self._parent.is_running():
             if self._worker:
                 self._worker()
-            self._timer.sleep(self._sleep)
+            time.sleep(self._sleep)
 
     def acquire(self):
         return self._parent.mutex.acquire()
@@ -1629,7 +1603,7 @@ class ImageAcquirer:
 
         self._device_proxy = device_proxy
 
-        self._thread_factory_method_for_event_module = ParameterSet.get(ParameterKey.THREAD_FACTORY_METHOD_FOR_EVENT_MODULE, lambda: _EventMonitor(timer=self._parent.timer), config)
+        self._thread_factory_method_for_event_module = ParameterSet.get(ParameterKey.THREAD_FACTORY_METHOD_FOR_EVENT_MODULE, lambda: _EventMonitor(), config)
         file_path = ParameterSet.get(ParameterKey.REMOTE_DEVICE_SOURCE_XML_FILE_PATH, None, config)
 
         self._remote_device = RemoteDevice(
@@ -1688,7 +1662,7 @@ class ImageAcquirer:
 
         self._thread_factory_method_for_event_new_buffer = ParameterSet.get(
             ParameterKey.THREAD_FACTORY_METHOD,
-            lambda: _EventMonitor(timer=self._parent.timer), config)
+            lambda: _EventMonitor(), config)
 
         self._event_new_buffer_thread = \
             self._thread_factory_method_for_event_new_buffer()
@@ -2548,7 +2522,7 @@ class ImageAcquirer:
             while not buffer:
                 buffer = self._try_fetch_from_queue(is_raw=is_raw)
                 if not buffer:
-                    self._parent.timer.sleep(0)
+                    time.sleep(cycle_s if cycle_s else 0.0001)
                 else:
                     return buffer
         else:
@@ -2892,9 +2866,6 @@ class Harvester:
 
         self._timeout_period_on_module_enumeration = \
             ParameterSet.get(ParameterKey.TIMEOUT_PERIOD_ON_MODULE_ENUMERATION, 1000, config)  # ms
-
-        self._timer = \
-            ParameterSet.get(ParameterKey.TIMER, _Timer(), config)
 
         if config:
             _profile = ParameterSet.get(ParameterKey._ENABLE_PROFILE, False, config)

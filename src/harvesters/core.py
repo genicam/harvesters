@@ -751,7 +751,7 @@ class _EventMonitor(ThreadBase):
 
 
 class _NativeThread(Thread):
-    def __init__(self, parent, worker=None, sleep=0):
+    def __init__(self, parent, worker=None, sleep=sys.float_info.min):
         assert parent
 
         super().__init__(daemon=self._is_interactive())

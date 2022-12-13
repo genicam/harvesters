@@ -2550,6 +2550,7 @@ class ImageAcquirer:
 
         for data_stream in self._data_streams:
             if data_stream.is_open():
+                self._flush_buffers(data_stream)
                 for buffer in self._announced_buffers:
                     name = _family_tree(buffer)
                     _ = data_stream.revoke_buffer(buffer)

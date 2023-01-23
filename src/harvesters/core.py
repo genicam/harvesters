@@ -2509,15 +2509,13 @@ class ImageAcquirer:
                     except GenTL_GenericException as e:
                         _logger.warning(e, exc_info=True)
 
-                    self._flush_buffers(data_stream)
-
-                for event_manager in self._event_new_buffer_managers:
-                    event_manager.flush_event_queue()
-
                 if self._create_ds_at_connection:
                     self._release_buffers()
                 else:
                     self._release_data_streams()
+
+                for event_manager in self._event_new_buffer_managers:
+                    event_manager.flush_event_queue()
 
             self._has_acquired_1st_image = False
             self._chunk_adapter.detach_buffer()

@@ -114,7 +114,10 @@ class TestHarvesterBase(unittest.TestCase):
         self._thread = value
 
     def is_running_with_default_target(self):
-        return True if 'TLSimu.cti' in self._cti_file_path else False
+        return self.is_running_with('TLSimu.cti')
+
+    def is_running_with(self, name: str) -> bool:
+        return True if name in self._cti_file_path else False
 
     @staticmethod
     def _get_xml_dir():

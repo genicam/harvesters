@@ -241,7 +241,7 @@ class Module(_Delegate):
 
         node_map = NodeMap()
 
-        file_path = self._retrieve_file_path(
+        clean_up_required, file_path = self._retrieve_file_path(
             port=port, file_path_to_load=file_path,
             xml_dir_to_store=xml_dir_to_store, file_dict=file_dict)
 
@@ -261,14 +261,14 @@ class Module(_Delegate):
                     node_map.load_xml_from_file(file_path)
                 except GenApi_GenericException as e:
                     if file_dict:
-                        if do_clean_up:
+                        if clean_up_required and do_clean_up:
                             self._remove_intermediate_file(file_path)
                         _logger.warning(e, exc_info=True)
                         raise
                     else:
                         _logger.warning(e, exc_info=True)
 
-            if do_clean_up:
+            if clean_up_required and do_clean_up:
                 self._remove_intermediate_file(file_path)
 
             if has_valid_file:
@@ -284,6 +284,7 @@ class Module(_Delegate):
             xml_dir_to_store: Optional[str] = None,
             file_dict: Dict[str, bytes] = None):
         global _logger
+        new_file_created = False
 
         if file_path_to_load:
             if not os.path.exists(file_path_to_load):
@@ -298,7 +299,7 @@ class Module(_Delegate):
                         raise LogicalErrorException(
                             'The target port does not hold any URL.')
                 except GenTL_GenericException:
-                    return None
+                    return new_file_created, None
 
             _logger.debug('fetched url: {}'.format(url))
 
@@ -322,6 +323,7 @@ class Module(_Delegate):
                 file_path_to_load = _save_file(
                     xml_dir_to_store=xml_dir_to_store, file_name=file_name,
                     binary_data=binary_data, file_dict=file_dict)
+                new_file_created = True
 
             elif location == 'file':
                 file_path_to_load = urlparse(url).path
@@ -339,13 +341,21 @@ class Module(_Delegate):
                 raise LogicalErrorException(
                     'Failed to parse URL {}: Unknown format.'.format(url))
 
-        return file_path_to_load
+        return new_file_created, file_path_to_load
 
     @staticmethod
     def _remove_intermediate_file(file_path: str):
         global _logger
         os.remove(file_path)
         _logger.debug('deleted: {0}'.format(file_path))
+        dir_path = os.path.dirname(file_path)
+        if os.path.isdir(dir_path):
+            if not os.listdir(dir_path):
+                try:
+                    _logger.debug('deleted directory: {0}'.format(dir_path))
+                    os.rmdir(dir_path)
+                except OSError as error:
+                    _logger.warning(f'failed to deleted directory {dir_path} ({error})')
 
     @property
     def module(self) -> Union[System, Interface, Device, RemoteDevice,

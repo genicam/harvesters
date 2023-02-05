@@ -39,7 +39,7 @@ import sys
 from threading import Lock, Thread, Event
 from threading import current_thread, main_thread
 import time
-from typing import Union, List, Optional, Dict, TypeVar, Any
+from typing import Union, List, Optional, Dict, TypeVar, Any, Tuple
 from urllib.parse import urlparse
 from warnings import warn, simplefilter
 import weakref
@@ -245,6 +245,9 @@ class Module(_Delegate):
             port=port, file_path_to_load=file_path,
             xml_dir_to_store=xml_dir_to_store, file_dict=file_dict)
 
+        remove_intermediate_file = True if clean_up_required and \
+            do_clean_up else False
+
         if file_path is not None:
             # Every valid (zipped) XML file MUST be parsed as expected and the
             # method returns the file path where the file is located:
@@ -261,14 +264,14 @@ class Module(_Delegate):
                     node_map.load_xml_from_file(file_path)
                 except GenApi_GenericException as e:
                     if file_dict:
-                        if clean_up_required and do_clean_up:
+                        if remove_intermediate_file:
                             self._remove_intermediate_file(file_path)
                         _logger.warning(e, exc_info=True)
                         raise
                     else:
                         _logger.warning(e, exc_info=True)
 
-            if clean_up_required and do_clean_up:
+            if remove_intermediate_file:
                 self._remove_intermediate_file(file_path)
 
             if has_valid_file:
@@ -282,9 +285,9 @@ class Module(_Delegate):
             *, port: Optional[Port] = None, url: Optional[str] = None,
             file_path_to_load: Optional[str] = None,
             xml_dir_to_store: Optional[str] = None,
-            file_dict: Dict[str, bytes] = None):
+            file_dict: Dict[str, bytes] = None) -> Tuple[bool, Union[str, None]]:
         global _logger
-        new_file_created = False
+        created_new_file = False
 
         if file_path_to_load:
             if not os.path.exists(file_path_to_load):
@@ -299,7 +302,7 @@ class Module(_Delegate):
                         raise LogicalErrorException(
                             'The target port does not hold any URL.')
                 except GenTL_GenericException:
-                    return new_file_created, None
+                    return created_new_file, None
 
             _logger.debug('fetched url: {}'.format(url))
 
@@ -323,7 +326,7 @@ class Module(_Delegate):
                 file_path_to_load = _save_file(
                     xml_dir_to_store=xml_dir_to_store, file_name=file_name,
                     binary_data=binary_data, file_dict=file_dict)
-                new_file_created = True
+                created_new_file = True
 
             elif location == 'file':
                 file_path_to_load = urlparse(url).path
@@ -341,21 +344,27 @@ class Module(_Delegate):
                 raise LogicalErrorException(
                     'Failed to parse URL {}: Unknown format.'.format(url))
 
-        return new_file_created, file_path_to_load
+        return created_new_file, file_path_to_load
 
     @staticmethod
     def _remove_intermediate_file(file_path: str):
         global _logger
+        _logger.debug(f'trying to delete: {file_path}')
         os.remove(file_path)
-        _logger.debug('deleted: {0}'.format(file_path))
+        if os.path.isfile(file_path):
+            _logger.warning(f'failed to delete: {file_path}')
+        else:
+            _logger.debug(f'deleted: {file_path}')
         dir_path = os.path.dirname(file_path)
-        if os.path.isdir(dir_path):
-            if not os.listdir(dir_path):
-                try:
-                    _logger.debug('deleted directory: {0}'.format(dir_path))
-                    os.rmdir(dir_path)
-                except OSError as error:
-                    _logger.warning(f'failed to deleted directory {dir_path} ({error})')
+        if os.path.isdir(dir_path) and not os.listdir(dir_path):
+            _logger.debug(f'trying to delete: {dir_path}')
+            try:
+                os.rmdir(dir_path)
+            except OSError as error:
+                _logger.warning(
+                    f'failed to delete: {dir_path} ({error})')
+            else:
+                _logger.debug(f'deleted: {dir_path}')
 
     @property
     def module(self) -> Union[System, Interface, Device, RemoteDevice,

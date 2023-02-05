@@ -548,7 +548,7 @@ class TestHarvesterCore(TestHarvester):
         url += file_path
 
         # Parse the URL:
-        retrieved_file_path = Module._retrieve_file_path(url=url)
+        _, retrieved_file_path = Module._retrieve_file_path(url=url)
 
         # Compare file names:
         self.assertEqual(
@@ -565,7 +565,7 @@ class TestHarvesterCore(TestHarvester):
 
         #
         url = 'file://' + expected_file_path
-        retrieved_file_path = Module._retrieve_file_path(url=url)
+        _, retrieved_file_path = Module._retrieve_file_path(url=url)
 
         # Compare file names:
         self.assertEqual(

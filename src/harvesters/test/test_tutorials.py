@@ -19,12 +19,15 @@
 
 
 # Standard library imports
+from logging import Logger
 from threading import Thread
 import time
+from typing import List, Optional
 import unittest
 
 # Related third party imports
 from harvesters.core import Harvester
+from harvesters.core import ImageAcquirer
 
 # Local application/library specific imports
 from harvesters.test.base_harvester import TestHarvester

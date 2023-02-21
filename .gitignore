@@ -8,3 +8,4 @@ harvesters.egg-info/
 
 *.pyc
 *.log
+*.orig

@@ -19,6 +19,7 @@
 
 
 # Standard library imports
+from __future__ import annotations
 import os
 from queue import Queue, Empty
 from shutil import rmtree
@@ -33,6 +34,7 @@ from urllib.parse import quote
 # Related third party imports
 from genicam.genapi import GenericException as GenApi_GenericException
 from genicam.genapi import NodeMap
+from genicam.genapi import register, deregister
 from genicam.gentl import TimeoutException
 import numpy as np
 
@@ -47,7 +49,7 @@ from harvesters.core import ParameterSet, ParameterKey
 from harvesters.core import ImageAcquirer
 from harvesters.core import _drop_padding_data
 from harvesters.core import Module
-from harvesters.test.helper import get_package_dir
+from harvesters.core import _NodeCallbackProxy
 from harvesters.util.pfnc import Dictionary
 from harvesters.core import Component2DImage
 from harvesters.util.pfnc import Mono8, Mono10, Mono12, Mono14, Mono16
@@ -122,8 +124,16 @@ class TestHarvesterCore(TestHarvester):
         # Prepare an image acquirer for device #0.
         ia = self.harvester.create_image_acquirer(0)
 
-        # Acquire images.
-        self._basic_usage(ia)
+        # Start image acquisition.
+        ia.start()
+
+        # Fetch a buffer that is filled with image data.
+        with ia.fetch() as buffer:
+            # Reshape it.
+            self._logger.info('{0}'.format(buffer))
+
+        # Stop image acquisition.
+        ia.stop()
 
         # Discard the image acquirer.
         ia.destroy()
@@ -138,21 +148,16 @@ class TestHarvesterCore(TestHarvester):
 
         # Prepare an image acquirer for device #0.
         with self.harvester.create_image_acquirer(0) as ia:
+            # Start image acquisition.
+            ia.start()
 
-            # Acquire images.
-            self._basic_usage(ia)
+            # Fetch a buffer that is filled with image data.
+            with ia.fetch() as buffer:
+                # Reshape it.
+                self._logger.info('{0}'.format(buffer))
 
-    def _basic_usage(self, ia: ImageAcquirer):
-        # Start image acquisition.
-        ia.start()
-
-        # Fetch a buffer that is filled with image data.
-        with ia.fetch() as buffer:
-            # Reshape it.
-            self._logger.info('{0}'.format(buffer))
-
-        # Stop image acquisition.
-        ia.stop()
+            # Stop image acquisition.
+            ia.stop()
 
     def test_multiple_image_acquirers(self):
         if not self.is_running_with_default_target():
@@ -901,8 +906,8 @@ class TestHarvesterCore(TestHarvester):
         # Create an image acquirer:
         self.ia = self.harvester.create_image_acquirer(0)
 
-        self.ia.timeout_on_internal_fetch_call = 1
-        internal = self.ia.timeout_on_internal_fetch_call
+        self.ia.timeout_period_on_update_event_data_call = 1
+        internal = self.ia.timeout_period_on_update_event_data_call
 
         self._logger.info("larger")
         value = internal + 1
@@ -926,11 +931,11 @@ class TestHarvesterCore(TestHarvester):
 
         self.ia.timeout_on_client_fetch_call = 2.
         self._logger.info("larger")
-        self.ia.timeout_on_internal_fetch_call = 2001
+        self.ia.timeout_period_on_update_event_data_call = 2001
         self._logger.info("equal")
-        self.ia.timeout_on_internal_fetch_call = 2000
+        self.ia.timeout_period_on_update_event_data_call = 2000
         self._logger.info("smaller")
-        self.ia.timeout_on_internal_fetch_call = 1000
+        self.ia.timeout_period_on_update_event_data_call = 1000
 
     def test_manual_chunk_update(self):
         # Create an image acquirer:

@@ -23,6 +23,7 @@ from enum import IntEnum
 from logging import INFO
 import os
 import sys
+from typing import Optional
 import unittest
 
 # Related third party imports

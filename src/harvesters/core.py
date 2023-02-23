@@ -2710,6 +2710,7 @@ class ImageAcquirer:
         self._emit_callbacks(self.Events.RETURN_ALL_BORROWED_BUFFERS)
         data_stream.flush_buffer_queue(
             ACQ_QUEUE_TYPE_LIST.ACQ_QUEUE_ALL_DISCARD)
+        _logger.debug('flushed: {0}'.format(data_stream))
 
     def _release_data_streams(self) -> None:
         global _logger
@@ -2731,10 +2732,6 @@ class ImageAcquirer:
         for data_stream in self._data_streams:
             if data_stream.is_open():
                 self._flush_buffers(data_stream)
-                for buffer in self._announced_buffers:
-                    name = _family_tree(buffer)
-                    _ = data_stream.revoke_buffer(buffer)
-                    _logger.debug('revoked: {0}'.format(name))
 
         self._announced_buffers.clear()
 

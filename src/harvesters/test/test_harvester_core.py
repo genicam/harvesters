@@ -1199,7 +1199,7 @@ class TestUtility(unittest.TestCase):
         path = 'C:/ProgramData/GenICam/xml/cache/Optronis_Cyclone_V1_7_8.xml'
         url = prefix + path
         result = Module._retrieve_file_path(url=url)
-        self.assertEqual(path, result)
+        self.assertEqual(path, result[1])
 
 
 class TestHarvesterCoreNoCleanUpVersion1(TestHarvesterCoreNoCleanUp):

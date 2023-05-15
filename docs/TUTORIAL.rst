@@ -235,7 +235,7 @@ If you finished working with the ``Harvester`` object, then release the acquired
 
     h.reset()
 
-Now you can quit the program! Please not that ``Harvester`` and ``ImageAcquirer`` also support the ``with`` statement. So you may write program as follows:
+Now you can quit the program! Please note that ``Harvester`` and ``ImageAcquirer`` also support the ``with`` statement. So you may write program as follows:
 
 .. code-block:: python
 

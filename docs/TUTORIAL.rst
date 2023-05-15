@@ -150,7 +150,7 @@ Then you would get the following output:
     ['access_status', 'display_name', 'id_', 'model', 'parent',
     'serial_number', 'tl_type', 'user_defined_name', 'vendor', 'version']
 
-Note that it is invalid if the specifiers gives you two ore more devices. Please specify sufficient information so that the combination gives you a unique target.
+Note that it is invalid if the specifiers gives you two or more devices. Please specify sufficient information so that the combination gives you a unique target.
 
 For example, You can specify multiple properties if the combination can find a unique
 device on the list:

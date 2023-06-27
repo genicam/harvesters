@@ -59,7 +59,7 @@ from genicam.genapi import EventAdapterGEV, EventAdapterU3V, \
 
 from genicam.gentl import TimeoutException, NotAvailableException
 from genicam.gentl import GenericException as GenTL_GenericException, \
-    NotImplementedException, ResourceInUseException
+    NotImplementedException, ResourceInUseException, InvalidParameterException
 from genicam.gentl import GenTLProducer, BufferToken
 from genicam.gentl import EventManagerNewBuffer, EventManagerRemoteDevice, \
     EventManagerModule
@@ -1667,6 +1667,8 @@ class ImageAcquirer:
                 _logger.debug("no module event: {}".format(module))
             except ResourceInUseException:
                 _logger.debug("resource in use: {}".format(module))
+            except InvalidParameterException:
+                _logger.debug("invalid parameter: {}".format(module))
             else:
                 self._module_event_monitor_thread_dict[module] = \
                     self._thread_factory_method_for_event_module()

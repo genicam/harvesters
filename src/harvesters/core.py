@@ -1678,7 +1678,6 @@ class ImageAcquirer:
             self._setup_data_streams()
 
         self._reuse_buffers = False
-
         self._profiler = profiler
 
         self._num_buffers_to_hold = 1
@@ -1855,7 +1854,6 @@ class ImageAcquirer:
         create another object by calling
         :meth:`Harvester.create_image_acquire` method.
         """
-
         global _logger
         _logger.info('going to release resources: {}'.format(self))
 
@@ -2224,7 +2222,6 @@ class ImageAcquirer:
                 self._setup_data_streams(file_dict=self._file_dict)
 
             for ds in self._data_streams:
-
                 if ds.defines_payload_size():
                     buffer_size = ds.payload_size
                 else:
@@ -2246,7 +2243,6 @@ class ImageAcquirer:
                 if delta_buff > 0:
                     raw_buffers = self._create_raw_buffers(delta_buff, buffer_size)
                     buffer_tokens = self._create_buffer_tokens(raw_buffers)
-                
                     self._announced_buffers = self._announce_buffers(
                     data_stream=ds, _buffer_tokens=buffer_tokens)
 
@@ -2610,7 +2606,7 @@ class ImageAcquirer:
         for i, buffer in enumerate(raw_buffers):
             _buffer_tokens.append(
                 BufferToken(buffer, i))
-            
+
         return _buffer_tokens
 
     def _announce_buffers(
@@ -2688,7 +2684,7 @@ class ImageAcquirer:
                 except AttributeError:
                     _logger.debug("no TLParamsLocked: {}".format(
                         _family_tree(self._device_proxy.module)))
-                    
+
                 for data_stream in self._data_streams:
                     try:
                         data_stream.stop_acquisition(
@@ -2723,7 +2719,6 @@ class ImageAcquirer:
         data_stream.flush_buffer_queue(
             ACQ_QUEUE_TYPE_LIST.ACQ_QUEUE_ALL_DISCARD)
         _logger.debug('flushed: {0}'.format(data_stream))
-
 
     def _release_data_streams(self) -> None:
         global _logger

@@ -59,7 +59,7 @@ from genicam.genapi import EventAdapterGEV, EventAdapterU3V, \
 
 from genicam.gentl import TimeoutException, NotAvailableException
 from genicam.gentl import GenericException as GenTL_GenericException, \
-    NotImplementedException, ResourceInUseException
+    NotImplementedException, ResourceInUseException, InvalidParameterException
 from genicam.gentl import GenTLProducer, BufferToken
 from genicam.gentl import EventManagerNewBuffer, EventManagerRemoteDevice, \
     EventManagerModule
@@ -1667,6 +1667,8 @@ class ImageAcquirer:
                 _logger.debug("no module event: {}".format(module))
             except ResourceInUseException:
                 _logger.debug("resource in use: {}".format(module))
+            except InvalidParameterException:
+                _logger.debug("invalid parameter: {}".format(module))
             else:
                 self._module_event_monitor_thread_dict[module] = \
                     self._thread_factory_method_for_event_module()
@@ -1677,6 +1679,7 @@ class ImageAcquirer:
         if self._create_ds_at_connection:
             self._setup_data_streams()
 
+        self._reuse_buffers = False
         self._profiler = profiler
 
         self._num_buffers_to_hold = 1
@@ -2237,10 +2240,17 @@ class ImageAcquirer:
 
                 num_buffers = max(num_buffers, self._num_images_to_acquire)
 
-                raw_buffers = self._create_raw_buffers(num_buffers, buffer_size)
-                buffer_tokens = self._create_buffer_tokens(raw_buffers)
-                self._announced_buffers = self._announce_buffers(
+                delta_buff = num_buffers - ds.num_announced
+                
+                if delta_buff > 0:
+                    raw_buffers = self._create_raw_buffers(delta_buff, buffer_size)
+                    buffer_tokens = self._create_buffer_tokens(raw_buffers)
+                    self._announced_buffers = self._announce_buffers(
                     data_stream=ds, _buffer_tokens=buffer_tokens)
+
+                elif delta_buff < 0:
+                    self._release_buffers(self._announced_buffers[delta_buff:])
+
                 self._queue_announced_buffers(
                     data_stream=ds, buffers=self._announced_buffers)
 
@@ -2624,9 +2634,8 @@ class ImageAcquirer:
 
         assert data_stream
 
-        for buffer in buffers:
-            data_stream.queue_buffer(buffer)
-            _logger.debug('queued: {0}'.format(_family_tree(buffer)))
+        data_stream.flush_buffer_queue(
+            ACQ_QUEUE_TYPE_LIST.ACQ_QUEUE_ALL_TO_INPUT)
 
     def stop_image_acquisition(self):
         """
@@ -2692,7 +2701,8 @@ class ImageAcquirer:
                     monitor.flush_event_queue()
 
                 if self._create_ds_at_connection:
-                    self._release_buffers()
+                    if not self._reuse_buffers:
+                        self._release_buffers()
                 else:
                     self._release_data_streams()
 
@@ -2714,9 +2724,7 @@ class ImageAcquirer:
 
     def _release_data_streams(self) -> None:
         global _logger
-
         self._release_buffers()
-
         for data_stream in self._data_streams:
             if data_stream and data_stream.is_open():
                 name = _family_tree(data_stream.module)
@@ -2726,18 +2734,17 @@ class ImageAcquirer:
         self._data_streams.clear()
         self._new_buffer_event_monitor_dict.clear()
 
-    def _release_buffers(self) -> None:
+    def _release_buffers(self, buffers_to_revoke: List = None) -> None:
         global _logger
-
         for data_stream in self._data_streams:
             if data_stream.is_open():
                 self._flush_buffers(data_stream)
-                for buffer in self._announced_buffers:
-                    name = _family_tree(buffer)
-                    _ = data_stream.revoke_buffer(buffer)
-                    _logger.debug('revoked: {0}'.format(name))
+        if not buffers_to_revoke:
+            buffers_to_revoke = self._announced_buffers.copy()
 
-        self._announced_buffers.clear()
+        for buffer in buffers_to_revoke:
+            data_stream.revoke_buffer(buffer)
+            self._announced_buffers.remove(buffer)
 
         while not self._queue.empty():
             _ = self._queue.get_nowait()

@@ -2197,7 +2197,7 @@ class ImageAcquirer:
             # to acquire in the next session:
             try:
                 acq_mode = self.remote_device.node_map.AcquisitionMode.value
-            except GenTL_GenericException as e:
+            except (GenTL_GenericException, AttributeError) as e:
                 num_images_to_acquire = -1
                 _logger.warning(e, exc_info=True)
             else:

@@ -989,7 +989,7 @@ class Component2DImage(Component):
         Union[numpy.ndarray, None]
             A NumPy array that represents the 2D pixel location.
         """
-        if not self.data:
+        if self.data is None or self.data.size == 0:
             return None
 
         return self._data.reshape(

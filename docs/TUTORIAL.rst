@@ -47,7 +47,7 @@ Harvester as its identifier.
 
     h = Harvester()
 
-And load a CTI file on the ``Harvester`` objecjt; loading a CTI file, you can communicate with the GenTL Producer:
+And load a CTI file on the ``Harvester`` object; loading a CTI file, you can communicate with the GenTL Producer:
 
 .. code-block:: python
 

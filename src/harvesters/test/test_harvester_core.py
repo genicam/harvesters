@@ -767,7 +767,7 @@ class TestHarvesterCore(TestHarvester):
         for input, output in zip(inputs, outputs):
             packed = np.frombuffer(input, dtype=np.uint8)
             unpacked_elements = pf.expand(packed)
-            self.assertEqual(len(outputs), unpacked_elements.size)
+            self.assertEqual(len(output), unpacked_elements.size)
             for i, element in enumerate(unpacked_elements):
                 self.assertEqual(output[i], element)
 
@@ -820,6 +820,42 @@ class TestHarvesterCore(TestHarvester):
             [0, 0, 0x3ff]
         ]
         self._test_conversion('Mono10c3p32', inputs, outputs)
+
+    def test_mono10g40_pixel_format(self):
+        inputs = [
+            # V0 -> V4
+            bytes([0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000]),
+            bytes([0b11111111, 0b11111111, 0b11111111, 0b11111111, 0b11111111]),
+            bytes([0b11111111, 0b11111111, 0b11111111, 0b11111111, 0b00000000]),
+            bytes([0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b11111111]),
+            bytes([0b10000000, 0b01000000, 0b00100000, 0b00010000, 0b00000000]),
+        ]
+        outputs = [
+            [0, 0, 0, 0],
+            [0x3ff, 0x3ff, 0x3ff, 0x3ff],
+            [0x3fc, 0x3fc, 0x3fc, 0x3fc],
+            [0x003, 0x003, 0x003, 0x003],
+            [0x200, 0x100, 0x80, 0x40]
+        ]
+        self._test_conversion('Mono10g40', inputs, outputs)
+
+    def test_mono12g24_pixel_format(self):
+        inputs = [
+            # V0 -> V2
+            bytes([0b00000000, 0b00000000, 0b00000000]),
+            bytes([0b11111111, 0b11111111, 0b11111111]),
+            bytes([0b11111111, 0b11111111, 0b00000000]),
+            bytes([0b00000000, 0b00000000, 0b11111111]),
+            bytes([0b10000000, 0b01000000, 0b00000000]),
+        ]
+        outputs = [
+            [0, 0],
+            [0xfff, 0xfff],
+            [0xff0, 0xff0],
+            [0xf, 0xf],
+            [0x800, 0x400]
+        ]
+        self._test_conversion('Mono12g24', inputs, outputs)
 
     def _test_issue_146_mono_unpacked_multibytes(self):
         names = ['Mono10', 'Mono12']

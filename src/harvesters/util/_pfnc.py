@@ -28,7 +28,7 @@
 # We create the following symbolics from the official PFNC table so the
 # numeric values are all capitalized but this is an exception: We usually
 # go with lower case in other Python files.
-symbolics = {
+_pfnc_symbolics = {
     # As of 17-Feb-2017
     0x01080001: 'Mono8',
     0x01080002: 'Mono8s',
@@ -274,3 +274,10 @@ symbolics = {
     0x02180103: 'YCbCr2020_422_12p_CbYCrY',
 }
 
+# https://github.com/genicam/harvesters/issues/473
+_extra_symbolics = {
+    0x4000000f: 'Mono10g40',
+    0x4000001f: 'Mono12g24',
+}
+
+symbolics = {**_extra_symbolics, **_pfnc_symbolics}

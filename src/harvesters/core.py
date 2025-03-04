@@ -3262,7 +3262,7 @@ class Harvester:
             if not os.path.exists(file_path):
                 _logger.error('attempted to add but doesn\'t exist: {}'.format(
                     file_path))
-                raise FileNotFoundError
+                raise FileNotFoundError(file_path)
 
         if check_validity:
             try:

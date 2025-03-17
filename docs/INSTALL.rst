@@ -1,11 +1,3 @@
-.. figure:: https://user-images.githubusercontent.com/8652625/157880841-adf8a717-b2b0-47af-a5cc-171a7df31fcc.jpg
-    :align: center
-    :alt: The Battle between Carnival and Lent
-
-    Pieter Bruegel the Elder, The Battle between Carnival and Lent, 1559
-
-----
-
 .. contents:: Table of Contents
     :depth: 2
 
@@ -16,6 +8,17 @@ Installation
 
 In this section, we will learn how to install Harvester and prerequiresites.
 
+TLDR
+-----------------------
+
+Harvester requires GenICam which is only available for Python versions <=3.11, thus we need to specifically create a compatible environment using conda: 
+
+.. code-block:: shell
+
+    $ conda create -n genicam python=3.11
+    $ conda activate genicam
+    $ conda install ipython
+    $ pip install harvesters
 
 System Requirements
 -------------------
@@ -92,7 +95,7 @@ You should be able to see the expected version number in its return as follows:
 
 .. code-block:: shell
 
-    Python 3.6.5 :: Anaconda, Inc.
+    Python 3.11.11
 
 Next, it is not necessary but install IPython; it is a convenient place
 anytime when you want to give it a try; note that we executed ``conda
@@ -107,7 +110,7 @@ And then, install Harvester, too:
 
 .. code-block:: shell
 
-    $ python -m install harvesters
+    $ pip install harvesters
 
 Finally, to deactivate the environment, type the following command:
 

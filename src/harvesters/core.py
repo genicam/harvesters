@@ -1665,6 +1665,8 @@ class ImageAcquirer:
                     manager(module.register_event(event_type))
             except NotImplementedException:
                 _logger.debug("no module event: {}".format(module))
+            except NotAvailableException:
+                _logger.debug("device doesn't support event: {}".format(module))
             except ResourceInUseException:
                 _logger.debug("resource in use: {}".format(module))
             except InvalidParameterException:

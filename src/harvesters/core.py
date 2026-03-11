@@ -59,7 +59,7 @@ from genicam.genapi import EventAdapterGEV, EventAdapterU3V, \
 
 from genicam.gentl import TimeoutException, NotAvailableException
 from genicam.gentl import GenericException as GenTL_GenericException, \
-    NotImplementedException, ResourceInUseException
+    NotImplementedException, ResourceInUseException, InvalidParameterException
 from genicam.gentl import GenTLProducer, BufferToken
 from genicam.gentl import EventManagerNewBuffer, EventManagerRemoteDevice, \
     EventManagerModule
@@ -994,7 +994,7 @@ class Component2DImage(Component):
         Union[numpy.ndarray, None]
             A NumPy array that represents the 2D pixel location.
         """
-        if not self.data:
+        if self.data is None or self.data.size == 0:
             return None
 
         return self._data.reshape(
@@ -1844,6 +1844,8 @@ class ImageAcquirer:
                 _logger.debug("no module event: {}".format(module))
             except ResourceInUseException:
                 _logger.debug("resource in use: {}".format(module))
+            except InvalidParameterException:
+                _logger.debug("invalid parameter: {}".format(module))
             else:
                 self._module_event_monitor_thread_dict[module] = \
                     self._thread_factory_method_for_event_module()
@@ -1876,7 +1878,7 @@ class ImageAcquirer:
         self._num_images_to_acquire = 0
 
         self._timeout_on_internal_fetch_call = ParameterSet.get(ParameterKey.TIMEOUT_PERIOD_ON_UPDATE_EVENT_DATA_CALL, 1, config)  # ms
-        self._timeout_on_client_fetch_call = ParameterSet.get(ParameterKey.TIMEOUT_PERIOD_ON_CLIENT_FETCH_CALL, 0.01, config)  # s
+        self._timeout_period_on_client_fetch_call = ParameterSet.get(ParameterKey.TIMEOUT_PERIOD_ON_CLIENT_FETCH_CALL, 0.01, config)  # s
 
         self._statistics = Statistics()
         self._announced_buffers = []
@@ -2237,7 +2239,7 @@ class ImageAcquirer:
         float: It is used to define the timeout duration on a single fetch
         method calL. The unit is [s].
         """
-        return self._timeout_on_client_fetch_call
+        return self._timeout_period_on_client_fetch_call
 
     @timeout_period_on_client_fetch_call.setter
     def timeout_period_on_client_fetch_call(self, value: float):
@@ -2249,7 +2251,7 @@ class ImageAcquirer:
         else:
             if client < internal:
                 _logger.warning("may cause timeout: {}".format(info))
-        self._timeout_on_client_fetch_call = value
+        self._timeout_period_on_client_fetch_call = value
 
     @property
     def timeout_period_on_update_event_data_call(self) -> int:
@@ -2374,7 +2376,7 @@ class ImageAcquirer:
             # to acquire in the next session:
             try:
                 acq_mode = self.remote_device.node_map.AcquisitionMode.value
-            except GenTL_GenericException as e:
+            except (GenTL_GenericException, AttributeError) as e:
                 num_images_to_acquire = -1
                 _logger.warning(e, exc_info=True)
             else:
@@ -2488,7 +2490,7 @@ class ImageAcquirer:
 
         for monitor in self._new_buffer_event_monitor_dict.values():
             buffer = self._fetch(monitor=monitor,
-                                 timeout_on_client_fetch_call=self.timeout_on_client_fetch_call)
+                                 timeout_period_on_client_fetch_call=self.timeout_period_on_client_fetch_call)
             if buffer:
                 with MutexLocker(self._event_new_buffer_thread):
                     if not self._is_acquiring:
@@ -2577,7 +2579,7 @@ class ImageAcquirer:
         buffers = []
         for monitor in self._new_buffer_event_monitor_dict.values():
             buffer = self._fetch(monitor=monitor,
-                                 timeout_on_client_fetch_call=timeout,
+                                 timeout_period_on_client_fetch_call=timeout,
                                  throw_except=False)
 
             buffers.append(self._finalize_fetching_process(buffer, is_raw))
@@ -2585,24 +2587,24 @@ class ImageAcquirer:
         return buffers if len(self._new_buffer_event_monitor_dict.values()) > 1 else buffers[0]
 
     def _fetch(self, *, monitor: EventManagerNewBuffer,
-               timeout_on_client_fetch_call: float = 0,
+               timeout_period_on_client_fetch_call: float = 0,
                throw_except: bool = False) -> Union[Buffer, _Buffer, None]:
         global _logger
 
         assert monitor
 
         buffer = None
-        watch_timeout = True if timeout_on_client_fetch_call > 0 else False
+        watch_timeout = True if timeout_period_on_client_fetch_call > 0 else False
         base = time.time()
 
         while not buffer:
             if watch_timeout:
                 elapsed = time.time() - base
-                if elapsed > timeout_on_client_fetch_call:
+                if elapsed > timeout_period_on_client_fetch_call:
                     if _is_logging_buffer:
                         _logger.debug(
                             'timeout: elapsed {0} sec.'.format(
-                                timeout_on_client_fetch_call))
+                                timeout_period_on_client_fetch_call))
                     if throw_except:
                         raise TimeoutException
                     else:
@@ -2735,7 +2737,7 @@ class ImageAcquirer:
                 while not buffer:
                     try:
                         buffer = self._fetch(monitor=monitor,
-                                             timeout_on_client_fetch_call=timeout,
+                                             timeout_period_on_client_fetch_call=timeout,
                                              throw_except=True)
                     except GenTL_GenericException:
                         raise

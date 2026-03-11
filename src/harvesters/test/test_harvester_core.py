@@ -912,24 +912,24 @@ class TestHarvesterCore(TestHarvester):
         self._logger.info("larger")
         value = internal + 1
         value /= 1000
-        self.ia.timeout_on_client_fetch_call = value
+        self.ia.timeout_period_on_client_fetch_call = value
 
         self._logger.info("equal")
         value = 0.001
-        self.ia.timeout_on_client_fetch_call = value
+        self.ia.timeout_period_on_client_fetch_call = value
 
         self._logger.info("smaller")
         value = internal * 1000
         value -= 1
         value /= 1000
         value /= 1000
-        self.ia.timeout_on_client_fetch_call = value
+        self.ia.timeout_period_on_client_fetch_call = value
 
     def test_fix_for_bfd47ca_2(self):
         # Create an image acquirer:
         self.ia = self.harvester.create_image_acquirer(0)
 
-        self.ia.timeout_on_client_fetch_call = 2.
+        self.ia.timeout_period_on_client_fetch_call = 2.
         self._logger.info("larger")
         self.ia.timeout_period_on_update_event_data_call = 2001
         self._logger.info("equal")

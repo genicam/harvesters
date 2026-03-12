@@ -43,11 +43,28 @@ pfnc_custom = 0x80000000
 # Component layout
 pfnc_single_component = 0x01000000
 pfnc_multiple_component = 0x02000000
-pfnc_component_mask = 0x02000000
+pfnc_component_mask = 0x7f000000
 
 # Effective size
+pfnc_occupy1bit = 0x00010000
+pfnc_occupy2bit = 0x00020000
+pfnc_occupy4bit = 0x00040000
+pfnc_occupy8bit = 0x00080000
+pfnc_occupy10bit = 0x000A0000
+pfnc_occupy12bit = 0x000C0000
+pfnc_occupy16bit = 0x00100000
+pfnc_occupy24bit = 0x00180000
+pfnc_occupy30bit = 0x001E0000
+pfnc_occupy32bit = 0x00200000
+pfnc_occupy36bit = 0x00240000
+pfnc_occupy40bit = 0x00280000
+pfnc_occupy48bit = 0x00300000
+pfnc_occupy64bit = 0x00400000
 pfnc_pixel_size_mask = 0x00ff0000
 pfnc_pixel_size_shift = 16
+
+# Pixel ID
+pfnc_pixel_id_mask = 0x0000ffff
 
 
 def get_effective_pixel_size(pixel_format_value):
@@ -69,6 +86,10 @@ def is_single_component(pixel_format_value):
 
 def is_multiple_component(pixel_format_value):
     return (pixel_format_value & pfnc_component_mask) == pfnc_multiple_component
+
+
+def pixel_id(pixel_format_value):
+    return (pixel_format_value & pfnc_pixel_id_mask)
 
 
 def get_bits_per_pixel(data_format):
@@ -99,6 +120,7 @@ mono_location_formats = [
     'Mono12',
     'Mono14',
     'Mono16',
+    'Mono32',
     #
     'R8',
     'R10',
@@ -122,6 +144,9 @@ mono_location_formats = [
     'Coord3D_A32f',
     'Coord3D_B32f',
     'Coord3D_C32f',
+    'Coord3D_A64f',
+    'Coord3D_B64f',
+    'Coord3D_C64f',
     #
     'Confidence1',
     'Confidence8',
@@ -137,12 +162,14 @@ mono_packed_location_formats = [
     'Mono10p',
     'Mono12Packed',
     'Mono12p',
+    'Mono14p',
     'Coord3D_A10p',
     'Coord3D_B10p',
     'Coord3D_C10p',
     'Coord3D_A12p',
     'Coord3D_B12p',
     'Coord3D_C12p',
+    'Confidence1p',
 ]
 
 lmn_444_location_formats = [
@@ -3240,3 +3267,5 @@ class Dictionary:
 
 
 component_2d_formats = [p.symbolic for p in Dictionary.get_pixel_formats()]
+
+component_1d_formats = [n for i, n in symbolics.items() if n[0:4] == "Data"]

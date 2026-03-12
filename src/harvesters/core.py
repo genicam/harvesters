@@ -53,7 +53,7 @@ from genicam.genapi import register, deregister, ECallbackType
 from genicam.genapi import GenericException as GenApi_GenericException
 from genicam.genapi import LogicalErrorException
 from genicam.genapi import ChunkAdapterGeneric, ChunkAdapterU3V, \
-    ChunkAdapterGEV
+    ChunkAdapterGEV, ChunkAdapterGenDC
 from genicam.genapi import EventAdapterGEV, EventAdapterU3V, \
     EventAdapterGeneric
 
@@ -65,11 +65,12 @@ from genicam.gentl import EventManagerNewBuffer, EventManagerRemoteDevice, \
     EventManagerModule
 from genicam.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
     ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
-    PAYLOADTYPE_INFO_IDS
+    PAYLOADTYPE_INFO_IDS, GDC_PART_HEADER
 from genicam.gentl import Port, PIXELFORMAT_NAMESPACE_IDS
 from genicam.gentl import Buffer as _Buffer, Device as _Device, \
     DataStream as _DataStream, Interface as _Interface, System as _System, \
-    GenTLProducer as _GenTLProducer, DeviceInfo as _DeviceInfo
+    GenTLProducer as _GenTLProducer, DeviceInfo as _DeviceInfo, \
+    Component as _Component, Part as _Part
 
 # Local application/library specific imports
 from harvesters._private.core.port import ConcretePort
@@ -848,11 +849,18 @@ class Component:
         self._data = None
 
     @property
+    def data_format_value(self) -> int:
+        """
+        int: The data type of the data component as integer value.
+        """
+        return self._buffer.pixel_format
+
+    @property
     def data_format(self) -> str:
         """
         str: The type of the data component.
         """
-        return self._buffer.data_format
+        return dict_by_ints[self.data_format_value]
 
     @property
     def data_format_namespace(self) -> PIXELFORMAT_NAMESPACE_IDS:
@@ -860,14 +868,7 @@ class Component:
         PIXELFORMAT_NAMESPACE_IDS: The data type namespace of the data
         component.
         """
-        return self._buffer.data_format
-
-    @property
-    def source_id(self) -> int:
-        """
-        int: The source ID of the data component.
-        """
-        return self._buffer.source_id
+        return self._buffer.pixel_format_name_space
 
     @property
     def data(self) -> Union[numpy.ndarray, None]:
@@ -945,6 +946,10 @@ class Component2DImage(Component):
         nr_bytes_per_line = 0
         if self.has_part():
             nr_bytes = self._part.data_size
+            try:
+                padding_x = self._part.x_padding
+            except GenTL_GenericException:
+                padding_x = 0
         else:
             try:
                 w = self._buffer.width
@@ -969,7 +974,7 @@ class Component2DImage(Component):
         array = numpy.frombuffer(self._buffer.raw_buffer, count=int(nr_bytes),
                                  dtype='uint8', offset=self.data_offset)
 
-        if not self.has_part() and padding_x > 0:
+        if padding_x > 0:
             array = numpy.reshape(array, (h, nr_bytes_per_line + padding_x))
             numpy.delete(array, numpy.s_[-1*padding_x:], axis=1)
             array = numpy.ravel(array)
@@ -1153,6 +1158,146 @@ class Component2DImage(Component):
             return 0
 
 
+class ComponentGenDC(Component):
+    """
+    Represents a data component that is classified as
+    GenDC Component Header by the GenDC Standard.
+    """
+    def __init__(
+            self, *,
+            buffer=None, component=None, 
+            node_map: Optional[NodeMap] = None,
+            acquire: Optional[ImageAcquirer] = None):
+        """
+        :param buffer:    GenTL _Buffer object
+        :param component: GenTL _Component object
+        :param node_map:  remote_device node_map
+        :param acquire:   Harvesters ImageAcquirer object
+        """
+        assert buffer
+        assert component
+        assert node_map
+
+        super().__init__(buffer=buffer)
+
+        self._component = component
+        self._node_map = node_map
+        self._parts = []
+
+        for part in self._component.parts:
+            self._parts.append(
+                self._build_part(buffer=buffer, part=part, 
+                                 node_map=node_map, acquire=acquire))
+
+    @staticmethod
+    def _build_part(buffer: _Buffer, part: _Part,
+                    node_map: Optional[NodeMap] = None,
+                    acquire: Optional[ImageAcquirer] = None):
+        """
+        Build a GenDC Part
+
+        :param buffer:   GenTL _Buffer object
+        :param part:     GenDC Part object
+        :param node_map: remote_device node_mpa
+        :param acquire:   Harvesters ImageAcquirer object
+        """
+        global _logger
+        # create a harvesters Component for each GenDC Part
+        if (part.part_type == GDC_PART_HEADER.GDC_2D):
+            return Component2DImage(
+                buffer=buffer, part=part, node_map=node_map
+            )
+        elif (part.part_type == GDC_PART_HEADER.GDC_METADATA_GENICAM_CHUNK):
+            if acquire is not None and acquire._enable_auto_chunk_data_update:
+                acquire._chunk_adapter = ChunkAdapterGenDC(node_map)
+                acquire._chunk_adapter.attach_buffer(buffer.raw_buffer[part.data_offset:],  part.data_size)
+                acquire._has_attached_chunk = True
+                if _is_logging_buffer:
+                    _logger.debug(f'chunk data: attached, {_family_tree(buffer)}')
+            else:
+                if _is_logging_buffer:
+                    _logger.debug('skipped attaching of GenDC chunk data...')
+        elif (part.part_type == GDC_PART_HEADER.GDC_METADATA_GENICAM_XML):
+            _logger.warning('GenDC XML is not supported in Harvesters')
+        else:
+            _logger.warning(f'unsupported GenDC Part Header Type: {part.part_type}')
+
+    @property
+    def parts(self) -> List[Component]:
+        """
+        List[Component]: A :class:`list` containing objects that derive from
+        :class:`Component` class.
+        """
+        return self._parts
+
+    @property
+    def data_format_value(self) -> int:
+        """
+        int: The data type of the data component as integer value.
+        """
+        try:
+            if self._component:
+                value = self._component.data_format
+            else:
+                value = self._buffer.pixel_format
+        except GenTL_GenericException:
+            value = self._node_map.PixelFormat.get_int_value()
+        assert type(value) is int
+        return value
+
+    @property
+    def data_format(self) -> str:
+        """
+        str: The data type of the data component as string.
+        """
+        return dict_by_ints[self.data_format_value]
+
+    @property
+    def data_format_namespace(self) -> PIXELFORMAT_NAMESPACE_IDS:
+        """
+        PIXELFORMAT_NAMESPACE_IDS: The data type namespace of the data
+        component.
+        """
+        return self._component.data_format
+
+    @property
+    def source_id(self) -> int:
+        """
+        int: The source ID of the data component.
+        """
+        return self._buffer.source_id
+
+    @property
+    def x_offset(self) -> int:
+        """
+        int: The X offset of the data in the buffer in number of pixels from
+        the image origin to handle areas of interest.
+        """
+        try:
+            if self._component:
+                value = self._component.x_offset
+            else:
+                value = self._buffer.offset_x
+        except GenTL_GenericException:
+            value = self._node_map.OffsetX.value
+        return value
+
+    @property
+    def y_offset(self) -> int:
+        """
+        int: The Y offset of the data in the buffer in number of pixels from
+        the image origin to handle areas of interest.
+        """
+        try:
+            if self._component:
+                value = self._component.y_offset
+            else:
+                value = self._buffer.offset_y
+        except GenTL_GenericException:
+            value = self._node_map.OffsetY.value
+        return value
+
+
 class Buffer(Module):
     """
     Is provided by an :class:`ImageAcquire` object when you call its
@@ -1178,7 +1323,7 @@ class Buffer(Module):
             If the buffer contains unusable information.
         """
         super().__init__(module=module, parent=module.parent)
-        self._payload = self._build_payload(buffer=module, node_map=node_map)
+        self._payload = self._build_payload(buffer=module, node_map=node_map, acquire=acquire)
         self._acquire = acquire
 
     def __enter__(self):
@@ -1270,7 +1415,8 @@ class Buffer(Module):
 
     @staticmethod
     def _build_payload(*, buffer: _Buffer,
-                       node_map: Optional[NodeMap] = None):
+                       node_map: Optional[NodeMap] = None,
+                       acquire: Optional[ImageAcquirer] = None):
         """
         Raises
         ------
@@ -1310,6 +1456,10 @@ class Buffer(Module):
 
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART:
             payload = PayloadMultiPart(buffer=buffer, node_map=node_map)
+
+        elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_GENDC:
+            payload = PayloadGenDC(buffer=buffer, node_map=node_map, 
+                                   acquire=acquire)
 
         else:
             info = json.dumps({"payload type": "{}".format(p_type)})
@@ -1536,6 +1686,33 @@ class PayloadMultiPart(Payload):
             self._components.append(
                 self._build_component(
                     buffer=buffer, part=part, node_map=node_map))
+
+    def __repr__(self):
+        ret = ''
+        for i, c in enumerate(self.components):
+            ret += 'Component {}: {}\n'.format(i, c.__repr__())
+        ret = ret[:-1]
+        return ret
+
+
+class PayloadGenDC(Payload):
+    """
+    Represents a payload that is classified as
+    :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_GENDC`
+    by the GenTL Standard.
+    """
+    def __init__(self, *, buffer: _Buffer, node_map: NodeMap, acquire: Optional[ImageAcquirer] = None):
+        """
+        :param buffer:
+        :param node_map:
+        :param acquire: GenDC could also contain chunk data. They are updated in the acquire object.
+        """
+        super().__init__(buffer=buffer)
+
+        for component in self._buffer.components:
+            self._components.append(
+                ComponentGenDC(buffer=buffer, component=component,
+                               node_map=node_map, acquire=acquire))
 
     def __repr__(self):
         ret = ''

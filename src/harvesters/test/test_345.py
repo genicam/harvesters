@@ -33,8 +33,8 @@ from harvesters.test.base_harvester import get_cti_file_path
 class TestTicket345(unittest.TestCase):
     def setUp(self) -> None:
         self._cti_file_path = get_cti_file_path()
-        if 'TLSimu.cti' not in self._cti_file_path:
-            self.skipTest('The target is not TLSimu.')
+        if "viky.cti" not in self._cti_file_path:
+            self.skipTest("The target is not viky.")
 
         # Create a Harvester object:
         self.harvester = Harvester()
@@ -109,5 +109,5 @@ class TestTicket345(unittest.TestCase):
         self.assertTrue(type(node_map) is genicam.genapi.NodeMap)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

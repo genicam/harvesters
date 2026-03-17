@@ -79,7 +79,7 @@ class TestPerformance(TestHarvester):
         self._logger.info("GIVEN: an image acquirer")
         counter = Counter()
         ia = self.harvester.create()
-        if self.is_running_with('viky.cti'):
+        if self.is_running_with("viky.cti"):
             ia.remote_device.node_map.AcquisitionFrameRate.value = 200
         acquisition_thread = AcquisitionThread(ia, counter.update)
         period = 10.0
@@ -92,8 +92,10 @@ class TestPerformance(TestHarvester):
         timer_thread.join()
         acquisition_thread.join()
         ia.stop()
-        self._logger.info("THEN: {} images were acquired in {} sec.".format(counter.count, period))
+        self._logger.info(
+            "THEN: {} images were acquired in {} sec.".format(counter.count, period)
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

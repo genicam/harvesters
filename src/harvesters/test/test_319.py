@@ -31,8 +31,8 @@ from harvesters.test.base_harvester import get_cti_file_path
 class TestDeviceInfo(unittest.TestCase):
     def setUp(self) -> None:
         self._cti_file_path = get_cti_file_path()
-        if 'TLSimu.cti' not in self._cti_file_path:
-            self.skipTest('The target is not TLSimu.')
+        if "viky.cti" not in self._cti_file_path:
+            self.skipTest("The target is not viky.")
 
         # Create a Harvester object:
         self.harvester = Harvester()
@@ -70,55 +70,54 @@ class TestDeviceInfo(unittest.TestCase):
 
     def test_listing_up_device_info_list_2(self):
         for i in range(len(self.harvester.device_info_list)):
-            ia = self.harvester.create(
-                search_key=self.harvester.device_info_list[i])
+            ia = self.harvester.create(search_key=self.harvester.device_info_list[i])
             self.assertIsNotNone(ia)
             ia.destroy()
 
     def test_listing_up_device_info_list_2_no_keyword(self):
         for i in range(len(self.harvester.device_info_list)):
-            ia = self.harvester.create(
-                self.harvester.device_info_list[i])
+            ia = self.harvester.create(self.harvester.device_info_list[i])
             self.assertIsNotNone(ia)
             ia.destroy()
 
     def test_listing_up_device_info_list_3(self):
-        self.ia = self.harvester.create(
-            search_key={'serial_number': 'SN_InterfaceA_0'})
+        self.ia = self.harvester.create(search_key={"serial_number": "1"})
         self.assertIsNotNone(self.ia)
 
     def test_listing_up_device_info_list_3_no_keyword(self):
-        self.ia = self.harvester.create(
-            {'serial_number': 'SN_InterfaceA_0'})
+        self.ia = self.harvester.create({"serial_number": "1"})
         self.assertIsNotNone(self.ia)
 
     def test_listing_up_device_info_list_4(self):
         self.ia = self.harvester.create(
-            search_key={'display_name': 'TLSimuMono (SN_InterfaceA_0)'})
+            search_key={
+                "display_name": "Machine Vision Games Ltd. Viky (VikyTL_DEV_green)"
+            }
+        )
         self.assertIsNotNone(self.ia)
 
     def test_listing_up_device_info_list_4_no_keyword(self):
         self.ia = self.harvester.create(
-            {'display_name': 'TLSimuMono (SN_InterfaceA_0)'})
+            {"display_name": "Machine Vision Games Ltd. Viky (VikyTL_DEV_green)"}
+        )
         self.assertIsNotNone(self.ia)
 
     def test_listing_up_device_info_list_5(self):
         with self.assertRaises(ValueError):
-            self.ia = self.harvester.create(search_key={'model': 'TLSimuMono'})
+            self.ia = self.harvester.create(search_key={"model": "Viky"})
 
     def test_listing_up_device_info_list_5_no_keyword(self):
         with self.assertRaises(ValueError):
-            self.ia = self.harvester.create({'model': 'TLSimuMono'})
+            self.ia = self.harvester.create({"model": "Viky"})
 
     def test_listing_up_device_info_list_6(self):
         self.ia = self.harvester.create(
-            search_key={'model': 'TLSimuMono',
-                        'serial_number': 'SN_InterfaceA_0'})
+            search_key={"model": "Viky", "serial_number": "1"}
+        )
         self.assertIsNotNone(self.ia)
 
     def test_listing_up_device_info_list_6_no_keyword(self):
-        self.ia = self.harvester.create(
-            {'model': 'TLSimuMono', 'serial_number': 'SN_InterfaceA_0'})
+        self.ia = self.harvester.create({"model": "Viky", "serial_number": "1"})
         self.assertIsNotNone(self.ia)
 
     def test_listing_up_device_info_list_7(self):
@@ -134,5 +133,5 @@ class TestDeviceInfo(unittest.TestCase):
             ia.destroy()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

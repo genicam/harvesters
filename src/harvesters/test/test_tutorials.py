@@ -49,8 +49,10 @@ class AcquisitionThread(Thread):
         while nr < self._nr:
             with self._acquire.fetch() as buffer:
                 self._logger.info(
-                    'fetched: #{}, buffer: {}, acquire: {}'.format(
-                        nr, buffer, self._acquire))
+                    "fetched: #{}, buffer: {}, acquire: {}".format(
+                        nr, buffer, self._acquire
+                    )
+                )
                 nr += 1
                 time.sleep(self._sleep)
         self._acquire.stop()
@@ -73,7 +75,7 @@ class TestTutorials(TestHarvester):
             #
             with self.ia.fetch() as buffer:
                 #
-                self._logger.info('{0}'.format(buffer))
+                self._logger.info("{0}".format(buffer))
             num_images_to_acquire += 1
 
     def test_severis_usage(self):
@@ -99,7 +101,7 @@ class TestTutorials(TestHarvester):
             #
             with self.ia.fetch() as buffer:
                 #
-                self._logger.info('{0}'.format(buffer))
+                self._logger.info("{0}".format(buffer))
 
                 # TODO: Work with the image you got.
                 # self.do_something(buffer)
@@ -110,9 +112,9 @@ class TestTutorials(TestHarvester):
             num_images_to_acquire += 1
 
     def setup_camera(self):
-        self.ia.remote_device.node_map.AcquisitionMode.value = 'Continuous'
-        self.ia.remote_device.node_map.TriggerMode.value = 'On'
-        self.ia.remote_device.node_map.TriggerSource.value = 'Software'
+        self.ia.remote_device.node_map.AcquisitionMode.value = "Continuous"
+        self.ia.remote_device.node_map.TriggerMode.value = "On"
+        self.ia.remote_device.node_map.TriggerSource.value = "Software"
 
     def setup_equipment_and_trigger_camera(self):
         # Setup your equipment.
@@ -131,7 +133,9 @@ class TestTutorials(TestHarvester):
         for i in range(nr_devices):
             threads.append(
                 AcquisitionThread(
-                    self.harvester.create_image_acquirer(i), 10, self._logger))
+                    self.harvester.create_image_acquirer(i), 10, self._logger
+                )
+            )
 
         for t in threads:
             t.start()
@@ -147,8 +151,8 @@ class TestTutorials2(unittest.TestCase):
         # The following block is just for administrative purpose;
         # you should not include it in your code:
         self._cti_file_path = get_cti_file_path()
-        if 'TLSimu.cti' not in self._cti_file_path:
-            self.skipTest('The target is not TLSimu.')
+        if "TLSimu.cti" not in self._cti_file_path:
+            self.skipTest("The target is not TLSimu.")
 
         # Create a Harvester object:
         self.harvester = Harvester()
@@ -158,7 +162,7 @@ class TestTutorials2(unittest.TestCase):
         self.harvester.reset()
 
     def is_running_with_default_target(self):
-        return True if 'TLSimu.cti' in self._cti_file_path else False
+        return True if "TLSimu.cti" in self._cti_file_path else False
 
     def test_traversable_tutorial(self):
         # Add a CTI file path:
@@ -193,5 +197,5 @@ class TestTutorialsVersion1(TestTutorials):
     base_version = BaseVersion.VERSION_1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

@@ -33,8 +33,8 @@ from harvesters.test.base_harvester import get_cti_file_path
 class TestTicket345(unittest.TestCase):
     def setUp(self) -> None:
         self._cti_file_path = get_cti_file_path()
-        if 'TLSimu.cti' not in self._cti_file_path:
-            self.skipTest('The target is not TLSimu.')
+        if "viky.cti" not in self._cti_file_path:
+            self.skipTest("The target is not viky.")
 
         # Create a Harvester object:
         self.harvester = Harvester()
@@ -49,8 +49,8 @@ class TestTicket345(unittest.TestCase):
         self.harvester.reset()
 
     def setup_camera(self):
-        self.ia.remote_device.node_map.TriggerMode.value = 'On'
-        self.ia.remote_device.node_map.TriggerSource.value = 'Software'
+        self.ia.remote_device.node_map.TriggerMode.value = "On"
+        self.ia.remote_device.node_map.TriggerSource.value = "Software"
 
     def test_try_fetch_without_buffer_delivery(self):
         # GIVEN: a remote device that is external trigger-driven
@@ -70,8 +70,7 @@ class TestTicket345(unittest.TestCase):
 
     def test_try_fetch_with_buffer_delivery(self):
         # GIVEN: a remote device that is self trigger-driven
-        self.assertEqual(
-            self.ia.remote_device.node_map.TriggerMode.value, 'Off')
+        self.assertEqual(self.ia.remote_device.node_map.TriggerMode.value, "Off")
 
         # WHEN: starting image acquisition
         self.ia.start()
@@ -97,5 +96,5 @@ class TestTicket345(unittest.TestCase):
             _ = self.ia.try_fetch()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

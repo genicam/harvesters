@@ -35,5 +35,5 @@ class TestDeprecatedItems(TestHarvester):
         self._logger.info("did you see that?")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

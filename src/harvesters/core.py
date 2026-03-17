@@ -52,25 +52,48 @@ from genicam.genapi import NodeMap, INode as Node_
 from genicam.genapi import register, deregister, ECallbackType
 from genicam.genapi import GenericException as GenApi_GenericException
 from genicam.genapi import LogicalErrorException
-from genicam.genapi import ChunkAdapterGeneric, ChunkAdapterU3V, \
-    ChunkAdapterGEV, ChunkAdapterGenDC
-from genicam.genapi import EventAdapterGEV, EventAdapterU3V, \
-    EventAdapterGeneric
+from genicam.genapi import (
+    ChunkAdapterGeneric,
+    ChunkAdapterU3V,
+    ChunkAdapterGEV,
+    ChunkAdapterGenDC,
+)
+from genicam.genapi import EventAdapterGEV, EventAdapterU3V, EventAdapterGeneric
 
 from genicam.gentl import TimeoutException, NotAvailableException
-from genicam.gentl import GenericException as GenTL_GenericException, \
-    NotImplementedException, ResourceInUseException, InvalidParameterException
+from genicam.gentl import (
+    GenericException as GenTL_GenericException,
+    NotImplementedException,
+    ResourceInUseException,
+    InvalidParameterException,
+)
 from genicam.gentl import GenTLProducer, BufferToken
-from genicam.gentl import EventManagerNewBuffer, EventManagerRemoteDevice, \
-    EventManagerModule
-from genicam.gentl import DEVICE_ACCESS_FLAGS_LIST, EVENT_TYPE_LIST, \
-    ACQ_START_FLAGS_LIST, ACQ_STOP_FLAGS_LIST, ACQ_QUEUE_TYPE_LIST, \
-    PAYLOADTYPE_INFO_IDS, GDC_PART_HEADER
+from genicam.gentl import (
+    EventManagerNewBuffer,
+    EventManagerRemoteDevice,
+    EventManagerModule,
+)
+from genicam.gentl import (
+    DEVICE_ACCESS_FLAGS_LIST,
+    EVENT_TYPE_LIST,
+    ACQ_START_FLAGS_LIST,
+    ACQ_STOP_FLAGS_LIST,
+    ACQ_QUEUE_TYPE_LIST,
+    PAYLOADTYPE_INFO_IDS,
+    GDC_PART_HEADER,
+)
 from genicam.gentl import Port, PIXELFORMAT_NAMESPACE_IDS
-from genicam.gentl import Buffer as _Buffer, Device as _Device, \
-    DataStream as _DataStream, Interface as _Interface, System as _System, \
-    GenTLProducer as _GenTLProducer, DeviceInfo as _DeviceInfo, \
-    Component as _Component, Part as _Part
+from genicam.gentl import (
+    Buffer as _Buffer,
+    Device as _Device,
+    DataStream as _DataStream,
+    Interface as _Interface,
+    System as _System,
+    GenTLProducer as _GenTLProducer,
+    DeviceInfo as _DeviceInfo,
+    Component as _Component,
+    Part as _Part,
+)
 
 # Local application/library specific imports
 from harvesters._private.core.port import ConcretePort
@@ -85,7 +108,7 @@ from harvesters.util.pfnc import component_2d_formats
 simplefilter(action="once")
 
 
-_is_logging_buffer = True if 'HARVESTERS_LOG_BUFFER' in os.environ else False
+_is_logging_buffer = True if "HARVESTERS_LOG_BUFFER" in os.environ else False
 _sleep_default = 0.000001  # s
 
 
@@ -95,7 +118,9 @@ _logger = get_logger(name=__name__)
 class ParameterKey(IntEnum):
     __doc__ = "A list of variable/defined parameters."
     _ENABLE_PROFILE = -1
-    LOGGER = 0,  # doc: Determines the logger to be used; the value type must be :class:`Logger`.
+    LOGGER = (
+        0,
+    )  # doc: Determines the logger to be used; the value type must be :class:`Logger`.
     TIMEOUT_PERIOD_ON_MODULE_ENUMERATION = 2  # doc: Determines the time-out period that is applied on the GenTL module enumeration; the value type must be :class:`int`.
     ENABLE_CLEANING_UP_INTERMEDIATE_FILES = 3  # doc: Determines if you want to delete all of the intermediate files; set :const:`True` if you want to delete, otherwise set :const:`False`.
 
@@ -119,8 +144,8 @@ class ParameterSet:
     A set of parameters. A typical use case is to use the parameter set to
     configure a subject.
     """
-    def __init__(self,
-                 parameter_dict: Optional[Dict[ParameterKey, Any]] = None):
+
+    def __init__(self, parameter_dict: Optional[Dict[ParameterKey, Any]] = None):
         """
         Parameters
         ----------
@@ -147,7 +172,9 @@ class ParameterSet:
                     _logger.warning("not supported; key: {}".format(k))
 
     @staticmethod
-    def get(key: ParameterKey, default: Optional[Any], config: Optional[ParameterSet] = None):
+    def get(
+        key: ParameterKey, default: Optional[Any], config: Optional[ParameterSet] = None
+    ):
         if config is None:
             return default
         else:
@@ -161,12 +188,12 @@ class ParameterSet:
     def add(self, key: ParameterKey, value: Any):
         global _logger
         if key in self._dict.keys():
-            _logger.debug("overwritten; key: {}, value: {}".format(
-                key.name, self._dict[key]))
+            _logger.debug(
+                "overwritten; key: {}, value: {}".format(key.name, self._dict[key])
+            )
 
         self._dict[key] = value
-        _logger.debug("added parameter; key: {}, value: {}".format(
-            key.name, value))
+        _logger.debug("added parameter; key: {}, value: {}".format(key.name, value))
 
     def remove(self, key: ParameterKey):
         if key in self._dict.keys():
@@ -201,13 +228,12 @@ def _indicate_deprecation(deprecated: object, alternative: object) -> None:
     #
     items = []
     for obj in (deprecated, alternative):
-        items.append(obj.__name__ + '()' if callable(obj) else obj)
+        items.append(obj.__name__ + "()" if callable(obj) else obj)
 
     warn(
-        'please consider to use {} instead of {}.'.format(
-            items[1], items[0]
-        ),
-        DeprecationWarning, stacklevel=3
+        "please consider to use {} instead of {}.".format(items[1], items[0]),
+        DeprecationWarning,
+        stacklevel=3,
     )
 
 
@@ -215,31 +241,38 @@ class _Delegate:
     def __init__(self, source):
         self._source_object = source
         self._attributes = [
-            f for f in dir(
-                type(self._source_object)) if not f.startswith('_')]
+            f for f in dir(type(self._source_object)) if not f.startswith("_")
+        ]
 
     def __getattr__(self, attribute):
         if attribute in self._attributes:
             if isinstance(
-                getattr(type(self._source_object), attribute, None),
-                    property):
+                getattr(type(self._source_object), attribute, None), property
+            ):
                 return getattr(self._source_object, attribute)
             else:
+
                 def m(*args):
                     return getattr(self._source_object, attribute)(*args)
+
                 setattr(self, attribute, m)
                 return m
         else:
             raise AttributeError
 
 
-Node = TypeVar('Node', bound=Node_)
+Node = TypeVar("Node", bound=Node_)
 
 
 class _NodeCallbackProxy:
-    def __init__(self, *, node, callback: Optional[Callable[[Node, Any], None]],
-                 context: Optional[Any] = None,
-                 callback_type: Optional[ECallbackType] = ECallbackType.cbPostOutsideLock):
+    def __init__(
+        self,
+        *,
+        node,
+        callback: Optional[Callable[[Node, Any], None]],
+        context: Optional[Any] = None,
+        callback_type: Optional[ECallbackType] = ECallbackType.cbPostOutsideLock,
+    ):
         global _logger
         assert node
         assert callback
@@ -270,36 +303,53 @@ class _NodeCallbackProxy:
 
 
 class Module(_Delegate):
-    def __init__(self, *, module, parent, port: Port = None,
-                 file_path: Optional[str] = None,
-                 file_dict: Optional[Dict[str, bytes]] = None,
-                 do_clean_up: bool = True,
-                 xml_dir_to_store: Optional[str] = None):
+    def __init__(
+        self,
+        *,
+        module,
+        parent,
+        port: Port = None,
+        file_path: Optional[str] = None,
+        file_dict: Optional[Dict[str, bytes]] = None,
+        do_clean_up: bool = True,
+        xml_dir_to_store: Optional[str] = None,
+    ):
         global _logger
         super().__init__(module)
         self._module = module
         self._parent = parent
-        self._node_map = self._create_node_map(
-            port=port, file_path=file_path, file_dict=file_dict,
-            do_clean_up=do_clean_up, xml_dir_to_store=xml_dir_to_store) if \
-            port else None
+        self._node_map = (
+            self._create_node_map(
+                port=port,
+                file_path=file_path,
+                file_dict=file_dict,
+                do_clean_up=do_clean_up,
+                xml_dir_to_store=xml_dir_to_store,
+            )
+            if port
+            else None
+        )
         self._node_callback_proxy_dict = dict()
 
     def deregister_node_callbacks(self):
         for proxy in self._node_callback_proxy_dict.values():
             proxy.destroy()
 
-    def register_node_callback(self, *, node_name: str,
-                               callback: Optional[Callable[[Node, Any], None]],
-                               context: Optional[Any] = None,
-                               callback_type: Optional[ECallbackType] = ECallbackType.cbPostOutsideLock) -> Union[None, int]:
+    def register_node_callback(
+        self,
+        *,
+        node_name: str,
+        callback: Optional[Callable[[Node, Any], None]],
+        context: Optional[Any] = None,
+        callback_type: Optional[ECallbackType] = ECallbackType.cbPostOutsideLock,
+    ) -> Union[None, int]:
         node = getattr(self._node_map, node_name, None)
         if not node:
             return None
 
-        proxy = _NodeCallbackProxy(node=node, callback=callback,
-                                   context=context,
-                                   callback_type=callback_type)
+        proxy = _NodeCallbackProxy(
+            node=node, callback=callback, context=context, callback_type=callback_type
+        )
         self._node_callback_proxy_dict[proxy.token] = proxy
         return proxy.token
 
@@ -310,20 +360,26 @@ class Module(_Delegate):
             del self._node_callback_proxy_dict[token]
 
     def _create_node_map(
-            self, *, port: Optional[Port] = None,
-            file_path: Optional[str] = None,
-            xml_dir_to_store: Optional[str] = None,
-            file_dict: Dict[str, bytes] = None, do_clean_up: bool = True):
+        self,
+        *,
+        port: Optional[Port] = None,
+        file_path: Optional[str] = None,
+        xml_dir_to_store: Optional[str] = None,
+        file_dict: Dict[str, bytes] = None,
+        do_clean_up: bool = True,
+    ):
         global _logger
 
         node_map = NodeMap()
 
         clean_up_required, file_path = self._retrieve_file_path(
-            port=port, file_path_to_load=file_path,
-            xml_dir_to_store=xml_dir_to_store, file_dict=file_dict)
+            port=port,
+            file_path_to_load=file_path,
+            xml_dir_to_store=xml_dir_to_store,
+            file_dict=file_dict,
+        )
 
-        remove_intermediate_file = True if clean_up_required and \
-            do_clean_up else False
+        remove_intermediate_file = True if clean_up_required and do_clean_up else False
 
         if file_path is not None:
             # Every valid (zipped) XML file MUST be parsed as expected and the
@@ -359,17 +415,21 @@ class Module(_Delegate):
 
     @staticmethod
     def _retrieve_file_path(
-            *, port: Optional[Port] = None, url: Optional[str] = None,
-            file_path_to_load: Optional[str] = None,
-            xml_dir_to_store: Optional[str] = None,
-            file_dict: Dict[str, bytes] = None) -> Tuple[bool, Union[str, None]]:
+        *,
+        port: Optional[Port] = None,
+        url: Optional[str] = None,
+        file_path_to_load: Optional[str] = None,
+        xml_dir_to_store: Optional[str] = None,
+        file_dict: Dict[str, bytes] = None,
+    ) -> Tuple[bool, Union[str, None]]:
         global _logger
         created_new_file = False
 
         if file_path_to_load:
             if not os.path.exists(file_path_to_load):
                 raise LogicalErrorException(
-                    '{} does not exist.'.format(file_path_to_load))
+                    "{} does not exist.".format(file_path_to_load)
+                )
         else:
             if not url:
                 try:
@@ -377,23 +437,24 @@ class Module(_Delegate):
                         url = port.url_info_list[0].url
                     else:
                         raise LogicalErrorException(
-                            'The target port does not hold any URL.')
+                            "The target port does not hold any URL."
+                        )
                 except GenTL_GenericException:
                     return created_new_file, None
 
-            _logger.debug('fetched url: {}'.format(url))
+            _logger.debug("fetched url: {}".format(url))
 
-            location, others = url.split(':', 1)
+            location, others = url.split(":", 1)
             location = location.lower()
 
-            if location == 'local':
-                file_name, address, size = others.split(';')
+            if location == "local":
+                file_name, address, size = others.split(";")
                 address = int(address, 16)
                 # Remove optional /// after local: See section 4.1.2 in GenTL
                 # v1.4 Standard
-                file_name = file_name.lstrip('/')
+                file_name = file_name.lstrip("/")
 
-                delimiter = '?'
+                delimiter = "?"
                 if delimiter in size:
                     size, _ = size.split(delimiter)
                 size = int(size, 16)  # From Hex to Dec
@@ -401,51 +462,56 @@ class Module(_Delegate):
                 size, binary_data = port.read(address, size)
 
                 file_path_to_load = _save_file(
-                    xml_dir_to_store=xml_dir_to_store, file_name=file_name,
-                    binary_data=binary_data, file_dict=file_dict)
+                    xml_dir_to_store=xml_dir_to_store,
+                    file_name=file_name,
+                    binary_data=binary_data,
+                    file_dict=file_dict,
+                )
                 created_new_file = True
 
-            elif location == 'file':
+            elif location == "file":
                 file_path_to_load = urlparse(url).path
                 if is_running_on_windows():
-                    file_path_to_load = re.sub(r'^/+', '', file_path_to_load)
+                    file_path_to_load = re.sub(r"^/+", "", file_path_to_load)
 
-            elif location == 'http' or location == 'https':
+            elif location == "http" or location == "https":
                 raise NotImplementedError(
-                    'Failed to parse URL {}: Harvester has not supported '
-                    'downloading a device description file from vendor '
-                    'web site. If you must rely on the current condition,'
-                    'just try to make a request to the Harvester '
-                    'maintainer.'.format(url))
+                    "Failed to parse URL {}: Harvester has not supported "
+                    "downloading a device description file from vendor "
+                    "web site. If you must rely on the current condition,"
+                    "just try to make a request to the Harvester "
+                    "maintainer.".format(url)
+                )
             else:
                 raise LogicalErrorException(
-                    'Failed to parse URL {}: Unknown format.'.format(url))
+                    "Failed to parse URL {}: Unknown format.".format(url)
+                )
 
         return created_new_file, file_path_to_load
 
     @staticmethod
     def _remove_intermediate_file(file_path: str):
         global _logger
-        _logger.debug(f'trying to delete: {file_path}')
+        _logger.debug(f"trying to delete: {file_path}")
         os.remove(file_path)
         if os.path.isfile(file_path):
-            _logger.warning(f'failed to delete: {file_path}')
+            _logger.warning(f"failed to delete: {file_path}")
         else:
-            _logger.debug(f'deleted: {file_path}')
+            _logger.debug(f"deleted: {file_path}")
         dir_path = os.path.dirname(file_path)
         if os.path.isdir(dir_path) and not os.listdir(dir_path):
-            _logger.debug(f'trying to delete: {dir_path}')
+            _logger.debug(f"trying to delete: {dir_path}")
             try:
                 os.rmdir(dir_path)
             except OSError as error:
-                _logger.warning(
-                    f'failed to delete: {dir_path} ({error})')
+                _logger.warning(f"failed to delete: {dir_path} ({error})")
             else:
-                _logger.debug(f'deleted: {dir_path}')
+                _logger.debug(f"deleted: {dir_path}")
 
     @property
-    def module(self) -> Union[System, Interface, Device, RemoteDevice,
-                              DataStream, Buffer]:
+    def module(
+        self,
+    ) -> Union[System, Interface, Device, RemoteDevice, DataStream, Buffer]:
         """
         Union[System, Interface, Device, RemoteDevice, DataStream, Buffer]:
         The corresponding GenTL module.
@@ -461,8 +527,9 @@ class Module(_Delegate):
         return self._node_map
 
     @property
-    def parent(self) -> Union[None, System, Interface, Device,
-                              RemoteDevice, DataStream]:
+    def parent(
+        self,
+    ) -> Union[None, System, Interface, Device, RemoteDevice, DataStream]:
         """
         Union[None, System, Interface, Device, RemoteDevice, DataStream]:
         The parent raw GenTL module.
@@ -472,22 +539,33 @@ class Module(_Delegate):
 
 class DataStream(Module):
     """Represents a GenTL Data Stream module."""
+
     def __init__(self, *, module: _DataStream, parent=None):
         super().__init__(module=module, port=module.port, parent=parent)
 
 
 class RemoteDevice(Module):
     """Represents a GenTL Remote Device module."""
-    def __init__(self, *, module: _Device, parent=None,
-                 file_path: Optional[str] = None,
-                 file_dict: Optional[Dict[str, bytes]] = None,
-                 do_clean_up: bool = True,
-                 xml_dir_to_store: Optional[str] = None):
+
+    def __init__(
+        self,
+        *,
+        module: _Device,
+        parent=None,
+        file_path: Optional[str] = None,
+        file_dict: Optional[Dict[str, bytes]] = None,
+        do_clean_up: bool = True,
+        xml_dir_to_store: Optional[str] = None,
+    ):
         super().__init__(
-            module=module, port=module.remote_port, parent=parent,
+            module=module,
+            port=module.remote_port,
+            parent=parent,
             file_path=file_path,
-            file_dict=file_dict, do_clean_up=do_clean_up,
-            xml_dir_to_store=xml_dir_to_store)
+            file_dict=file_dict,
+            do_clean_up=do_clean_up,
+            xml_dir_to_store=xml_dir_to_store,
+        )
 
     @property
     def port(self):
@@ -496,6 +574,7 @@ class RemoteDevice(Module):
 
 class Device(Module):
     """Represents a GenTL Device module that is a proxy of a remote device."""
+
     def __init__(self, *, module: _Device, parent=None):
         super().__init__(module=module, port=module.local_port, parent=parent)
 
@@ -506,29 +585,34 @@ class Device(Module):
 
 class Interface(Module):
     """Represents a GenTL Interface module."""
+
     def __init__(self, *, module: _Interface, parent=None):
         super().__init__(module=module, port=module.port, parent=parent)
 
 
 class System(Module):
     """Represents a GenTL System module."""
+
     def __init__(self, *, module: _System, parent):
         super().__init__(module=module, parent=parent, port=module.port)
 
 
 class Producer(Module):
     """Represents a GenTL Producer."""
+
     def __init__(self, *, module: _GenTLProducer):
         super().__init__(module=module, parent=None)
 
 
 class DeviceInfo(Module):
     search_keys = [
-        f for f in dir(_DeviceInfo) if
-        not f.startswith('_') and
-        isinstance(getattr(_DeviceInfo, f, None), property)]
+        f
+        for f in dir(_DeviceInfo)
+        if not f.startswith("_") and isinstance(getattr(_DeviceInfo, f, None), property)
+    ]
 
     """Represents a GenTL Device Information module."""
+
     def __init__(self, *, module, parent=None):
         global _logger
         super().__init__(module=module, parent=parent)
@@ -570,7 +654,7 @@ class _SignalHandler:
         A registered Python signal modules will call this method.
         """
         global _logger
-        _logger.debug('caught signal: {}'.format(self._event))
+        _logger.debug("caught signal: {}".format(self._event))
         self._event.set()
         self._subject.destroy()
 
@@ -595,6 +679,7 @@ class ThreadAdapter:
         Harvester uses the Python's built-in :class:`~threading.Thread`
         class by default.
     """
+
     def __init__(self, *, mutex=None):
         super().__init__()
 
@@ -606,7 +691,7 @@ class ThreadAdapter:
         global _logger
 
         self._internal_start()
-        _logger.debug('launched thread: {}'.format(self))
+        _logger.debug("launched thread: {}".format(self))
 
     def _internal_start(self) -> None:
         """
@@ -619,7 +704,7 @@ class ThreadAdapter:
     def stop(self) -> None:
         global _logger
         self._internal_stop()
-        _logger.debug('terminated thread: {}'.format(self))
+        _logger.debug("terminated thread: {}".format(self))
 
     def join(self):
         """
@@ -688,7 +773,7 @@ class ThreadBase(ThreadAdapter):
 
 
 class MutexLocker:
-    def __init__(self, thread: ThreadAdapter=None):
+    def __init__(self, thread: ThreadAdapter = None):
         """
         :param thread:
         """
@@ -714,8 +799,9 @@ class MutexLocker:
 
 
 class _EventMonitor(ThreadBase):
-    def __init__(self, *, worker: Optional[Callable[[], None]] = None,
-                 parent: object = None):
+    def __init__(
+        self, *, worker: Optional[Callable[[], None]] = None, parent: object = None
+    ):
         """
 
         :param image_acquire:
@@ -733,9 +819,9 @@ class _EventMonitor(ThreadBase):
 
     def join(self):
         global _logger
-        _logger.debug('going to join thread: {}'.format(self))
+        _logger.debug("going to join thread: {}".format(self))
         self._thread.join()
-        _logger.debug('joined thread: {}'.format(self))
+        _logger.debug("joined thread: {}".format(self))
 
     def _internal_stop(self):
         if not self._thread:
@@ -785,11 +871,12 @@ class _NativeThread(Thread):
 
     @staticmethod
     def _is_interactive():
-        if bool(getattr(sys, 'ps1', sys.flags.interactive)):
+        if bool(getattr(sys, "ps1", sys.flags.interactive)):
             return True
 
         try:
             from traitlets.config.application import Application as App
+
             return App.initialized() and App.instance().interact
         except (ImportError, AttributeError):
             return False
@@ -837,6 +924,7 @@ class Component:
     """
     Is a base class of various data component types.
     """
+
     def __init__(self, *, buffer=None):
         """
         :param buffer:
@@ -878,7 +966,7 @@ class Component:
         return self._data
 
 
-Component_ = TypeVar('Component_', bound=Component)
+Component_ = TypeVar("Component_", bound=Component)
 
 
 class ComponentBase(Component):
@@ -888,6 +976,7 @@ class ComponentBase(Component):
         It has been deprecated at 1.3.7 and will be removed in 2.0.0.
         It will be replaced by :class:`Component`.
     """
+
     def __init__(self, *, buffer=None):
         super().__init__(buffer=buffer)
 
@@ -897,6 +986,7 @@ class ComponentUnknown(Component):
     Represents a data component that is classified as
     :const:`PART_DATATYPE_UNKNOWN` by the GenTL Standard.
     """
+
     def __init__(self):
         #
         super().__init__()
@@ -907,10 +997,14 @@ class Component2DImage(Component):
     Represents a data component that is classified as
     :const:`PART_DATATYPE_2D_IMAGE` by the GenTL Standard.
     """
+
     def __init__(
-            self, *,
-            buffer=None, part=None, node_map: Optional[NodeMap] = None,
-            ):
+        self,
+        *,
+        buffer=None,
+        part=None,
+        node_map: Optional[NodeMap] = None,
+    ):
         """
         :param buffer:
         :param part:
@@ -960,8 +1054,7 @@ class Component2DImage(Component):
             except GenTL_GenericException:
                 h = self._node_map.Height.value
 
-            nr_bytes_per_line = self._get_nr_bytes(
-                pf_proxy=pf_proxy, width=w, height=1)
+            nr_bytes_per_line = self._get_nr_bytes(pf_proxy=pf_proxy, width=w, height=1)
 
             try:
                 padding_x = self._buffer.padding_x
@@ -971,12 +1064,16 @@ class Component2DImage(Component):
             nr_bytes = nr_bytes_per_line + padding_x
             nr_bytes *= h
 
-        array = numpy.frombuffer(self._buffer.raw_buffer, count=int(nr_bytes),
-                                 dtype='uint8', offset=self.data_offset)
+        array = numpy.frombuffer(
+            self._buffer.raw_buffer,
+            count=int(nr_bytes),
+            dtype="uint8",
+            offset=self.data_offset,
+        )
 
         if padding_x > 0:
             array = numpy.reshape(array, (h, nr_bytes_per_line + padding_x))
-            numpy.delete(array, numpy.s_[-1*padding_x:], axis=1)
+            numpy.delete(array, numpy.s_[-1 * padding_x :], axis=1)
             array = numpy.ravel(array)
 
         return pf_proxy.expand(array)
@@ -999,7 +1096,8 @@ class Component2DImage(Component):
 
         return self._data.reshape(
             self.height + self.y_padding,
-            int(self.width * self._nr_components + self.x_padding))
+            int(self.width * self._nr_components + self.x_padding),
+        )
 
     @property
     def num_components_per_pixel(self) -> float:
@@ -1009,9 +1107,9 @@ class Component2DImage(Component):
         return self._nr_components
 
     def __repr__(self):
-        return '{} x {}, {}, {} elements,\n{}'.format(
-            self.width, self.height, self.data_format, self.data.size,
-            self.data)
+        return "{} x {}, {}, {} elements,\n{}".format(
+            self.width, self.height, self.data_format, self.data.size, self.data
+        )
 
     @property
     def width(self) -> int:
@@ -1163,11 +1261,15 @@ class ComponentGenDC(Component):
     Represents a data component that is classified as
     GenDC Component Header by the GenDC Standard.
     """
+
     def __init__(
-            self, *,
-            buffer=None, component=None, 
-            node_map: Optional[NodeMap] = None,
-            acquire: Optional[ImageAcquirer] = None):
+        self,
+        *,
+        buffer=None,
+        component=None,
+        node_map: Optional[NodeMap] = None,
+        acquire: Optional[ImageAcquirer] = None,
+    ):
         """
         :param buffer:    GenTL _Buffer object
         :param component: GenTL _Component object
@@ -1186,13 +1288,18 @@ class ComponentGenDC(Component):
 
         for part in self._component.parts:
             self._parts.append(
-                self._build_part(buffer=buffer, part=part, 
-                                 node_map=node_map, acquire=acquire))
+                self._build_part(
+                    buffer=buffer, part=part, node_map=node_map, acquire=acquire
+                )
+            )
 
     @staticmethod
-    def _build_part(buffer: _Buffer, part: _Part,
-                    node_map: Optional[NodeMap] = None,
-                    acquire: Optional[ImageAcquirer] = None):
+    def _build_part(
+        buffer: _Buffer,
+        part: _Part,
+        node_map: Optional[NodeMap] = None,
+        acquire: Optional[ImageAcquirer] = None,
+    ):
         """
         Build a GenDC Part
 
@@ -1203,24 +1310,24 @@ class ComponentGenDC(Component):
         """
         global _logger
         # create a harvesters Component for each GenDC Part
-        if (part.part_type == GDC_PART_HEADER.GDC_2D):
-            return Component2DImage(
-                buffer=buffer, part=part, node_map=node_map
-            )
-        elif (part.part_type == GDC_PART_HEADER.GDC_METADATA_GENICAM_CHUNK):
+        if part.part_type == GDC_PART_HEADER.GDC_2D:
+            return Component2DImage(buffer=buffer, part=part, node_map=node_map)
+        elif part.part_type == GDC_PART_HEADER.GDC_METADATA_GENICAM_CHUNK:
             if acquire is not None and acquire._enable_auto_chunk_data_update:
                 acquire._chunk_adapter = ChunkAdapterGenDC(node_map)
-                acquire._chunk_adapter.attach_buffer(buffer.raw_buffer[part.data_offset:],  part.data_size)
+                acquire._chunk_adapter.attach_buffer(
+                    buffer.raw_buffer[part.data_offset :], part.data_size
+                )
                 acquire._has_attached_chunk = True
                 if _is_logging_buffer:
-                    _logger.debug(f'chunk data: attached, {_family_tree(buffer)}')
+                    _logger.debug(f"chunk data: attached, {_family_tree(buffer)}")
             else:
                 if _is_logging_buffer:
-                    _logger.debug('skipped attaching of GenDC chunk data...')
-        elif (part.part_type == GDC_PART_HEADER.GDC_METADATA_GENICAM_XML):
-            _logger.warning('GenDC XML is not supported in Harvesters')
+                    _logger.debug("skipped attaching of GenDC chunk data...")
+        elif part.part_type == GDC_PART_HEADER.GDC_METADATA_GENICAM_XML:
+            _logger.warning("GenDC XML is not supported in Harvesters")
         else:
-            _logger.warning(f'unsupported GenDC Part Header Type: {part.part_type}')
+            _logger.warning(f"unsupported GenDC Part Header Type: {part.part_type}")
 
     @property
     def parts(self) -> List[Component]:
@@ -1307,8 +1414,14 @@ class Buffer(Module):
     Note that it will never be necessary to create this object by yourself
     in general.
     """
-    def __init__(self, *, module: _Buffer, node_map: Optional[NodeMap] = None,
-                 acquire: Optional[ImageAcquirer] = None):
+
+    def __init__(
+        self,
+        *,
+        module: _Buffer,
+        node_map: Optional[NodeMap] = None,
+        acquire: Optional[ImageAcquirer] = None,
+    ):
         """
         Parameters
         ----------
@@ -1323,7 +1436,9 @@ class Buffer(Module):
             If the buffer contains unusable information.
         """
         super().__init__(module=module, parent=module.parent)
-        self._payload = self._build_payload(buffer=module, node_map=node_map, acquire=acquire)
+        self._payload = self._build_payload(
+            buffer=module, node_map=node_map, acquire=acquire
+        )
         self._acquire = acquire
 
     def __enter__(self):
@@ -1333,7 +1448,7 @@ class Buffer(Module):
         self.queue()
 
     def __repr__(self):
-        return '{}'.format(self.payload.__repr__())
+        return "{}".format(self.payload.__repr__())
 
     @property
     def timestamp_ns(self) -> int:
@@ -1409,14 +1524,17 @@ class Buffer(Module):
 
         #
         if _is_logging_buffer:
-            _logger.debug('queued: {0}'.format(_family_tree(self.module)))
+            _logger.debug("queued: {0}".format(_family_tree(self.module)))
 
         self.module.parent.queue_buffer(self.module)
 
     @staticmethod
-    def _build_payload(*, buffer: _Buffer,
-                       node_map: Optional[NodeMap] = None,
-                       acquire: Optional[ImageAcquirer] = None):
+    def _build_payload(
+        *,
+        buffer: _Buffer,
+        node_map: Optional[NodeMap] = None,
+        acquire: Optional[ImageAcquirer] = None,
+    ):
         """
         Raises
         ------
@@ -1431,9 +1549,10 @@ class Buffer(Module):
         if p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_UNKNOWN:
             payload = PayloadUnknown(buffer=buffer)
 
-        elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE or \
-                buffer.payload_type == \
-                PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_DATA:
+        elif (
+            p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE
+            or buffer.payload_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_DATA
+        ):
             payload = PayloadImage(buffer=buffer, node_map=node_map)
 
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_RAW_DATA:
@@ -1458,14 +1577,13 @@ class Buffer(Module):
             payload = PayloadMultiPart(buffer=buffer, node_map=node_map)
 
         elif p_type == PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_GENDC:
-            payload = PayloadGenDC(buffer=buffer, node_map=node_map, 
-                                   acquire=acquire)
+            payload = PayloadGenDC(buffer=buffer, node_map=node_map, acquire=acquire)
 
         else:
             info = json.dumps({"payload type": "{}".format(p_type)})
             _logger.warning(
-                "unsupported; trying to assume it as an image: {}".format(
-                    info))
+                "unsupported; trying to assume it as an image: {}".format(info)
+            )
             try:
                 payload = PayloadImage(buffer=buffer, node_map=node_map)
             except (GenTL_GenericException, GenApi_GenericException):
@@ -1484,6 +1602,7 @@ class Payload:
     GenTL Standard. In general, you should not have to design a class that
     derives from this base class.
     """
+
     def __init__(self, *, buffer: Buffer):
         """
         :param buffer:
@@ -1501,10 +1620,11 @@ class Payload:
         return self._buffer.payload_type
 
     @staticmethod
-    def _build_component(buffer: _Buffer, part=None,
-                         node_map: Optional[NodeMap] = None):
+    def _build_component(
+        buffer: _Buffer, part=None, node_map: Optional[NodeMap] = None
+    ):
         global _logger
-        message = "unsupported format: \'{}\'"
+        message = "unsupported format: '{}'"
 
         try:
             if part:
@@ -1529,9 +1649,7 @@ class Payload:
 
         symbolic = dict_by_ints[data_format]
         if symbolic in component_2d_formats:
-            return Component2DImage(
-                buffer=buffer, part=part, node_map=node_map
-            )
+            return Component2DImage(buffer=buffer, part=part, node_map=node_map)
         else:
             _logger.warning(message.format(symbolic))
             return None
@@ -1552,11 +1670,12 @@ class PayloadBase(Payload):
         It has been deprecated at 1.3.7 and will be removed in 2.0.0.
         It will be replaced by :class:`Payload`.
     """
+
     def __init__(self, *, buffer: Buffer):
         super().__init__(buffer=buffer)
 
 
-Payload_ = TypeVar('Payload_', bound=Payload)
+Payload_ = TypeVar("Payload_", bound=Payload)
 
 
 class PayloadUnknown(Payload):
@@ -1565,6 +1684,7 @@ class PayloadUnknown(Payload):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_UNKNOWN`
     by the GenTL Standard.
     """
+
     def __init__(self, *, buffer: _Buffer):
         """
 
@@ -1580,8 +1700,8 @@ class PayloadImage(Payload):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_IMAGE` by
     the GenTL Standard.
     """
-    def __init__(self, *, buffer: _Buffer,
-                 node_map: Optional[NodeMap] = None):
+
+    def __init__(self, *, buffer: _Buffer, node_map: Optional[NodeMap] = None):
         """
 
         :param buffer:
@@ -1589,12 +1709,10 @@ class PayloadImage(Payload):
         """
         super().__init__(buffer=buffer)
 
-        self._components.append(
-            self._build_component(
-                buffer=buffer, node_map=node_map))
+        self._components.append(self._build_component(buffer=buffer, node_map=node_map))
 
     def __repr__(self):
-        return '{}'.format(self.components[0].__repr__())
+        return "{}".format(self.components[0].__repr__())
 
 
 class PayloadRawData(Payload):
@@ -1603,6 +1721,7 @@ class PayloadRawData(Payload):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_RAW_DATA`
     by the GenTL Standard.
     """
+
     def __init__(self, *, buffer: _Buffer):
         """
         :param buffer:
@@ -1616,6 +1735,7 @@ class PayloadFile(Payload):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_FILE` by
     the GenTL Standard.
     """
+
     def __init__(self, *, buffer: _Buffer):
         super().__init__(buffer=buffer)
 
@@ -1626,6 +1746,7 @@ class PayloadJPEG(Payload):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG` by
     the GenTL Standard.
     """
+
     def __init__(self, *, buffer: _Buffer):
         """
         :param buffer:
@@ -1639,6 +1760,7 @@ class PayloadJPEG2000(Payload):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_JPEG2000`
     by the GenTL Standard.
     """
+
     def __init__(self, *, buffer: _Buffer):
         """
         :param buffer:
@@ -1652,6 +1774,7 @@ class PayloadH264(Payload):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_H264` by
     the GenTL Standard.
     """
+
     def __init__(self, *, buffer: _Buffer):
         """
         :param buffer:
@@ -1665,6 +1788,7 @@ class PayloadChunkOnly(Payload):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_CHUNK_ONLY`
     by the GenTL Standard.
     """
+
     def __init__(self, *, buffer: _Buffer):
         super().__init__(buffer=buffer)
 
@@ -1675,6 +1799,7 @@ class PayloadMultiPart(Payload):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_MULTI_PART`
     by the GenTL Standard.
     """
+
     def __init__(self, *, buffer: _Buffer, node_map: NodeMap):
         """
         :param buffer:
@@ -1684,13 +1809,13 @@ class PayloadMultiPart(Payload):
 
         for i, part in enumerate(self._buffer.parts):
             self._components.append(
-                self._build_component(
-                    buffer=buffer, part=part, node_map=node_map))
+                self._build_component(buffer=buffer, part=part, node_map=node_map)
+            )
 
     def __repr__(self):
-        ret = ''
+        ret = ""
         for i, c in enumerate(self.components):
-            ret += 'Component {}: {}\n'.format(i, c.__repr__())
+            ret += "Component {}: {}\n".format(i, c.__repr__())
         ret = ret[:-1]
         return ret
 
@@ -1701,7 +1826,14 @@ class PayloadGenDC(Payload):
     :const:`genicam.gentl.PAYLOADTYPE_INFO_IDS.PAYLOAD_TYPE_GENDC`
     by the GenTL Standard.
     """
-    def __init__(self, *, buffer: _Buffer, node_map: NodeMap, acquire: Optional[ImageAcquirer] = None):
+
+    def __init__(
+        self,
+        *,
+        buffer: _Buffer,
+        node_map: NodeMap,
+        acquire: Optional[ImageAcquirer] = None,
+    ):
         """
         :param buffer:
         :param node_map:
@@ -1711,13 +1843,18 @@ class PayloadGenDC(Payload):
 
         for component in self._buffer.components:
             self._components.append(
-                ComponentGenDC(buffer=buffer, component=component,
-                               node_map=node_map, acquire=acquire))
+                ComponentGenDC(
+                    buffer=buffer,
+                    component=component,
+                    node_map=node_map,
+                    acquire=acquire,
+                )
+            )
 
     def __repr__(self):
-        ret = ''
+        ret = ""
         for i, c in enumerate(self.components):
-            ret += 'Component {}: {}\n'.format(i, c.__repr__())
+            ret += "Component {}: {}\n".format(i, c.__repr__())
         ret = ret[:-1]
         return ret
 
@@ -1726,6 +1863,7 @@ class Callback:
     """
     Is used as a base class to implement user defined callback behavior.
     """
+
     def emit(self, context: Optional[object] = None) -> None:
         """
         Is called when a specific condition is met.
@@ -1739,8 +1877,9 @@ class ImageAcquirer:
     """
     Manages everything you need to acquire images from the connecting device.
     """
+
     _event = Event()
-    _specialized_tl_type = ['U3V', 'GEV']
+    _specialized_tl_type = ["U3V", "GEV"]
 
     _supported_parameters = [
         ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES,
@@ -1753,13 +1892,21 @@ class ImageAcquirer:
     ]
 
     class Events(IntEnum):
-        __doc__ = "Possible events that the " \
-                  ":class:`~harvesters.core.ImageAcquirer` class " \
-                  "can notify to the client."
-        TURNED_OBSOLETE = 0  # doc: The :class:`~ImageAcquirer` obejct has turned obsolete."
+        __doc__ = (
+            "Possible events that the "
+            ":class:`~harvesters.core.ImageAcquirer` class "
+            "can notify to the client."
+        )
+        TURNED_OBSOLETE = (
+            0  # doc: The :class:`~ImageAcquirer` obejct has turned obsolete."
+        )
         NEW_BUFFER_AVAILABLE = 1  # doc: A buffer has turned available to be fetched.
-        RETURN_ALL_BORROWED_BUFFERS = 2  # doc: Notifies that the fetched buffers must be queued.
-        READY_TO_STOP_ACQUISITION = 3  # doc: Notifies the ongoing image acquisition process can be stopped.
+        RETURN_ALL_BORROWED_BUFFERS = (
+            2  # doc: Notifies that the fetched buffers must be queued.
+        )
+        READY_TO_STOP_ACQUISITION = (
+            3  # doc: Notifies the ongoing image acquisition process can be stopped.
+        )
         INCOMPLETE_BUFFER = 4  # doc: Notifies a buffer has been fetched but it was incomplete and unusable.
         ON_CHUNK_DATA_UPDATED = 5
         ON_EVENT_DATA_UPDATED = 6
@@ -1767,7 +1914,15 @@ class ImageAcquirer:
     def _create_acquisition_thread(self) -> _ImageAcquisitionThread:
         return _ImageAcquisitionThread(image_acquire=self)
 
-    def __init__(self, *, parent: Harvester, device_proxy=None, config: Optional[ParameterSet] = None, profiler=None, file_dict=None):
+    def __init__(
+        self,
+        *,
+        parent: Harvester,
+        device_proxy=None,
+        config: Optional[ParameterSet] = None,
+        profiler=None,
+        file_dict=None,
+    ):
         """
 
         Parameters
@@ -1790,11 +1945,15 @@ class ImageAcquirer:
         self._parent = parent
         self._is_valid = True
         self._file_dict = file_dict
-        self._clean_up = ParameterSet.get(ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES, True, config)
-        self._enable_auto_chunk_data_update = ParameterSet.get(ParameterKey.ENABLE_AUTO_CHUNK_DATA_UPDATE, True, config)
+        self._clean_up = ParameterSet.get(
+            ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES, True, config
+        )
+        self._enable_auto_chunk_data_update = ParameterSet.get(
+            ParameterKey.ENABLE_AUTO_CHUNK_DATA_UPDATE, True, config
+        )
         self._has_attached_chunk = False
 
-        env_var = 'HARVESTERS_XML_FILE_DIR'
+        env_var = "HARVESTERS_XML_FILE_DIR"
         if env_var in os.environ:
             self._xml_dir = os.getenv(env_var)
         else:
@@ -1802,13 +1961,23 @@ class ImageAcquirer:
 
         self._device_proxy = device_proxy
 
-        self._thread_factory_method_for_event_module = ParameterSet.get(ParameterKey.THREAD_FACTORY_METHOD_FOR_EVENT_MODULE, lambda: _EventMonitor(parent=self), config)
-        file_path = ParameterSet.get(ParameterKey.REMOTE_DEVICE_SOURCE_XML_FILE_PATH, None, config)
+        self._thread_factory_method_for_event_module = ParameterSet.get(
+            ParameterKey.THREAD_FACTORY_METHOD_FOR_EVENT_MODULE,
+            lambda: _EventMonitor(parent=self),
+            config,
+        )
+        file_path = ParameterSet.get(
+            ParameterKey.REMOTE_DEVICE_SOURCE_XML_FILE_PATH, None, config
+        )
 
         self._remote_device = RemoteDevice(
-            module=device_proxy.module, parent=device_proxy, file_path=file_path,
-            file_dict=file_dict, do_clean_up=self._clean_up,
-            xml_dir_to_store=self._xml_dir)
+            module=device_proxy.module,
+            parent=device_proxy,
+            file_path=file_path,
+            file_dict=file_dict,
+            do_clean_up=self._clean_up,
+            xml_dir_to_store=self._xml_dir,
+        )
         self._interface_proxy = device_proxy.parent
         self._system_proxy = self._interface_proxy.parent
 
@@ -1822,24 +1991,30 @@ class ImageAcquirer:
         self._module_event_monitor_dict = dict()
         self._module_event_monitor_thread_dict = dict()
 
-        modules = [self._system_proxy,
-                   self._interface_proxy,
-                   self._device_proxy,
-                   self._remote_device]
-        event_types = [EVENT_TYPE_LIST.EVENT_MODULE,
-                       EVENT_TYPE_LIST.EVENT_MODULE,
-                       EVENT_TYPE_LIST.EVENT_MODULE,
-                       EVENT_TYPE_LIST.EVENT_REMOTE_DEVICE]
-        event_managers = [EventManagerModule,
-                          EventManagerModule,
-                          EventManagerModule,
-                          EventManagerRemoteDevice]
+        modules = [
+            self._system_proxy,
+            self._interface_proxy,
+            self._device_proxy,
+            self._remote_device,
+        ]
+        event_types = [
+            EVENT_TYPE_LIST.EVENT_MODULE,
+            EVENT_TYPE_LIST.EVENT_MODULE,
+            EVENT_TYPE_LIST.EVENT_MODULE,
+            EVENT_TYPE_LIST.EVENT_REMOTE_DEVICE,
+        ]
+        event_managers = [
+            EventManagerModule,
+            EventManagerModule,
+            EventManagerModule,
+            EventManagerRemoteDevice,
+        ]
 
-        for module, event_type, manager in \
-                zip(modules, event_types, event_managers):
+        for module, event_type, manager in zip(modules, event_types, event_managers):
             try:
-                self._module_event_monitor_dict[module] = \
-                    manager(module.register_event(event_type))
+                self._module_event_monitor_dict[module] = manager(
+                    module.register_event(event_type)
+                )
             except NotImplementedException:
                 _logger.debug("no module event: {}".format(module))
             except ResourceInUseException:
@@ -1847,10 +2022,12 @@ class ImageAcquirer:
             except InvalidParameterException:
                 _logger.debug("invalid parameter: {}".format(module))
             else:
-                self._module_event_monitor_thread_dict[module] = \
+                self._module_event_monitor_thread_dict[module] = (
                     self._thread_factory_method_for_event_module()
-                self._module_event_monitor_thread_dict[module].worker = \
+                )
+                self._module_event_monitor_thread_dict[module].worker = (
                     self._worker_module_event
+                )
 
         self._create_ds_at_connection = True
         if self._create_ds_at_connection:
@@ -1863,22 +2040,28 @@ class ImageAcquirer:
 
         self._thread_factory_method_for_event_new_buffer = ParameterSet.get(
             ParameterKey.THREAD_FACTORY_METHOD,
-            lambda: _EventMonitor(parent=self), config)
+            lambda: _EventMonitor(parent=self),
+            config,
+        )
 
-        self._event_new_buffer_thread = \
+        self._event_new_buffer_thread = (
             self._thread_factory_method_for_event_new_buffer()
+        )
         self._event_new_buffer_thread.worker = self._worker_event_new_buffer
 
         if current_thread() is main_thread():
-            self._sigint_handler = _SignalHandler(
-                event=self._event, subject=self)
+            self._sigint_handler = _SignalHandler(event=self._event, subject=self)
             signal.signal(signal.SIGINT, self._sigint_handler)
-            _logger.debug('created: {0}'.format(self._sigint_handler))
+            _logger.debug("created: {0}".format(self._sigint_handler))
 
         self._num_images_to_acquire = 0
 
-        self._timeout_on_internal_fetch_call = ParameterSet.get(ParameterKey.TIMEOUT_PERIOD_ON_UPDATE_EVENT_DATA_CALL, 1, config)  # ms
-        self._timeout_period_on_client_fetch_call = ParameterSet.get(ParameterKey.TIMEOUT_PERIOD_ON_CLIENT_FETCH_CALL, 0.01, config)  # s
+        self._timeout_on_internal_fetch_call = ParameterSet.get(
+            ParameterKey.TIMEOUT_PERIOD_ON_UPDATE_EVENT_DATA_CALL, 1, config
+        )  # ms
+        self._timeout_period_on_client_fetch_call = ParameterSet.get(
+            ParameterKey.TIMEOUT_PERIOD_ON_CLIENT_FETCH_CALL, 0.01, config
+        )  # s
 
         self._statistics = Statistics()
         self._announced_buffers = []
@@ -1886,7 +2069,9 @@ class ImageAcquirer:
         self._has_acquired_1st_image = False
         self._is_acquiring = False
 
-        num_buffers_default = ParameterSet.get(ParameterKey.NUM_BUFFERS_FOR_FETCH_CALL, 3, config)
+        num_buffers_default = ParameterSet.get(
+            ParameterKey.NUM_BUFFERS_FOR_FETCH_CALL, 3, config
+        )
         try:
             self._min_num_buffers = self._data_streams[0].buffer_announce_min
         except GenTL_GenericException as e:
@@ -1899,14 +2084,15 @@ class ImageAcquirer:
             self._min_num_buffers = num_buffers_default
             self._num_buffers = num_buffers_default
         else:
-            self._num_buffers = max(
-                num_buffers_default, self._min_num_buffers)
+            self._num_buffers = max(num_buffers_default, self._min_num_buffers)
 
         tl_type = self.device.tl_type
         self._chunk_adapter = self._get_chunk_adapter(
-            tl_type=tl_type, node_map=self.remote_device.node_map)
+            tl_type=tl_type, node_map=self.remote_device.node_map
+        )
         self._event_adapter = self._get_event_adapter(
-            tl_type=tl_type, node_map=self.remote_device.node_map)
+            tl_type=tl_type, node_map=self.remote_device.node_map
+        )
 
         self._finalizer = weakref.finalize(self, self.destroy)
 
@@ -1924,7 +2110,8 @@ class ImageAcquirer:
             self._callback_dict[event] = None
 
         self._enable_event_monitor = ParameterSet.get(
-            ParameterKey.ENABLE_EVENT_MONITOR, False, config)
+            ParameterKey.ENABLE_EVENT_MONITOR, False, config
+        )
 
         if self._enable_event_monitor:
             for thread in self._module_event_monitor_thread_dict.values():
@@ -1955,8 +2142,8 @@ class ImageAcquirer:
             self._emit_callback(callback)
 
     def _emit_callback(
-            self,
-            callback: Optional[Union[Callback, List[Callback]]]) -> None:
+        self, callback: Optional[Union[Callback, List[Callback]]]
+    ) -> None:
         if callback:
             if isinstance(callback, Callback):
                 _logger.debug("going to emit: {0}".format(callback))
@@ -1987,18 +2174,18 @@ class ImageAcquirer:
 
     @staticmethod
     def _get_chunk_adapter(*, tl_type: str, node_map: NodeMap):
-        if tl_type == 'U3V':
+        if tl_type == "U3V":
             return ChunkAdapterU3V(node_map)
-        elif tl_type == 'GEV':
+        elif tl_type == "GEV":
             return ChunkAdapterGEV(node_map)
         else:
             return ChunkAdapterGeneric(node_map)
 
     @staticmethod
     def _get_event_adapter(*, tl_type: str, node_map: NodeMap):
-        if tl_type == 'U3V':
+        if tl_type == "U3V":
             return EventAdapterU3V(node_map.pointer)
-        elif tl_type == 'GEV':
+        elif tl_type == "GEV":
             return EventAdapterGEV(node_map.pointer)
         else:
             return EventAdapterGeneric(node_map.pointer)
@@ -2033,7 +2220,7 @@ class ImageAcquirer:
         :meth:`Harvester.create_image_acquire` method.
         """
         global _logger
-        _logger.info('going to release resources: {}'.format(self))
+        _logger.info("going to release resources: {}".format(self))
 
         if not self._is_valid:
             return
@@ -2068,7 +2255,7 @@ class ImageAcquirer:
         if self._profiler:
             self._profiler.print_diff()
 
-        _logger.info('released resources: {}'.format(self))
+        _logger.info("released resources: {}".format(self))
         self._emit_callbacks(self.Events.TURNED_OBSOLETE)
 
     @property
@@ -2085,8 +2272,9 @@ class ImageAcquirer:
             self._num_buffers = value
         else:
             raise ValueError(
-                'The number of buffers must be '
-                'greater than or equal to {}'.format(self._min_num_buffers))
+                "The number of buffers must be "
+                "greater than or equal to {}".format(self._min_num_buffers)
+            )
 
     @property
     def min_num_buffers(self) -> int:
@@ -2130,8 +2318,7 @@ class ImageAcquirer:
                     buffer.parent.queue_buffer(buffer)
 
         else:
-            raise ValueError(
-                'The number of filled buffers to hold must be > 0.')
+            raise ValueError("The number of filled buffers to hold must be > 0.")
 
     @property
     def num_holding_filled_buffers(self) -> int:
@@ -2211,8 +2398,11 @@ class ImageAcquirer:
             :const:`True` if it's been armed for image acquisition; otherwise,
             :const:`False`.
         """
-        if not self.is_acquiring() or \
-                self.is_acquiring() and self._num_images_to_acquire == 0:
+        if (
+            not self.is_acquiring()
+            or self.is_acquiring()
+            and self._num_images_to_acquire == 0
+        ):
             return False
         else:
             return True
@@ -2225,12 +2415,16 @@ class ImageAcquirer:
             It has been deprecated at 1.3.6 and will be removed in 2.0.0.
             It will be replaced by :attr:`timeout_period_on_client_fetch_call`.
         """
-        _indicate_deprecation('timeout_on_client_fetch_call', 'timeout_period_on_client_fetch_call')
+        _indicate_deprecation(
+            "timeout_on_client_fetch_call", "timeout_period_on_client_fetch_call"
+        )
         return self.timeout_period_on_client_fetch_call
 
     @timeout_on_client_fetch_call.setter
     def timeout_on_client_fetch_call(self, value: float):
-        _indicate_deprecation('timeout_on_client_fetch_call', 'timeout_period_on_client_fetch_call')
+        _indicate_deprecation(
+            "timeout_on_client_fetch_call", "timeout_period_on_client_fetch_call"
+        )
         self.timeout_period_on_client_fetch_call = value
 
     @property
@@ -2264,7 +2458,7 @@ class ImageAcquirer:
     @timeout_period_on_update_event_data_call.setter
     def timeout_period_on_update_event_data_call(self, value):
         internal = float(value)
-        client = self.timeout_period_on_client_fetch_call * 1000.
+        client = self.timeout_period_on_client_fetch_call * 1000.0
         info = json.dumps({"internal": internal, "client": client})
         if isclose(internal, client):
             _logger.warning("may cause timeout: {}".format(info))
@@ -2281,12 +2475,16 @@ class ImageAcquirer:
             It has been deprecated at 1.3.6 and will be removed in 2.0.0.
             It will be replaced by :attr:`timeout_period_on_update_event_data_call`.
         """
-        _indicate_deprecation('timeout_for_image_acquisition', 'timeout_period_on_update_event_data_call')
+        _indicate_deprecation(
+            "timeout_for_image_acquisition", "timeout_period_on_update_event_data_call"
+        )
         return self._timeout_on_internal_fetch_call
 
     @timeout_for_image_acquisition.setter
     def timeout_for_image_acquisition(self, ms):
-        _indicate_deprecation('timeout_for_image_acquisition', 'timeout_period_on_update_event_data_call')
+        _indicate_deprecation(
+            "timeout_for_image_acquisition", "timeout_period_on_update_event_data_call"
+        )
         self._timeout_on_internal_fetch_call = ms
 
     @property
@@ -2321,15 +2519,17 @@ class ImageAcquirer:
             except GenTL_GenericException as e:
                 _logger.error(e, exc_info=True)
             else:
-                _logger.debug(
-                    'opened: {0}'.format(_family_tree(_data_stream)))
+                _logger.debug("opened: {0}".format(_family_tree(_data_stream)))
 
             self._data_streams.append(DataStream(module=_data_stream))
 
-            self._new_buffer_event_monitor_dict[self._data_streams[i]] = \
+            self._new_buffer_event_monitor_dict[self._data_streams[i]] = (
                 EventManagerNewBuffer(
                     self._data_streams[i].register_event(
-                        EVENT_TYPE_LIST.EVENT_NEW_BUFFER))
+                        EVENT_TYPE_LIST.EVENT_NEW_BUFFER
+                    )
+                )
+            )
 
     def start_image_acquisition(self, run_in_background=False):
         """
@@ -2380,13 +2580,14 @@ class ImageAcquirer:
                 num_images_to_acquire = -1
                 _logger.warning(e, exc_info=True)
             else:
-                if acq_mode == 'Continuous':
+                if acq_mode == "Continuous":
                     num_images_to_acquire = -1
-                elif acq_mode == 'SingleFrame':
+                elif acq_mode == "SingleFrame":
                     num_images_to_acquire = 1
-                elif acq_mode == 'MultiFrame':
-                    num_images_to_acquire = \
+                elif acq_mode == "MultiFrame":
+                    num_images_to_acquire = (
                         self.remote_device.node_map.AcquisitionFrameCount.value
+                    )
                 else:
                     num_images_to_acquire = -1
 
@@ -2419,9 +2620,11 @@ class ImageAcquirer:
                 raw_buffers = self._create_raw_buffers(num_buffers, buffer_size)
                 buffer_tokens = self._create_buffer_tokens(raw_buffers)
                 self._announced_buffers = self._announce_buffers(
-                    data_stream=ds, _buffer_tokens=buffer_tokens)
+                    data_stream=ds, _buffer_tokens=buffer_tokens
+                )
                 self._queue_announced_buffers(
-                    data_stream=ds, buffers=self._announced_buffers)
+                    data_stream=ds, buffers=self._announced_buffers
+                )
 
                 try:
                     self.remote_device.node_map.TLParamsLocked.value = 1
@@ -2429,11 +2632,13 @@ class ImageAcquirer:
                     # SFNC < 2.0
                     pass
                 except AttributeError:
-                    _logger.debug("no TLParamsLocked: {}".format(
-                        _family_tree(self._device_proxy.module)))
+                    _logger.debug(
+                        "no TLParamsLocked: {}".format(
+                            _family_tree(self._device_proxy.module)
+                        )
+                    )
 
-                ds.start_acquisition(
-                    ACQ_START_FLAGS_LIST.ACQ_START_FLAGS_DEFAULT, -1)
+                ds.start_acquisition(ACQ_START_FLAGS_LIST.ACQ_START_FLAGS_DEFAULT, -1)
 
             self._has_attached_chunk = False
             self._is_acquiring = True
@@ -2442,11 +2647,12 @@ class ImageAcquirer:
                 if self._event_new_buffer_thread:
                     self._event_new_buffer_thread.start()
 
-        _logger.info('started acquisition: {0}'.format(self))
+        _logger.info("started acquisition: {0}".format(self))
 
         self.remote_device.node_map.AcquisitionStart.execute()
-        _logger.debug('started streaming: {0}'.format(
-                _family_tree(self._device_proxy.module)))
+        _logger.debug(
+            "started streaming: {0}".format(_family_tree(self._device_proxy.module))
+        )
 
         if self._profiler:
             self._profiler.print_diff()
@@ -2473,8 +2679,9 @@ class ImageAcquirer:
                 if self._device_proxy.tl_type in self._specialized_tl_type:
                     self._event_adapter.deliver_message(monitor.optional_data)
                 else:
-                    self._event_adapter.deliver_message(monitor.optional_data,
-                                                        monitor.event_id)
+                    self._event_adapter.deliver_message(
+                        monitor.optional_data, monitor.event_id
+                    )
                 self._emit_callbacks(self.Events.ON_EVENT_DATA_UPDATED)
                 _logger.debug("just delivered an event: {}".format(monitor))
 
@@ -2489,8 +2696,10 @@ class ImageAcquirer:
         queue = self._queue
 
         for monitor in self._new_buffer_event_monitor_dict.values():
-            buffer = self._fetch(monitor=monitor,
-                                 timeout_period_on_client_fetch_call=self.timeout_period_on_client_fetch_call)
+            buffer = self._fetch(
+                monitor=monitor,
+                timeout_period_on_client_fetch_call=self.timeout_period_on_client_fetch_call,
+            )
             if buffer:
                 with MutexLocker(self._event_new_buffer_thread):
                     if not self._is_acquiring:
@@ -2514,19 +2723,22 @@ class ImageAcquirer:
             except GenTL_GenericException:
                 if _is_logging_buffer:
                     _logger.warning(
-                        'no way to check chunk availability: {0}'.format(
-                            _family_tree(buffer)))
+                        "no way to check chunk availability: {0}".format(
+                            _family_tree(buffer)
+                        )
+                    )
                 return
             else:
                 if _is_logging_buffer:
-                    _logger.debug('contains chunk data: {0}'.format(
-                        _family_tree(buffer)))
+                    _logger.debug(
+                        "contains chunk data: {0}".format(_family_tree(buffer))
+                    )
 
         if buffer.tl_type not in self._specialized_tl_type:
             try:
                 self._chunk_adapter.attach_buffer(
-                    buffer.raw_buffer,
-                    buffer.chunk_data_info_list)
+                    buffer.raw_buffer, buffer.chunk_data_info_list
+                )
             except GenTL_GenericException as e:
                 _logger.error(e, exc_info=True)
         else:
@@ -2540,21 +2752,21 @@ class ImageAcquirer:
 
             if self._has_attached_chunk:
                 self._chunk_adapter.update_buffer(buffer.raw_buffer)
-                action = 'updated'
+                action = "updated"
             else:
                 self._chunk_adapter.attach_buffer(buffer.raw_buffer, size)
                 self._has_attached_chunk = True
-                action = 'attached'
+                action = "attached"
 
             if _is_logging_buffer:
-                _logger.debug('chunk data: {}, {}'.format(
-                    action, _family_tree(buffer)))
+                _logger.debug("chunk data: {}, {}".format(action, _family_tree(buffer)))
 
             if not is_manual:
                 self._emit_callbacks(self.Events.ON_CHUNK_DATA_UPDATED)
 
-    def try_fetch(self, *, timeout: float,
-                  is_raw: bool = False) -> Union[Buffer, _Buffer, None]:
+    def try_fetch(
+        self, *, timeout: float, is_raw: bool = False
+    ) -> Union[Buffer, _Buffer, None]:
         """
         Unlike the fetch method, the try_fetch method gives up and
         returns None if no complete buffer was acquired during the defined
@@ -2578,17 +2790,27 @@ class ImageAcquirer:
         """
         buffers = []
         for monitor in self._new_buffer_event_monitor_dict.values():
-            buffer = self._fetch(monitor=monitor,
-                                 timeout_period_on_client_fetch_call=timeout,
-                                 throw_except=False)
+            buffer = self._fetch(
+                monitor=monitor,
+                timeout_period_on_client_fetch_call=timeout,
+                throw_except=False,
+            )
 
             buffers.append(self._finalize_fetching_process(buffer, is_raw))
 
-        return buffers if len(self._new_buffer_event_monitor_dict.values()) > 1 else buffers[0]
+        return (
+            buffers
+            if len(self._new_buffer_event_monitor_dict.values()) > 1
+            else buffers[0]
+        )
 
-    def _fetch(self, *, monitor: EventManagerNewBuffer,
-               timeout_period_on_client_fetch_call: float = 0,
-               throw_except: bool = False) -> Union[Buffer, _Buffer, None]:
+    def _fetch(
+        self,
+        *,
+        monitor: EventManagerNewBuffer,
+        timeout_period_on_client_fetch_call: float = 0,
+        throw_except: bool = False,
+    ) -> Union[Buffer, _Buffer, None]:
         global _logger
 
         assert monitor
@@ -2603,8 +2825,10 @@ class ImageAcquirer:
                 if elapsed > timeout_period_on_client_fetch_call:
                     if _is_logging_buffer:
                         _logger.debug(
-                            'timeout: elapsed {0} sec.'.format(
-                                timeout_period_on_client_fetch_call))
+                            "timeout: elapsed {0} sec.".format(
+                                timeout_period_on_client_fetch_call
+                            )
+                        )
                     if throw_except:
                         raise TimeoutException
                     else:
@@ -2634,13 +2858,16 @@ class ImageAcquirer:
                     buffer = monitor.buffer
                     if _is_logging_buffer:
                         _logger.debug(
-                            'fetched: {0} (#{1}); {2}'.format(
-                                context, frame_id,
-                                _family_tree(monitor.buffer)))
+                            "fetched: {0} (#{1}); {2}".format(
+                                context, frame_id, _family_tree(monitor.buffer)
+                            )
+                        )
                 else:
                     _logger.warning(
-                        'incomplete or not available; discarded: {}'.format(
-                            _family_tree(monitor.buffer)))
+                        "incomplete or not available; discarded: {}".format(
+                            _family_tree(monitor.buffer)
+                        )
+                    )
 
                     ds = monitor.buffer.parent
                     ds.queue_buffer(monitor.buffer)
@@ -2650,7 +2877,8 @@ class ImageAcquirer:
         return buffer
 
     def _try_fetch_from_queue(
-            self, *, is_raw: bool = False) -> Union[Buffer, _Buffer, None]:
+        self, *, is_raw: bool = False
+    ) -> Union[Buffer, _Buffer, None]:
         with MutexLocker(self._event_new_buffer_thread):
             try:
                 raw_buffer = self._queue.get(block=False)
@@ -2659,7 +2887,8 @@ class ImageAcquirer:
                 return None
 
     def _finalize_fetching_process(
-            self, raw_buffer: _Buffer, is_raw: bool) -> Union[Buffer, _Buffer, None]:
+        self, raw_buffer: _Buffer, is_raw: bool
+    ) -> Union[Buffer, _Buffer, None]:
         if not raw_buffer:
             return None
 
@@ -2670,21 +2899,22 @@ class ImageAcquirer:
             return raw_buffer
 
         try:
-            buffer = Buffer(module=raw_buffer,
-                            node_map=self.remote_device.node_map,
-                            acquire=self)
+            buffer = Buffer(
+                module=raw_buffer, node_map=self.remote_device.node_map, acquire=self
+            )
         except GenTL_GenericException:
             family_tree = _family_tree(raw_buffer)
             _logger.warning(
-                'information not available; discarded: {}'.format(
-                    family_tree))
+                "information not available; discarded: {}".format(family_tree)
+            )
             raw_buffer.parent.queue_buffer(raw_buffer)
             return None
         else:
             return buffer
 
-    def fetch_buffer(self, *, timeout: float = 0, is_raw: bool = False,
-                     cycle_s: float = None) -> Buffer:
+    def fetch_buffer(
+        self, *, timeout: float = 0, is_raw: bool = False, cycle_s: float = None
+    ) -> Buffer:
         """
         Attention
         ---------
@@ -2694,8 +2924,9 @@ class ImageAcquirer:
         _indicate_deprecation(self.fetch_buffer, self.fetch)
         return self.fetch(timeout=timeout, is_raw=is_raw, cycle_s=cycle_s)
 
-    def fetch(self, *, timeout: float = 0, is_raw: bool = False,
-                     cycle_s: float = None) -> Union[Buffer, _Buffer, None]:
+    def fetch(
+        self, *, timeout: float = 0, is_raw: bool = False, cycle_s: float = None
+    ) -> Union[Buffer, _Buffer, None]:
         """
         Fetches an available :class:`Buffer` object that has been filled up
         with a single image and returns it.
@@ -2721,8 +2952,7 @@ class ImageAcquirer:
             A buffer object if the resource is complete; otherwise None.
         """
 
-        if self._event_new_buffer_thread and \
-                self._event_new_buffer_thread.is_running():
+        if self._event_new_buffer_thread and self._event_new_buffer_thread.is_running():
             buffer = None
             while not buffer:
                 buffer = self._try_fetch_from_queue(is_raw=is_raw)
@@ -2736,13 +2966,19 @@ class ImageAcquirer:
                 buffer = None
                 while not buffer:
                     try:
-                        buffer = self._fetch(monitor=monitor,
-                                             timeout_period_on_client_fetch_call=timeout,
-                                             throw_except=True)
+                        buffer = self._fetch(
+                            monitor=monitor,
+                            timeout_period_on_client_fetch_call=timeout,
+                            throw_except=True,
+                        )
                     except GenTL_GenericException:
                         raise
                 buffers.append(self._finalize_fetching_process(buffer, is_raw))
-            return buffers if len(self._new_buffer_event_monitor_dict.values()) > 1 else buffers[0]
+            return (
+                buffers
+                if len(self._new_buffer_event_monitor_dict.values()) > 1
+                else buffers[0]
+            )
 
     def _update_num_images_to_acquire(self) -> None:
         if self._num_images_to_acquire >= 1:
@@ -2756,15 +2992,13 @@ class ImageAcquirer:
         self._statistics.increment_num_images()
         self._statistics.update_timestamp(buffer)
 
-    def _create_raw_buffers(
-            self, num_buffers: int = 0, size: int = 0) -> List[bytes]:
+    def _create_raw_buffers(self, num_buffers: int = 0, size: int = 0) -> List[bytes]:
         assert num_buffers >= 0
         assert size >= 0
 
         raw_buffers = []
         for _ in range(num_buffers):
-            _logger.debug(
-                "allocated: {0} bytes by {1}".format(size, self))
+            _logger.debug("allocated: {0} bytes by {1}".format(size, self))
             raw_buffers.append(bytes(size))
 
         return raw_buffers
@@ -2775,14 +3009,13 @@ class ImageAcquirer:
 
         _buffer_tokens = []
         for i, buffer in enumerate(raw_buffers):
-            _buffer_tokens.append(
-                BufferToken(buffer, i))
+            _buffer_tokens.append(BufferToken(buffer, i))
 
         return _buffer_tokens
 
     def _announce_buffers(
-            self, data_stream: DataStream = None,
-            _buffer_tokens: List[BufferToken] = None) -> List[Buffer]:
+        self, data_stream: DataStream = None, _buffer_tokens: List[BufferToken] = None
+    ) -> List[Buffer]:
         global _logger
 
         assert data_stream
@@ -2791,21 +3024,22 @@ class ImageAcquirer:
         for token in _buffer_tokens:
             announced_buffer = data_stream.announce_buffer(token)
             announced_buffers.append(announced_buffer)
-            _logger.debug(
-                'announced: {0}'.format(_family_tree(announced_buffer)))
+            _logger.debug("announced: {0}".format(_family_tree(announced_buffer)))
 
         return announced_buffers
 
     def _queue_announced_buffers(
-            self, data_stream: Optional[DataStream] = None,
-            buffers: Optional[List[Buffer]] = None) -> None:
+        self,
+        data_stream: Optional[DataStream] = None,
+        buffers: Optional[List[Buffer]] = None,
+    ) -> None:
         global _logger
 
         assert data_stream
 
         for buffer in buffers:
             data_stream.queue_buffer(buffer)
-            _logger.debug('queued: {0}'.format(_family_tree(buffer)))
+            _logger.debug("queued: {0}".format(_family_tree(buffer)))
 
     def stop_image_acquisition(self):
         """
@@ -2846,16 +3080,22 @@ class ImageAcquirer:
                 except GenApi_GenericException as e:
                     _logger.warning(e, exc_info=True)
                 else:
-                    _logger.debug('stopped streaming: {}'.format(
-                        _family_tree(self._device_proxy.module)))
+                    _logger.debug(
+                        "stopped streaming: {}".format(
+                            _family_tree(self._device_proxy.module)
+                        )
+                    )
 
                 try:
                     self.remote_device.node_map.TLParamsLocked.value = 0
                 except GenApi_GenericException:
                     pass
                 except AttributeError:
-                    _logger.debug("no TLParamsLocked: {}".format(
-                        _family_tree(self._device_proxy.module)))
+                    _logger.debug(
+                        "no TLParamsLocked: {}".format(
+                            _family_tree(self._device_proxy.module)
+                        )
+                    )
 
                 for data_stream in self._data_streams:
                     try:
@@ -2880,16 +3120,15 @@ class ImageAcquirer:
 
             self._has_acquired_1st_image = False
             self._chunk_adapter.detach_buffer()
-            _logger.info('stopped acquisition: {}'.format(self))
+            _logger.info("stopped acquisition: {}".format(self))
 
         if self._profiler:
             self._profiler.print_diff()
 
     def _flush_buffers(self, data_stream: DataStream) -> None:
         self._emit_callbacks(self.Events.RETURN_ALL_BORROWED_BUFFERS)
-        data_stream.flush_buffer_queue(
-            ACQ_QUEUE_TYPE_LIST.ACQ_QUEUE_ALL_DISCARD)
-        _logger.debug('flushed: {0}'.format(data_stream))
+        data_stream.flush_buffer_queue(ACQ_QUEUE_TYPE_LIST.ACQ_QUEUE_ALL_DISCARD)
+        _logger.debug("flushed: {0}".format(data_stream))
 
     def _release_data_streams(self) -> None:
         global _logger
@@ -2900,7 +3139,7 @@ class ImageAcquirer:
             if data_stream and data_stream.is_open():
                 name = _family_tree(data_stream.module)
                 data_stream.close()
-                _logger.debug('closed: {}'.format(name))
+                _logger.debug("closed: {}".format(name))
 
         self._data_streams.clear()
         self._new_buffer_event_monitor_dict.clear()
@@ -2914,7 +3153,7 @@ class ImageAcquirer:
                 for buffer in self._announced_buffers:
                     name = _family_tree(buffer)
                     _ = data_stream.revoke_buffer(buffer)
-                    _logger.debug('revoked: {0}'.format(name))
+                    _logger.debug("revoked: {0}".format(name))
 
         self._announced_buffers.clear()
 
@@ -2923,9 +3162,12 @@ class ImageAcquirer:
 
 
 def _save_file(
-        *, xml_dir_to_store: Optional[str] = None,
-        file_name: Optional[str] = None, binary_data=None,
-        file_dict: Dict[str, bytes] = None):
+    *,
+    xml_dir_to_store: Optional[str] = None,
+    file_name: Optional[str] = None,
+    binary_data=None,
+    file_dict: Dict[str, bytes] = None,
+):
     global _logger
 
     assert binary_data
@@ -2938,19 +3180,21 @@ def _save_file(
             os.makedirs(xml_dir_to_store)
     else:
         xml_dir_to_store = tempfile.mkdtemp(
-            prefix=datetime.now().strftime('%Y%m%d%H%M%S_'))
+            prefix=datetime.now().strftime("%Y%m%d%H%M%S_")
+        )
 
     _file_name = ntpath.basename(file_name)
     file_path = os.path.join(xml_dir_to_store, _file_name)
 
-    mode = 'w+'
+    mode = "w+"
     data_to_write = bytes_io.getvalue()
-    if pathlib.Path(file_path).suffix.lower() != '.zip':
+    if pathlib.Path(file_path).suffix.lower() != ".zip":
         data_to_write = _drop_padding_data(
-            data_to_write, file_name=_file_name, file_dict=file_dict)
+            data_to_write, file_name=_file_name, file_dict=file_dict
+        )
 
     try:
-        with open(file_path, mode + 'b') as f:
+        with open(file_path, mode + "b") as f:
             f.write(data_to_write)
     except UnicodeEncodeError:
         # Probably you've caught "UnicodeEncodeError: 'charmap' codec can't
@@ -2973,13 +3217,13 @@ def _save_file(
 
 
 def _drop_padding_data(
-        data_to_write: bytes, *, file_name: str = None,
-        file_dict: Dict[str, bytes] = None):
+    data_to_write: bytes, *, file_name: str = None, file_dict: Dict[str, bytes] = None
+):
     global _logger
 
     assert data_to_write
 
-    data_to_be_found = b'\x00'
+    data_to_be_found = b"\x00"
     if file_dict and file_name:
         result = None
         key = None
@@ -2995,7 +3239,8 @@ def _drop_padding_data(
     if pos != -1:
         _logger.debug(
             "an x00 has been found in {}; "
-            "the array will be truncated.".format(file_name))
+            "the array will be truncated.".format(file_name)
+        )
         return data_to_write[:pos]
     else:
         return data_to_write
@@ -3016,6 +3261,7 @@ class Harvester:
     Is the class that works for you as Harvester Core. Everything begins with
     this class.
     """
+
     #
     _supported_parameters = [
         ParameterKey.LOGGER,
@@ -3025,9 +3271,14 @@ class Harvester:
         ParameterKey.TIMER,
     ]
 
-    def __init__(self, *, profile=False, logger: Optional[Logger] = None,
-                 do_clean_up: bool = True,
-                 config: Optional[ParameterSet] = None):
+    def __init__(
+        self,
+        *,
+        profile=False,
+        logger: Optional[Logger] = None,
+        do_clean_up: bool = True,
+        config: Optional[ParameterSet] = None,
+    ):
         """
         Parameters
         ----------
@@ -3059,7 +3310,9 @@ class Harvester:
         if config:
             ParameterSet.check(config, self._supported_parameters)
 
-        logger = ParameterSet.get(ParameterKey.LOGGER, None, config) if config else logger
+        logger = (
+            ParameterSet.get(ParameterKey.LOGGER, None, config) if config else logger
+        )
         _logger = logger or _logger
 
         super().__init__()
@@ -3071,11 +3324,17 @@ class Harvester:
         self._device_info_list = []
         self._ias = []
         self._has_revised_device_list = False
-        self._clean_up = \
-            ParameterSet.get(ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES, True, config) if config else do_clean_up
+        self._clean_up = (
+            ParameterSet.get(
+                ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES, True, config
+            )
+            if config
+            else do_clean_up
+        )
 
-        self._timeout_period_on_module_enumeration = \
-            ParameterSet.get(ParameterKey.TIMEOUT_PERIOD_ON_MODULE_ENUMERATION, 1000, config)  # ms
+        self._timeout_period_on_module_enumeration = ParameterSet.get(
+            ParameterKey.TIMEOUT_PERIOD_ON_MODULE_ENUMERATION, 1000, config
+        )  # ms
 
         if config:
             _profile = ParameterSet.get(ParameterKey._ENABLE_PROFILE, False, config)
@@ -3084,13 +3343,14 @@ class Harvester:
 
         if _profile:
             from harvesters._private.core.helper.profiler import Profiler
+
             self._profiler = Profiler()
             self._profiler.print_diff()
         else:
             self._profiler = None
 
         self._finalizer = weakref.finalize(self, self._reset)
-        _logger.info('created: {0}'.format(self))
+        _logger.info("created: {0}".format(self))
 
     @property
     def image_acquirers(self) -> List[ImageAcquirer]:
@@ -3124,7 +3384,7 @@ class Harvester:
             It has been deprecated at 1.3.7 and will be removed at 2.0.0.
             It will be replaced by :attr:`files`.
         """
-        _indicate_deprecation('cti_files', 'files')
+        _indicate_deprecation("cti_files", "files")
         return self.files
 
     @property
@@ -3162,9 +3422,11 @@ class Harvester:
         self._has_revised_device_list = value
 
     def create(
-            self,
-            search_key: Optional[Union[int, Dict[str, str], DeviceInfo]] = None,
-            *, config: Optional[ParameterSet] = None) -> ImageAcquirer:
+        self,
+        search_key: Optional[Union[int, Dict[str, str], DeviceInfo]] = None,
+        *,
+        config: Optional[ParameterSet] = None,
+    ) -> ImageAcquirer:
         """
         Creates an image acquirer that is mapped to the specified remote
         device.
@@ -3206,7 +3468,7 @@ class Harvester:
                 0: "no device available",
                 1: "no device found",
                 2: "multiple devices found",
-                3: "undefined search key given"
+                3: "undefined search key given",
             }
             solution_dict = {
                 0: "check the system setup",
@@ -3214,8 +3476,18 @@ class Harvester:
                 2: "provide valid device information",
                 3: "provide valid search key",
             }
-            return ": ".join([status_dict.get(status),
-                              solution_dict.get(solution)])
+            return ": ".join([status_dict.get(status), solution_dict.get(solution)])
+
+        if not config:
+            config = ParameterSet(
+                {
+                    ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES: self._clean_up,
+                }
+            )
+        elif not config.has(ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES):
+            config.add(
+                ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES, self._clean_up
+            )
 
         parent = None
         if type(search_key) is int:
@@ -3264,56 +3536,72 @@ class Harvester:
         device_proxy = Device(module=raw_device, parent=parent)
         return self._create_acquirer(device_proxy=device_proxy, config=config)
 
-    def _create_acquirer(self, *, device_proxy: Device,
-                         config: Optional[ParameterSet] = None,
-                         file_dict=None):
-        privilege = ParameterSet.get(ParameterKey.DEVICE_OWNERSHIP_PRIVILEGE, 'exclusive', config)
+    def _create_acquirer(
+        self,
+        *,
+        device_proxy: Device,
+        config: Optional[ParameterSet] = None,
+        file_dict=None,
+    ):
+        privilege = ParameterSet.get(
+            ParameterKey.DEVICE_OWNERSHIP_PRIVILEGE, "exclusive", config
+        )
         try:
-            if privilege == 'exclusive':
+            if privilege == "exclusive":
                 _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_EXCLUSIVE
-            elif privilege == 'control':
+            elif privilege == "control":
                 _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_CONTROL
-            elif privilege == 'read_only':
+            elif privilege == "read_only":
                 _privilege = DEVICE_ACCESS_FLAGS_LIST.DEVICE_ACCESS_READONLY
             else:
-                raise NotImplementedError(
-                    'not supported: {}'.format(privilege))
+                raise NotImplementedError("not supported: {}".format(privilege))
 
             device_proxy.open(_privilege)
-            device_proxy_ = Device(module=device_proxy.module, parent=device_proxy.parent)
+            device_proxy_ = Device(
+                module=device_proxy.module, parent=device_proxy.parent
+            )
 
         except GenTL_GenericException as e:
             _logger.warning(e, exc_info=True)
             raise
         else:
-            _logger.debug(
-                'opened: {}'.format(_family_tree(device_proxy_)))
+            _logger.debug("opened: {}".format(_family_tree(device_proxy_)))
 
             if config:
                 config.remove(ParameterKey.DEVICE_OWNERSHIP_PRIVILEGE)
 
-            ia = ImageAcquirer(device_proxy=device_proxy_, config=config,
-                               file_dict=file_dict, parent=self)
+            ia = ImageAcquirer(
+                device_proxy=device_proxy_,
+                config=config,
+                file_dict=file_dict,
+                parent=self,
+            )
             self._ias.append(ia)
 
             if self._profiler:
                 self._profiler.print_diff()
 
-        _logger.info('created: {0} for {1} by {2}'.format(
-            ia, device_proxy_.id_, self))
+        _logger.info("created: {0} for {1} by {2}".format(ia, device_proxy_.id_, self))
 
         return ia
 
     def create_image_acquirer(
-            self, list_index: Optional[int] = None, *,
-            id_: Optional[str] = None, vendor: Optional[str] = None,
-            model: Optional[str] = None, tl_type: Optional[str] = None,
-            user_defined_name: Optional[str] = None,
-            serial_number: Optional[str] = None, version: Optional[str] = None,
-            sleep_duration: Optional[float] = _sleep_default,
-            file_path: Optional[str] = None, privilege: str = 'exclusive',
-            file_dict: Dict[str, bytes] = None,
-            auto_chunk_data_update=True):
+        self,
+        list_index: Optional[int] = None,
+        *,
+        id_: Optional[str] = None,
+        vendor: Optional[str] = None,
+        model: Optional[str] = None,
+        tl_type: Optional[str] = None,
+        user_defined_name: Optional[str] = None,
+        serial_number: Optional[str] = None,
+        version: Optional[str] = None,
+        sleep_duration: Optional[float] = _sleep_default,
+        file_path: Optional[str] = None,
+        privilege: str = "exclusive",
+        file_dict: Dict[str, bytes] = None,
+        auto_chunk_data_update=True,
+    ):
         """
         Attention
         ---------
@@ -3348,8 +3636,15 @@ class Harvester:
         if list_index is not None:
             dev_info = self.device_info_list[list_index]
         else:
-            keys = ['id_', 'vendor', 'model', 'tl_type', 'user_defined_name',
-                    'serial_number', 'version']
+            keys = [
+                "id_",
+                "vendor",
+                "model",
+                "tl_type",
+                "user_defined_name",
+                "serial_number",
+                "version",
+            ]
 
             candidates = self.device_info_list.copy()
 
@@ -3359,7 +3654,7 @@ class Harvester:
                     items_to_be_removed = []
                     for item in candidates:
                         try:
-                            if key_value != eval('item.' + key):
+                            if key_value != eval("item." + key):
                                 items_to_be_removed.append(item)
                         except GenTL_GenericException as e:
                             _logger.debug(e, exc_info=True)
@@ -3370,34 +3665,42 @@ class Harvester:
             num_candidates = len(candidates)
             if num_candidates > 1:
                 raise ValueError(
-                    'You have two or more candidates. '
-                    'You have to pass one or more keys so that '
-                    'a single candidate is specified.')
+                    "You have two or more candidates. "
+                    "You have to pass one or more keys so that "
+                    "a single candidate is specified."
+                )
             elif num_candidates == 0:
                 raise ValueError(
-                    'You have no candidate. '
-                    'You have to pass one or more keys so that '
-                    'a single candidate is specified.')
+                    "You have no candidate. "
+                    "You have to pass one or more keys so that "
+                    "a single candidate is specified."
+                )
             else:
                 dev_info = candidates[0]
 
-        config = ParameterSet({
-            ParameterKey.DEVICE_OWNERSHIP_PRIVILEGE: privilege,
-            ParameterKey.REMOTE_DEVICE_SOURCE_XML_FILE_PATH: file_path,
-            ParameterKey.ENABLE_AUTO_CHUNK_DATA_UPDATE: auto_chunk_data_update,
-            ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES: self._clean_up,
-        })
+        config = ParameterSet(
+            {
+                ParameterKey.DEVICE_OWNERSHIP_PRIVILEGE: privilege,
+                ParameterKey.REMOTE_DEVICE_SOURCE_XML_FILE_PATH: file_path,
+                ParameterKey.ENABLE_AUTO_CHUNK_DATA_UPDATE: auto_chunk_data_update,
+                ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES: self._clean_up,
+            }
+        )
 
         assert dev_info
         raw_device = dev_info.create_device()
         parent = dev_info.parent
         device_proxy = Device(module=raw_device, parent=parent)
-        return self._create_acquirer(device_proxy=device_proxy, config=config,
-                                     file_dict=file_dict)
+        return self._create_acquirer(
+            device_proxy=device_proxy, config=config, file_dict=file_dict
+        )
 
     def add_cti_file(
-            self, file_path: str, check_existence: bool = False,
-            check_validity: bool = False):
+        self,
+        file_path: str,
+        check_existence: bool = False,
+        check_validity: bool = False,
+    ):
         """
         Attention
         ---------
@@ -3408,8 +3711,11 @@ class Harvester:
         self.add_file(file_path)
 
     def add_file(
-            self, file_path: str, check_existence: bool = False,
-            check_validity: bool = False) -> None:
+        self,
+        file_path: str,
+        check_existence: bool = False,
+        check_validity: bool = False,
+    ) -> None:
         """
         Adds a CTI file as one of GenTL Producers to work with.
 
@@ -3437,8 +3743,9 @@ class Harvester:
 
         if check_existence:
             if not os.path.exists(file_path):
-                _logger.error('attempted to add but doesn\'t exist: {}'.format(
-                    file_path))
+                _logger.error(
+                    "attempted to add but doesn't exist: {}".format(file_path)
+                )
                 raise FileNotFoundError
 
         if check_validity:
@@ -3452,7 +3759,7 @@ class Harvester:
 
         if file_path not in self._cti_files:
             self._cti_files.append(file_path)
-            _logger.info('added: {0} to {1}'.format(file_path, self))
+            _logger.info("added: {0} to {1}".format(file_path, self))
 
     def remove_cti_file(self, file_path: str):
         """
@@ -3477,7 +3784,7 @@ class Harvester:
 
         if file_path in self._cti_files:
             self._cti_files.remove(file_path)
-            _logger.info('removed: {0} from {1}'.format(file_path, self))
+            _logger.info("removed: {0} from {1}".format(file_path, self))
 
     def remove_cti_files(self) -> None:
         """
@@ -3496,7 +3803,7 @@ class Harvester:
         global _logger
 
         self._cti_files.clear()
-        _logger.info('flushed file list: {}'.format(self))
+        _logger.info("flushed file list: {}".format(self))
 
     def _open_gentl_producers(self) -> None:
         global _logger
@@ -3509,7 +3816,7 @@ class Harvester:
                 _logger.warning(e, exc_info=True)
             else:
                 self._producers.append(Producer(module=raw_producer))
-                _logger.debug('initialized file: {0}'.format(raw_producer.path_name))
+                _logger.debug("initialized file: {0}".format(raw_producer.path_name))
 
     def _open_systems(self) -> None:
         global _logger
@@ -3522,7 +3829,7 @@ class Harvester:
                 _logger.warning(e, exc_info=True)
             else:
                 self._systems.append(System(module=raw_system, parent=producer))
-                _logger.debug('opened: {0}'.format(_family_tree(raw_system)))
+                _logger.debug("opened: {0}".format(_family_tree(raw_system)))
 
     def _release_acquires(self):
         for ia in self._ias:
@@ -3538,7 +3845,7 @@ class Harvester:
         global _logger
         self._release_acquires()
 
-        _logger.debug('being reset: {}'.format(self))
+        _logger.debug("being reset: {}".format(self))
         self.remove_files()
         self._release_gentl_producers()
 
@@ -3546,7 +3853,7 @@ class Harvester:
             self._profiler.print_diff()
 
         #
-        _logger.info('reset completed: {}'.format(self))
+        _logger.info("reset completed: {}".format(self))
 
     def _release_gentl_producers(self) -> None:
         global _logger
@@ -3557,7 +3864,7 @@ class Harvester:
             if producer and producer.is_open():
                 name = producer.path_name
                 producer.close()
-                _logger.debug('closed: {0}'.format(name))
+                _logger.debug("closed: {0}".format(name))
 
         self._producers.clear()
 
@@ -3570,7 +3877,7 @@ class Harvester:
             if system is not None and system.is_open():
                 name = _family_tree(system)
                 system.close()
-                _logger.debug('closed: {0}'.format(name))
+                _logger.debug("closed: {0}".format(name))
 
         self._systems.clear()
 
@@ -3584,7 +3891,7 @@ class Harvester:
                 if iface.is_open():
                     name = _family_tree(iface)
                     iface.close()
-                    _logger.debug('closed: {0}'.format(name))
+                    _logger.debug("closed: {0}".format(name))
 
         self._ifaces.clear()
 
@@ -3594,8 +3901,7 @@ class Harvester:
         if self.device_info_list is not None:
             self._device_info_list.clear()
 
-        _logger.debug(
-            'discarded device information: {}'.format(self))
+        _logger.debug("discarded device information: {}".format(self))
 
     def update_device_info_list(self):
         """
@@ -3637,7 +3943,7 @@ class Harvester:
                     except GenTL_GenericException as e:
                         _logger.error(e, exc_info=True)
                     else:
-                        _logger.debug('opened: {0}'.format(_family_tree(raw_iface)))
+                        _logger.debug("opened: {0}".format(_family_tree(raw_iface)))
 
                         iface_ = Interface(module=raw_iface, parent=system_proxy)
                         self._ifaces.append(iface_)
@@ -3645,7 +3951,8 @@ class Harvester:
                         raw_iface.update_device_info_list(self.timeout_for_update)
                         for dev_info in raw_iface.device_info_list:
                             self.device_info_list.append(
-                                DeviceInfo(module=dev_info, parent=iface_))
+                                DeviceInfo(module=dev_info, parent=iface_)
+                            )
 
         except GenTL_GenericException as e:
             _logger.warning(e, exc_info=True)
@@ -3653,8 +3960,8 @@ class Harvester:
         else:
             self._has_revised_device_list = True
 
-        _logger.info('updated: {}'.format(self))
+        _logger.info("updated: {}".format(self))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pass

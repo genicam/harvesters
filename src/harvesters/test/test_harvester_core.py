@@ -34,14 +34,12 @@ from urllib.parse import quote
 # Related third party imports
 from genicam.genapi import GenericException as GenApi_GenericException
 from genicam.genapi import NodeMap
-from genicam.genapi import register, deregister
 from genicam.gentl import TimeoutException
 import numpy as np
 
 # Local application/library specific imports
 from harvesters._private.core.helper.system import is_running_on_windows
-from harvesters.test.base_harvester import TestHarvester, \
-    TestHarvesterNoCleanUp
+from harvesters.test.base_harvester import TestHarvester, TestHarvesterNoCleanUp
 from harvesters.test.base_harvester import get_cti_file_path
 from harvesters.core import Callback
 from harvesters.core import Harvester, Interface
@@ -49,9 +47,8 @@ from harvesters.core import ParameterSet, ParameterKey
 from harvesters.core import ImageAcquirer
 from harvesters.core import _drop_padding_data
 from harvesters.core import Module
-from harvesters.core import _NodeCallbackProxy
-from harvesters.util.pfnc import Dictionary
 from harvesters.core import Component2DImage
+from harvesters.util.pfnc import Dictionary
 from harvesters.util.pfnc import Mono8, Mono10, Mono12, Mono14, Mono16
 from harvesters.util.pfnc import Mono10Packed, Mono12Packed
 from harvesters.util.pfnc import Mono10p, Mono12p, Mono14p
@@ -65,25 +62,26 @@ class TestHarvesterCoreNoCleanUp(TestHarvesterNoCleanUp):
         if not self.is_running_with_default_target():
             return
 
-        file_names = ['altered_plain.xml', 'altered_zip.zip']
-        expected_values = ['plain', 'zip']
+        file_names = ["altered_plain.xml", "altered_zip.zip"]
+        expected_values = ["plain", "zip"]
         for i, file_name in enumerate(file_names):
-            self._test_issue_66(
-                'issue_66_' + file_name, expected_values[i]
-            )
+            self._test_issue_66("issue_66_" + file_name, expected_values[i])
 
     def _test_issue_66(self, file_name, expected_value):
         #
         xml_dir = self._get_xml_dir()
+        xml_file = os.path.join(xml_dir, file_name)
 
         # Connect to the first camera in the list.
-        self.ia = self.harvester.create_image_acquirer(
-            0, file_path=os.path.join(xml_dir, file_name))
+        config = ParameterSet(
+            {ParameterKey.REMOTE_DEVICE_SOURCE_XML_FILE_PATH: xml_file}
+        )
+        self.ia = self.harvester.create(0, config=config)
 
         # Compare DeviceModelNames:
         self.assertEqual(
-            'Altered TLSimu (' + expected_value + ')',
-            self.ia.remote_device.node_map.DeviceModelName.value
+            f"Altered TLSimu ({expected_value})",
+            self.ia.remote_device.node_map.DeviceModelName.value,
         )
 
         #
@@ -91,7 +89,7 @@ class TestHarvesterCoreNoCleanUp(TestHarvesterNoCleanUp):
 
 
 class TestHarvesterCore(TestHarvester):
-    sleep_duration = .5  # Time to keep sleeping [s]
+    sleep_duration = 0.5  # Time to keep sleeping [s]
 
     def test_ticket_300(self):
         if not self.is_running_with_default_target():
@@ -106,23 +104,22 @@ class TestHarvesterCore(TestHarvester):
         iface = dev_info.parent
         self.assertIsNotNone(iface.node_map)
         self.assertEqual(NodeMap, type(iface.node_map))
-        self.assertEqual("XX::InterfaceA", iface.node_map.InterfaceID.value)
+        self.assertEqual("VikyTL_ITF_UnivIF", iface.node_map.InterfaceID.value)
 
         system = iface.parent
         self.assertIsNotNone(system.node_map)
         self.assertEqual(NodeMap, type(system.node_map))
-        self.assertEqual("TLSimu.cti", system.node_map.TLID.value)
+        self.assertEqual("viky.cti", system.node_map.TLFileName.value)
 
     def test_basic_usage_1(self):
         """
-        We walk through a basic usage and manually close the image
-        acquirer.
+        We walk through a basic usage and manually close the image acquirer.
 
         :return: None.
         """
 
         # Prepare an image acquirer for device #0.
-        ia = self.harvester.create_image_acquirer(0)
+        ia = self.harvester.create(0)
 
         # Start image acquisition.
         ia.start()
@@ -130,7 +127,7 @@ class TestHarvesterCore(TestHarvester):
         # Fetch a buffer that is filled with image data.
         with ia.fetch() as buffer:
             # Reshape it.
-            self._logger.info('{0}'.format(buffer))
+            self._test_logger.info(f"{buffer}")
 
         # Stop image acquisition.
         ia.stop()
@@ -147,14 +144,14 @@ class TestHarvesterCore(TestHarvester):
         """
 
         # Prepare an image acquirer for device #0.
-        with self.harvester.create_image_acquirer(0) as ia:
+        with self.harvester.create(0) as ia:
             # Start image acquisition.
             ia.start()
 
             # Fetch a buffer that is filled with image data.
             with ia.fetch() as buffer:
                 # Reshape it.
-                self._logger.info('{0}'.format(buffer))
+                self._test_logger.info("{0}".format(buffer))
 
             # Stop image acquisition.
             ia.stop()
@@ -168,29 +165,21 @@ class TestHarvesterCore(TestHarvester):
 
     def _test_image_acquirers(self, num_ias=1):
         #
-        self._logger.info('Number of devices: {0}'.format(num_ias))
+        self._test_logger.info("Number of devices: {0}".format(num_ias))
 
-        #
-        ias = []  # Image Acquirers
-
-        #
+        # Set up multiple image acquirers:
+        ias = []
         for list_index in range(num_ias):
-            ias.append(
-                self.harvester.create_image_acquirer(
-                    list_index=list_index
-                )
-                # Or you could simply do the same thing as follows:
-                # self.harvester.create_image_acquirer(list_index)
-            )
+            ias.append(self.harvester.create(list_index))
 
         #
         for i in range(3):
             #
-            self._logger.info('---> Round {0}: Set up'.format(i))
+            self._test_logger.info(f"---> Round {i}: Set up")
             for index, ia in enumerate(ias):
                 ia.start()
-                self._logger.info(
-                    'Device #{0} has started image acquisition.'.format(index)
+                self._test_logger.info(
+                    f"Device #{index} has started image acquisition."
                 )
 
             k = 0
@@ -208,7 +197,7 @@ class TestHarvesterCore(TestHarvester):
                             # a client called fetch method even though
                             # he'd forgotten to start image acquisition.
                             with ia.fetch() as buffer:
-                                self._logger.info('{0}'.format(buffer))
+                                self._test_logger.info("{0}".format(buffer))
                         except AttributeError:
                             # Harvester Core has not started image acquisition
                             # so calling fetch() raises AttributeError
@@ -220,17 +209,18 @@ class TestHarvesterCore(TestHarvester):
                         # recommended because you might forget to queue the
                         # buffer.
                         buffer = ia.fetch()
-                        self._logger.info('{0}'.format(buffer))
+                        self._test_logger.info("{0}".format(buffer))
+                        buffer.queue()
 
                 #
                 k += 1
 
             #
-            self._logger.info('<--- Round {0}: Tear down'.format(i))
+            self._test_logger.info("<--- Round {0}: Tear down".format(i))
             for index, ia in enumerate(ias):
                 ia.stop()
-                self._logger.info(
-                    'Device #{0} has stopped image acquisition.'.format(index)
+                self._test_logger.info(
+                    "Device #{0} has stopped image acquisition.".format(index)
                 )
 
         for ia in ias:
@@ -241,54 +231,52 @@ class TestHarvesterCore(TestHarvester):
             return
 
         # The basic usage.
-        ia = self.harvester.create_image_acquirer(0)
+        ia = self.harvester.create(0)
         ia.destroy()
 
         # The basic usage but it explicitly uses the parameter name.
-        ia = self.harvester.create_image_acquirer(
-            list_index=0
-        )
+        ia = self.harvester.create(search_key=0)
         ia.destroy()
 
         # The key can't specify a unique device so it raises an exception.
         with self.assertRaises(ValueError):
-            self.harvester.create_image_acquirer(
-                vendor='EMVA_D'
-            )
+            self.harvester.create(search_key={"vendor": "EMVA_D"})
 
         # The key specifies a unique device.
-        self._logger.info(self.harvester.device_info_list)
-        ia = self.harvester.create_image_acquirer(
-            serial_number='SN_InterfaceA_0'
-        )
+        self._test_logger.info(self.harvester.device_info_list)
+        serial_number = {
+            "serial_number": self.harvester.device_info_list[1].serial_number
+        }
+        ia = self.harvester.create(search_key=serial_number)
         ia.destroy()
 
+    @unittest.skip("viky has no trigger configuration right now")
     def test_timeout_on_fetching_buffer(self):
         if not self.is_running_with_default_target():
             return
 
         # Create an image acquirer:
-        ia = self.harvester.create_image_acquirer(0)
+        ia = self.harvester.create(0)
 
         # We do not start image acquisition:
-        #ia.start()
+        # ia.start()
 
         timeout = 3  # sec
 
-        self._logger.info("you will see timeout but that's intentional.")
+        self._test_logger.info("you will see timeout but that's intentional.")
         with self.assertRaises(TimeoutException):
             # Try to fetch a buffer but the IA will immediately raise
             # TimeoutException because it's not started image acquisition:
             _ = ia.fetch(timeout=timeout)
 
         # Then we setup the device for software trigger mode:
-        ia.remote_device.node_map.TriggerMode.value = 'On'
-        ia.remote_device.node_map.TriggerSource.value = 'Software'
+        ia.remote_device.node_map.TriggerMode.value = "On"
+        ia.remote_device.node_map.TriggerSource.value = "Software"
 
         # We're ready to start image acquisition:
         ia.start()
 
-        self._logger.info("you will see timeout but that's intentional.")
+        self._test_logger.info("you will see timeout but that's intentional.")
         with self.assertRaises(TimeoutException):
             # Try to fetch a buffer but the IA will raise TimeoutException
             # because we've not triggered the device so far:
@@ -301,7 +289,7 @@ class TestHarvesterCore(TestHarvester):
         ia.remote_device.node_map.TriggerSoftware.execute()
         buffer = ia.fetch(timeout=timeout)
         self.assertIsNotNone(buffer)
-        self._logger.info('{0}'.format(buffer))
+        self._test_logger.info("{0}".format(buffer))
         buffer.queue()
 
         # Now we stop image acquisition:
@@ -313,67 +301,68 @@ class TestHarvesterCore(TestHarvester):
         acquires = []
         nr_devices = len(self.harvester.device_info_list)
         for i in range(nr_devices):
-            acquires.append(self.harvester.create_image_acquirer(i))
+            acquires.append(self.harvester.create(i))
         #
         for acquire in acquires:
             acquire.start()
         #
-        self._logger.info("finished allocating resource.")
+        self._test_logger.info("finished allocating resource.")
         self.harvester.update()
-        self._logger.info("finished the update method call.")
+        self._test_logger.info("finished the update method call.")
         #
         for acquire in acquires:
             self.assertFalse(acquire.is_valid())
 
     def test_deprecation_announced_items_fetch_buffer(self):
-        ia = self.harvester.create_image_acquirer(0)
+        ia = self.harvester.create(0)
         ia.start()
         # Try to fetch a buffer but None will be returned
         # because we've not triggered the device so far:
-        self._logger.info("you will see deprecation announcement.")
+        self._test_logger.info("you will see deprecation announcement.")
         with ia.fetch_buffer(timeout=0.1) as buffer:
             pass
-        self._logger.info("did you see deprecation announcement?")
+        self._test_logger.info("did you see deprecation announcement?")
         ia.stop()
 
     def test_deprecation_announced_items_start_stop_image_acquisition(self):
-        ia = self.harvester.create_image_acquirer(0)
-        self._logger.info("you will see deprecation announcement.")
+        ia = self.harvester.create(0)
+        self._test_logger.info("you will see deprecation announcement.")
         ia.start_acquisition()
-        self._logger.info("did you see deprecation announcement?")
-        self._logger.info("you will see deprecation announcement.")
+        self._test_logger.info("did you see deprecation announcement?")
+        self._test_logger.info("you will see deprecation announcement.")
         ia.stop_acquisition()
-        self._logger.info("did you see deprecation announcement?")
+        self._test_logger.info("did you see deprecation announcement?")
 
+    @unittest.skip("viky has no trigger configuration right now")
     def test_try_fetch_with_timeout(self):
         if not self.is_running_with_default_target():
             return
 
         # Create an image acquirer:
-        ia = self.harvester.create_image_acquirer(0)
+        ia = self.harvester.create(0)
 
         # We do not start image acquisition:
-        #ia.start()
+        # ia.start()
 
         timeout = 3  # sec
 
         # Setup the device for software trigger mode:
-        ia.remote_device.node_map.TriggerMode.value = 'On'
-        ia.remote_device.node_map.TriggerSource.value = 'Software'
+        ia.remote_device.node_map.TriggerMode.value = "On"
+        ia.remote_device.node_map.TriggerSource.value = "Software"
 
         # We're ready to start image acquisition:
         ia.start()
 
         # Try to fetch a buffer but None will be returned
         # because we've not triggered the device so far:
-        self._logger.info("you will see timeout but that's intentional.")
+        self._test_logger.info("you will see timeout but that's intentional.")
         buffer = ia.try_fetch(timeout=timeout)
         self.assertIsNone(buffer)
 
         ia.remote_device.node_map.TriggerSoftware.execute()
         buffer = ia.try_fetch(timeout=timeout)
         self.assertIsNotNone(buffer)
-        self._logger.info('{0}'.format(buffer))
+        self._test_logger.info("{0}".format(buffer))
         buffer.queue()
 
         # Now we stop image acquisition:
@@ -382,7 +371,7 @@ class TestHarvesterCore(TestHarvester):
 
     def test_stop_start_and_stop(self):
         # Create an image acquirer:
-        ia = self.harvester.create_image_acquirer(0)
+        ia = self.harvester.create(0)
 
         # It's not necessary but we stop image acquisition first;
         #
@@ -393,7 +382,7 @@ class TestHarvesterCore(TestHarvester):
 
         # Fetch a buffer to make sure it's working:
         with ia.fetch() as buffer:
-            self._logger.info('{0}'.format(buffer))
+            self._test_logger.info("{0}".format(buffer))
 
         # Then stop image acquisition:
         ia.stop()
@@ -401,28 +390,28 @@ class TestHarvesterCore(TestHarvester):
         # And destroy the ImageAcquirer:
         ia.destroy()
 
+    @unittest.skip("viky has no trigger configuration right now")
     def test_num_holding_filled_buffers(self):
         if not self.is_running_with_default_target():
             return
 
         # Connect to the first camera in the list:
-        self.ia = self.harvester.create_image_acquirer(0)
+        self.ia = self.harvester.create(0)
 
         # Setup the camera before starting image acquisition:
-        self.setup_camera()
+        self.ia.remote_device.node_map.AcquisitionMode.value = "Continuous"
+        self.ia.remote_device.node_map.TriggerMode.value = "On"
+        self.ia.remote_device.node_map.TriggerSource.value = "Software"
 
         #
-        tests = [
-            self._test_issue_120_1
-        ]
+        tests = [self._test_issue_120_1]
         for test in tests:
             for num_images in [1, 2]:
                 #
                 self.ia.num_filled_buffers_to_hold = num_images
 
                 # Start image acquisition:
-                self._logger.info(
-                    "you will see timeout but that's intentional.")
+                self._test_logger.info("you will see timeout but that's intentional.")
                 self.ia.start(run_as_thread=True)
 
                 # Run a test:
@@ -435,53 +424,39 @@ class TestHarvesterCore(TestHarvester):
         # Make sure num_holding_filled_buffers is incremented every trigger:
         for i in range(num_images):
             #
-            self.assertEqual(
-                self.ia.num_holding_filled_buffers, i
-            )
+            self.assertEqual(self.ia.num_holding_filled_buffers, i)
 
             # Trigger it:
             self.generate_software_trigger(sleep_s=self.sleep_duration)
-            self._logger.info("triggered.")
+            self._test_logger.info("triggered.")
 
             # It must be incremented:
-            self.assertEqual(
-                self.ia.num_holding_filled_buffers, i + 1
-            )
+            self.assertEqual(self.ia.num_holding_filled_buffers, i + 1)
 
         # Trigger it again, we know it's redundant compared to the
         # maximum capacity:
         self.generate_software_trigger(sleep_s=self.sleep_duration)
-        self._logger.info("triggered.")
+        self._test_logger.info("triggered.")
 
         # Make sure num_holding_filled_buffers does not exceed
         # num_filled_buffers_to_hold:
         self.assertEqual(
-            self.ia.num_filled_buffers_to_hold,
-            self.ia.num_holding_filled_buffers
+            self.ia.num_filled_buffers_to_hold, self.ia.num_holding_filled_buffers
         )
 
         # Make sure num_holding_filled_buffers is decreased every time
         # a filled buffer is fetched:
         for i in range(num_images):
             #
-            self.assertEqual(
-                self.ia.num_holding_filled_buffers,
-                num_images - i
-            )
+            self.assertEqual(self.ia.num_holding_filled_buffers, num_images - i)
             #
             with self.ia.fetch():
                 #
                 self.assertEqual(
-                    self.ia.num_holding_filled_buffers,
-                    num_images - (i + 1)
+                    self.ia.num_holding_filled_buffers, num_images - (i + 1)
                 )
 
-    def setup_camera(self):
-        self.ia.remote_device.node_map.AcquisitionMode.value = 'Continuous'
-        self.ia.remote_device.node_map.TriggerMode.value = 'On'
-        self.ia.remote_device.node_map.TriggerSource.value = 'Software'
-
-    def generate_software_trigger(self, sleep_s=0.):
+    def generate_software_trigger(self, sleep_s=0.0):
         # Trigger the camera because you have already setup your
         # equipment for the upcoming image acquisition.
         self.ia.remote_device.node_map.TriggerSoftware.execute()
@@ -494,7 +469,7 @@ class TestHarvesterCore(TestHarvester):
             return
 
         # Connect to the first camera in the list.
-        self.ia = self.harvester.create_image_acquirer(0)
+        self.ia = self.harvester.create(0)
 
         #
         min = self.ia._data_streams[0].buffer_announce_min
@@ -513,10 +488,10 @@ class TestHarvesterCore(TestHarvester):
             return
 
         # Connect to the first camera in the list.
-        self.ia = self.harvester.create_image_acquirer(0)
+        self.ia = self.harvester.create(0)
 
         # Check the number of buffers:
-        self.assertEqual(5, self.ia.num_buffers)
+        self.assertEqual(3, self.ia.num_buffers)
 
     def _callback_on_new_buffer_arrival(self):
         # Fetch a buffer and keep it:
@@ -526,25 +501,23 @@ class TestHarvesterCore(TestHarvester):
         if not self.is_running_with_default_target():
             return
 
-        file_names = ['altered_plain.xml', 'altered_zip.zip']
+        file_names = ["altered_plain.xml", "altered_zip.zip"]
         for i, file_name in enumerate(file_names):
-            self._test_issue_67(
-                'issue_67_' + file_name
-            )
+            self._test_issue_67("issue_67_" + file_name)
 
     def _test_issue_67(self, expected_file_name):
         #
         xml_dir = self._get_xml_dir()
 
         #
-        url = 'file://'
-        file_path = xml_dir + '/' + expected_file_name
+        url = "file://"
+        file_path = xml_dir + "/" + expected_file_name
 
         # '\' -> '/'
-        file_path.replace('\\', '/')
+        file_path.replace("\\", "/")
 
         # ':' -> '|'
-        file_path.replace(':', '|')
+        file_path.replace(":", "|")
 
         # ' ' -> '%20'
         file_path = quote(file_path)
@@ -556,38 +529,32 @@ class TestHarvesterCore(TestHarvester):
         _, retrieved_file_path = Module._retrieve_file_path(url=url)
 
         # Compare file names:
-        self.assertEqual(
-            os.path.basename(retrieved_file_path),
-            expected_file_name
-        )
+        self.assertEqual(os.path.basename(retrieved_file_path), expected_file_name)
 
     def test_issue_121(self):
         if is_running_on_windows():
             return
 
         #
-        expected_file_path = '/Foo.xml'
+        expected_file_path = "/Foo.xml"
 
         #
-        url = 'file://' + expected_file_path
+        url = "file://" + expected_file_path
         _, retrieved_file_path = Module._retrieve_file_path(url=url)
 
         # Compare file names:
-        self.assertEqual(
-            retrieved_file_path,
-            expected_file_path
-        )
+        self.assertEqual(retrieved_file_path, expected_file_path)
 
     def test_issue_70(self):
         if not self.is_running_with_default_target():
             return
 
         # Connect to the first camera in the list:
-        self.ia = self.harvester.create_image_acquirer(0)
+        self.ia = self.harvester.create(0)
 
         # Then check the minimum buffer number that a client can ask
         # the ImageAcquire object to prepare:
-        self.assertEqual(5, self.ia.min_num_buffers)
+        self.assertEqual(1, self.ia.min_num_buffers)
 
     def test_issue_78(self):
         if not self.is_running_with_default_target():
@@ -595,20 +562,18 @@ class TestHarvesterCore(TestHarvester):
 
         # The device_info_list must not turn empty even if a given key
         # does not match to any candidate:
-        self._logger.info(self.harvester.device_info_list)
+        self._test_logger.info(self.harvester.device_info_list)
         device_info_list = self.harvester.device_info_list.copy()
         try:
-            self.harvester.create_image_acquirer(
-                serial_number='abcdefghijklmnopqrstuwxyz!#$%&=~|<>'
+            self.harvester.create(
+                {"serial_number": "abcdefghijklmnopqrstuwxyz!#$%&=~|<>"}
             )
         except ValueError:
-            self.assertEqual(
-                device_info_list, self.harvester.device_info_list
-            )
+            self.assertEqual(device_info_list, self.harvester.device_info_list)
 
     def test_issue_130_1(self):
         #
-        self.ia = self.harvester.create_image_acquirer(0)
+        self.ia = self.harvester.create(0)
         #
         self.ia.start(run_as_thread=False)
         #
@@ -617,15 +582,18 @@ class TestHarvesterCore(TestHarvester):
         #
         self.ia.stop()
 
+    @unittest.skip("viky has no trigger configuration right now")
     def test_issue_141(self):
         if not self.is_running_with_default_target():
             return
 
         # Connect to the first camera in the list.
-        self.ia = self.harvester.create_image_acquirer(0)
+        self.ia = self.harvester.create(0)
 
         # We turn software trigger on:
-        self.setup_camera()
+        self.ia.remote_device.node_map.AcquisitionMode.value = "Continuous"
+        self.ia.remote_device.node_map.TriggerMode.value = "On"
+        self.ia.remote_device.node_map.TriggerSource.value = "Software"
 
         # Create a callback:
         self.on_new_buffer_available = _OnNewBufferAvailable(
@@ -640,15 +608,13 @@ class TestHarvesterCore(TestHarvester):
         self.assertTrue(self.num_images > 0)
 
         #
-        tests = [
-            self._test_141_with_callback, self._test_141_without_callback
-        ]
+        tests = [self._test_141_with_callback, self._test_141_without_callback]
         for test in tests:
             # We have not yet fetched any buffer:
             self.assertEqual(0, len(self.on_new_buffer_available.buffers))
 
             # Run a sub-test:
-            self._logger.info("you will see timeout but that's intentional.")
+            self._test_logger.info("you will see timeout but that's intentional.")
             test()
 
             # Then stop image acquisition:
@@ -658,12 +624,10 @@ class TestHarvesterCore(TestHarvester):
         # Add it to the image acquire so that it can get notified when the
         # event happened:
         self.ia.add_callback(
-            ImageAcquirer.Events.NEW_BUFFER_AVAILABLE,
-            self.on_new_buffer_available
+            ImageAcquirer.Events.NEW_BUFFER_AVAILABLE, self.on_new_buffer_available
         )
         self.ia.add_callback(
-            ImageAcquirer.Events.RETURN_ALL_BORROWED_BUFFERS,
-            self.on_return_buffer_now
+            ImageAcquirer.Events.RETURN_ALL_BORROWED_BUFFERS, self.on_return_buffer_now
         )
 
         #
@@ -671,46 +635,44 @@ class TestHarvesterCore(TestHarvester):
 
         # If the callback method was called, then we should have the same
         # number of buffers with num_images:
-        self.assertEqual(
-            self.ia.num_buffers, len(self.on_new_buffer_available.buffers)
-        )
+        self.assertEqual(self.ia.num_buffers, len(self.on_new_buffer_available.buffers))
 
     def _test_141_without_callback(self):
         # Remove all callbacks to not any callback work:
         self.ia.remove_callbacks()
-        
+
         #
         self._test_141_body()
-        
+
         # The list must be empty because the emit method has not been called:
-        self.assertEqual(
-            0, len(self.on_new_buffer_available.buffers)
-        )
+        self.assertEqual(0, len(self.on_new_buffer_available.buffers))
 
     def _test_141_body(self):
         # Start image acquisition:
-        self._logger.info("going to start acquisition in the background.")
+        self._test_logger.info("going to start acquisition in the background.")
         self.ia.start(run_as_thread=True)
 
         # Trigger the target device:
         for _ in range(self.num_images):
             self.generate_software_trigger(sleep_s=self.sleep_duration)
-            self._logger.info("triggered.")
+            self._test_logger.info("triggered.")
 
     def test_issue_150(self):
         if not self.is_running_with_default_target():
             return
 
         # Create an image acquirer:
-        self.ia = self.harvester.create_image_acquirer(0)
+        self.ia = self.harvester.create(0)
 
-        # TLSimu does not support SingleFrame in reality:
+        # viky does not support SingleFrame
         # modes = ["SingleFrame", "Continuous"]
 
         # Test only "Continuous":
         modes = ["Continuous"]
         for mode in modes:
-            self.ia.remote_device.node_map.AcquisitionMode.value = mode
+            # AcquisitionMode is read-only in viky
+            # self.ia.remote_device.node_map.AcquisitionMode.value = mode
+            self.assertEqual(mode, self.ia.remote_device.node_map.AcquisitionMode.value)
 
             for i in range(32):
                 # Then start it:
@@ -718,7 +680,7 @@ class TestHarvesterCore(TestHarvester):
 
                 # Fetch a buffer to make sure it's working:
                 with self.ia.fetch() as buffer:
-                    self._logger.info('{0}'.format(buffer))
+                    self._test_logger.info("{0}".format(buffer))
 
             # Then stop image acquisition:
             self.ia.stop()
@@ -744,20 +706,17 @@ class TestHarvesterCore(TestHarvester):
     def _test_issue_146_bayer_rg_12p(self):
         inputs = [
             bytes([0b11111111, 0b00001111, 0b00000000]),
-            bytes([0b00000000, 0b11110000, 0b11111111])
+            bytes([0b00000000, 0b11110000, 0b11111111]),
         ]
-        outputs = [
-            [0xfff, 0],
-            [0, 0xfff]
-        ]
-        self._test_conversion('BayerRG12p', inputs, outputs)
+        outputs = [[0xFFF, 0], [0, 0xFFF]]
+        self._test_conversion("BayerRG12p", inputs, outputs)
 
     def _test_issue_146_group_packed_10(self):
-        _1st = 0xff
-        _3rd = 0xff
+        _1st = 0xFF
+        _3rd = 0xFF
         ba = bytes([_1st, 0x33, _3rd])
         packed = np.frombuffer(ba, dtype=np.uint8)
-        pf = Dictionary.get_proxy('BayerRG10Packed')
+        pf = Dictionary.get_proxy("BayerRG10Packed")
         unpacked = pf.expand(packed)
         self.assertEqual(_1st * 4 + 3, unpacked[0])
         self.assertEqual(_3rd * 4 + 3, unpacked[1])
@@ -774,55 +733,45 @@ class TestHarvesterCore(TestHarvester):
     def _test_issue_146_group_packed_12(self):
         inputs = [
             bytes([0b11111111, 0b00001111, 0b00000000]),
-            bytes([0b00000000, 0b11110000, 0b11111111])
+            bytes([0b00000000, 0b11110000, 0b11111111]),
         ]
-        outputs = [
-            [0xfff, 0],
-            [0, 0xfff]
-        ]
-        self._test_conversion('BayerRG12Packed', inputs, outputs)
+        outputs = [[0xFFF, 0], [0, 0xFFF]]
+        self._test_conversion("BayerRG12Packed", inputs, outputs)
 
     def _test_issue_146_packed_10(self):
         inputs = [
             bytes([0b11111111, 0b00000011, 0b00000000, 0b00000000, 0b00000000]),
             bytes([0b00000000, 0b11111100, 0b00001111, 0b00000000, 0b00000000]),
             bytes([0b00000000, 0b00000000, 0b11110000, 0b00111111, 0b00000000]),
-            bytes([0b00000000, 0b00000000, 0b00000000, 0b11000000, 0b11111111])
+            bytes([0b00000000, 0b00000000, 0b00000000, 0b11000000, 0b11111111]),
         ]
         outputs = [
-            [0x3ff, 0, 0, 0],
-            [0, 0x3ff, 0, 0],
-            [0, 0, 0x3ff, 0],
-            [0, 0, 0, 0x3ff]
+            [0x3FF, 0, 0, 0],
+            [0, 0x3FF, 0, 0],
+            [0, 0, 0x3FF, 0],
+            [0, 0, 0, 0x3FF],
         ]
-        self._test_conversion('Mono10p', inputs, outputs)
+        self._test_conversion("Mono10p", inputs, outputs)
 
     def _test_issue_146_packed_12(self):
         inputs = [
             bytes([0b11111111, 0b00001111, 0b00000000]),
-            bytes([0b00000000, 0b11110000, 0b11111111])
+            bytes([0b00000000, 0b11110000, 0b11111111]),
         ]
-        outputs = [
-            [0xfff, 0],
-            [0, 0xfff]
-        ]
-        self._test_conversion('Mono12p', inputs, outputs)
+        outputs = [[0xFFF, 0], [0, 0xFFF]]
+        self._test_conversion("Mono12p", inputs, outputs)
 
     def _test_issue_222(self):
         inputs = [
             bytes([0b11111111, 0b00000011, 0b00000000, 0b00000000]),
             bytes([0b00000000, 0b11111100, 0b00001111, 0b00000000]),
-            bytes([0b00000000, 0b00000000, 0b11110000, 0b00111111])
+            bytes([0b00000000, 0b00000000, 0b11110000, 0b00111111]),
         ]
-        outputs = [
-            [0x3ff, 0, 0],
-            [0, 0x3ff, 0],
-            [0, 0, 0x3ff]
-        ]
-        self._test_conversion('Mono10c3p32', inputs, outputs)
+        outputs = [[0x3FF, 0, 0], [0, 0x3FF, 0], [0, 0, 0x3FF]]
+        self._test_conversion("Mono10c3p32", inputs, outputs)
 
     def _test_issue_146_mono_unpacked_multibytes(self):
-        names = ['Mono10', 'Mono12']
+        names = ["Mono10", "Mono12"]
         maximums = [0x4, 0x10]
         for index, name in enumerate(names):
             pf = Dictionary.get_proxy(name)
@@ -840,22 +789,22 @@ class TestHarvesterCore(TestHarvester):
         if not self.is_running_with_default_target():
             return
 
-        ia = self.harvester.create_image_acquirer(0)
+        ia = self.harvester.create(0)
 
         ports = [
             ia.system.port,
             ia.interface.port,
             ia.device.port,
-            ia.remote_device.port
+            ia.remote_device.port,
         ]
         file_names = [
-            'SITL.xml',
-            'SITLI.xml',
-            'SIDEVTL.xml',
-            'SIDEV.xml'
+            "MachineVisionGames_Viky_System_3_2_0_221010145932.xml",
+            "MachineVisionGames_Viky_Interface_3_2_0_221010145932.xml",
+            "MachineVisionGames_Viky_Localdevice_3_2_0_221010145932.xml",
+            "MachineVisionGames_Viky_Remotedevice_3_2_0_221010145932.xml",
         ]
 
-        for (port, file_name) in zip(ports, file_names):
+        for port, file_name in zip(ports, file_names):
             self.assertEqual(port.url_info_list[0].file_name, file_name)
 
     def test_port_access(self):
@@ -863,25 +812,23 @@ class TestHarvesterCore(TestHarvester):
             return
 
         # instantiate an acquirer:
-        ia = self.harvester.create_image_acquirer(0)
+        ia = self.harvester.create(0)
 
         #
-        address = 0x104
+        address = 0x50000000
         access_size = 4
 
         # read a piece of data through the remote device port:
-        data_size, data_returned = ia.remote_device.port.read(
-            address, access_size)
+        data_size, data_returned = ia.remote_device.port.read(address, access_size)
         self.assertEqual(data_size, access_size)
-        self.assertEqual(data_returned, b'\x00\x02\x00\x00')
+        self.assertEqual(data_returned, b"\x90\x01\x00\x00")
 
         # overwrite the data through the remote device port:
-        data_to_write = b'\x00\x01\x00\x00'
+        data_to_write = b"\xc8\x00\x00\x00"
         ia.remote_device.port.write(address, data_to_write)
 
         # then read it back to make sure that it worked:
-        data_size, data_returned = ia.remote_device.port.read(
-            address, access_size)
+        data_size, data_returned = ia.remote_device.port.read(address, access_size)
         self.assertEqual(data_size, access_size)
         self.assertEqual(data_returned, data_to_write)
 
@@ -889,9 +836,7 @@ class TestHarvesterCore(TestHarvester):
         if not self.is_running_with_default_target():
             return
 
-        ia = self.harvester.create_image_acquirer(
-            0, file_dict={r'\.$': b'\23\34\45'}
-        )
+        ia = self.harvester.create_image_acquirer(0, file_dict={r"\.$": b"\23\34\45"})
         self.assertIsNotNone(ia)
 
     def test_issue_207_that_does_match(self):
@@ -900,25 +845,26 @@ class TestHarvesterCore(TestHarvester):
 
         with self.assertRaises(GenApi_GenericException):
             _ = self.harvester.create_image_acquirer(
-                0, file_dict={r'\.xml$': bytes('<', encoding='utf-8')})
+                0, file_dict={r"\.xml$": bytes("<", encoding="utf-8")}
+            )
 
     def test_fix_for_bfd47ca_1(self):
         # Create an image acquirer:
-        self.ia = self.harvester.create_image_acquirer(0)
+        self.ia = self.harvester.create(0)
 
         self.ia.timeout_period_on_update_event_data_call = 1
         internal = self.ia.timeout_period_on_update_event_data_call
 
-        self._logger.info("larger")
+        self._test_logger.info("larger")
         value = internal + 1
         value /= 1000
         self.ia.timeout_period_on_client_fetch_call = value
 
-        self._logger.info("equal")
+        self._test_logger.info("equal")
         value = 0.001
         self.ia.timeout_period_on_client_fetch_call = value
 
-        self._logger.info("smaller")
+        self._test_logger.info("smaller")
         value = internal * 1000
         value -= 1
         value /= 1000
@@ -927,20 +873,30 @@ class TestHarvesterCore(TestHarvester):
 
     def test_fix_for_bfd47ca_2(self):
         # Create an image acquirer:
-        self.ia = self.harvester.create_image_acquirer(0)
+        self.ia = self.harvester.create(0)
 
-        self.ia.timeout_period_on_client_fetch_call = 2.
-        self._logger.info("larger")
+        self.ia.timeout_period_on_client_fetch_call = 2.0
+        self._test_logger.info("larger")
         self.ia.timeout_period_on_update_event_data_call = 2001
-        self._logger.info("equal")
+        self._test_logger.info("equal")
         self.ia.timeout_period_on_update_event_data_call = 2000
-        self._logger.info("smaller")
+        self._test_logger.info("smaller")
         self.ia.timeout_period_on_update_event_data_call = 1000
 
     def test_manual_chunk_update(self):
         # Create an image acquirer:
-        self.ia = self.harvester.create_image_acquirer(
-            0, auto_chunk_data_update=False)
+        config = ParameterSet(
+            {
+                ParameterKey.ENABLE_AUTO_CHUNK_DATA_UPDATE: False,
+            }
+        )
+        self.ia = self.harvester.create(0, config=config)
+
+        # Enable Chunk Data:
+        self.ia.remote_device.node_map.ChunkModeActive.value = True
+        self.ia.remote_device.node_map.ChunkSelector.value = "NrBounces"
+        self.ia.remote_device.node_map.ChunkEnable.value = True
+        self.ia.remote_device.node_map.AcquisitionFrameRate.value = 199.0
 
         # Then start it:
         self.ia.start()
@@ -948,9 +904,13 @@ class TestHarvesterCore(TestHarvester):
         for i in range(32):
             # Fetch a buffer to make sure it's working:
             with self.ia.fetch() as buffer:
-                self._logger.info('going to update chunk data'.format(buffer))
+                # ToDo: find a better test option to test Chunk Data with viky
+                # self._test_logger.info("going to update chunk data".format(buffer))
                 buffer.update_chunk_data()
-                self._logger.info('did it update?')
+                # self._test_logger.info("did it update?")
+                self._test_logger.info(
+                    f"{self.ia.remote_device.node_map.ChunkNrBounces.value}"
+                )
 
         # Then stop image acquisition:
         self.ia.stop()
@@ -970,7 +930,7 @@ class _TestIssue81(threading.Thread):
         h.add_file(self._cti_file_path)
         h.update()
         try:
-            ia = h.create_image_acquirer(0)
+            ia = h.create(0)
         except:
             # Transfer the exception anyway:
             self._message_queue.put(sys.exc_info())
@@ -987,9 +947,7 @@ class TestIssue81(unittest.TestCase):
 
     def test_issue_81(self):
         message_queue = Queue()
-        t = _TestIssue81(
-            message_queue=message_queue, cti_file_path=self._cti_file_path
-        )
+        t = _TestIssue81(message_queue=message_queue, cti_file_path=self._cti_file_path)
         t.start()
         t.join()
         try:
@@ -1010,7 +968,7 @@ class TestIssue85(unittest.TestCase):
 
     def setUp(self) -> None:
         #
-        self.env_var = 'HARVESTERS_XML_FILE_DIR'
+        self.env_var = "HARVESTERS_XML_FILE_DIR"
         self.original = None if os.environ else os.environ[self.env_var]
 
     def tearDown(self) -> None:
@@ -1019,9 +977,7 @@ class TestIssue85(unittest.TestCase):
 
     def test_issue_85(self):
         #
-        temp_dir = os.path.join(
-            gettempdir(), 'harvester', self.test_issue_85.__name__
-        )
+        temp_dir = os.path.join(gettempdir(), "harvester", self.test_issue_85.__name__)
 
         #
         if os.path.isdir(temp_dir):
@@ -1035,16 +991,18 @@ class TestIssue85(unittest.TestCase):
         self.assertFalse(os.listdir(temp_dir))
 
         if self.base_version == BaseVersion.VERSION_LATEST:
-            config = ParameterSet({
-                ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES: False,
-            })
+            config = ParameterSet(
+                {
+                    ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES: False,
+                }
+            )
             h = Harvester(config=config)
         else:
             h = Harvester(do_clean_up=False)
 
         h.add_file(self._cti_file_path)
         h.update()
-        with h.create_image_acquirer(0):
+        with h.create(0):
             # Check if XML files have been stored in the expected
             # directory:
             self.assertTrue(os.listdir(temp_dir))
@@ -1070,7 +1028,7 @@ class _OnReturnBufferNow(Callback):
     def __init__(self, holder: _OnNewBufferAvailable):
         super().__init__()
         self._holder = holder
-        
+
     def emit(self, context: Optional[object] = None) -> None:
         # Return/Queue the buffers before stopping image acquisition:
         while len(self._holder.buffers) > 0:
@@ -1082,7 +1040,7 @@ class TestIssue181(unittest.TestCase):
     def test_issue_181_with_nonexistent_file(self):
         h = Harvester()
         with self.assertRaises(FileNotFoundError):
-            h.add_file('just a string', check_existence=True)
+            h.add_file("just a string", check_existence=True)
 
     def test_issue_181_with_invalid_file(self):
         h = Harvester()
@@ -1107,7 +1065,7 @@ class TestIssue188(unittest.TestCase):
                     expected_bytes[i][j],
                     Component2DImage._get_nr_bytes(
                         pf_proxy=proxy(), width=i + 1, height=self._height
-                    )
+                    ),
                 )
 
     def test_issue_188_packed(self):
@@ -1123,7 +1081,7 @@ class TestIssue188(unittest.TestCase):
                     expected_bytes[i][j],
                     Component2DImage._get_nr_bytes(
                         pf_proxy=proxy(), width=i + 1, height=self._height
-                    )
+                    ),
                 )
 
     def test_issue_188_p(self):
@@ -1139,7 +1097,7 @@ class TestIssue188(unittest.TestCase):
                     expected_bytes[i][j],
                     Component2DImage._get_nr_bytes(
                         pf_proxy=proxy(), width=i + 1, height=self._height
-                    )
+                    ),
                 )
 
     def test_issue_188_neels_case(self):
@@ -1151,7 +1109,7 @@ class TestIssue188(unittest.TestCase):
                 10108896,  # = 2456 * 2058 * 2
                 Component2DImage._get_nr_bytes(
                     pf_proxy=proxy(), width=width, height=height
-                )
+                ),
             )
 
     def test_issue_238(self):
@@ -1167,27 +1125,28 @@ class TestIssue188(unittest.TestCase):
                     expected_bytes[i][j],
                     Component2DImage._get_nr_bytes(
                         pf_proxy=proxy(), width=i + 1, height=self._height
-                    )
+                    ),
                 )
 
 
 class TestUtility(unittest.TestCase):
     def test_issue_207_and_226(self):
-        body = b'\xc2\xb0'  # °
-        padding = b'\x00\x00'
+        body = b"\xc2\xb0"  # °
+        padding = b"\x00\x00"
         data = body + padding
         data = _drop_padding_data(data)
         self.assertEqual(data, body)
-        self.assertEqual('°', str(data, encoding='utf-8'))
+        self.assertEqual("°", str(data, encoding="utf-8"))
 
     def test_issue_207(self):
-        data = b'\xc2\xb0'  # '°'
-        padding = b'\x2D\x65\x6E'  # '-en'
-        target_file_name = 'GenTL_Stream.xml'
-        file_name_pattern = r'GenTL_Stream\.xml'
+        data = b"\xc2\xb0"  # '°'
+        padding = b"\x2d\x65\x6e"  # '-en'
+        target_file_name = "GenTL_Stream.xml"
+        file_name_pattern = r"GenTL_Stream\.xml"
         result = _drop_padding_data(
-            data + padding, file_name=target_file_name,
-            file_dict={file_name_pattern: bytes('-en', encoding='utf-8')}
+            data + padding,
+            file_name=target_file_name,
+            file_dict={file_name_pattern: bytes("-en", encoding="utf-8")},
         )
         self.assertEqual(data, result)
 
@@ -1195,8 +1154,8 @@ class TestUtility(unittest.TestCase):
         if not is_running_on_windows():
             return
 
-        prefix = 'file:///'
-        path = 'C:/ProgramData/GenICam/xml/cache/Optronis_Cyclone_V1_7_8.xml'
+        prefix = "file:///"
+        path = "C:/ProgramData/GenICam/xml/cache/Optronis_Cyclone_V1_7_8.xml"
         url = prefix + path
         result = Module._retrieve_file_path(url=url)
         self.assertEqual(path, result[1])
@@ -1218,5 +1177,5 @@ class TestIssue181Version1(TestIssue181):
     base_version = BaseVersion.VERSION_1
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

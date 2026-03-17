@@ -20,7 +20,7 @@
 
 # Standard library imports
 from enum import IntEnum
-from logging import INFO
+from logging import INFO, WARNING
 import os
 import sys
 from typing import Optional
@@ -35,12 +35,12 @@ from harvesters.test.helper import get_package_dir
 
 
 class BaseVersion:
-    VERSION_LATEST = -1,
-    VERSION_1 = 1,
+    VERSION_LATEST = (-1,)
+    VERSION_1 = (1,)
 
 
 def get_cti_file_path():
-    name = 'HARVESTERS_TEST_TARGET'
+    name = "HARVESTERS_TEST_TARGET"
     if name in os.environ:
         # Run tests with specified GenTL Producer:
         cti_file_path = os.getenv(name)
@@ -51,16 +51,16 @@ def get_cti_file_path():
             # Failed to import genicam module; suggest the expected
             # solution to the client:
             raise ImportError(
-                'You must specify a target GenTL Producer either using '
-                'HARVESTERS_TEST_TARGET or installing genicam module.'
+                "You must specify a target GenTL Producer either using "
+                "HARVESTERS_TEST_TARGET or installing genicam module."
             )
         else:
-            # Run tests with the default test target, TLSimu:
-            dir_name = get_package_dir('genicam')
-            cti_file_path = os.path.join(dir_name, 'TLSimu.cti')
-    
+            # Run tests with the default test target, viky:
+            dir_name = get_package_dir("genicam")
+            cti_file_path = os.path.join(dir_name, "viky.cti")
+
     return cti_file_path
-    
+
 
 class TestHarvesterBase(unittest.TestCase):
     _cti_file_path = get_cti_file_path()
@@ -73,7 +73,8 @@ class TestHarvesterBase(unittest.TestCase):
         self._harvester = None
         self._ia = None
         self._thread = None
-        self._logger = get_logger(name='harvesters', level=INFO)
+        self._logger = get_logger(name="harvesters", level=WARNING)
+        self._test_logger = get_logger(name="test_harvesters", level=INFO)
         self._buffers = []
 
     def setUp(self):
@@ -115,14 +116,14 @@ class TestHarvesterBase(unittest.TestCase):
         self._thread = value
 
     def is_running_with_default_target(self):
-        return self.is_running_with('TLSimu.cti')
+        return self.is_running_with("viky.cti")
 
     def is_running_with(self, name: str) -> bool:
         return True if name in self._cti_file_path else False
 
     @staticmethod
     def _get_xml_dir():
-        return os.path.join(get_package_dir('harvesters'), 'test', 'xml')
+        return os.path.join(get_package_dir("harvesters"), "test", "xml")
 
 
 class TestHarvester(TestHarvesterBase):
@@ -132,10 +133,12 @@ class TestHarvester(TestHarvesterBase):
     def setUp(self):
         super().setUp()
         if self.base_version == BaseVersion.VERSION_LATEST:
-            config = ParameterSet({
-                ParameterKey.LOGGER: self._logger,
-                ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES: True,
-            })
+            config = ParameterSet(
+                {
+                    ParameterKey.LOGGER: self._logger,
+                    ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES: True,
+                }
+            )
             self._harvester = Harvester(config=config)
         elif self.base_version == BaseVersion.VERSION_1:
             self._harvester = Harvester(logger=self._logger, do_clean_up=True)
@@ -153,14 +156,15 @@ class TestHarvesterNoCleanUp(TestHarvesterBase):
     def setUp(self):
         super().setUp()
         if self.base_version == BaseVersion.VERSION_LATEST:
-            config = ParameterSet({
-                ParameterKey.LOGGER: self._logger,
-                ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES: False,
-            })
+            config = ParameterSet(
+                {
+                    ParameterKey.LOGGER: self._logger,
+                    ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES: False,
+                }
+            )
             self._harvester = Harvester(config=config)
         elif self.base_version == BaseVersion.VERSION_1:
-            self._harvester = Harvester(logger=self._logger,
-                                        do_clean_up=False)
+            self._harvester = Harvester(logger=self._logger, do_clean_up=False)
         else:
             raise ValueError("invalid base version")
 
@@ -168,5 +172,5 @@ class TestHarvesterNoCleanUp(TestHarvesterBase):
         self._harvester.update()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

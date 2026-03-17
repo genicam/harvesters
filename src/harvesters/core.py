@@ -1928,7 +1928,6 @@ class ImageAcquirer:
         Parameters
         ----------
         device_proxy : Device_
-        sleep_duration : float
         file_path : str
             Set a path to camera description file which you want to load on
             the target node map instead of the one which the device declares.
@@ -3596,7 +3595,6 @@ class Harvester:
         user_defined_name: Optional[str] = None,
         serial_number: Optional[str] = None,
         version: Optional[str] = None,
-        sleep_duration: Optional[float] = _sleep_default,
         file_path: Optional[str] = None,
         privilege: str = "exclusive",
         file_dict: Dict[str, bytes] = None,
@@ -3619,7 +3617,6 @@ class Harvester:
         :param user_defined_name: Set a user defined name string of the target device.
         :param serial_number: Set a serial number string of the target device.
         :param version: Set a version number string of the target device.
-        :param sleep_duration: Set a sleep duration in second that is inserted after the image acquisition worker is executed.
         :param file_path: Set a path to camera description file which you want to load on the target node map instead of the one which the device declares.
         :param privilege: Set an access privilege. :const:`exclusive`, :const:`control`, and :const:`read_only` are supported. The default is :const:`exclusive`.
 

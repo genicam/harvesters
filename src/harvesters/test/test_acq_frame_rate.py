@@ -91,13 +91,13 @@ class StatisticsMonitorThread(Thread):
 class TestTutorials(TestHarvester):
 
     def test_performance_on_single_threaded_image_acquisition(self):
-        self.ia = self.harvester.create_image_acquirer(0)
+        self.ia = self.harvester.create(0)
         self.ia.start()
         timeout = 3
         thread = ImageAcquisitionThread(acquirer=self._ia, timeout=timeout)
         thread.start()
         thread.join()
-        self._logger.info(
+        self._test_logger.info(
             "acquired: {} in {} ({:.2f} fps)".format(
                 thread.nr_images, timeout, thread.nr_images / timeout
             )
@@ -106,10 +106,10 @@ class TestTutorials(TestHarvester):
 
     def _test_performance_on_image_acquisition(self, sleep_duration=0.0):
         #
-        self._logger.info("sleep duration: {0} s".format(sleep_duration))
+        self._test_logger.info("sleep duration: {0} s".format(sleep_duration))
 
         # Connect to the first camera in the list.
-        self.ia = self.harvester.create_image_acquirer(0, sleep_duration=sleep_duration)
+        self.ia = self.harvester.create(0)
 
         # Then start image acquisition.
         self.ia.start(run_as_thread=True)
@@ -146,23 +146,16 @@ class TestTutorials(TestHarvester):
             )
 
             #
-            self._logger.info(
+            self._test_logger.info(
                 "{0:08x}: {1}".format(id_, message_config + message_statistics)
             )
-
-    def test_performance_on_multi_threaded_image_acquisition(self):
-        # Connect to the first camera in the list.
-        sleep_duration = 0.001
-        for i in range(4):
-            self._test_performance_on_image_acquisition(sleep_duration=sleep_duration)
-            sleep_duration *= 0.1
 
     def test_performance_on_image_acquisition_with_zero_sleep_duration(self):
         self._test_performance_on_image_acquisition(sleep_duration=0.0)
 
     def test_multiple_access(self):
         # Connect to the first camera in the list.
-        self.ia = self.harvester.create_image_acquirer(0)
+        self.ia = self.harvester.create(0)
 
         #
         self.ia.start(run_as_thread=True)

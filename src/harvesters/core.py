@@ -2887,12 +2887,14 @@ class Harvester:
 
         super().__init__()
 
-        self._cti_files = []
-        self._producers = []
-        self._systems = []
-        self._ifaces = []
-        self._device_info_list = []
-        self._ias = []
+        self._cti_files: list[str] = []
+        self._producers: list[Producer] = []
+        self._systems: list[System] = []
+        self._i_info_id: list[str] = []
+        self._raw_ifaces: list = []
+        self._ifaces: list[Interface] = []
+        self._device_info_list: list[DeviceInfo] = []
+        self._ias: list[ImageAcquirer] = []
         self._has_revised_device_list = False
         self._clean_up = \
             ParameterSet.get(ParameterKey.ENABLE_CLEANING_UP_INTERMEDIATE_FILES, True, config) if config else do_clean_up
@@ -3443,10 +3445,7 @@ class Harvester:
         the Harvester.create_image_acquire method.
         """
         global _logger
-
-        self._release_acquires()
-        self._release_gentl_producers()
-
+        
         try:
             self._open_gentl_producers()
             self._open_systems()
@@ -3454,20 +3453,23 @@ class Harvester:
                 system_proxy.update_interface_info_list(self.timeout_for_update)
 
                 for i_info in system_proxy.interface_info_list:
-                    raw_iface = i_info.create_interface()
                     try:
-                        raw_iface.open()
+                        if i_info.id_ not in self._i_info_id:
+                            raw_iface = i_info.create_interface()
+                            self._i_info_id.append(i_info.id_)
+                            self._raw_ifaces.append(raw_iface)
+                            raw_iface.open()
+                            _logger.debug('opened: {0}'.format(_family_tree(raw_iface)))
+                            iface_ = Interface(module=raw_iface, parent=system_proxy)
+                            if iface_ not in self._ifaces:
+                                self._ifaces.append(iface_)
                     except GenTL_GenericException as e:
-                        _logger.error(e, exc_info=True)
-                    else:
-                        _logger.debug('opened: {0}'.format(_family_tree(raw_iface)))
-
-                        iface_ = Interface(module=raw_iface, parent=system_proxy)
-                        self._ifaces.append(iface_)
-
-                        raw_iface.update_device_info_list(self.timeout_for_update)
-                        for dev_info in raw_iface.device_info_list:
-                            self.device_info_list.append(
+                        _logger.error(e, exc_info=True)       
+                self._device_info_list = []
+                for raw_iface, iface_ in zip(self._raw_ifaces, self._ifaces):
+                    raw_iface.update_device_info_list(self.timeout_for_update)
+                    for dev_info in raw_iface.device_info_list:
+                        self.device_info_list.append(
                                 DeviceInfo(module=dev_info, parent=iface_))
 
         except GenTL_GenericException as e:

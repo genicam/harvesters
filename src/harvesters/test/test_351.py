@@ -48,13 +48,11 @@ class TestTicket345(unittest.TestCase):
             self.ia.destroy()
         self.harvester.reset()
 
-    def setup_camera(self):
-        self.ia.remote_device.node_map.TriggerMode.value = "On"
-        self.ia.remote_device.node_map.TriggerSource.value = "Software"
-
+    @unittest.skip("TriggerMode and TriggerSource is not supported in viky.")
     def test_try_fetch_without_buffer_delivery(self):
         # GIVEN: a remote device that is external trigger-driven
-        self.setup_camera()
+        self.ia.remote_device.node_map.TriggerMode.value = "On"
+        self.ia.remote_device.node_map.TriggerSource.value = "Software"
 
         # WHEN: starting image acquisition
         self.ia.start()
@@ -68,6 +66,7 @@ class TestTicket345(unittest.TestCase):
         # THEN: the buffer is None
         self.assertIsNone(buffer)
 
+    @unittest.skip("TriggerMode is not supported in viky.")
     def test_try_fetch_with_buffer_delivery(self):
         # GIVEN: a remote device that is self trigger-driven
         self.assertEqual(self.ia.remote_device.node_map.TriggerMode.value, "Off")

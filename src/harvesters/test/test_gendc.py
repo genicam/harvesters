@@ -20,7 +20,7 @@ class TestMultiPart(TestHarvester):
     # single GenDC component without chunk data.
     # => 1 Component containing 1 Part
     def test_gendc_1_parts(self):
-        self._test_logger.info("start 'test_gendc_1_parts'.")
+        self._test_logger.debug("start 'test_gendc_1_parts'.")
         self.ia = self.harvester.create(0)
 
         # disable chunk data
@@ -82,7 +82,7 @@ class TestMultiPart(TestHarvester):
     # single GenDC component with chunk data.
     # => 2 Components: 1 part, 1 part
     def test_gendc_2_parts(self):
-        self._test_logger.info("start 'test_gendc_2_parts'.")
+        self._test_logger.debug("start 'test_gendc_2_parts'.")
         self.ia = self.harvester.create(0)
 
         # enable chunk data
@@ -157,7 +157,7 @@ class TestMultiPart(TestHarvester):
     # three GenDC components: Intensity, Range, Chunk (Data)
     # => 3 Components: 1 part, 3 parts, 1 part
     def test_gendc_5_parts(self):
-        self._test_logger.info("start 'test_gendc_5_parts'.")
+        self._test_logger.debug("start 'test_gendc_5_parts'.")
         self.ia = self.harvester.create(0)
 
         # enable chunk data

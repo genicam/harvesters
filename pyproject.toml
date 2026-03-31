@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "harvesters"
+version = "1.5.0"
+authors = [
+    {name = "The GenICam Committee",email = "genicam@emva.org"}
+]
+description = "Image Acquisition Library for GenICam-based Machine Vision System"
+readme = "README.rst"
+license = "Apache-2.0"
+license-files = ["LICENSE.txt"]
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "Intended Audience :: Developers",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX",
+]
+dependencies = [
+    "genicam (>=1.6.0,<2.0.0)",
+    "numpy (>=2.0.0,<3.0.0)"
+]
+
+[dependency-groups]
+dev = [
+    "build",
+    "pytest"
+]

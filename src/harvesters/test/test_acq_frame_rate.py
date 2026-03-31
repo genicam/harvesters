@@ -130,25 +130,23 @@ class TestTutorials(TestHarvester):
     def _worker_update_statistics(self, id_: int):
         #
         if self.ia:
-            message_config = "W: {0} x H: {1}, {2}, ".format(
-                self.ia.remote_device.node_map.Width.value,
-                self.ia.remote_device.node_map.Height.value,
-                self.ia.remote_device.node_map.PixelFormat.value,
+            message = (
+                f"W: {self.ia.remote_device.node_map.Width.value} "
+                f"x H: {self.ia.remote_device.node_map.Height.value}, "
+                f"{self.ia.remote_device.node_map.PixelFormat.value}, "
             )
 
             if self.ia.statistics.elapsed_time_s == 0.0:
                 return
 
-            message_statistics = "{0:.1f} fps, elapsed {1}, {2} images".format(
-                self.ia.statistics.num_images / self.ia.statistics.elapsed_time_s,
-                str(datetime.timedelta(seconds=int(self.ia.statistics.elapsed_time_s))),
-                self.ia.statistics.num_images,
+            message += (
+                f"{self.ia.statistics.num_images / self.ia.statistics.elapsed_time_s:.1f} fps, "
+                f"elapsed {str(datetime.timedelta(seconds=int(self.ia.statistics.elapsed_time_s)))}, "
+                f"{self.ia.statistics.num_images} images"
             )
 
             #
-            self._test_logger.info(
-                "{0:08x}: {1}".format(id_, message_config + message_statistics)
-            )
+            self._test_logger.debug(f"{id_:08x}: {message}")
 
     def test_performance_on_image_acquisition_with_zero_sleep_duration(self):
         self._test_performance_on_image_acquisition(sleep_duration=0.0)

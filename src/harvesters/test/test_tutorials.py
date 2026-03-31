@@ -63,7 +63,7 @@ class TestTutorials(TestHarvester):
 
     def test_free_running(self):
         # Connect to the first camera in the list.
-        self.ia = self.harvester.create_image_acquirer(0)
+        self.ia = self.harvester.create(0)
 
         #
         num_images_to_acquire = 0
@@ -78,18 +78,23 @@ class TestTutorials(TestHarvester):
                 self._logger.info("{0}".format(buffer))
             num_images_to_acquire += 1
 
+    @unittest.skip(
+        "AcquisitionMode, TriggerMode and TriggerSource is not supported in viky."
+    )
     def test_severis_usage(self):
         if not self.is_running_with_default_target():
             return
 
         # Connect to the first camera in the list.
-        self.ia = self.harvester.create_image_acquirer(0)
+        self.ia = self.harvester.create(0)
 
         #
         num_images_to_acquire = 0
 
         # Setup the camera before starting image acquisition.
-        self.setup_camera()
+        self.ia.remote_device.node_map.AcquisitionMode.value = "Continuous"
+        self.ia.remote_device.node_map.TriggerMode.value = "On"
+        self.ia.remote_device.node_map.TriggerSource.value = "Software"
 
         # Then start image acquisition.
         self.ia.start()
@@ -111,11 +116,6 @@ class TestTutorials(TestHarvester):
 
             num_images_to_acquire += 1
 
-    def setup_camera(self):
-        self.ia.remote_device.node_map.AcquisitionMode.value = "Continuous"
-        self.ia.remote_device.node_map.TriggerMode.value = "On"
-        self.ia.remote_device.node_map.TriggerSource.value = "Software"
-
     def setup_equipment_and_trigger_camera(self):
         # Setup your equipment.
         # TODO: Code here.
@@ -132,9 +132,7 @@ class TestTutorials(TestHarvester):
         nr_devices = len(self.harvester.device_info_list)
         for i in range(nr_devices):
             threads.append(
-                AcquisitionThread(
-                    self.harvester.create_image_acquirer(i), 10, self._logger
-                )
+                AcquisitionThread(self.harvester.create(i), 10, self._logger)
             )
 
         for t in threads:
@@ -161,16 +159,13 @@ class TestTutorials2(unittest.TestCase):
         #
         self.harvester.reset()
 
-    def is_running_with_default_target(self):
-        return True if "TLSimu.cti" in self._cti_file_path else False
-
     def test_traversable_tutorial(self):
         # Add a CTI file path:
         self.harvester.add_file(self._cti_file_path)
         self.harvester.update()
 
         # Connect to the first camera in the list:
-        ia = self.harvester.create_image_acquirer(0)
+        ia = self.harvester.create(0)
 
         #
         num_images_to_acquire = 0

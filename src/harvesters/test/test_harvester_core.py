@@ -127,7 +127,7 @@ class TestHarvesterCore(TestHarvester):
         # Fetch a buffer that is filled with image data.
         with ia.fetch() as buffer:
             # Reshape it.
-            self._test_logger.info(f"{buffer}")
+            self._test_logger.debug(f"{buffer}")
 
         # Stop image acquisition.
         ia.stop()
@@ -151,7 +151,7 @@ class TestHarvesterCore(TestHarvester):
             # Fetch a buffer that is filled with image data.
             with ia.fetch() as buffer:
                 # Reshape it.
-                self._test_logger.info("{0}".format(buffer))
+                self._test_logger.debug("{0}".format(buffer))
 
             # Stop image acquisition.
             ia.stop()
@@ -197,7 +197,7 @@ class TestHarvesterCore(TestHarvester):
                             # a client called fetch method even though
                             # he'd forgotten to start image acquisition.
                             with ia.fetch() as buffer:
-                                self._test_logger.info("{0}".format(buffer))
+                                self._test_logger.debug("{0}".format(buffer))
                         except AttributeError:
                             # Harvester Core has not started image acquisition
                             # so calling fetch() raises AttributeError
@@ -209,7 +209,7 @@ class TestHarvesterCore(TestHarvester):
                         # recommended because you might forget to queue the
                         # buffer.
                         buffer = ia.fetch()
-                        self._test_logger.info("{0}".format(buffer))
+                        self._test_logger.debug("{0}".format(buffer))
                         buffer.queue()
 
                 #
@@ -289,7 +289,7 @@ class TestHarvesterCore(TestHarvester):
         ia.remote_device.node_map.TriggerSoftware.execute()
         buffer = ia.fetch(timeout=timeout)
         self.assertIsNotNone(buffer)
-        self._test_logger.info("{0}".format(buffer))
+        self._test_logger.debug("{0}".format(buffer))
         buffer.queue()
 
         # Now we stop image acquisition:
@@ -362,7 +362,7 @@ class TestHarvesterCore(TestHarvester):
         ia.remote_device.node_map.TriggerSoftware.execute()
         buffer = ia.try_fetch(timeout=timeout)
         self.assertIsNotNone(buffer)
-        self._test_logger.info("{0}".format(buffer))
+        self._test_logger.debug("{0}".format(buffer))
         buffer.queue()
 
         # Now we stop image acquisition:
@@ -382,7 +382,7 @@ class TestHarvesterCore(TestHarvester):
 
         # Fetch a buffer to make sure it's working:
         with ia.fetch() as buffer:
-            self._test_logger.info("{0}".format(buffer))
+            self._test_logger.debug("{0}".format(buffer))
 
         # Then stop image acquisition:
         ia.stop()
@@ -680,7 +680,7 @@ class TestHarvesterCore(TestHarvester):
 
                 # Fetch a buffer to make sure it's working:
                 with self.ia.fetch() as buffer:
-                    self._test_logger.info("{0}".format(buffer))
+                    self._test_logger.debug("{0}".format(buffer))
 
             # Then stop image acquisition:
             self.ia.stop()
@@ -798,10 +798,10 @@ class TestHarvesterCore(TestHarvester):
             ia.remote_device.port,
         ]
         file_names = [
-            "MachineVisionGames_Viky_System_3_2_0_221010145932.xml",
-            "MachineVisionGames_Viky_Interface_3_2_0_221010145932.xml",
-            "MachineVisionGames_Viky_Localdevice_3_2_0_221010145932.xml",
-            "MachineVisionGames_Viky_Remotedevice_3_2_0_221010145932.xml",
+            "MachineVisionGames_Viky_System_4_0_0_260317172156.xml",
+            "MachineVisionGames_Viky_Interface_4_0_0_260317172156.xml",
+            "MachineVisionGames_Viky_Localdevice_4_0_0_260317172156.xml",
+            "MachineVisionGames_Viky_Remotedevice_4_0_0_260317172156.xml",
         ]
 
         for port, file_name in zip(ports, file_names):

@@ -1,0 +1,10 @@
+{
+    "editor.rulers": [80,120],
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "flake8.args": ["--max-line-length=120"],
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.black-formatter",
+        "editor.formatOnSave": true
+    }
+}

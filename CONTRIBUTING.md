@@ -33,3 +33,7 @@ It is used for a basic test of the _Harvesters_ core.
 
 1. Run `pytest` in your Python environment on the top-level directory.
 
+## Project Build
+
+To build a wheel (*.whl) file, the command `python -m build --wheel` will do the job.
+The file is located in the subdirectory _./dist/_.

@@ -11,7 +11,7 @@
             "program": "${file}",
             "env": {
                 "PLAYTL_GENTL_LOGGING": "1",
-                "PLAYTL_LOG_LEVEL": "7",
+                "PLAYTL_LOG_LEVEL": "0",
             },
             "console": "integratedTerminal",
             "justMyCode": false

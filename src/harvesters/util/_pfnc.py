@@ -31,7 +31,7 @@
 # The content was created using the following command:
 # cat PFNC.h | sed -n '/typedef enum PfncFormat_/,/PfncFormat/p' | sed -rn "s/^\s*([A-Za-z0-9_]+)\s*[=]\s*([A-Fa-f0-9x]+).*/    \2: '\1',/p"
 symbolics = {
-    # As of 22-Dec-2022
+    # As of 07-Oct-2025
     0x01010037: 'Mono1p',
     0x01020038: 'Mono2p',
     0x01040039: 'Mono4p',
@@ -90,6 +90,7 @@ symbolics = {
     0x02400064: 'RGBa16',
     0x02180014: 'RGB8',
     0x02180021: 'RGB8_Planar',
+    0x0220012D: 'RGB8a32',
     0x02300018: 'RGB10',
     0x02300022: 'RGB10_Planar',
     0x021E005C: 'RGB10p',
@@ -109,6 +110,7 @@ symbolics = {
     0x02400050: 'BGRa14',
     0x02400051: 'BGRa16',
     0x02180015: 'BGR8',
+    0x0220012E: 'BGR8a32',
     0x02300019: 'BGR10',
     0x021E0048: 'BGR10p',
     0x0230001B: 'BGR12',

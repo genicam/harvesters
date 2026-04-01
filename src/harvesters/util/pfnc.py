@@ -267,11 +267,13 @@ lmno_4444_location_formats = [
     'RGBa12',
     'RGBa14',
     'RGBa16',
+    'RGB8a32',
     'BGRa8',
     'BGRa10',
     'BGRa12',
     'BGRa14',
     'BGRa16',
+    'BGR8a32',
 ]
 
 lmno_4444_packed_location_formats = [
@@ -440,6 +442,8 @@ uint16_formats = [
 
 uint32_formats = [
     'Mono32',
+    'RGB8a32',
+    'BGR8a32',
 ]
 
 float32_formats = [
@@ -545,6 +549,8 @@ component_16bit_formats = [
 
 component_32bit_formats = [
     'Confidence32f',
+    'RGB8a32',
+    'BGR8a32',
 ]
 
 

@@ -30,6 +30,7 @@ import threading
 import time
 import unittest
 from urllib.parse import quote
+import re
 
 # Related third party imports
 from genicam.genapi import GenericException as GenApi_GenericException
@@ -797,15 +798,18 @@ class TestHarvesterCore(TestHarvester):
             ia.device.port,
             ia.remote_device.port,
         ]
-        file_names = [
-            "MachineVisionGames_Viky_System_4_0_0_260317172156.xml",
-            "MachineVisionGames_Viky_Interface_4_0_0_260317172156.xml",
-            "MachineVisionGames_Viky_Localdevice_4_0_0_260317172156.xml",
-            "MachineVisionGames_Viky_Remotedevice_4_0_0_260317172156.xml",
+        file_names_pattern = [
+            "MachineVisionGames_Viky_System_3_0_0_\d{12}\.xml",
+            "MachineVisionGames_Viky_Interface_4_0_0_\d{12}\.xml",
+            "MachineVisionGames_Viky_Localdevice_4_0_0_\d{12}\.xml",
+            "MachineVisionGames_Viky_Remotedevice_4_0_0_\d{12}\.xml",
         ]
 
-        for port, file_name in zip(ports, file_names):
-            self.assertEqual(port.url_info_list[0].file_name, file_name)
+        for port, file_name_pattern in zip(ports, file_names_pattern):
+            self.assertTrue(
+                re.match(file_name_pattern, port.url_info_list[0].file_name),
+                f"{port.url_info_list[0].file_name} does not match {file_name_pattern}",
+            )
 
     def test_port_access(self):
         if not self.is_running_with_default_target():

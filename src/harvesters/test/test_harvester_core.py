@@ -799,7 +799,7 @@ class TestHarvesterCore(TestHarvester):
             ia.remote_device.port,
         ]
         file_names_pattern = [
-            "MachineVisionGames_Viky_System_3_0_0_\d{12}\.xml",
+            "MachineVisionGames_Viky_System_4_0_0_\d{12}\.xml",
             "MachineVisionGames_Viky_Interface_4_0_0_\d{12}\.xml",
             "MachineVisionGames_Viky_Localdevice_4_0_0_\d{12}\.xml",
             "MachineVisionGames_Viky_Remotedevice_4_0_0_\d{12}\.xml",
